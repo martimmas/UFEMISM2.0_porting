@@ -158,10 +158,6 @@ UFEMISM_source = \
   basic/CSR_matrix_algebra/CSR_matrix_vector_multiplication.f90 \
   basic/petsc_basic.f90 \
   \
-  basic/grid/grid_basic.f90 \
-  basic/grid/smooth_gridded_data.f90 \
-  basic/grid_lonlat_basic.f90 \
-  \
   mesh/mesh_memory.f90 \
   mesh/mesh_utilities.f90 \
   mesh/mesh_integrate_over_domain.f90 \
@@ -227,6 +223,10 @@ UFEMISM_source = \
   io/netcdf_output/netcdf_write_field_transect.f90 \
   io/netcdf_output/netcdf_resource_tracking.f90 \
   io/netcdf_output/netcdf_output.f90 \
+  \
+  basic/grid/grid_basic.f90 \
+  basic/grid/smooth_gridded_data.f90 \
+  basic/grid_lonlat_basic.f90 \
   \
   mesh/remapping/line_tracing_basic.f90 \
   mesh/remapping/line_tracing_grid.f90 \
