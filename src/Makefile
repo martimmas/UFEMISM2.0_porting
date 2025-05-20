@@ -158,6 +158,10 @@ UFEMISM_source = \
   basic/CSR_matrix_algebra/CSR_matrix_vector_multiplication.f90 \
   basic/petsc_basic.f90 \
   \
+  basic/grid/grid_basic.f90 \
+  basic/grid/smooth_gridded_data.f90 \
+  basic/grid_lonlat_basic.f90 \
+  \
   mesh/mesh_memory.f90 \
   mesh/mesh_utilities.f90 \
   mesh/mesh_integrate_over_domain.f90 \
