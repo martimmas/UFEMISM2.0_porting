@@ -436,6 +436,18 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
+    ! saving the variables we need to debug
+    call save_variable_as_netcdf_dp_2D(d,'/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/d.nc')
+    call save_variable_as_netcdf_int_0D(nx, '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/nx.nc')
+    call save_variable_as_netcdf_int_0D(ny, '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/ny.nc')
+    call save_variable_as_netcdf_int_0D(n,  '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/n.nc')
+    call save_variable_as_netcdf_int_0D(dx, '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/dx.nc')
+    call save_variable_as_netcdf_dp_1D(x,   '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/x.nc')
+    call save_variable_as_netcdf_dp_1D(y,   '/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/y.nc')
+    call save_variable_as_netcdf_dp_0D(xmin,'/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/xmin.nc')
+    call save_variable_as_netcdf_dp_0D(xmax,'/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/xmax.nc')
+    call save_variable_as_netcdf_dp_0D(ymin,'/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/ymin.nc')
+    call save_variable_as_netcdf_dp_0D(ymax,'/Users/mabrag/Library/CloudStorage/OneDrive-NERC/data/share/output_whaa/ymax.nc')
 
     ! Safety
     if (size( d,1) /= grid%nx .or. size( d,2) /= grid%ny) call crash('d is not nx-by-ny!')
