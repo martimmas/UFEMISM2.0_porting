@@ -228,10 +228,6 @@ UFEMISM_source = \
   io/netcdf_output/netcdf_resource_tracking.f90 \
   io/netcdf_output/netcdf_output.f90 \
   \
-  basic/grid/grid_basic.f90 \
-  basic/grid/smooth_gridded_data.f90 \
-  basic/grid_lonlat_basic.f90 \
-  \
   mesh/remapping/line_tracing_basic.f90 \
   mesh/remapping/line_tracing_grid.f90 \
   mesh/remapping/line_tracing_triangles.f90 \

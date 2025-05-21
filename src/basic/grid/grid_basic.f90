@@ -17,7 +17,7 @@ module grid_basic
     add_entry_CSR_dist, deallocate_matrix_CSR_dist
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary
   use mpi_f08, only: MPI_ALLREDUCE, MPI_INTEGER, MPI_MIN, MPI_MAX
-  use netcdf_io_main
+  use netcdf_save_single_variables
 
   implicit none
 
