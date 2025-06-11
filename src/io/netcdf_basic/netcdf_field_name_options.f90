@@ -88,6 +88,7 @@ module netcdf_field_name_options
   character(len=1024), parameter :: field_name_options_Ti             = 'Ti'
   character(len=1024), parameter :: field_name_options_T_ocean        = 'T_ocean||t_ocean||t_an||votemper'
   character(len=1024), parameter :: field_name_options_S_ocean        = 'S_ocean||s_ocean||s_an||vosaline'
+  character(len=1024), parameter :: field_name_options_dT_ocean       = 'dT||dT_ocean||dTo'
 
   ! Global forcing variables
   character(len=1024), parameter :: field_name_options_insolation     = 'Q_TOA'

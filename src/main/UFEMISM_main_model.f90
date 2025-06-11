@@ -513,7 +513,7 @@ CONTAINS
     ! ===== Ocean =====
     ! =================
 
-    CALL initialise_ocean_model( region%mesh, region%ice, region%ocean, region%name)
+    CALL initialise_ocean_model( region%mesh, region%ice, region%ocean, region%name, start_time_of_run)
 
     ! ===== Surface mass balance =====
     ! ================================
