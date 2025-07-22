@@ -14,7 +14,7 @@ MODULE GIA_main
   USE ice_model_types                                        , ONLY: type_ice_model
   USE GIA_model_types                                        , ONLY: type_GIA_model, type_ELRA_model
   USE region_types                                           , ONLY: type_model_region
-  USE grid_basic                                             , ONLY: setup_square_grid
+  USE grid_basic                                             , ONLY: setup_square_grid, deallocate_grid
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use reference_geometry_types                               , only: type_reference_geometry
   USE GIA_ELRA                                               , only: run_ELRA_model, calculate_ELRA_bedrock_deformation_rate, initialise_ELRA_model, remap_ELRA_model
@@ -223,20 +223,22 @@ CONTAINS
 
   END SUBROUTINE create_restart_file_GIA_model
 
-  SUBROUTINE remap_GIA_model( mesh_old, mesh_new, GIA, refgeo_GIAeq, ELRA)
+  SUBROUTINE remap_GIA_model( mesh_old, mesh_new, GIA, refgeo_GIAeq, ELRA, region_name)
     ! Remap the GIA model
 
     IMPLICIT NONE
 
     ! In- and output variables
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
-    TYPE(type_GIA_model),                   INTENT(OUT)   :: GIA
+    TYPE(type_mesh),                         INTENT(IN)    :: mesh_old
+    TYPE(type_mesh),                         INTENT(IN)    :: mesh_new
+    TYPE(type_GIA_model),                    INTENT(OUT)   :: GIA
     TYPE(type_reference_geometry), optional, INTENT(IN)    :: refgeo_GIAeq
-    TYPE(type_ELRA_model), optional, INTENT(OUT) :: ELRA
+    TYPE(type_ELRA_model), optional,         INTENT(OUT)   :: ELRA
+    CHARACTER(LEN=3),                        INTENT(IN)    :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'remap_GIA_model'
+    CHARACTER(LEN=256)                                    :: grid_name
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -255,6 +257,16 @@ CONTAINS
     IF     (C%choice_GIA_model == 'none') THEN
       ! No need to do anything
     ELSEIF (C%choice_GIA_model == 'ELRA') THEN
+
+      call deallocate_grid(GIA%grid)
+      ! Create the new square grid for the GIA model
+      grid_name = 'square_grid_GIA_' // region_name
+      CALL setup_square_grid( grid_name, mesh_new%xmin, mesh_new%xmax, mesh_new%ymin, mesh_new%ymax, &
+         C%dx_GIA, GIA%grid, &
+         lambda_M = mesh_new%lambda_M, phi_M = mesh_new%phi_M, beta_stereo = mesh_new%beta_stereo)
+
+      ALLOCATE( GIA%relative_surface_load_grid( GIA%grid%n1:GIA%grid%n2))
+      GIA%relative_surface_load_grid = 0._dp
       CALL remap_ELRA_model( mesh_old, mesh_new, ELRA, refgeo_GIAeq, GIA%grid)
     ELSE
       CALL crash('unknown choice_GIA_model "' // TRIM( C%choice_GIA_model) // '"')
