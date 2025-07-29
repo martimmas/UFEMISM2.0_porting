@@ -125,10 +125,10 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_refgeo_init_idealised_config          = ''                               ! Choice of idealised initial geometry; see reference_geometries/calc_idealised_geometry for options
     REAL(dp)            :: dx_refgeo_init_idealised_config              = 5000._dp                         ! Resolution of square grid used for idealised initial geometry
     ! Path to file containing initial geometry when choice_refgeo_init == 'read_from_file'
-    CHARACTER(LEN=256)  :: filename_refgeo_init_NAM_config              = 'data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_init_EAS_config              = 'data/ETOPO1/Eurasia_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_init_GRL_config              = 'data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_init_ANT_config              = 'data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_init_NAM_config              = 'external/data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_init_EAS_config              = 'external/data/ETOPO1/Eurasia_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_init_GRL_config              = 'external/data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_init_ANT_config              = 'external/data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
     ! Timeframe to read from the geometry file (set to 1E9_dp if the file has no time dimension)
     REAL(dp)            :: timeframe_refgeo_init_NAM_config             = 1E9_dp                           ! Can be different from C%start_time_of_run, be careful though!
     REAL(dp)            :: timeframe_refgeo_init_EAS_config             = 1E9_dp
@@ -146,10 +146,10 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_refgeo_PD_idealised_config            = ''                               ! Choice of idealised present-day geometry; see reference_geometries/calc_idealised_geometry for options
     REAL(dp)            :: dx_refgeo_PD_idealised_config                = 5000._dp                         ! Resolution of square grid used for idealised present-day geometry
     ! Path to file containing present-day geometry when choice_refgeo_PD == 'read_from_file'
-    CHARACTER(LEN=256)  :: filename_refgeo_PD_NAM_config                = 'data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_PD_EAS_config                = 'data/ETOPO1/Eurasia_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_PD_GRL_config                = 'data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_PD_ANT_config                = 'data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_PD_NAM_config                = 'external/data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_PD_EAS_config                = 'external/data/ETOPO1/Eurasia_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_PD_GRL_config                = 'external/data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_PD_ANT_config                = 'external/data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
     ! Timeframe to read from the geometry file (set to 1E9_dp if the file has no time dimension)
     REAL(dp)            :: timeframe_refgeo_PD_NAM_config               = 1E9_dp                           ! Can be different from C%start_time_of_run, be careful though!
     REAL(dp)            :: timeframe_refgeo_PD_EAS_config               = 1E9_dp
@@ -167,10 +167,10 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_refgeo_GIAeq_idealised_config         = ''                               ! Choice of idealised GIA equilibrium reference geometry; see reference_geometries/calc_idealised_geometry for options
     REAL(dp)            :: dx_refgeo_GIAeq_idealised_config             = 5000._dp                         ! Resolution of square grid used for idealised GIA equilibrium reference geometry
     ! Path to file containing GIA equilibrium reference geometry when choice_refgeo_GIAeq == 'read_from_file'
-    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_NAM_config             = 'data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_EAS_config             = 'data/ETOPO1/Eurasia_ETOPO1_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_GRL_config             = 'data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
-    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_ANT_config             = 'data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_NAM_config             = 'external/data/ETOPO1/NorthAmerica_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_EAS_config             = 'external/data/ETOPO1/Eurasia_ETOPO1_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_GRL_config             = 'external/data/Bedmachine_Greenland/BedMachine_Greenland_v4_5km.nc'
+    CHARACTER(LEN=256)  :: filename_refgeo_GIAeq_ANT_config             = 'external/data/Bedmachine_Antarctica/Bedmachine_v1_Antarctica_5km.nc'
     ! Timeframe to read from the geometry file (set to 1E9_dp if the file has no time dimension)
     REAL(dp)            :: timeframe_refgeo_GIAeq_NAM_config            = 1E9_dp                           ! Can be different from C%start_time_of_run, be careful though!
     REAL(dp)            :: timeframe_refgeo_GIAeq_EAS_config            = 1E9_dp
@@ -962,11 +962,10 @@ MODULE model_configuration
     REAL(dp)            :: uniform_laddie_tidal_velocity_config         = 0.1_dp                           ! [m s^-1] Uniform tidal velocity
 
     ! Subglacial discharge (SGD)
-    CHARACTER(LEN=256)  :: choice_laddie_SGD_config                     = 'none'                           ! Choose option for subglacial discharge. Options: 'none', 'idealised'
+    CHARACTER(LEN=256)  :: choice_laddie_SGD_config                     = 'none'                           ! Choose option for subglacial discharge. Options: 'none', 'idealised', 'read_from_file'
     CHARACTER(LEN=256)  :: choice_laddie_SGD_idealised_config           = 'MISMIPplus_PC'                  ! Choose option for idealised SGD. Options: 'MISMIPplus_PC', 'MISMIPplus_PW', 'MISMIPplus_PE'
     REAL(dp)            :: laddie_SGD_flux_config                       = 72._dp                           ! [m^3 s^-1] Total subglacial discharge flux
-    ! CHARACTER(LEN=256)  :: filename_subglacial_discharge_mask_config    = ''                               ! area file containing the subglacial discharge mask on the original mesh
-
+    CHARACTER(LEN=256)  :: filename_laddie_mask_SGD_config              = ''                               ! Gridded file containing the subglacial discharge mask
 
   ! == Lateral mass balance
   ! =======================
@@ -1028,7 +1027,7 @@ MODULE model_configuration
     INTEGER             :: SELEN_n_harmonics_config                     = 128                             ! Maximum number of harmonic degrees
     LOGICAL             :: SELEN_display_progress_config                = .FALSE.                         ! Whether or not to display the progress of the big loops to the screen (doesn't work on Cartesius!)
 
-    CHARACTER(LEN=256)  :: SELEN_dir_config                             = 'data/SELEN'                    ! Directory where SELEN initial files and spherical harmonics are stored
+    CHARACTER(LEN=256)  :: SELEN_dir_config                             = 'external/data/SELEN'                    ! Directory where SELEN initial files and spherical harmonics are stored
     CHARACTER(LEN=256)  :: SELEN_global_topo_filename_config            = 'SELEN_global_topography.nc'    ! Filename for the SELEN global topography file (located in SELEN_dir)
     CHARACTER(LEN=256)  :: SELEN_TABOO_init_filename_config             = 'SELEN_TABOO_initial_file.dat'  ! Filename for the TABOO initial file           (idem                )
     CHARACTER(LEN=256)  :: SELEN_LMJ_VALUES_filename_config             = 'SELEN_lmj_values.bin'          ! Filename for the LJ and MJ values file        (idem                )
@@ -2091,6 +2090,7 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_laddie_SGD
     CHARACTER(LEN=256)  :: choice_laddie_SGD_idealised
     REAL(dp)            :: laddie_SGD_flux
+    CHARACTER(LEN=256)  :: filename_laddie_mask_SGD
 
   ! == Lateral mass balance
   ! =======================
@@ -3078,6 +3078,7 @@ CONTAINS
       choice_laddie_SGD_config                                    , &
       choice_laddie_SGD_idealised_config                          , &
       laddie_SGD_flux_config                                      , &
+      filename_laddie_mask_SGD_config                             , &
       choice_laddie_tides_config                                  , &
       uniform_laddie_tidal_velocity_config                        , &
       dt_LMB_config                                               , &
@@ -3872,7 +3873,7 @@ CONTAINS
     C%choice_insolation_forcing                              = choice_insolation_forcing_config
     C%filename_insolation                                    = filename_insolation_config
     C%static_insolation_time                                 = static_insolation_time_config
-    
+
     ! Climate matrix
     C%choice_matrix_forcing                                  = choice_matrix_forcing_config
     ! NetCDF file containing the present-day observed climate (e.g. ERA40)
@@ -3883,7 +3884,7 @@ CONTAINS
     C%climate_matrix_filename_climate_snapshot_warm            = climate_matrix_filename_climate_snapshot_warm_config
     C%climate_matrix_filename_climate_snapshot_cold            = climate_matrix_filename_climate_snapshot_cold_config
 
-    C%climate_matrix_constant_lapserate                        = climate_matrix_constant_lapserate_config 
+    C%climate_matrix_constant_lapserate                        = climate_matrix_constant_lapserate_config
 
     ! Scaling factor for CO2 vs ice weights
     C%climate_matrix_CO2vsice_NAM                              = climate_matrix_CO2vsice_NAM_config
@@ -3901,7 +3902,7 @@ CONTAINS
     C%climate_matrix_biascorrect_warm                          = climate_matrix_biascorrect_warm_config
     C%climate_matrix_biascorrect_cold                          = climate_matrix_biascorrect_cold_config
     C%climate_matrix_switch_glacial_index_precip               = climate_matrix_switch_glacial_index_precip_config
-    
+
 
   ! == Ocean
   ! ========
@@ -4189,7 +4190,8 @@ CONTAINS
     C%choice_laddie_SGD                                      = choice_laddie_SGD_config
     C%choice_laddie_SGD_idealised                            = choice_laddie_SGD_idealised_config
     C%laddie_SGD_flux                                        = laddie_SGD_flux_config
-
+    C%filename_laddie_mask_SGD                               = filename_laddie_mask_SGD_config
+    
   ! == Lateral mass balance
   ! =======================
 
