@@ -337,7 +337,7 @@ contains
             case ('Antarctic_Peninsula')
               call calc_polygon_Antarctic_Peninsula( poly_ROI)
             case default
-              ! Requested area not in this model domain; skip 
+              ! Requested area not in this model domain; skip
               cycle
           end select
 
