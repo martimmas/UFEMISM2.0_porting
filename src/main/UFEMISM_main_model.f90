@@ -986,7 +986,7 @@ CONTAINS
          ! No region requested: don't need to do anything
          EXIT
         CASE ('PineIsland','Thwaites','Amery','RiiserLarsen','SipleCoast','LarsenC', &
-              'TransMounts','DotsonCrosson', 'Franka_WAIS', 'Dotson_channel', &                                      ! Antarctica
+              'TransMounts','DotsonCrosson', 'Franka_WAIS', 'Dotson_channel', 'Antarctic_Peninsula', &               ! Antarctica
               'Narsarsuaq','Nuuk','Jakobshavn','NGIS','Qaanaaq', &                                                   ! Greenland
               'Patagonia', &                                                                                         ! Patagonia
               'CalvMIP_quarter')                                                             ! Idealised
@@ -1064,6 +1064,8 @@ CONTAINS
               CYCLE
             CASE ('Franka_WAIS')
               CALL calc_polygon_Franka_WAIS( poly_ROI)
+            CASE ('Antarctic_Peninsula')
+              CALL calc_polygon_Antarctic_Peninsula( poly_ROI)
             CASE DEFAULT
               ! Requested area not in this model domain; skip
               CYCLE
