@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache/restore@v3
         id: UPSY_program_cache_restore
         with:
-          path: UPSY_component_test_program
+          path: .
           key: UPSY_component_test_program_dev_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run component tests
