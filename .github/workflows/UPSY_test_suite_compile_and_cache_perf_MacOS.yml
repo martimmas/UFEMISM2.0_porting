@@ -44,5 +44,7 @@ jobs:
         uses: actions/cache/save@v3
         id: UPSY_program_cache_save
         with:
-          path: UPSY_unit_test_program
+          path: |
+            UPSY_unit_test_program
+            UPSY_component_test_program
           key: UPSY_unit_test_program_perf_${{ github.ref_name }}_${{ github.run_id }}
