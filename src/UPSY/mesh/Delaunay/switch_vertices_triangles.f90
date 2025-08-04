@@ -8,7 +8,7 @@ module switch_vertices_triangles
 
   private
 
-  public :: switch_vertices
+  public :: switch_vertices, switch_triangles
 
 contains
 
@@ -41,5 +41,32 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine switch_vertices
+
+  subroutine switch_triangles( mesh, ti, tj)
+    !< Switch triangles ti and tj
+
+    ! Input variables
+    type(type_mesh), intent(inout) :: mesh
+    integer,         intent(in   ) :: ti, tj
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'switch_triangles'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Switch rows in Tri, Tricc, TriC
+    call switch_rows( mesh%Tri  , ti, tj)
+    call switch_rows( mesh%Tricc, ti, tj)
+    call switch_rows( mesh%TriC , ti, tj)
+
+    ! Switch entries in iTri, TriC
+    call switch_entries_by_value( mesh%TriC, ti, tj)
+    call switch_entries_by_value( mesh%iTri, ti, tj)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine switch_triangles
 
 end module switch_vertices_triangles
