@@ -39,7 +39,6 @@ jobs:
 
       - name: Compile UPSY
         run: ./compile_UPSY.csh  dev  clean
-        run: ./compile_UPSY.csh  perf  clean
 
       - name: Cache UPSY unit test program
         uses: actions/cache/save@v3
