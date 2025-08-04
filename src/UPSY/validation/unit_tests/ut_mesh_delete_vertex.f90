@@ -31,10 +31,9 @@ contains
     character(len=*), intent(in) :: test_name_parent
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'test_delete_vertex'
-    character(len=1024), parameter :: test_name_local = 'delete_vertex'
-    character(len=1024)            :: test_name
-    logical                            :: verified
+    character(len=1024), parameter     :: routine_name = 'test_delete_vertex'
+    character(len=1024), parameter     :: test_name_local = 'delete_vertex'
+    character(len=1024)                :: test_name
     real(dp), parameter                :: xmin = 0._dp
     real(dp), parameter                :: xmax = 1._dp
     real(dp), parameter                :: ymin = 0._dp
@@ -52,8 +51,6 @@ contains
 
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-    verified = .true.
 
     call allocate_mesh_primary( mesh, 'test_mesh', 100, 200)
     call initialise_dummy_mesh_5( mesh, xmin, xmax, ymin, ymax)
@@ -89,11 +86,9 @@ contains
 
     call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
 
-    verified = verified .and. test_mesh_is_self_consistent( mesh)
-    verified = verified .and. mesh%nV   == nV_before   - 1
-    verified = verified .and. mesh%nTri == ntri_before - 2
-
-    call unit_test( verified, trim(test_name))
+    call unit_test( test_mesh_is_self_consistent( mesh), trim( test_name) // '/mesh_self_consistency')
+    call unit_test( mesh%nV   == nV_before   - 1       , trim( test_name) // '/nV')
+    call unit_test( mesh%nTri == nTri_before - 2       , trim( test_name) // '/nTri')
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
