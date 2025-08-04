@@ -34,30 +34,6 @@ contains
     character(len=1024), parameter :: routine_name = 'test_delete_vertex'
     character(len=1024), parameter :: test_name_local = 'delete_vertex'
     character(len=1024)            :: test_name
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    ! Add test name to list
-    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-    call test_delete_vertex_nV9( test_name)
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine test_delete_vertex
-
-  subroutine test_delete_vertex_nV9( test_name_parent)
-    ! Test the trace_line_grid_a subroutine
-
-    ! In/output variables:
-    character(len=*), intent(in) :: test_name_parent
-
-    ! Local variables:
-    character(len=1024), parameter     :: routine_name = 'test_delete_vertex_nV9'
-    character(len=1024), parameter     :: test_name_local = 'nV9'
-    character(len=1024)                :: test_name
     logical                            :: verified
     real(dp), parameter                :: xmin = 0._dp
     real(dp), parameter                :: xmax = 1._dp
@@ -119,11 +95,9 @@ contains
 
     call unit_test( verified, trim(test_name))
 
-    call crash('whoopsiedaisy')
-
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine test_delete_vertex_nV9
+  end subroutine test_delete_vertex
 
 end module ut_mesh_delete_vertex
