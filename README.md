@@ -1,4 +1,4 @@
-![UPSY_logo](files/UPSY_logo.png)
+![UPSY_logo](UPSY_logo.png)
 
 Welcome to the Utrecht Polar SYstem (UPSY) models repo! Here you will find the UPSY modelling toolkit, the
 Utrecht Finite Volume Ice-Sheet Model (UFEMISM), and the One-Layer Antarctic Model for Dynamical
