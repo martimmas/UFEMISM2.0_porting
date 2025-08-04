@@ -98,17 +98,15 @@ contains
     integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'delete_vertex_nCge4'
-    integer                         :: vi, ti
-    integer                         :: vj_clock, vj_focus, vj_anti
-    integer                         :: nvj_opp
-    integer, dimension(mesh%nC_mem) :: vj_opp
-    integer                         :: ti1, ti2, ti3, ti4
-    integer                         :: nti_opp
-    integer, dimension(mesh%nC_mem) :: ti_opp
-    integer                         :: tj1, tj2, tj3, tj4
-    integer, dimension(mesh%nC_mem) :: tj_opp
-    integer                         :: vii, tii
+    character(len=1024), parameter     :: routine_name = 'delete_vertex_nCge4'
+    integer                            :: vi, ti
+    integer                            :: vj_clock, vj_focus, vj_anti
+    integer, dimension(:), allocatable :: vj_opp
+    integer                            :: ti1, ti2, ti3, ti4
+    integer, dimension(:), allocatable :: ti_opp
+    integer                            :: tj1, tj2, tj3, tj4
+    integer, dimension(:), allocatable :: tj_opp
+    integer                            :: vii, tii
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -129,13 +127,13 @@ contains
 
     ! Determine the local geometry
     call delete_vertex_nCge4_local_geometry( mesh, vi_kill, &
-      vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, &
-      ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+      vj_clock, vj_focus, vj_anti, vj_opp, &
+      ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
-    call delete_vertex_nCge4_nC_C(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_Tri(        mesh, vi_kill, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_TriC(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call delete_vertex_nCge4_nC_C(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call delete_vertex_nCge4_Tri(        mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call delete_vertex_nCge4_TriC(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     call delete_vertex_V  ( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     call delete_vertex_Tri( mesh, ti1    , ti_new2ti_old, ti_old2ti_new)
@@ -144,19 +142,19 @@ contains
     vj_clock = vi_old2vi_new( vj_clock)
     vj_focus = vi_old2vi_new( vj_focus)
     vj_anti  = vi_old2vi_new( vj_anti )
-    do vii = 1, nvj_opp
+    do vii = 1, size( vj_opp,1)
       vj_opp( vii) = vi_old2vi_new( vj_opp( vii))
     end do
 
     ti2 = ti_old2ti_new( ti2)
     ti3 = ti_old2ti_new( ti3)
-    do tii = 1, nti_opp
+    do tii = 1, size( ti_opp,1)
       ti_opp( tii) = ti_old2ti_new( ti_opp( tii))
     end do
 
     call update_triangle_circumcenter( mesh, ti2)
     call update_triangle_circumcenter( mesh, ti3)
-    do tii = 1, nti_opp
+    do tii = 1, size( ti_opp,1)
       call update_triangle_circumcenter( mesh, ti_opp( tii))
     end do
 
@@ -166,7 +164,7 @@ contains
 
     call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti2)
     call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti3)
-    do tii = 1, nti_opp
+    do tii = 1, size( ti_opp,1)
       call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti_opp( tii))
     end do
 
@@ -180,8 +178,8 @@ contains
   end subroutine delete_vertex_nCge4
 
   subroutine delete_vertex_nCge4_local_geometry( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp, &
-    ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp, &
+    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     ! Find the local geometry:
     !
@@ -200,16 +198,14 @@ contains
     !                 vj_focus
 
     ! In/output variables:
-    type(type_mesh),       intent(in   ) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(  out) :: vj_clock, vj_focus, vj_anti
-    integer,               intent(  out) :: nvj_opp
-    integer, dimension(:), intent(  out) :: vj_opp
-    integer,               intent(  out) :: ti1, ti2, ti3, ti4
-    integer,               intent(  out) :: nti_opp
-    integer, dimension(:), intent(  out) :: ti_opp
-    integer,               intent(  out) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), intent(  out) :: tj_opp
+    type(type_mesh),                    intent(in   ) :: mesh
+    integer,                            intent(in   ) :: vi_kill
+    integer,                            intent(  out) :: vj_clock, vj_focus, vj_anti
+    integer, dimension(:), allocatable, intent(  out) :: vj_opp
+    integer,                            intent(  out) :: ti1, ti2, ti3, ti4
+    integer, dimension(:), allocatable, intent(  out) :: ti_opp
+    integer,                            intent(  out) :: tj1, tj2, tj3, tj4
+    integer, dimension(:), allocatable, intent(  out) :: tj_opp
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_local_geometry'
@@ -223,7 +219,7 @@ contains
 
     ! Find vj_focus, which must be at a convex corner
     call find_vj_focus_et_al_nCge4( mesh, vi_kill, &
-      vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp)
+      vj_clock, vj_focus, vj_anti, vj_opp)
 
     ! Inside triangles
     found_it = .false.
@@ -258,7 +254,6 @@ contains
       if (found_it) exit
     end do
 
-    nti_opp = mesh%niTri( vi_kill) - 4
     if (iti4 > iti1) then
       ! [iti1,iti2,iti3,iti4] form a contiguous block within iTri(vi_kill,:)
       ti_opp = [mesh%iTri( vi_kill, iti4+1:mesh%niTri( vi_kill)), mesh%iTri( vi_kill, 1:iti1-1)]
@@ -266,8 +261,6 @@ contains
       ! The block is non-contiguous
       ti_opp = mesh%iTri( vi_kill, iti4+1: iti1-1)
     end if
-    ! Safety
-    if (size( ti_opp) /= nti_opp) call crash('whaa!')
 
     ! Outside triangles
     tj1 = 0
@@ -306,7 +299,8 @@ contains
       end if
     end do
 
-    do tii = 1, nti_opp
+    allocate( tj_opp( size( ti_opp,1)), source = 0)
+    do tii = 1, size( ti_opp,1)
       ti = ti_opp( tii)
       do n = 1, 3
         tj = mesh%TriC( ti,n)
@@ -323,16 +317,15 @@ contains
   end subroutine delete_vertex_nCge4_local_geometry
 
   subroutine find_vj_focus_et_al_nCge4( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp)
     !< Find a valid vj_focus (from where you can "see" all other neighbours of vi_kill)
     !< ...which is not guaranteed, as they might span a non-convex polygon
 
     ! In/output variables:
-    type(type_mesh),       intent(in   ) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(  out) :: vj_clock, vj_focus, vj_anti
-    integer,               intent(  out) :: nvj_opp
-    integer, dimension(:), intent(  out) :: vj_opp
+    type(type_mesh),                    intent(in   ) :: mesh
+    integer,                            intent(in   ) :: vi_kill
+    integer,                            intent(  out) :: vj_clock, vj_focus, vj_anti
+    integer, dimension(:), allocatable, intent(  out) :: vj_opp
 
     ! Local variables:
     integer, dimension(:), allocatable :: CC
@@ -349,24 +342,22 @@ contains
       vj_clock = CC( 1);
       vj_focus = CC( 2);
       vj_anti  = CC( 3);
-      nvj_opp  = mesh%nC( vi_kill) - 3;
       vj_opp   = CC( 4: mesh%nC( vi_kill));
 
-      if (is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp)) then
+      if (is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, vj_opp)) then
         exit
       end if
     end do
 
   end subroutine find_vj_focus_et_al_nCge4
 
-  function is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, nvj_opp, vj_opp) result( isso)
+  function is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, vj_opp) result( isso)
     ! All new triangles resulting from this ordering must have their
     ! vertices ordered counter-clockwise
 
     ! In/output variables:
     type(type_mesh),       intent(in   ) :: mesh
     integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
-    integer,               intent(in   ) :: nvj_opp
     integer, dimension(:), intent(in   ) :: vj_opp
     logical                              :: isso
 
@@ -381,13 +372,13 @@ contains
     isso = isso .and. is_ordered_counterclockwise( mesh, tri)
 
     ! ti_opp
-    do vii = 1, nvj_opp-1
+    do vii = 1, size( vj_opp,1)-1
       tri = [vj_focus, vj_opp( vii), vj_opp( vii+1)]
       isso = isso .and. is_ordered_counterclockwise( mesh, tri)
     end do
 
     ! ti3
-    tri = [vj_focus, vj_opp( nvj_opp), vj_clock]
+    tri = [vj_focus, vj_opp( size( vj_opp,1)), vj_clock]
     isso = isso .and. is_ordered_counterclockwise( mesh, tri)
 
   end function is_valid_order_vj_focus_nCge4
@@ -412,17 +403,15 @@ contains
   end function is_ordered_counterclockwise
 
   subroutine delete_vertex_nCge4_nC_C( mesh, vi_kill, &
-    vj_focus, vj_clock, vj_anti, nvj_opp, vj_opp, &
-    ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp, &
+    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     ! In/output variables:
     type(type_mesh),       intent(inout) :: mesh
     integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_focus, vj_clock, vj_anti
-    integer,               intent(in   ) :: nvj_opp
+    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
     integer, dimension(:), intent(in   ) :: vj_opp
     integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer,               intent(in   ) :: nti_opp
     integer, dimension(:), intent(in   ) :: ti_opp
     integer,               intent(in   ) :: tj1, tj2, tj3, tj4
     integer, dimension(:), intent(in   ) :: tj_opp
@@ -444,7 +433,7 @@ contains
     call remove_vj_in_C_vi( mesh, vj_anti, vi_kill)
 
     ! vj_opp: replace connection to vi_kill by vj_focus
-    do vii = 1, nvj_opp
+    do vii = 1, size( vj_opp,1)
       call replace_vj_in_C_vi_with_vks( mesh, vj_opp( vii), vi_kill, [vj_focus])
     end do
 
@@ -454,17 +443,15 @@ contains
   end subroutine delete_vertex_nCge4_nC_C
 
   subroutine delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, &
-    vj_focus, vj_clock, vj_anti, nvj_opp, vj_opp, &
-    ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp, &
+    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     ! In/output variables:
     type(type_mesh),       intent(inout) :: mesh
     integer,               intent(in   ) :: vi_kill
-    integer,               intent(  out) :: vj_focus, vj_clock, vj_anti
-    integer,               intent(  out) :: nvj_opp
+    integer,               intent(  out) :: vj_clock, vj_focus, vj_anti
     integer, dimension(:), intent(  out) :: vj_opp
     integer,               intent(  out) :: ti1, ti2, ti3, ti4
-    integer,               intent(  out) :: nti_opp
     integer, dimension(:), intent(  out) :: ti_opp
     integer,               intent(  out) :: tj1, tj2, tj3, tj4
     integer, dimension(:), intent(  out) :: tj_opp
@@ -485,8 +472,8 @@ contains
     call remove_ti_in_iTri_vi( mesh, vj_anti, ti4)
 
     ! vj_opp: replace ti1 with ti2, and ti4 with ti3
-    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( nvj_opp), ti1, ti2)
-    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( 1      ), ti4, ti3)
+    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( size( vj_opp,1)), ti1, ti2)
+    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( 1              ), ti4, ti3)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -494,17 +481,15 @@ contains
   end subroutine delete_vertex_nCge4_niTri_iTri
 
   subroutine delete_vertex_nCge4_Tri( mesh, vi_kill, &
-    vj_focus, vj_clock, vj_anti, nvj_opp, vj_opp, &
-    ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp, &
+    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     ! In/output variables:
     type(type_mesh),       intent(inout) :: mesh
     integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_focus, vj_clock, vj_anti
-    integer,               intent(in   ) :: nvj_opp
+    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
     integer, dimension(:), intent(in   ) :: vj_opp
     integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer,               intent(in   ) :: nti_opp
     integer, dimension(:), intent(in   ) :: ti_opp
     integer,               intent(in   ) :: tj1, tj2, tj3, tj4
     integer, dimension(:), intent(in   ) :: tj_opp
@@ -518,8 +503,8 @@ contains
 
     ! ti1: nothing changes (will be deleted)
 
-    ! ti2: replace vi_kill with vj_opp( nvj_opp)
-    call replace_vi_in_Tri_ti_with_vj( mesh, ti2, vi_kill, vj_opp( nvj_opp))
+    ! ti2: replace vi_kill with vj_opp( end)
+    call replace_vi_in_Tri_ti_with_vj( mesh, ti2, vi_kill, vj_opp( size( vj_opp,1)))
 
     ! ti3: replace vi_kill with vj_opp( 1)
     call replace_vi_in_Tri_ti_with_vj( mesh, ti3, vi_kill, vj_opp( 1))
@@ -527,7 +512,7 @@ contains
     ! ti4: nothing changes (will be deleted)
 
     ! ti_opp: replace vi_kill with vj_focus
-    do tii = 1, nti_opp
+    do tii = 1, size( ti_opp,1)
       call replace_vi_in_Tri_ti_with_vj( mesh, ti_opp( tii), vi_kill, vj_focus)
     end do
 
@@ -537,17 +522,15 @@ contains
   end subroutine delete_vertex_nCge4_Tri
 
   subroutine delete_vertex_nCge4_TriC( mesh, vi_kill, &
-    vj_focus, vj_clock, vj_anti, nvj_opp, vj_opp, &
-    ti1, ti2, ti3, ti4, nti_opp, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    vj_clock, vj_focus, vj_anti, vj_opp, &
+    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
 
     ! In/output variables:
     type(type_mesh),       intent(inout) :: mesh
     integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_focus, vj_clock, vj_anti
-    integer,               intent(in   ) :: nvj_opp
+    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
     integer, dimension(:), intent(in   ) :: vj_opp
     integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer,               intent(in   ) :: nti_opp
     integer, dimension(:), intent(in   ) :: ti_opp
     integer,               intent(in   ) :: tj1, tj2, tj3, tj4
     integer, dimension(:), intent(in   ) :: tj_opp
@@ -560,28 +543,28 @@ contains
 
     ! ti1: nothing changes (will be deleted)
 
-    ! ti2: replace ti1 in TriC with tj1, and ti3 with ti_opp( nti_opp)
+    ! ti2: replace ti1 in TriC with tj1, and ti3 with ti_opp( end)
     call replace_tj_in_TriC_ti_with_tk( mesh, ti2, ti1, tj1)
-    if (nti_opp >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti2, ti3, ti_opp( nti_opp))
+    if (size( ti_opp,1) >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, ti2, ti3, ti_opp( size( ti_opp,1)))
     end if
 
     ! ti3: replace ti4 in TriC with tj4, and ti2 with ti_opp( 1)
     call replace_tj_in_TriC_ti_with_tk( mesh, ti3, ti4, tj4)
-    if (nti_opp >= 1) then
+    if (size( ti_opp,1) >= 1) then
       call replace_tj_in_TriC_ti_with_tk( mesh, ti3, ti2, ti_opp( 1))
     end if
 
     ! ti4: nothing changes (will be deleted)
 
     ! ti_opp( 1): replace ti4 in TriC with ti3
-    if (nti_opp >= 1) then
+    if (size( ti_opp,1) >= 1) then
       call replace_tj_in_TriC_ti_with_tk( mesh, ti_opp( 1), ti4, ti3)
     end if
 
-    ! ti_opp( nti_opp): replace ti1 in TriC with ti2
-    if (nti_opp >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti_opp( nti_opp), ti1, ti2)
+    ! ti_opp( end): replace ti1 in TriC with ti2
+    if (size( ti_opp,1) >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, ti_opp( size( ti_opp,1)), ti1, ti2)
     end if
 
     ! tj1: replace ti1 in TriC with ti2
@@ -860,9 +843,9 @@ contains
   subroutine delete_vertex_Tri( mesh, ti_kill, ti_new2ti_old, ti_old2ti_new)
 
     ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: ti_kill
-    integer, dimension(:), intent(inout) :: ti_new2ti_old, ti_old2ti_new
+    type(type_mesh),                    intent(inout) :: mesh
+    integer,                            intent(in   ) :: ti_kill
+    integer, dimension(:), allocatable, intent(inout) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_Tri'
