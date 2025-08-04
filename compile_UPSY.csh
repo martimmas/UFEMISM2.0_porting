@@ -48,6 +48,10 @@ endif
 
 echo ""
 
+
+# If no include directory exists, create it
+if (! -d include) mkdir include
+
 # If no build directory exists, create it
 if (! -d build) mkdir build
 
@@ -107,8 +111,8 @@ if ($version == 'dev') then
 
   rm -f UPSY_unit_test_program_dev
   rm -f UPSY_component_test_program_dev
-  mv build/UPSY_unit_test_program UPSY_unit_test_program_dev
-  mv build/UPSY_component_test_program UPSY_component_test_program_dev
+  mv build/src/UPSY/UPSY_unit_test_program UPSY_unit_test_program_dev
+  mv build/src/UPSY/UPSY_component_test_program UPSY_component_test_program_dev
   rm -f UPSY_unit_test_program
   rm -f UPSY_component_test_program
   cp UPSY_unit_test_program_dev UPSY_unit_test_program
@@ -118,8 +122,8 @@ else if ($version == 'perf') then
 
   rm -f UPSY_unit_test_program_perf
   rm -f UPSY_component_test_program_perf
-  mv build/UPSY_unit_test_program UPSY_unit_test_program_perf
-  mv build/UPSY_component_test_program UPSY_component_test_program_perf
+  mv build/src/UPSY/UPSY_unit_test_program UPSY_unit_test_program_perf
+  mv build/src/UPSY/UPSY_component_test_program UPSY_component_test_program_perf
   rm -f UPSY_unit_test_program
   rm -f UPSY_component_test_program
   cp UPSY_unit_test_program_perf UPSY_unit_test_program
