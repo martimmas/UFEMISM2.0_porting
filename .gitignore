@@ -1,15 +1,26 @@
-# Ignore the main executable
+# Ignore the executable
+UPSY_unit_test_program
+UPSY_unit_test_program_dev
+UPSY_unit_test_program_perf
+
 UFEMISM_program
 UFEMISM_program_dev
 UFEMISM_program_perf
+
+LADDIE_program
+LADDIE_program_dev
+LADDIE_program_perf
+
+# Ignore build files
+build/*
 
 # Ignore scripts in main folder
 /*.sh
 /*.csh
 
-# Ignore the module and object files
-*.mod
-*.o
+# ...except for the compile scripts
+!compile_UFEMISM.csh
+!compile_UPSY.csh
 
 # Ignore output files
 result*/
@@ -20,14 +31,8 @@ result*/
 # Ignore SLURM output on Snellius
 slurm-*.out
 
-# Ignore depend file
-.depend
-
 # Ignore Matlab autosave files
 *.asv
-
-# ignore data directory
-data
 
 # Ignore automated test reports
 automated_testing/test_reports/*.html
