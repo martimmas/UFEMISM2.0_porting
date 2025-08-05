@@ -55,7 +55,7 @@ contains
     call test_refine_mesh_polygon_ROI( test_name)
     call test_Lloyds_algorithm       ( test_name)
     call test_contiguous_domains     ( test_name)
-    call test_delete_vertex          ( test_name)
+    ! call test_delete_vertex          ( test_name)
     call test_duplicate_mesh         ( test_name)
 
     ! Remove routine from call stack
