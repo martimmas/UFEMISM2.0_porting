@@ -29,7 +29,7 @@ function(link_to_dependencies target)
   add_definitions(${PETSC_CFLAGS_OTHER})
 
   if(IS_LINUX)
-    find_package(HDF5 REQUIRED)
+    find_package(HDF5 REQUIRED COMPONENTS C HL Fortran)
     target_link_libraries(${target} PRIVATE ${HDF5_LIBRARIES})
     include_directories(${HDF5_INCLUDE_DIRS})
     target_link_libraries(${target} PRIVATE ${PETSC_LIBRARIES})
