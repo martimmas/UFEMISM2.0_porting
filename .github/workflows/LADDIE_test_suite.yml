@@ -16,12 +16,15 @@ jobs:
   compile_and_cache_LADDIE_dev_MacOS:
     uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_MacOS.yml
 
+  compile_and_cache_LADDIE_dev_Linux:
+    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_Linux.yml
+
   # Install and cache Python
   # install_and_cache_Python:
   #  uses: ./.github/workflows/LADDIE_test_suite_install_and_cache_Python.yml
 
   # Run the unit tests and analyse the results
   run_unit_tests:
-    needs: compile_and_cache_LADDIE_dev_MacOS
+    needs: compile_and_cache_LADDIE_dev_Linux
     uses: ./.github/workflows/LADDIE_test_suite_run_unit_tests.yml
 
