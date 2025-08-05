@@ -3,7 +3,7 @@ project( UPSY_models LANGUAGES Fortran)
 
 set( CMAKE_Fortran_STANDARD 2018)
 
-option(BUILD_UPSY "Build the UPSY model" OFF)
+option(BUILD_UPSY "Build the UPSY model" ON)
 option(BUILD_UFEMISM "Build the UFEMISM model" OFF)
 option(BUILD_LADDIE "Build the LADDIE model" OFF)
 
