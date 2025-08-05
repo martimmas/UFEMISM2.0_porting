@@ -1,8 +1,8 @@
 #! /bin/csh -f
 
-# Compile all the UPSY code.
+# Compile all the LADDIE code.
 #
-# Usage: ./compile_UPSY.csh  [VERSION]  [SELECTION]
+# Usage: ./compile_LADDIE.csh  [VERSION]  [SELECTION]
 #
 #   [VERSION]: dev, perf
 #
@@ -30,9 +30,9 @@ echo ""
 #  Confirm user's compilation choices
 set version   = $argv[1]
 if ($version == 'dev') then
-  echo "dev: compiling UPSY, developers' version"
+  echo "dev: compiling LADDIE, developers' version"
 else if ($version == 'perf') then
-  echo "perf: compiling UPSY, performance version"
+  echo "perf: compiling LADDIE, performance version"
 else
   goto usage
 endif
@@ -48,10 +48,6 @@ endif
 
 echo ""
 
-
-# If no include directory exists, create it
-if (! -d include) mkdir include
-
 # If no build directory exists, create it
 if (! -d build) mkdir build
 
@@ -61,13 +57,14 @@ if ($selection == 'clean') rm -rf build/*
 # For a "changed" build, remove only the CMake cache file
 if ($selection == 'changed') rm -f build/CMakeCache.txt
 
-# Use CMake to build UPSY, with Ninja to determine module dependencies;
+# Use CMake to build LADDIE, with Ninja to determine module dependencies;
 # use different compiler flags for the development/performance build
 cd build
 
 if ($version == 'dev') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_LADDIE=ON \
     -DDO_ASSERTIONS=ON \
     -DDO_RESOURCE_TRACKING=ON \
     -DEXTRA_Fortran_FLAGS="\
@@ -89,6 +86,7 @@ if ($version == 'dev') then
 else if ($version == 'perf') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_LADDIE=ON \
     -DDO_ASSERTIONS=OFF \
     -DDO_RESOURCE_TRACKING=OFF \
     -DEXTRA_Fortran_FLAGS="\
@@ -109,25 +107,17 @@ cd ..
 # Copy compiled program
 if ($version == 'dev') then
 
-  rm -f UPSY_unit_test_program_dev
-  rm -f UPSY_component_test_program_dev
-  mv build/src/UPSY/UPSY_unit_test_program UPSY_unit_test_program_dev
-  mv build/src/UPSY/UPSY_component_test_program UPSY_component_test_program_dev
-  rm -f UPSY_unit_test_program
-  rm -f UPSY_component_test_program
-  cp UPSY_unit_test_program_dev UPSY_unit_test_program
-  cp UPSY_component_test_program_dev UPSY_component_test_program
+  rm -f LADDIE_program_dev
+  mv build/src/LADDIE/LADDIE_program LADDIE_program_dev
+  rm -f LADDIE_program
+  cp LADDIE_program_dev LADDIE_program
 
 else if ($version == 'perf') then
 
-  rm -f UPSY_unit_test_program_perf
-  rm -f UPSY_component_test_program_perf
-  mv build/src/UPSY/UPSY_unit_test_program UPSY_unit_test_program_perf
-  mv build/src/UPSY/UPSY_component_test_program UPSY_component_test_program_perf
-  rm -f UPSY_unit_test_program
-  rm -f UPSY_component_test_program
-  cp UPSY_unit_test_program_perf UPSY_unit_test_program
-  cp UPSY_component_test_program_perf UPSY_component_test_program
+  rm -f LADDIE_program_perf
+  mv build/src/LADDIE/LADDIE_program LADDIE_program_perf
+  rm -f LADDIE_program
+  cp LADDIE_program_perf LADDIE_program
 
 endif
 
@@ -136,7 +126,7 @@ exit 0
 usage:
 
 echo ""
-echo "Usage: ./compile_UPSY.csh  [VERSION]  [SELECTION]"
+echo "Usage: ./compile_LADDIE.csh  [VERSION]  [SELECTION]"
 echo ""
 echo "  [VERSION]: dev, perf"
 echo ""
