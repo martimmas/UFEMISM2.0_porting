@@ -1,11 +1,11 @@
-name: UPSY Test Suite - run unit tests (development build, MacOS)
-run-name: ${{ github.actor }} - UPSY Test Suite - run unit tests (development build, MacOS)
+name: UPSY Test Suite - run unit tests (development build, Linux)
+run-name: ${{ github.actor }} - UPSY Test Suite - run unit tests (development build, Linux)
 on:
   workflow_call:
 
 jobs:
   run_unit_tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
 
       - name: Install packages with Homebrew   # Packages end up in /opt/homebrew/Cellar
@@ -25,7 +25,7 @@ jobs:
         id: UPSY_program_cache_restore
         with:
           path: UPSY_unit_test_program
-          key: UPSY_unit_test_program_dev_MacOS_${{ github.ref_name }}_${{ github.run_id }}
+          key: UPSY_unit_test_program_dev_Linux_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run unit tests
         run: mpiexec  -n 2  UPSY_unit_test_program
@@ -36,5 +36,5 @@ jobs:
       - name: Upload output as artifacts
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: results_unit_tests_dev_MacOS
+          name: results_unit_tests_dev_Linux
           path: automated_testing/unit_tests/results
