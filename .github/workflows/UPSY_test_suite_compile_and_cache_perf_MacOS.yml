@@ -40,9 +40,16 @@ jobs:
       - name: Compile UPSY
         run: ./compile_UPSY.csh  perf  clean
 
-      - name: Cache UPSY program
+      - name: Cache UPSY unit test program
         uses: actions/cache/save@v3
-        id: UPSY_program_cache_save
+        id: UPSY_unit_test_program_cache_save
         with:
           path: UPSY_unit_test_program
           key: UPSY_unit_test_program_perf_${{ github.ref_name }}_${{ github.run_id }}
+
+      - name: Cache UPSY component test program
+        uses: actions/cache/save@v3
+        id: UPSY_component_test_program_cache_save
+        with:
+          path: UPSY_component_test_program
+          key: UPSY_component_test_program_perf_${{ github.ref_name }}_${{ github.run_id }}

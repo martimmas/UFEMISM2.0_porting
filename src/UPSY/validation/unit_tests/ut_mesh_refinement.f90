@@ -19,6 +19,8 @@ module ut_mesh_refinement
   use mesh_contiguous_domains, only: enforce_contiguous_process_domains
   use mesh_secondary, only: calc_triangle_geometric_centres
   use mpi_basic, only: par
+  use ut_mesh_delete_vertex, only: test_delete_vertex
+  use ut_mesh_duplicate, only: test_duplicate_mesh
 
   implicit none
 
@@ -53,6 +55,8 @@ contains
     call test_refine_mesh_polygon_ROI( test_name)
     call test_Lloyds_algorithm       ( test_name)
     call test_contiguous_domains     ( test_name)
+    call test_delete_vertex          ( test_name)
+    call test_duplicate_mesh         ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

@@ -18,8 +18,9 @@ MODULE mesh_parallel_creation
   USE mesh_utilities                                         , ONLY: list_border_vertices_west, list_border_vertices_east, list_border_vertices_south, &
                                                                      list_border_vertices_north, find_containing_triangle
   use split_border_edges, only: split_border_edge
-  use flip_triangles, only: flip_triangles_until_Delaunay
+  use flip_triangles, only: add_triangle_pairs_around_vertex_to_Delaunay_check_stack, flip_triangles_until_Delaunay
   use move_vertices, only: move_vertex
+  use switch_vertices_triangles, only: switch_vertices
 
   IMPLICIT NONE
 
@@ -266,7 +267,7 @@ CONTAINS
     REAL(dp), DIMENSION(:,:  ), ALLOCATABLE       :: V_border
     INTEGER                                       :: i, vi_left, vi_right
     INTEGER                                       :: nV_left, nV_right, nV_new, nTri_left, nTri_right, nTri_new
-    INTEGER                                       :: vi, ci, iti, ti, n, vj, nf, tj, cip1
+    INTEGER                                       :: vi, ci, iti, ti, n, vj, tj, cip1
     REAL(dp), DIMENSION(2)                        :: pa, pb, pc, VorGC
     REAL(dp)                                      :: VorTriA, sumVorTriA
 
@@ -408,22 +409,8 @@ CONTAINS
     DO i = 1, nvi_border_left
 
       vi = lvi_border_left( i)
-
-      nf = 0
-
-      DO iti = 1, mesh_left%niTri( vi)
-        ti = mesh_left%iTri( vi,iti)
-        DO n = 1, 3
-          tj = mesh_left%TriC( ti,n)
-          IF (tj > 0) THEN
-            nf = nf + 1
-            mesh_left%Tri_flip_list( nf,:) = [ti,tj]
-          END IF
-        END DO
-      END DO
-
-      ! Flip triangle pairs
-      CALL flip_triangles_until_Delaunay( mesh_left, nf)
+      call add_triangle_pairs_around_vertex_to_Delaunay_check_stack( mesh_left, vi)
+      CALL flip_triangles_until_Delaunay( mesh_left)
 
     END DO ! DO i = 1, nvi_border_left
 
@@ -896,139 +883,6 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE merge_vertices_last
-
-  SUBROUTINE switch_vertices( mesh, vi, vj)
-    ! Switch vertices vi and vj
-
-    IMPLICIT NONE
-
-    ! Input variables
-    TYPE(type_mesh),            INTENT(INOUT)     :: mesh
-    INTEGER,                    INTENT(IN)        :: vi, vj
-
-    ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                 :: routine_name = 'switch_vertices'
-    INTEGER, DIMENSION(:,:), ALLOCATABLE          :: ctovi, ctovj
-    INTEGER                                       :: ci, vc, ti, iti, n, ci2
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    ALLOCATE( ctovi( mesh%nC_mem, 2))
-    ALLOCATE( ctovj( mesh%nC_mem, 2))
-
-    ! == Vertex coordinates
-    mesh%V(vi,:) = mesh%V(vi,:) + mesh%V(vj,:)
-    mesh%V(vj,:) = mesh%V(vi,:) - mesh%V(vj,:)
-    mesh%V(vi,:) = mesh%V(vi,:) - mesh%V(vj,:)
-
-    ! == Vertex connectivity
-
-    ! List all connections pointing to vi (if connection ci
-    ! of vertex vc points to vi, list [vc,ci] in the array)
-
-    ctovi = 0
-    DO ci = 1, mesh%nC( vi)
-      vc = mesh%C( vi,ci)
-      IF (vc == vj) CYCLE
-      DO ci2 = 1, mesh%nC( vc)
-        IF (mesh%C( vc,ci2) == vi) THEN
-          ctovi( ci,:) = [vc,ci2]
-          EXIT
-        END IF
-      END DO
-    END DO
-
-    ! List all connections pointing to vj (if connection ci
-    ! of vertex vc points to vj, list [vc,ci] in the array)
-
-    ctovj = 0
-    DO ci = 1, mesh%nC( vj)
-      vc = mesh%C( vj,ci)
-      IF (vc == vi) CYCLE
-      DO ci2 = 1, mesh%nC( vc)
-        IF (mesh%C( vc,ci2) == vj) THEN
-          ctovj( ci,:) = [vc,ci2]
-          EXIT
-        END IF
-      END DO
-    END DO
-
-    ! Switch their own connectivity lists
-    mesh%C(  vi,:) = mesh%C(  vi,:) + mesh%C(  vj,:)
-    mesh%C(  vj,:) = mesh%C(  vi,:) - mesh%C(  vj,:)
-    mesh%C(  vi,:) = mesh%C(  vi,:) - mesh%C(  vj,:)
-    mesh%nC( vi  ) = mesh%nC( vi  ) + mesh%nC( vj  )
-    mesh%nC( vj  ) = mesh%nC( vi  ) - mesh%nC( vj  )
-    mesh%nC( vi  ) = mesh%nC( vi  ) - mesh%nC( vj  )
-
-    ! If they are interconnected, change those too
-    DO ci = 1, mesh%nC( vi)
-      IF (mesh%C( vi,ci) == vi) mesh%C( vi,ci) = vj
-    END DO
-    DO ci = 1, mesh%nC( vj)
-      IF (mesh%C( vj,ci) == vj) mesh%C( vj,ci) = vi
-    END DO
-
-    ! Switch the other connections
-    DO ci = 1, mesh%nC( vj)
-      IF (ctovi( ci,1) == 0) CYCLE
-      mesh%C( ctovi( ci,1), ctovi( ci,2)) = vj
-    END DO
-    DO ci = 1, mesh%nC( vi)
-      IF (ctovj( ci,1) == 0) CYCLE
-      mesh%C( ctovj( ci,1), ctovj( ci,2)) = vi
-    END DO
-
-    ! == Triangles
-
-    ! First update the surrounding triangles
-    DO iti = 1, mesh%niTri( vi)
-      ti = mesh%iTri( vi,iti)
-      DO n = 1, 3
-        IF (mesh%Tri( ti,n) == vi) mesh%Tri( ti,n) = -1
-      END DO
-    END DO
-    DO iti = 1, mesh%niTri( vj)
-      ti = mesh%iTri( vj,iti)
-      DO n = 1, 3
-        IF (mesh%Tri( ti,n)==vj) mesh%Tri( ti,n) = -2
-      END DO
-    END DO
-    DO iti = 1, mesh%niTri( vi)
-      ti = mesh%iTri( vi,iti)
-      DO n = 1, 3
-        IF (mesh%Tri( ti,n)== -1) mesh%Tri( ti,n) = vj
-      END DO
-    END DO
-    DO iti = 1, mesh%niTri( vj)
-      ti = mesh%iTri( vj,iti)
-      DO n = 1, 3
-        IF (mesh%Tri( ti,n)== -2) mesh%Tri( ti,n) = vi
-      END DO
-    END DO
-
-    ! Then switch their own triangles
-    mesh%iTri(  vi,:) = mesh%iTri(  vi,:) + mesh%iTri(  vj,:)
-    mesh%iTri(  vj,:) = mesh%iTri(  vi,:) - mesh%iTri(  vj,:)
-    mesh%iTri(  vi,:) = mesh%iTri(  vi,:) - mesh%iTri(  vj,:)
-    mesh%niTri( vi  ) = mesh%niTri( vi  ) + mesh%niTri( vj  )
-    mesh%niTri( vj  ) = mesh%niTri( vi  ) - mesh%niTri( vj  )
-    mesh%niTri( vi  ) = mesh%niTri( vi  ) - mesh%niTri( vj  )
-
-    ! == Border indices
-    mesh%VBI( vi  ) = mesh%VBI( vi  ) + mesh%VBI( vj  )
-    mesh%VBI( vj  ) = mesh%VBI( vi  ) - mesh%VBI( vj  )
-    mesh%VBI( vi  ) = mesh%VBI( vi  ) - mesh%VBI( vj  )
-
-    ! Clean up after yourself
-    DEALLOCATE( ctovi)
-    DEALLOCATE( ctovj)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE switch_vertices
 
   SUBROUTINE align_submeshes( mesh, p_left, p_right, orientation)
     ! Align: add vertices to the [side] border of this process' mesh so that
