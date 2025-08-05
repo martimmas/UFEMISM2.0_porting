@@ -1,5 +1,5 @@
-name: UPSY Test Suite - run unit tests
-run-name: ${{ github.actor }} - UPSY Test Suite - run unit tests
+name: UPSY Test Suite - run unit tests (development build, MacOS)
+run-name: ${{ github.actor }} - UPSY Test Suite - run unit tests (development build, MacOS)
 on:
   workflow_call:
 
@@ -25,7 +25,7 @@ jobs:
         id: UPSY_program_cache_restore
         with:
           path: UPSY_unit_test_program
-          key: UPSY_unit_test_program_dev_${{ github.ref_name }}_${{ github.run_id }}
+          key: UPSY_unit_test_program_dev_MacOS_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run unit tests
         run: mpiexec  -n 2  UPSY_unit_test_program

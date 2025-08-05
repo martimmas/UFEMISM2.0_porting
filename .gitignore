@@ -55,3 +55,6 @@ tools/python/klooi.ipynb
 # Ignore input files for Berends2023 nudging experiments
 automated_testing/integrated_tests/idealised/Berends2023_nudging/experiment_I/input_data/*.nc
 automated_testing/integrated_tests/idealised/Berends2023_nudging/experiment_II/input_data/*.nc
+
+# Ignore linting mods
+linting_mods/*
