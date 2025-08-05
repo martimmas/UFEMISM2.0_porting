@@ -30,6 +30,7 @@ function(link_to_dependencies target)
 
   if(IS_LINUX)
       target_link_libraries(${target} PRIVATE ${PETSC_LIBRARIES})
+      target_link_libraries(${target} PRIVATE petsc hdf5 hdf5_fortran)
   elseif(IS_MACOS)
       target_link_libraries(${target} PRIVATE ${PETSC_LIBRARY_DIRS}/libpetsc.dylib)
   endif()
