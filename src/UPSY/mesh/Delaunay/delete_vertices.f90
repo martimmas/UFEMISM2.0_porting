@@ -3,7 +3,7 @@ module delete_vertices
   ! Delete a vertex from the mesh and update the Delaunay triangulation accordingly.
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use mesh_types, only: type_mesh
   use assertions_basic, only: assert
   use switch_array_elements, only: switch_rows
@@ -12,6 +12,7 @@ module delete_vertices
   use flip_triangles, only: add_triangle_pairs_around_triangle_to_Delaunay_check_stack, &
     flip_triangles_until_Delaunay
   use plane_geometry, only: cross2
+  use mpi_basic, only: par
 
   implicit none
 
@@ -129,6 +130,24 @@ contains
     call delete_vertex_nCge4_local_geometry( mesh, vi_kill, &
       vj_clock, vj_focus, vj_anti, vj_opp, &
       ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+
+    if (par%primary) then
+      call warning('vi_kill  = {int_01}', int_01 = vi_kill)
+      call warning('vj_clock = {int_01}', int_01 = vj_clock)
+      call warning('vj_focus = {int_01}', int_01 = vj_focus)
+      call warning('vj_anti  = {int_01}', int_01 = vj_anti)
+      do vi = 1, size( vj_opp,1)
+        call warning('vj_opp( {int_01}) = {int_02}', int_01 = vi, int_02 = vj_opp(vi))
+      end do
+      call warning('ti1 = {int_01}, tj1 = {int_02}', int_01 = ti1, int_02 = tj1)
+      call warning('ti2 = {int_01}, tj2 = {int_02}', int_01 = ti2, int_02 = tj2)
+      call warning('ti3 = {int_01}, tj3 = {int_02}', int_01 = ti3, int_02 = tj3)
+      call warning('ti4 = {int_01}, tj4 = {int_02}', int_01 = ti4, int_02 = tj4)
+      do ti = 1, size( ti_opp,1)
+        call warning('ti_opp( {int_01}) = {int_02}, tj_opp = {int_03}', &
+          int_01 = ti, int_02 = ti_opp(ti), int_03 = tj_opp(ti))
+      end do
+    end if
 
     call delete_vertex_nCge4_nC_C(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
     call delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
@@ -597,7 +616,7 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'replace_vj_in_C_vi_with_vks'
     logical                        :: found_it
-    integer                        :: ci
+    integer                        :: ci, i
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -605,6 +624,13 @@ contains
     found_it = .false.
     do ci = 1, mesh%nC( vi)
       if (mesh%C( vi,ci) == vj) then
+        if (par%primary) then
+          call warning('vi = {int_01}, vj = {int_02}, ci = {int_03}',&
+            int_01 = vi, int_02 = vj, int_03 = ci)
+          do i = 1, size( vks)
+            call warning('vks({int_01}) = {int_02}', int_01 = i, int_02 = vks(i))
+          end do
+        end if
         found_it = .true.
         mesh%C( vi,1:mesh%nC( vi) - 1 + size( vks,1)) = &
           [mesh%C( vi,1:ci-1), vks, mesh%C( vi,ci+1:mesh%nC( vi))]
@@ -637,6 +663,10 @@ contains
     found_it = .false.
     do ci = 1, mesh%nC( vi)
       if (mesh%C( vi,ci) == vj) then
+        if (par%primary) then
+          call warning('vi = {int_01}, vj = {int_02}, ci = {int_03}',&
+            int_01 = vi, int_02 = vj, int_03 = ci)
+        end if
         found_it = .true.
         mesh%C( vi,1:mesh%nC( vi)) = &
           [mesh%C( vi,1:ci-1), mesh%C( vi,ci+1:mesh%nC( vi)), 0]
@@ -669,6 +699,10 @@ contains
     found_it = .false.
     do iti = 1, mesh%niTri( vi)
       if (mesh%iTri( vi,iti) == ti) then
+        if (par%primary) then
+          call warning('vi = {int_01}, ti = {int_02}, iti = {int_03}',&
+            int_01 = vi, int_02 = ti, int_03 = iti)
+        end if
         found_it = .true.
         mesh%iTri( vi,1:mesh%niTri( vi)) = &
           [mesh%iTri( vi,1:iti-1), mesh%iTri( vi,iti+1:mesh%niTri( vi)), 0]
@@ -701,6 +735,10 @@ contains
     found_it = .false.
     do iti = 1, mesh%niTri( vi)
       if (mesh%iTri( vi,iti) == ti) then
+        if (par%primary) then
+          call warning('vi = {int_01}, ti = {int_02}, tj = {int_03}, iti = {int_04}',&
+            int_01 = vi, int_02 = ti, int_03 = tj, int_04 = iti)
+        end if
         found_it = .true.
         mesh%iTri( vi,iti) = tj
         exit
@@ -724,7 +762,7 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'add_tjs_in_iTri_vi_after_ti'
     logical                        :: found_it
-    integer                        :: iti
+    integer                        :: iti, i
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -732,6 +770,13 @@ contains
     found_it = .false.
     do iti = 1, mesh%niTri( vi)
       if (mesh%iTri( vi,iti) == ti) then
+        if (par%primary) then
+          call warning('vi = {int_01}, ti = {int_02}, iti = {int_03}',&
+            int_01 = vi, int_02 = ti, int_03 = iti)
+          do i = 1, size( tjs)
+            call warning('tjs({int_01}) = {int_02}', int_01 = i, int_02 = tjs(i))
+          end do
+        end if
         found_it = .true.
         mesh%iTri( vi,1:mesh%niTri( vi) + size( tjs,1)) = &
           [mesh%iTri( vi,1:iti), tjs, mesh%iTri( vi,iti+1:mesh%niTri( vi))]
@@ -764,6 +809,10 @@ contains
     found_it = .false.
     do n = 1, 3
       if (mesh%Tri( ti,n) == vi) then
+        if (par%primary) then
+          call warning('ti = {int_01}, vi = {int_02}, vj = {int_03}, n = {int_04}',&
+            int_01 = ti, int_02 = vi, int_03 = vj, int_04 = n)
+        end if
         found_it = .true.
         mesh%Tri( ti,n) = vj
         exit
@@ -794,6 +843,10 @@ contains
     found_it = .false.
     do n = 1, 3
       if (mesh%TriC( ti,n) == tj) then
+        if (par%primary) then
+          call warning('ti = {int_01}, tj = {int_02}, tk = {int_03}, n = {int_04}',&
+            int_01 = ti, int_02 = tj, int_03 = tk, int_04 = n)
+        end if
         found_it = .true.
         mesh%TriC( ti,n) = tk
         exit
