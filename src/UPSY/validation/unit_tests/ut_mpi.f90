@@ -228,7 +228,7 @@ contains
     call gather_to_primary( aa, bb)
 
     ! Check results
-    if (par%primary) call unit_test( test_tol( bb, cc, 1e-12_dp), test_name)
+    if (par%primary) call unit_test( test_eq( bb, cc), test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -279,7 +279,7 @@ contains
     call gather_to_primary( aa, bb)
 
     ! Check results
-    if (par%primary) call unit_test( test_tol( bb, cc, 1e-12_dp), test_name)
+    if (par%primary) call unit_test( test_eq( bb, cc), test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -463,7 +463,7 @@ contains
     call gather_to_all( aa, bb)
 
     ! Check results
-    call unit_test( test_tol( bb, cc, 1e-12_dp), test_name)
+    call unit_test( test_eq( bb, cc), test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -515,7 +515,7 @@ contains
     call gather_to_all( aa, bb)
 
     ! Check results
-    call unit_test( test_tol( bb, cc, 1e-12_dp), test_name)
+    call unit_test( test_eq( bb, cc), test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -699,9 +699,9 @@ contains
 
     ! Check results
     if (par%primary) then
-      call unit_test( test_tol(bb( 1:2), cc( 1:2), 1e-12_dp), test_name)
+      call unit_test( test_eq(bb( 1:2), cc( 1:2)), test_name)
     elseif (par%i == 1) then
-      call unit_test( test_tol(bb( 1:5), cc( 3:7), 1e-12_dp), test_name)
+      call unit_test( test_eq(bb( 1:5), cc( 3:7)), test_name)
     end if
 
     ! Remove routine from call stack
@@ -752,9 +752,9 @@ contains
 
     ! Check results
     if (par%primary) then
-      call unit_test( test_tol(bb( 1:2,:), cc( 1:2,:), 1e-12_dp), test_name)
+      call unit_test( test_eq(bb( 1:2,:), cc( 1:2,:)), test_name)
     elseif (par%i == 1) then
-      call unit_test( test_tol(bb( 1:5,:), cc( 3:7,:), 1e-12_dp), test_name)
+      call unit_test( test_eq(bb( 1:5,:), cc( 3:7,:)), test_name)
     end if
 
     ! Remove routine from call stack
