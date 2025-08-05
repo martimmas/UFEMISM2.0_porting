@@ -335,34 +335,46 @@ CONTAINS
     call init_routine( routine_name)
 
     ! Determine which climate model to initialise for this region
-    if     (region_name == 'NAM') then
+    select case( region_name)
+    case ('NAM')
       filename_climate_snapshot = C%filename_climate_snapshot_NAM
       choice_SMB_model = C%choice_SMB_model_NAM
-    elseif (region_name == 'EAS') then
+    case ('EAS') 
       filename_climate_snapshot = C%filename_climate_snapshot_EAS
       choice_SMB_model = C%choice_SMB_model_EAS
-    elseif (region_name == 'GRL') then
+    case ('GRL')
       filename_climate_snapshot = C%filename_climate_snapshot_GRL
       choice_SMB_model = C%choice_SMB_model_GRL
-    elseif (region_name == 'ANT') THEN
+    case ('ANT')
       filename_climate_snapshot = C%filename_climate_snapshot_ANT
       choice_SMB_model = C%choice_SMB_model_ANT
-    else
+    case default
       call crash('unknown region_name "' // region_name // '"')
-    end if
-      
-    if (C%choice_climate_model_realistic == 'snapshot' .AND. choice_SMB_model == 'IMAU-ITM') then
-      ! Reallocate the snapshot fields
-      call remap_snapshot( climate%snapshot, mesh_new)
+    end select
+
+    select case ( C%choice_climate_model_realistic)
+    case default
+      call crash('remap climate for choice_climate_model_realistic = "' // TRIM( C%choice_climate_model_realistic) // '" not implemented yet!')
+    case ('snapshot')
+      ! Reallocate the snapshot Hs field
       call reallocate_bounds( climate%snapshot%Hs, mesh_new%vi1, mesh_new%vi2)
       
       ! Read single-time data from external file
       call read_field_from_file_2D( filename_climate_snapshot, 'Hs', mesh_new, C%output_dir, climate%snapshot%Hs)
       call read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m', mesh_new, C%output_dir, climate%T2m)
       call read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh_new, C%output_dir, climate%Precip)
-    else 
-      ! do nothing, no need to remap. The model will use the SMB field
-    end if
+
+      select case ( choice_SMB_model)
+      case default
+        call crash('remap climate for choice_climate_model_realistic = "' // TRIM( C%choice_climate_model_realistic) // '" and choice_SMB_model = "' // TRIM( choice_SMB_model) // '" not implemented yet!')
+      case ('IMAU-ITM')
+        ! Reallocate the IMAU-ITM fields
+        call remap_snapshot( climate%snapshot, mesh_new)
+      case( 'prescribed')
+        ! Nothing extra to do
+      end select
+
+    end select
 
     ! Finalise routine path
     call finalise_routine( routine_name)
