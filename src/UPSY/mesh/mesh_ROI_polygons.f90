@@ -30,6 +30,7 @@ module mesh_ROI_polygons
   public :: calc_polygon_Byrd_glacier
   public :: calc_polygon_Nimrod_glacier
   public :: calc_polygon_Beardmore_glacier
+  public :: calc_polygon_WilkesMIP_basins
 
 contains
 
@@ -1030,5 +1031,29 @@ subroutine calc_polygon_Beardmore_glacier( poly)
   call finalise_routine( routine_name)
 
 end subroutine calc_polygon_Beardmore_glacier
+
+subroutine calc_polygon_WilkesMIP_basins( poly)
+  ! Return a polygon enveloping basins 14, 15, and 16 of Wilkes basin, as requested for WilkesMIP
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_WilkesMIP_basins'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 4,2))
+
+  poly( 1,:) = [2.56e5, -2.244e6]
+  poly( 2,:) = [2.56e5, -1.004e6]
+  poly( 3,:) = [2.06e6, -1.004e6]
+  poly( 4,:) = [2.06e6, -2.244e6]
+  
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_WilkesMIP_basins
 
 end module mesh_ROI_polygons
