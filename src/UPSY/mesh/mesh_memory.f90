@@ -396,4 +396,53 @@ CONTAINS
 
   END SUBROUTINE deallocate_mesh
 
+  subroutine duplicate_mesh_primary( mesh, mesh2)
+    !< Create a copy of a mesh
+
+    ! In/output variables:
+    type(type_mesh), intent(in   ) :: mesh
+    type(type_mesh), intent(  out) :: mesh2
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'duplicate_mesh_primary'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call allocate_mesh_primary( mesh2, trim( mesh%name) // '_copy', mesh%nV, mesh%nTri)
+
+    ! Metadata
+    mesh2%lambda_M    = mesh%lambda_M
+    mesh2%phi_M       = mesh%phi_M
+    mesh2%beta_stereo = mesh%beta_stereo
+    mesh2%xmin        = mesh%xmin
+    mesh2%xmax        = mesh%xmax
+    mesh2%ymin        = mesh%ymin
+    mesh2%ymax        = mesh%ymax
+    mesh2%tol_dist    = mesh%tol_dist
+    mesh2%nV          = mesh%nV
+    mesh2%nTri        = mesh%nTri
+
+    ! Vertex data
+    mesh2%vi_SW  = mesh%vi_SW
+    mesh2%vi_SE  = mesh%vi_SE
+    mesh2%vi_NW  = mesh%vi_NW
+    mesh2%vi_NE  = mesh%vi_NE
+    mesh2%V      = mesh%V    ( 1:mesh%nV,:)
+    mesh2%nC     = mesh%nC   ( 1:mesh%nV  )
+    mesh2%C      = mesh%C    ( 1:mesh%nV,:)
+    mesh2%niTri  = mesh%niTri( 1:mesh%nV  )
+    mesh2%iTri   = mesh%iTri ( 1:mesh%nV,:)
+    mesh2%VBI    = mesh%VBI  ( 1:mesh%nV  )
+
+    ! Triangle data
+    mesh2%Tri    = mesh%Tri  ( 1:mesh%nTri,:)
+    mesh2%Tricc  = mesh%Tricc( 1:mesh%nTri,:)
+    mesh2%TriC   = mesh%TriC ( 1:mesh%nTri,:)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine duplicate_mesh_primary
+
 END MODULE mesh_memory
