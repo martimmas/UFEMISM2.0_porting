@@ -28,7 +28,7 @@ jobs:
           key: UPSY_unit_test_program_dev_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run unit tests
-        run: mpiexec  -n 2  UPSY_unit_test_program  unit_tests
+        run: mpiexec  -n 2  UPSY_unit_test_program
 
       # - name: Run multi-node unit tests
       #   run: mpiexec  -n 7 --map-by :OVERSUBSCRIBE  UPSY_unit_test_program  unit_tests_multinode

@@ -48,11 +48,3 @@ jobs:
 
       - name: Compile UPSY
         run: csh compile_UPSY.csh  dev  clean
-
-      # - name: Cache UPSY program
-      #   uses: actions/cache/save@v3
-      #   id: UPSY_unit_test_program_cache_save
-      #   with:
-      #     path: UPSY_unit_test_program
-      #     key: UPSY_unit_test_program_dev_${{ github.ref_name }}_${{ github.run_id }}
-
