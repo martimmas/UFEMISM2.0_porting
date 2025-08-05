@@ -36,7 +36,7 @@ program LADDIE_program
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use reference_geometry_types, only: type_reference_geometry
-  use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
+  use LADDIE_main_model, only: run_laddie_standalone, initialise_laddie_standalone
   use laddie_unit_tests, only: run_laddie_unit_tests
 
   implicit none
@@ -59,6 +59,7 @@ program LADDIE_program
   character(len=1024)                    :: input_argument
 
   integer :: ierr, perr
+  real(dp)                               :: t_end
 
 ! ===== START =====
 ! =================
@@ -103,12 +104,14 @@ program LADDIE_program
     ! == Initialise the model ==
     ! ==========================
 
-    call initialise_laddie_model( laddie, forcing)
+    call initialise_laddie_standalone( laddie, forcing)
 
     ! == Run the model ==
     ! ===================
 
-    call run_laddie_model( laddie, t_end, forcing)
+    t_end = C%time_duration_laddie_init
+
+    call run_laddie_standalone( laddie, t_end, forcing)
      
     ! Write to resource tracking file
     call write_to_resource_tracking_file( t_end)

@@ -36,7 +36,7 @@ contains
 ! ===== Main routine =====
 ! ========================
 
-  subroutine run_laddie_model( laddie, t_end, forcing)
+  subroutine run_laddie_standalone( laddie, t_end, forcing)
     ! Integrate the model until t_end
 
     implicit none
@@ -50,20 +50,20 @@ contains
     character(len=256)                                                 :: routine_name
 
     ! Add routine to path
-    routine_name = 'run_model('  //  region%name  //  ')'  
+    routine_name = 'run_laddie_standalone'  
     call init_routine( routine_name)
 
-    if (par%primary) write (0,'(A)') ' Running laddie main '
+    if (par%primary) write (0,'(A)') ' Running laddie standalone '
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine run_laddie_model
+  end subroutine run_laddie_standalone
 
 ! ===== Model initialisation =====
 ! ================================
 
-  subroutine initialise_laddie_model( laddie, forcing)
+  subroutine initialise_laddie_standalone( laddie, forcing)
     ! Initialise the model
 
     implicit none
@@ -73,16 +73,16 @@ contains
     type(type_laddie_forcing)                          , intent(inout) :: forcing
 
     ! Local variables:
-    character(len=256), parameter                                      :: routine_name = 'initialise_laddie_model'
+    character(len=256), parameter                                      :: routine_name = 'initialise_laddie_standalone'
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    if (par%primary) write (0,'(A)') ' Initialising laddie main '
+    if (par%primary) write (0,'(A)') ' Initialising laddie standalone '
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine initialise_laddie_model
+  end subroutine initialise_laddie_standalone
 
 end module LADDIE_main_model
