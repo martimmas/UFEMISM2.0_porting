@@ -64,6 +64,7 @@ cd build
 if ($version == 'dev') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_UFEMISM=ON \
     -DDO_ASSERTIONS=ON \
     -DDO_RESOURCE_TRACKING=ON \
     -DEXTRA_Fortran_FLAGS="\
@@ -85,6 +86,7 @@ if ($version == 'dev') then
 else if ($version == 'perf') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_UFEMISM=ON \
     -DDO_ASSERTIONS=OFF \
     -DDO_RESOURCE_TRACKING=OFF \
     -DEXTRA_Fortran_FLAGS="\
