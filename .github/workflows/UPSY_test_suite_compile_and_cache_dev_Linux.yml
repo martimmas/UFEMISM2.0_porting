@@ -9,27 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Update package list and install prerequisites
-        run: |
-          apt-get update
-          apt-get install -y software-properties-common
-          add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          apt-get update
-          apt-get install -y curl git csh
-          apt-get install -y gcc g++
-          apt-get install -y cmake ninja-build
-
-      # - name: Install Linuxbrew
-      #   run: |
-      #     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      #     echo 'eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)' >> ~/.profile
-      #     eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
 
-      - name: Install dependencies
+      - name: Install packages with Homebrew   # Packages end up in /opt/homebrew/Cellar
         run: |
           brew update
           brew install open-mpi
@@ -37,30 +21,8 @@ jobs:
           brew install netcdf-fortran
           brew unlink hdf5
           brew install petsc
-
-      - name: Verify installations
-        run: |
-          gcc --version
-          g++ --version
-          gfortran --version
-          mpirun --version
-          h5fc -showconfig
-
-    #   - name: Install packages with Homebrew   # Packages end up in /opt/homebrew/Cellar
-    #     run: |
-    #       #brew install gcc                    # Not needed on GitHub server, already installed
-    #       echo 'brew install open-mpi'
-    #       brew install open-mpi
-    #       #brew uninstall hdf5
-    #       echo 'brew link --overwrite hdf5-mpi'
-    #       brew link --overwrite hdf5-mpi
-    #       echo 'brew install petsc'
-    #       brew install petsc
-    #       #brew unlink hdf5-mpi                 # To fix the following conflict: "hdf5-mpi: because hdf5-mpi is a variant of hdf5, one can only use one or the other"
-    #       brew install netcdf
-    #       brew install netcdf-fortran
-    #       brew install cmake
-    #       brew install ninja
+          brew install cmake
+          brew install ninja
 
       - name: Set up Fortran compiler          # See: https://github.com/marketplace/actions/setup-fortran
         uses: fortran-lang/setup-fortran@v1
