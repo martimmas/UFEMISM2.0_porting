@@ -25,6 +25,7 @@ build/*
 # ...except for the compile scripts
 !compile_UFEMISM.csh
 !compile_UPSY.csh
+!compile_LADDIE.csh
 
 # Ignore output files
 result*/
