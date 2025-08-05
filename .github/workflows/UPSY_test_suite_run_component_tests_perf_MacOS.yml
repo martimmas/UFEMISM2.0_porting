@@ -1,5 +1,5 @@
-name: UPSY Test Suite - run component tests
-run-name: ${{ github.actor }} - UPSY Test Suite - run component tests
+name: UPSY Test Suite - run component tests (performance build, MacOS)
+run-name: ${{ github.actor }} - UPSY Test Suite - run component tests (performance build, MacOS)
 on:
   workflow_call:
 
@@ -25,7 +25,7 @@ jobs:
         id: UPSY_program_cache_restore
         with:
           path: UPSY_component_test_program
-          key: UPSY_component_test_program_dev_${{ github.ref_name }}_${{ github.run_id }}
+          key: UPSY_component_test_program_perf_MacOS_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run component tests
         run: mpiexec  -n 2  UPSY_component_test_program
@@ -36,5 +36,5 @@ jobs:
       - name: Upload output as artifacts
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: results_component_tests
+          name: results_component_tests_perf_MacOS
           path: automated_testing/component_tests/results
