@@ -271,7 +271,6 @@ CONTAINS
       ALLOCATE(snapshot%ins_ti1)
       ALLOCATE(snapshot%ins_nlat)
       ALLOCATE(snapshot%ins_nlon)
-      ALLOCATE(snapshot%ins_lat            (   snapshot%ins_nlat))
       ALLOCATE(snapshot%ins_Q_TOA0         (mesh%vi1:mesh%vi2,12))
       ALLOCATE(snapshot%ins_Q_TOA1         (mesh%vi1:mesh%vi2,12))
       !ALLOCATE(snapshot%lambda             (mesh%vi1:mesh%vi2)) ! initialised in climate matrix routine
@@ -282,6 +281,7 @@ CONTAINS
       snapshot%ins_t1     = C%start_time_of_run
       snapshot%ins_nlat   = 181
       snapshot%ins_nlon   = 360
+      ALLOCATE(snapshot%ins_lat            (   snapshot%ins_nlat))
       snapshot%ins_lat    = 0._dp
       snapshot%ins_Q_TOA0 = 0._dp
       snapshot%ins_Q_TOA1 = 0._dp
