@@ -428,7 +428,7 @@ module climate_matrix_utilities
       call read_field_from_file_2D_monthly( C%filename_insolation, field_name_options_insolation, mesh, C%output_dir, snapshot%ins_Q_TOA0, time_to_read = snapshot%ins_t0)
       call read_field_from_file_2D_monthly( C%filename_insolation, field_name_options_insolation, mesh, C%output_dir, snapshot%ins_Q_TOA1, time_to_read = snapshot%ins_t1)
 
-      call warning('insolation timeframes at t = {dp_01} are ins_t0={dp_02} and ins_t1={dp_03}', dp_01 =  time, dp_02 = snapshot%ins_t0, dp_03 = snapshot%ins_t1)
+      !call warning('insolation timeframes at t = {dp_01} are ins_t0={dp_02} and ins_t1={dp_03}', dp_01 =  time, dp_02 = snapshot%ins_t0, dp_03 = snapshot%ins_t1)
 
     else
       call crash('unknown choice_insolation_forcing "' // trim( C%choice_insolation_forcing) // '"!')
