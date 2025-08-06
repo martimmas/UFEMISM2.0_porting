@@ -1,4 +1,4 @@
-module ut_mesh_delete_vertex
+module ut_mesh_delete_vertices
 
   use tests_main
   use assertions_basic
@@ -20,11 +20,35 @@ module ut_mesh_delete_vertex
 
   private
 
-  public :: test_delete_vertex
+  public :: test_delete_vertices
 
 contains
 
-  subroutine test_delete_vertex( test_name_parent)
+  subroutine test_delete_vertices( test_name_parent)
+    ! Test the vertex deletion subroutines
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=1024), parameter     :: routine_name = 'test_delete_vertices'
+    character(len=1024), parameter     :: test_name_local = 'delete_vertices'
+    character(len=1024)                :: test_name
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    call test_delete_single_vertex( test_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_delete_vertices
+
+  subroutine test_delete_single_vertex( test_name_parent)
     ! Test the trace_line_grid_a subroutine
 
     ! In/output variables:
@@ -93,6 +117,6 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine test_delete_vertex
+  end subroutine test_delete_single_vertex
 
-end module ut_mesh_delete_vertex
+end module ut_mesh_delete_vertices
