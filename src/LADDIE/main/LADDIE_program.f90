@@ -62,6 +62,7 @@ program LADDIE_program
   integer :: ierr, perr
   real(dp), parameter                    :: time = 0.0_dp
   logical, parameter                     :: is_initial = .false.
+  logical, parameter                     :: is_standalone = .true.
 
 ! ===== START =====
 ! =================
@@ -111,12 +112,12 @@ program LADDIE_program
     ! == Initialise the model ==
     ! ==========================
 
-    call initialise_laddie_model( mesh, laddie, forcing)
+    call initialise_laddie_model( mesh, laddie, forcing, is_standalone)
 
     ! == Run the model ==
     ! ===================
 
-    call run_laddie_model( mesh, laddie, forcing, time, is_initial)
+    call run_laddie_model( mesh, laddie, forcing, time, is_initial, is_standalone)
      
     ! Write to resource tracking file
     call write_to_resource_tracking_file( time)

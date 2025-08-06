@@ -46,7 +46,7 @@ contains
 ! ===== Main routine =====
 ! ========================
 
-  subroutine run_laddie_model( mesh, laddie, forcing, time, is_initial)
+  subroutine run_laddie_model( mesh, laddie, forcing, time, is_initial, is_standalone)
     ! Integrate the model until t_end
 
     ! In/output variables
@@ -55,6 +55,7 @@ contains
     type(type_laddie_forcing), intent(inout) :: forcing
     real(dp),                  intent(in   ) :: time 
     logical,                   intent(in   ) :: is_initial
+    logical,                   intent(in   ) :: is_standalone
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_laddie_model'
@@ -83,13 +84,13 @@ contains
       call repartition_laddie( mesh, mesh_repartitioned, laddie, forcing)
 
       ! Run laddie on the repartitioned mesh
-      call run_laddie_model_leg( mesh_repartitioned, laddie, forcing, time, is_initial)
+      call run_laddie_model_leg( mesh_repartitioned, laddie, forcing, time, is_initial, is_standalone)
 
       ! Un-repartition laddie
       call repartition_laddie( mesh_repartitioned, mesh, laddie, forcing)
     else
       ! Run laddie on the original mesh
-      call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
+      call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, is_standalone)
     end if
 
     ! Clean up after yourself
@@ -100,7 +101,7 @@ contains
 
   end subroutine run_laddie_model
 
-  subroutine run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
+  subroutine run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, is_standalone)
     ! Run one leg of the laddie model
 
     ! In/output variables
@@ -109,6 +110,7 @@ contains
     type(type_laddie_forcing), intent(in   ) :: forcing
     real(dp),                  intent(in   ) :: time
     logical,                   intent(in   ) :: is_initial
+    logical,                   intent(in   ) :: is_standalone
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_laddie_model_leg'
@@ -121,6 +123,8 @@ contains
     real(dp), parameter            :: fac_dt_relax = 3.0_dp ! Reduction factor of time step
     real(dp)                       :: time_to_write    ! [days]
     real(dp)                       :: last_write_time  ! [days]
+    real(dp)                       :: time_to_write_fields    ! [days]
+    real(dp)                       :: last_write_time_fields  ! [days]
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -183,7 +187,9 @@ contains
 
     tl = 0.0_dp
     last_write_time = 0.0_dp
+    last_write_time_fields = 0.0_dp
     time_to_write = C%time_interval_scalar_output
+    time_to_write_fields = C%time_interval_scalar_output
 
     ! Perform first integration with half the time step for LFRA scheme
     dt = C%dt_laddie / fac_dt_relax
@@ -214,18 +220,28 @@ contains
       end select
 
       ! Write to output
-      if (C%do_write_laddie_output_fields) then
-        call write_to_laddie_output_fields_file( mesh, laddie, ref_time + tl)
-      end if
-
-      if (C%do_write_laddie_output_scalar) then
-        call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-
-        ! Write if required
-        if (tl > time_to_write * sec_per_day) then
-          call write_to_laddie_output_scalar_file( laddie)
-          last_write_time = time_to_write
-          time_to_write = time_to_write + C%time_interval_scalar_output
+      if (is_standalone) then
+        ! TODO
+      else
+        if (C%do_write_laddie_output_fields) then
+          ! Write if required
+          if (tl > time_to_write_fields * sec_per_day) then
+            call write_to_laddie_output_fields_file( mesh, laddie, ref_time + tl)
+            last_write_time_fields = time_to_write_fields
+            ! TODO add config file for fields output frequency
+            time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+          end if
+        end if
+  
+        if (C%do_write_laddie_output_scalar) then
+          call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
+  
+          ! Write if required
+          if (tl > time_to_write * sec_per_day) then
+            call write_to_laddie_output_scalar_file( laddie)
+            last_write_time = time_to_write
+            time_to_write = time_to_write + C%time_interval_scalar_output
+          end if
         end if
       end if
 
@@ -239,7 +255,7 @@ contains
 ! ===== Model initialisation =====
 ! ================================
 
-  subroutine initialise_laddie_model( mesh, laddie, forcing)
+  subroutine initialise_laddie_model( mesh, laddie, forcing, is_standalone)
     ! Initialise the model
 
     implicit none
@@ -248,6 +264,7 @@ contains
     type(type_mesh)                                    , intent(in)    :: mesh
     type(type_laddie_model)                            , intent(inout) :: laddie
     type(type_laddie_forcing)                          , intent(in)    :: forcing
+    logical                                            , intent(in)    :: is_standalone
 
     ! Local variables:
     character(len=256), parameter                                      :: routine_name = 'initialise_laddie_model'
@@ -255,7 +272,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    if (par%primary) write (0,'(A)') ' Initialising laddie model '
+    if (par%primary) write (0,'(A)') '   Initialising laddie model... '
 
     ! Allocate variables
     call allocate_laddie_model( mesh, laddie)
@@ -285,8 +302,12 @@ contains
     end select
 
     ! Create output file
-    if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
-    if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie)
+    if (is_standalone) then
+      ! TODO
+    else
+      if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
+      if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie)
+    end if
 
     ! Finalise routine path
     call finalise_routine( routine_name)

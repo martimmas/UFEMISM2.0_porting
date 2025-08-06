@@ -141,7 +141,7 @@ CONTAINS
         CALL run_BMB_model_laddie( mesh, ice, BMB, time, .FALSE.)
       CASE ('laddie')
         call update_laddie_forcing( mesh, ice, ocean, BMB%forcing)
-        CALL run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, is_initial)
+        CALL run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, is_initial, .FALSE.)
 
         DO vi = mesh%vi1, mesh%vi2
           BMB%BMB( vi) = -BMB%laddie%melt( vi) * sec_per_year
@@ -296,7 +296,7 @@ CONTAINS
       CASE ('laddie')
         call allocate_laddie_forcing( mesh, BMB%forcing)
         call update_laddie_forcing( mesh, ice, ocean, BMB%forcing)
-        CALL initialise_laddie_model( mesh, BMB%laddie, BMB%forcing)
+        CALL initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .FALSE.)
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
     END SELECT
@@ -603,7 +603,7 @@ CONTAINS
         call remap_laddie_forcing( mesh_old, mesh_new, BMB%forcing)
         call update_laddie_forcing( mesh_new, ice, ocean, BMB%forcing)
         call remap_laddie_model( mesh_old, mesh_new, BMB%laddie, BMB%forcing, time)
-        call run_laddie_model( mesh_new, BMB%laddie, BMB%forcing, time, .FALSE.)
+        call run_laddie_model( mesh_new, BMB%laddie, BMB%forcing, time, .FALSE., .FALSE.)
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
     END SELECT
