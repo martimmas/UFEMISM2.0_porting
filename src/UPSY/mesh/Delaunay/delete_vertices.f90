@@ -128,33 +128,18 @@ contains
     ! Determine the local geometry
     call find_local_geometry_nCge4( mesh, vi_kill, locgeom)
 
-    if (par%primary) then
-      call warning('vi_kill  = {int_01}', int_01 = locgeom%vi_kill)
-      call warning('vj_clock = {int_01}', int_01 = locgeom%vj_clock)
-      call warning('vj_focus = {int_01}', int_01 = locgeom%vj_focus)
-      call warning('vj_anti  = {int_01}', int_01 = locgeom%vj_anti)
-      do vii = 1, locgeom%nvj_opp
-        call warning('vj_opp( {int_01}) = {int_02}', int_01 = vii, int_02 = locgeom%vj_opp(vii))
-      end do
-      call warning('ti1 = {int_01}, tj1 = {int_02}', int_01 = locgeom%ti1, int_02 = locgeom%tj1)
-      call warning('ti2 = {int_01}, tj2 = {int_02}', int_01 = locgeom%ti2, int_02 = locgeom%tj2)
-      call warning('ti3 = {int_01}, tj3 = {int_02}', int_01 = locgeom%ti3, int_02 = locgeom%tj3)
-      call warning('ti4 = {int_01}, tj4 = {int_02}', int_01 = locgeom%ti4, int_02 = locgeom%tj4)
-      do tii = 1, locgeom%nti_opp
-        call warning('ti_opp( {int_01}) = {int_02}, tj_opp = {int_03}', &
-          int_01 = tii, int_02 = locgeom%ti_opp(tii), int_03 = locgeom%tj_opp(tii))
-      end do
-    end if
-
+    ! Adapt all the connectivity data to the new geometry
     call delete_vertex_nCge4_nC_C      ( mesh, locgeom)
     call delete_vertex_nCge4_niTri_iTri( mesh, locgeom)
     call delete_vertex_nCge4_Tri       ( mesh, locgeom)
     call delete_vertex_nCge4_TriC      ( mesh, locgeom)
 
+    ! Delete the now disconnected vertex and triangles from the lists
     call delete_vertex_V  ( mesh, locgeom%vi_kill, vi_new2vi_old, vi_old2vi_new)
     call delete_vertex_Tri( mesh, locgeom%ti1    , ti_new2ti_old, ti_old2ti_new)
     call delete_vertex_Tri( mesh, locgeom%ti4    , ti_new2ti_old, ti_old2ti_new)
 
+    ! Update the local geometry
     locgeom%vj_clock = vi_old2vi_new( locgeom%vj_clock)
     locgeom%vj_focus = vi_old2vi_new( locgeom%vj_focus)
     locgeom%vj_anti  = vi_old2vi_new( locgeom%vj_anti )
@@ -179,14 +164,17 @@ contains
     call assert( test_ge_le( locgeom%ti_opp, 1, mesh%nTri), 'invalid updated ti_opp')
 #endif
 
+    ! Calculate circumcenters for the new triangles
     call update_triangle_circumcenter( mesh, locgeom%ti2)
     call update_triangle_circumcenter( mesh, locgeom%ti3)
     do tii = 1, locgeom%nti_opp
       call update_triangle_circumcenter( mesh, locgeom%ti_opp( tii))
     end do
 
+    ! Iteratively flip triangle pairs until the local Delaunay
+    ! criterion is satisfied everywhere
+
     mesh%check_Delaunay_map    = .false.
-    mesh%check_Delaunay_stack  = 0
     mesh%check_Delaunay_stackN = 0
 
     call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, locgeom%ti2)
@@ -195,8 +183,6 @@ contains
       call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, locgeom%ti_opp( tii))
     end do
 
-    ! Iteratively flip triangle pairs until the local Delaunay
-    ! criterion is satisfied everywhere
     call flip_triangles_until_Delaunay( mesh)
 
     ! Finalise routine path
