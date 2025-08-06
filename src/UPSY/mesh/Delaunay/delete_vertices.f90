@@ -6,13 +6,17 @@ module delete_vertices
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use mesh_types, only: type_mesh
   use assertions_basic, only: assert
+  use tests_main
   use switch_array_elements, only: switch_rows
   use switch_vertices_triangles, only: switch_vertices, switch_triangles
   use mesh_utilities, only: update_triangle_circumcenter
   use flip_triangles, only: add_triangle_pairs_around_triangle_to_Delaunay_check_stack, &
     flip_triangles_until_Delaunay
-  use plane_geometry, only: cross2
   use mpi_basic, only: par
+  use delete_vertices_local_geometry, only: type_local_geometry_nCge4, find_local_geometry_nCge4
+  use basic_mesh_data_operations, only: replace_vj_in_C_vi_with_vks, remove_vj_in_C_vi, &
+    remove_ti_in_iTri_vi, replace_ti_in_iTri_vi_with_tj, add_tjs_in_iTri_vi_after_ti, &
+    replace_vi_in_Tri_ti_with_vj, replace_tj_in_TriC_ti_with_tk
 
   implicit none
 
@@ -99,15 +103,10 @@ contains
     integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
-    character(len=1024), parameter     :: routine_name = 'delete_vertex_nCge4'
-    integer                            :: vi, ti
-    integer                            :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), allocatable :: vj_opp
-    integer                            :: ti1, ti2, ti3, ti4
-    integer, dimension(:), allocatable :: ti_opp
-    integer                            :: tj1, tj2, tj3, tj4
-    integer, dimension(:), allocatable :: tj_opp
-    integer                            :: vii, tii
+    character(len=1024), parameter  :: routine_name = 'delete_vertex_nCge4'
+    integer                         :: vi, ti
+    type(type_local_geometry_nCge4) :: locgeom
+    integer                         :: vii, tii
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -127,64 +126,73 @@ contains
     end do
 
     ! Determine the local geometry
-    call delete_vertex_nCge4_local_geometry( mesh, vi_kill, &
-      vj_clock, vj_focus, vj_anti, vj_opp, &
-      ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call find_local_geometry_nCge4( mesh, vi_kill, locgeom)
 
     if (par%primary) then
-      call warning('vi_kill  = {int_01}', int_01 = vi_kill)
-      call warning('vj_clock = {int_01}', int_01 = vj_clock)
-      call warning('vj_focus = {int_01}', int_01 = vj_focus)
-      call warning('vj_anti  = {int_01}', int_01 = vj_anti)
-      do vi = 1, size( vj_opp,1)
-        call warning('vj_opp( {int_01}) = {int_02}', int_01 = vi, int_02 = vj_opp(vi))
+      call warning('vi_kill  = {int_01}', int_01 = locgeom%vi_kill)
+      call warning('vj_clock = {int_01}', int_01 = locgeom%vj_clock)
+      call warning('vj_focus = {int_01}', int_01 = locgeom%vj_focus)
+      call warning('vj_anti  = {int_01}', int_01 = locgeom%vj_anti)
+      do vii = 1, locgeom%nvj_opp
+        call warning('vj_opp( {int_01}) = {int_02}', int_01 = vii, int_02 = locgeom%vj_opp(vii))
       end do
-      call warning('ti1 = {int_01}, tj1 = {int_02}', int_01 = ti1, int_02 = tj1)
-      call warning('ti2 = {int_01}, tj2 = {int_02}', int_01 = ti2, int_02 = tj2)
-      call warning('ti3 = {int_01}, tj3 = {int_02}', int_01 = ti3, int_02 = tj3)
-      call warning('ti4 = {int_01}, tj4 = {int_02}', int_01 = ti4, int_02 = tj4)
-      do ti = 1, size( ti_opp,1)
+      call warning('ti1 = {int_01}, tj1 = {int_02}', int_01 = locgeom%ti1, int_02 = locgeom%tj1)
+      call warning('ti2 = {int_01}, tj2 = {int_02}', int_01 = locgeom%ti2, int_02 = locgeom%tj2)
+      call warning('ti3 = {int_01}, tj3 = {int_02}', int_01 = locgeom%ti3, int_02 = locgeom%tj3)
+      call warning('ti4 = {int_01}, tj4 = {int_02}', int_01 = locgeom%ti4, int_02 = locgeom%tj4)
+      do tii = 1, locgeom%nti_opp
         call warning('ti_opp( {int_01}) = {int_02}, tj_opp = {int_03}', &
-          int_01 = ti, int_02 = ti_opp(ti), int_03 = tj_opp(ti))
+          int_01 = tii, int_02 = locgeom%ti_opp(tii), int_03 = locgeom%tj_opp(tii))
       end do
     end if
 
-    call delete_vertex_nCge4_nC_C(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_Tri(        mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-    call delete_vertex_nCge4_TriC(       mesh, vi_kill, vj_clock, vj_focus, vj_anti, vj_opp, ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+    call delete_vertex_nCge4_nC_C      ( mesh, locgeom)
+    call delete_vertex_nCge4_niTri_iTri( mesh, locgeom)
+    call delete_vertex_nCge4_Tri       ( mesh, locgeom)
+    call delete_vertex_nCge4_TriC      ( mesh, locgeom)
 
-    call delete_vertex_V  ( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
-    call delete_vertex_Tri( mesh, ti1    , ti_new2ti_old, ti_old2ti_new)
-    call delete_vertex_Tri( mesh, ti4    , ti_new2ti_old, ti_old2ti_new)
+    call delete_vertex_V  ( mesh, locgeom%vi_kill, vi_new2vi_old, vi_old2vi_new)
+    call delete_vertex_Tri( mesh, locgeom%ti1    , ti_new2ti_old, ti_old2ti_new)
+    call delete_vertex_Tri( mesh, locgeom%ti4    , ti_new2ti_old, ti_old2ti_new)
 
-    vj_clock = vi_old2vi_new( vj_clock)
-    vj_focus = vi_old2vi_new( vj_focus)
-    vj_anti  = vi_old2vi_new( vj_anti )
-    do vii = 1, size( vj_opp,1)
-      vj_opp( vii) = vi_old2vi_new( vj_opp( vii))
+    locgeom%vj_clock = vi_old2vi_new( locgeom%vj_clock)
+    locgeom%vj_focus = vi_old2vi_new( locgeom%vj_focus)
+    locgeom%vj_anti  = vi_old2vi_new( locgeom%vj_anti )
+    do vii = 1, locgeom%nvj_opp
+      locgeom%vj_opp( vii) = vi_old2vi_new( locgeom%vj_opp( vii))
     end do
+#if (DO_ASSERTIONS)
+    call assert( test_ge_le( locgeom%vj_clock, 1, mesh%nV), 'invalid updated vj_clock')
+    call assert( test_ge_le( locgeom%vj_focus, 1, mesh%nV), 'invalid updated vj_focus')
+    call assert( test_ge_le( locgeom%vj_anti , 1, mesh%nV), 'invalid updated vj_anti')
+    call assert( test_ge_le( locgeom%vj_opp  , 1, mesh%nV), 'invalid updated vj_opp')
+#endif
 
-    ti2 = ti_old2ti_new( ti2)
-    ti3 = ti_old2ti_new( ti3)
-    do tii = 1, size( ti_opp,1)
-      ti_opp( tii) = ti_old2ti_new( ti_opp( tii))
+    locgeom%ti2 = ti_old2ti_new( locgeom%ti2)
+    locgeom%ti3 = ti_old2ti_new( locgeom%ti3)
+    do tii = 1, locgeom%nti_opp
+      locgeom%ti_opp( tii) = ti_old2ti_new( locgeom%ti_opp( tii))
     end do
+#if (DO_ASSERTIONS)
+    call assert( test_ge_le( locgeom%ti2   , 1, mesh%nTri), 'invalid updated ti2')
+    call assert( test_ge_le( locgeom%ti3   , 1, mesh%nTri), 'invalid updated ti3')
+    call assert( test_ge_le( locgeom%ti_opp, 1, mesh%nTri), 'invalid updated ti_opp')
+#endif
 
-    call update_triangle_circumcenter( mesh, ti2)
-    call update_triangle_circumcenter( mesh, ti3)
-    do tii = 1, size( ti_opp,1)
-      call update_triangle_circumcenter( mesh, ti_opp( tii))
+    call update_triangle_circumcenter( mesh, locgeom%ti2)
+    call update_triangle_circumcenter( mesh, locgeom%ti3)
+    do tii = 1, locgeom%nti_opp
+      call update_triangle_circumcenter( mesh, locgeom%ti_opp( tii))
     end do
 
     mesh%check_Delaunay_map    = .false.
     mesh%check_Delaunay_stack  = 0
     mesh%check_Delaunay_stackN = 0
 
-    call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti2)
-    call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti3)
-    do tii = 1, size( ti_opp,1)
-      call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, ti_opp( tii))
+    call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, locgeom%ti2)
+    call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, locgeom%ti3)
+    do tii = 1, locgeom%nti_opp
+      call add_triangle_pairs_around_triangle_to_Delaunay_check_stack( mesh, locgeom%ti_opp( tii))
     end do
 
     ! Iteratively flip triangle pairs until the local Delaunay
@@ -196,244 +204,11 @@ contains
 
   end subroutine delete_vertex_nCge4
 
-  subroutine delete_vertex_nCge4_local_geometry( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp, &
-    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-
-    ! Find the local geometry:
-    !
-    !                tj_opp()
-    !
-    !  vj_opp(nvj_opp) ------ vj_opp(1)
-    !           /  \ ti_opp() /  \
-    !     tj1  /    \        /    \  tj4
-    !         / ti1  \      /  ti4 \
-    !        /        \    /        \
-    !   vj_clock ---- vi_kill ---- vj_anti
-    !         \          |          /
-    !           \  ti2   |   ti3  /
-    !             \      |      /
-    !        tj2    \    |    /    tj3
-    !                 vj_focus
+  subroutine delete_vertex_nCge4_nC_C( mesh, locgeom)
 
     ! In/output variables:
-    type(type_mesh),                    intent(in   ) :: mesh
-    integer,                            intent(in   ) :: vi_kill
-    integer,                            intent(  out) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), allocatable, intent(  out) :: vj_opp
-    integer,                            intent(  out) :: ti1, ti2, ti3, ti4
-    integer, dimension(:), allocatable, intent(  out) :: ti_opp
-    integer,                            intent(  out) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), allocatable, intent(  out) :: tj_opp
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_local_geometry'
-    logical                        :: found_it
-    integer                        :: iti2, ti, n1, n2, iti1, iti3, iti4, n, tj, tii
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! Vertices
-
-    ! Find vj_focus, which must be at a convex corner
-    call find_vj_focus_et_al_nCge4( mesh, vi_kill, &
-      vj_clock, vj_focus, vj_anti, vj_opp)
-
-    ! Inside triangles
-    found_it = .false.
-    do iti2 = 1, mesh%niTri( vi_kill)
-      ti = mesh%iTri( vi_kill,iti2)
-      do n1 = 1, 3
-        n2 = n1 + 1
-        if (n2 == 4) n2 = 1
-
-        if (mesh%Tri( ti,n1) == vj_focus .and. mesh%Tri( ti,n2) == vi_kill) then
-
-          iti1 = iti2 - 1
-          if (iti1 == 0) iti1 = mesh%niTri( vi_kill)
-          ti1 = mesh%iTri( vi_kill,iti1)
-
-          ti2 = mesh%iTri( vi_kill,iti2)
-
-          iti3 = iti2 + 1
-          if (iti3 > mesh%niTri( vi_kill)) iti3 = 1
-          ti3 = mesh%iTri( vi_kill,iti3)
-
-          iti4 = iti3 + 1
-          if (iti4 > mesh%niTri( vi_kill)) iti4 = 1
-          ti4 = mesh%iTri( vi_kill,iti4)
-
-          found_it = .true.
-          exit
-
-        end if
-
-      end do
-      if (found_it) exit
-    end do
-
-    if (iti4 > iti1) then
-      ! [iti1,iti2,iti3,iti4] form a contiguous block within iTri(vi_kill,:)
-      ti_opp = [mesh%iTri( vi_kill, iti4+1:mesh%niTri( vi_kill)), mesh%iTri( vi_kill, 1:iti1-1)]
-    else
-      ! The block is non-contiguous
-      ti_opp = mesh%iTri( vi_kill, iti4+1: iti1-1)
-    end if
-
-    ! Outside triangles
-    tj1 = 0
-    do n = 1, 3
-      tj = mesh%TriC( ti1,n)
-      if (tj /= ti1 .and. tj /= ti2 .and. tj /= ti3 .and. tj /= ti4 .and. .not. any( tj == ti_opp)) then
-        tj1 = tj
-        exit
-      end if
-    end do
-
-    tj2 = 0
-    do n = 1, 3
-      tj = mesh%TriC( ti2,n)
-      if (tj /= ti1 .and. tj /= ti2 .and. tj /= ti3 .and. tj /= ti4 .and. .not. any( tj == ti_opp)) then
-        tj2 = tj
-        exit
-      end if
-    end do
-
-    tj3 = 0
-    do n = 1, 3
-      tj = mesh%TriC( ti3,n)
-      if (tj /= ti1 .and. tj /= ti2 .and. tj /= ti3 .and. tj /= ti4 .and. .not. any( tj == ti_opp)) then
-        tj3 = tj
-        exit
-      end if
-    end do
-
-    tj4 = 0
-    do n = 1, 3
-      tj = mesh%TriC( ti4,n)
-      if (tj /= ti1 .and. tj /= ti2 .and. tj /= ti3 .and. tj /= ti4 .and. .not. any( tj == ti_opp)) then
-        tj4 = tj
-        exit
-      end if
-    end do
-
-    allocate( tj_opp( size( ti_opp,1)), source = 0)
-    do tii = 1, size( ti_opp,1)
-      ti = ti_opp( tii)
-      do n = 1, 3
-        tj = mesh%TriC( ti,n)
-        if (tj /= ti1 .and. tj /= ti2 .and. tj /= ti3 .and. tj /= ti4 .and. .not. any( tj == ti_opp)) then
-          tj_opp( tii) = tj
-          exit
-        end if
-      end do
-    end do
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine delete_vertex_nCge4_local_geometry
-
-  subroutine find_vj_focus_et_al_nCge4( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp)
-    !< Find a valid vj_focus (from where you can "see" all other neighbours of vi_kill)
-    !< ...which is not guaranteed, as they might span a non-convex polygon
-
-    ! In/output variables:
-    type(type_mesh),                    intent(in   ) :: mesh
-    integer,                            intent(in   ) :: vi_kill
-    integer,                            intent(  out) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), allocatable, intent(  out) :: vj_opp
-
-    ! Local variables:
-    integer, dimension(:), allocatable :: CC
-    integer                            :: nit
-
-    CC = mesh%C( vi_kill, 1: mesh%nC( vi_kill))
-
-    nit = 0
-    do while (nit <= mesh%nC( vi_kill))
-      nit = nit + 1
-
-      CC = [CC( 2: mesh%nC( vi_kill)), CC( 1)];
-
-      vj_clock = CC( 1);
-      vj_focus = CC( 2);
-      vj_anti  = CC( 3);
-      vj_opp   = CC( 4: mesh%nC( vi_kill));
-
-      if (is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, vj_opp)) then
-        exit
-      end if
-    end do
-
-  end subroutine find_vj_focus_et_al_nCge4
-
-  function is_valid_order_vj_focus_nCge4( mesh, vj_clock, vj_focus, vj_anti, vj_opp) result( isso)
-    ! All new triangles resulting from this ordering must have their
-    ! vertices ordered counter-clockwise
-
-    ! In/output variables:
-    type(type_mesh),       intent(in   ) :: mesh
-    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), intent(in   ) :: vj_opp
-    logical                              :: isso
-
-    ! Local variables:
-    integer, dimension(3) :: tri
-    integer               :: vii
-
-    isso = .true.
-
-    ! ti3
-    tri = [vj_focus, vj_anti, vj_opp( 1)]
-    isso = isso .and. is_ordered_counterclockwise( mesh, tri)
-
-    ! ti_opp
-    do vii = 1, size( vj_opp,1)-1
-      tri = [vj_focus, vj_opp( vii), vj_opp( vii+1)]
-      isso = isso .and. is_ordered_counterclockwise( mesh, tri)
-    end do
-
-    ! ti3
-    tri = [vj_focus, vj_opp( size( vj_opp,1)), vj_clock]
-    isso = isso .and. is_ordered_counterclockwise( mesh, tri)
-
-  end function is_valid_order_vj_focus_nCge4
-
-  pure function is_ordered_counterclockwise( mesh, tri) result( isso)
-    !< Check if the vertices in a hypothetical triangle are ordered counter-clockwise
-
-    ! In/output variables:
-    type(type_mesh),       intent(in   ) :: mesh
-    integer, dimension(3), intent(in   ) :: tri
-    logical                              :: isso
-
-    ! Local arguments:
-    real(dp), dimension(2) :: pa, pb, pc
-
-    pa = mesh%V( tri(1),:)
-    pb = mesh%V( tri(2),:)
-    pc = mesh%V( tri(3),:)
-
-    isso = cross2( pb-pa, pc-pa) > 0._dp
-
-  end function is_ordered_counterclockwise
-
-  subroutine delete_vertex_nCge4_nC_C( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp, &
-    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), intent(in   ) :: vj_opp
-    integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer, dimension(:), intent(in   ) :: ti_opp
-    integer,               intent(in   ) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), intent(in   ) :: tj_opp
+    type(type_mesh),                 intent(inout) :: mesh
+    type(type_local_geometry_nCge4), intent(in   ) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_nC_C'
@@ -442,18 +217,34 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! vj_focus: replace connection to vi_kill by vj_opp
-    call replace_vj_in_C_vi_with_vks( mesh, vj_focus, vi_kill, vj_opp)
+    ! vj_focus: replace connection to vi_kill by vj_opp(:)
+    call replace_vj_in_C_vi_with_vks( mesh, locgeom%vj_focus, locgeom%vi_kill, locgeom%vj_opp)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%C( locgeom%vj_focus,:) == locgeom%vi_kill), 'vi_kill is still listed in C( vj_focus,:)')
+    do vii = 1, locgeom%nvj_opp
+      call assert( any( mesh%C( locgeom%vj_focus,:) == locgeom%vj_opp( vii)), 'vj_opp is not listed in C( vj_focus,:)')
+    end do
+#endif
 
     ! vj_clock: remove connection to vi_kill
-    call remove_vj_in_C_vi( mesh, vj_clock, vi_kill)
+    call remove_vj_in_C_vi( mesh, locgeom%vj_clock, locgeom%vi_kill)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%C( locgeom%vj_clock,:) == locgeom%vi_kill), 'vi_kill is still listed in C( vj_clock,:)')
+#endif
 
     ! vj_anti: remove connection to vi_kill
-    call remove_vj_in_C_vi( mesh, vj_anti, vi_kill)
+    call remove_vj_in_C_vi( mesh, locgeom%vj_anti, locgeom%vi_kill)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%C( locgeom%vj_anti,:) == locgeom%vi_kill), 'vi_kill is still listed in C( vj_anti,:)')
+#endif
 
     ! vj_opp: replace connection to vi_kill by vj_focus
-    do vii = 1, size( vj_opp,1)
-      call replace_vj_in_C_vi_with_vks( mesh, vj_opp( vii), vi_kill, [vj_focus])
+    do vii = 1, locgeom%nvj_opp
+      call replace_vj_in_C_vi_with_vks( mesh, locgeom%vj_opp( vii), locgeom%vi_kill, [locgeom%vj_focus])
+#if (DO_ASSERTIONS)
+      call assert( .not. any( mesh%C( locgeom%vj_opp( vii),:) == locgeom%vi_kill ), 'vi_kill is still listed in C( vj_opp,:)')
+      call assert(       any( mesh%C( locgeom%vj_opp( vii),:) == locgeom%vj_focus), 'vj_focus is not listed in C( vj_opp,:)')
+#endif
     end do
 
     ! Finalise routine path
@@ -461,57 +252,61 @@ contains
 
   end subroutine delete_vertex_nCge4_nC_C
 
-  subroutine delete_vertex_nCge4_niTri_iTri( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp, &
-    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+  subroutine delete_vertex_nCge4_niTri_iTri( mesh, locgeom)
 
     ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(  out) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), intent(  out) :: vj_opp
-    integer,               intent(  out) :: ti1, ti2, ti3, ti4
-    integer, dimension(:), intent(  out) :: ti_opp
-    integer,               intent(  out) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), intent(  out) :: tj_opp
+    type(type_mesh),                 intent(inout) :: mesh
+    type(type_local_geometry_nCge4), intent(in   ) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_niTri_iTri'
+    integer                        :: tii
 
     ! Add routine to path
     call init_routine( routine_name)
 
     ! vj_focus: add ti_opp(:) after ti3
-    call add_tjs_in_iTri_vi_after_ti( mesh, vj_focus, ti3, ti_opp)
+    call add_tjs_in_iTri_vi_after_ti( mesh, locgeom%vj_focus, locgeom%ti3, locgeom%ti_opp)
+#if (DO_ASSERTIONS)
+    do tii = 1, locgeom%nti_opp
+      call assert( any( mesh%iTri( locgeom%vj_focus,:) == locgeom%ti_opp( tii)), 'ti_opp is not listed in iTri( vj_focus,:)')
+    end do
+#endif
 
     ! vj_clock: remove ti1 from iTri
-    call remove_ti_in_iTri_vi( mesh, vj_clock, ti1)
+    call remove_ti_in_iTri_vi( mesh, locgeom%vj_clock, locgeom%ti1)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%iTri( locgeom%vj_clock,:) == locgeom%ti1), 'ti1 is still listed in iTri( vj_clock,:)')
+#endif
 
     ! vj_anti: remove ti4 from iTri
-    call remove_ti_in_iTri_vi( mesh, vj_anti, ti4)
+    call remove_ti_in_iTri_vi( mesh, locgeom%vj_anti, locgeom%ti4)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%iTri( locgeom%vj_anti,:) == locgeom%ti4), 'ti4 is still listed in iTri( vj_anti,:)')
+#endif
 
     ! vj_opp: replace ti1 with ti2, and ti4 with ti3
-    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( size( vj_opp,1)), ti1, ti2)
-    call replace_ti_in_iTri_vi_with_tj( mesh, vj_opp( 1              ), ti4, ti3)
+    call replace_ti_in_iTri_vi_with_tj( mesh, locgeom%vj_opp(locgeom%nvj_opp), locgeom%ti1, locgeom%ti2)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%iTri( locgeom%vj_opp( locgeom%nvj_opp),:) == locgeom%ti1), 'ti1 is still listed in iTri( vj_opp(end),:)')
+    call assert(       any( mesh%iTri( locgeom%vj_opp( locgeom%nvj_opp),:) == locgeom%ti2), 'ti2 is not listed in iTri( vj_opp(end),:)')
+#endif
+    call replace_ti_in_iTri_vi_with_tj( mesh, locgeom%vj_opp( 1             ), locgeom%ti4, locgeom%ti3)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%iTri( locgeom%vj_opp( 1),:) == locgeom%ti4), 'ti1 is still listed in iTri( vj_opp(1),:)')
+    call assert(       any( mesh%iTri( locgeom%vj_opp( 1),:) == locgeom%ti3), 'ti2 is not listed in iTri( vj_opp(1),:)')
+#endif
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine delete_vertex_nCge4_niTri_iTri
 
-  subroutine delete_vertex_nCge4_Tri( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp, &
-    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+  subroutine delete_vertex_nCge4_Tri( mesh, locgeom)
 
     ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), intent(in   ) :: vj_opp
-    integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer, dimension(:), intent(in   ) :: ti_opp
-    integer,               intent(in   ) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), intent(in   ) :: tj_opp
+    type(type_mesh),                 intent(inout) :: mesh
+    type(type_local_geometry_nCge4), intent(in   ) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_Tri'
@@ -523,16 +318,28 @@ contains
     ! ti1: nothing changes (will be deleted)
 
     ! ti2: replace vi_kill with vj_opp( end)
-    call replace_vi_in_Tri_ti_with_vj( mesh, ti2, vi_kill, vj_opp( size( vj_opp,1)))
+    call replace_vi_in_Tri_ti_with_vj( mesh, locgeom%ti2, locgeom%vi_kill, locgeom%vj_opp( locgeom%nvj_opp))
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%Tri( locgeom%ti2,:) == locgeom%vi_kill), 'vi_kill is still listed in Tri( ti2,:)')
+    call assert(       any( mesh%Tri( locgeom%ti2,:) == locgeom%vj_opp( locgeom%nvj_opp)), 'vj_opp(end) is not listed in Tri( ti2,:)')
+#endif
 
     ! ti3: replace vi_kill with vj_opp( 1)
-    call replace_vi_in_Tri_ti_with_vj( mesh, ti3, vi_kill, vj_opp( 1))
+    call replace_vi_in_Tri_ti_with_vj( mesh, locgeom%ti3, locgeom%vi_kill, locgeom%vj_opp( 1))
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%Tri( locgeom%ti3,:) == locgeom%vi_kill), 'vi_kill is still listed in Tri( ti3,:)')
+    call assert(       any( mesh%Tri( locgeom%ti3,:) == locgeom%vj_opp( 1)), 'vj_opp(1) is not listed in Tri( ti3,:)')
+#endif
 
     ! ti4: nothing changes (will be deleted)
 
     ! ti_opp: replace vi_kill with vj_focus
-    do tii = 1, size( ti_opp,1)
-      call replace_vi_in_Tri_ti_with_vj( mesh, ti_opp( tii), vi_kill, vj_focus)
+    do tii = 1, locgeom%nti_opp
+      call replace_vi_in_Tri_ti_with_vj( mesh, locgeom%ti_opp( tii), locgeom%vi_kill, locgeom%vj_focus)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%Tri( locgeom%ti_opp( tii),:) == locgeom%vi_kill), 'vi_kill is still listed in Tri( ti_opp,:)')
+    call assert(       any( mesh%Tri( locgeom%ti_opp( tii),:) == locgeom%vj_focus), 'vj_focus is not listed in Tri( ti_opp,:)')
+#endif
     end do
 
     ! Finalise routine path
@@ -540,19 +347,11 @@ contains
 
   end subroutine delete_vertex_nCge4_Tri
 
-  subroutine delete_vertex_nCge4_TriC( mesh, vi_kill, &
-    vj_clock, vj_focus, vj_anti, vj_opp, &
-    ti1, ti2, ti3, ti4, ti_opp, tj1, tj2, tj3, tj4, tj_opp)
+  subroutine delete_vertex_nCge4_TriC( mesh, locgeom)
 
     ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi_kill
-    integer,               intent(in   ) :: vj_clock, vj_focus, vj_anti
-    integer, dimension(:), intent(in   ) :: vj_opp
-    integer,               intent(in   ) :: ti1, ti2, ti3, ti4
-    integer, dimension(:), intent(in   ) :: ti_opp
-    integer,               intent(in   ) :: tj1, tj2, tj3, tj4
-    integer, dimension(:), intent(in   ) :: tj_opp
+    type(type_mesh),                 intent(inout) :: mesh
+    type(type_local_geometry_nCge4), intent(in   ) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_nCge4_TriC'
@@ -562,38 +361,70 @@ contains
 
     ! ti1: nothing changes (will be deleted)
 
-    ! ti2: replace ti1 in TriC with tj1, and ti3 with ti_opp( end)
-    call replace_tj_in_TriC_ti_with_tk( mesh, ti2, ti1, tj1)
-    if (size( ti_opp,1) >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti2, ti3, ti_opp( size( ti_opp,1)))
+    ! ti2: replace ti1 in TriC with tj1, and ti3 with ti_opp( end) if the latter exists
+    call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti2, locgeom%ti1, locgeom%tj1)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti2,:) == locgeom%ti1), 'ti1 is still listed in TriC( ti2,:)')
+    call assert(       any( mesh%TriC( locgeom%ti2,:) == locgeom%tj1), 'tj1 is not listed in TriC( ti2,:)')
+#endif
+    if (locgeom%nti_opp >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti2, locgeom%ti3, locgeom%ti_opp( locgeom%nti_opp))
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti2,:) == locgeom%ti3), 'ti3 is still listed in TriC( ti2,:)')
+    call assert(       any( mesh%TriC( locgeom%ti2,:) == locgeom%ti_opp( locgeom%nti_opp)), 'ti_opp(end) is not listed in TriC( ti2,:)')
+#endif
     end if
 
-    ! ti3: replace ti4 in TriC with tj4, and ti2 with ti_opp( 1)
-    call replace_tj_in_TriC_ti_with_tk( mesh, ti3, ti4, tj4)
-    if (size( ti_opp,1) >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti3, ti2, ti_opp( 1))
+    ! ti3: replace ti4 in TriC with tj4, and ti2 with ti_opp( 1) if the latter exists
+    call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti3, locgeom%ti4, locgeom%tj4)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti3,:) == locgeom%ti4), 'ti4 is still listed in TriC( ti3,:)')
+    call assert(       any( mesh%TriC( locgeom%ti3,:) == locgeom%tj4), 'tj4 is not listed in TriC( ti3,:)')
+#endif
+    if (locgeom%nti_opp >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti3, locgeom%ti2, locgeom%ti_opp( 1))
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti3,:) == locgeom%ti2), 'ti2 is still listed in TriC( ti3,:)')
+    call assert(       any( mesh%TriC( locgeom%ti3,:) == locgeom%ti_opp( 1)), 'ti_opp(1) is not listed in TriC( ti3,:)')
+#endif
     end if
 
     ! ti4: nothing changes (will be deleted)
 
-    ! ti_opp( 1): replace ti4 in TriC with ti3
-    if (size( ti_opp,1) >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti_opp( 1), ti4, ti3)
+    ! if ti_opp( 1) exists: replace ti4 in TriC with ti3
+    if (locgeom%nti_opp >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti_opp( 1), locgeom%ti4, locgeom%ti3)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti_opp( 1),:) == locgeom%ti4), 'ti4 is still listed in TriC( ti_opp( 1),:)')
+    call assert(       any( mesh%TriC( locgeom%ti_opp( 1),:) == locgeom%ti3), 'ti3 is not listed in TriC( ti_opp( 1),:)')
+#endif
     end if
 
-    ! ti_opp( end): replace ti1 in TriC with ti2
-    if (size( ti_opp,1) >= 1) then
-      call replace_tj_in_TriC_ti_with_tk( mesh, ti_opp( size( ti_opp,1)), ti1, ti2)
+    ! if ti_opp( end) exists: replace ti1 in TriC with ti2
+    if (locgeom%nti_opp >= 1) then
+      call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti_opp( locgeom%nti_opp), locgeom%ti1, locgeom%ti2)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%ti_opp( locgeom%nti_opp),:) == locgeom%ti1), 'ti1 is still listed in TriC( ti_opp( end),:)')
+    call assert(       any( mesh%TriC( locgeom%ti_opp( locgeom%nti_opp),:) == locgeom%ti2), 'ti2 is not listed in TriC( ti_opp( end),:)')
+#endif
     end if
 
     ! tj1: replace ti1 in TriC with ti2
-    call replace_tj_in_TriC_ti_with_tk( mesh, tj1, ti1, ti2)
+    call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%tj1, locgeom%ti1, locgeom%ti2)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%tj1,:) == locgeom%ti1), 'ti1 is still listed in TriC( tj1,:)')
+    call assert(       any( mesh%TriC( locgeom%tj1,:) == locgeom%ti2), 'ti2 is not listed in TriC( tj1,:)')
+#endif
 
     ! tj2: nothing changes
     ! tj3: nothing changes
 
     ! tj4: replace ti4 in TriC with ti3
-    call replace_tj_in_TriC_ti_with_tk( mesh, tj4, ti4, ti3)
+    call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%tj4, locgeom%ti4, locgeom%ti3)
+#if (DO_ASSERTIONS)
+    call assert( .not. any( mesh%TriC( locgeom%tj4,:) == locgeom%ti4), 'ti4 is still listed in TriC( tj4,:)')
+    call assert(       any( mesh%TriC( locgeom%tj4,:) == locgeom%ti3), 'ti3 is not listed in TriC( tj4,:)')
+#endif
 
     ! tj_opp: nothing changes
 
@@ -601,263 +432,6 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine delete_vertex_nCge4_TriC
-
-  ! General operations on primary mesh data
-  ! =======================================
-
-  subroutine replace_vj_in_C_vi_with_vks( mesh, vi, vj, vks)
-    ! Replace vj in C(vi,:) with vk(:)
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi, vj
-    integer, dimension(:), intent(in   ) :: vks
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'replace_vj_in_C_vi_with_vks'
-    logical                        :: found_it
-    integer                        :: ci, i
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do ci = 1, mesh%nC( vi)
-      if (mesh%C( vi,ci) == vj) then
-        if (par%primary) then
-          call warning('vi = {int_01}, vj = {int_02}, ci = {int_03}',&
-            int_01 = vi, int_02 = vj, int_03 = ci)
-          do i = 1, size( vks)
-            call warning('vks({int_01}) = {int_02}', int_01 = i, int_02 = vks(i))
-          end do
-        end if
-        found_it = .true.
-        mesh%C( vi,1:mesh%nC( vi) - 1 + size( vks,1)) = &
-          [mesh%C( vi,1:ci-1), vks, mesh%C( vi,ci+1:mesh%nC( vi))]
-        mesh%nC( vi) = mesh%nC( vi) - 1 + size( vks,1)
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find vj in C(vi,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine replace_vj_in_C_vi_with_vks
-
-  subroutine remove_vj_in_C_vi( mesh, vi, vj)
-    ! Remove vj in C(vi,:)
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi, vj
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'remove_vj_in_C_vi'
-    logical                        :: found_it
-    integer                        :: ci
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do ci = 1, mesh%nC( vi)
-      if (mesh%C( vi,ci) == vj) then
-        if (par%primary) then
-          call warning('vi = {int_01}, vj = {int_02}, ci = {int_03}',&
-            int_01 = vi, int_02 = vj, int_03 = ci)
-        end if
-        found_it = .true.
-        mesh%C( vi,1:mesh%nC( vi)) = &
-          [mesh%C( vi,1:ci-1), mesh%C( vi,ci+1:mesh%nC( vi)), 0]
-        mesh%nC( vi) = mesh%nC( vi) - 1
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find vj in C(vi,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine remove_vj_in_C_vi
-
-  subroutine remove_ti_in_iTri_vi( mesh, vi, ti)
-    ! Remove ti in iTri( vi,:)
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi, ti
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'remove_ti_in_iTri_vi'
-    logical                        :: found_it
-    integer                        :: iti
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do iti = 1, mesh%niTri( vi)
-      if (mesh%iTri( vi,iti) == ti) then
-        if (par%primary) then
-          call warning('vi = {int_01}, ti = {int_02}, iti = {int_03}',&
-            int_01 = vi, int_02 = ti, int_03 = iti)
-        end if
-        found_it = .true.
-        mesh%iTri( vi,1:mesh%niTri( vi)) = &
-          [mesh%iTri( vi,1:iti-1), mesh%iTri( vi,iti+1:mesh%niTri( vi)), 0]
-        mesh%niTri( vi) = mesh%niTri( vi) - 1
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find ti in iTri(vi,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine remove_ti_in_iTri_vi
-
-  subroutine replace_ti_in_iTri_vi_with_tj( mesh, vi, ti, tj)
-    ! Replace ti in iTri(vi,:) with tj
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi, ti, tj
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'replace_ti_in_iTri_vi_with_tj'
-    logical                        :: found_it
-    integer                        :: iti
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do iti = 1, mesh%niTri( vi)
-      if (mesh%iTri( vi,iti) == ti) then
-        if (par%primary) then
-          call warning('vi = {int_01}, ti = {int_02}, tj = {int_03}, iti = {int_04}',&
-            int_01 = vi, int_02 = ti, int_03 = tj, int_04 = iti)
-        end if
-        found_it = .true.
-        mesh%iTri( vi,iti) = tj
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find ti in iTri(vi,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine replace_ti_in_iTri_vi_with_tj
-
-  subroutine add_tjs_in_iTri_vi_after_ti( mesh, vi, ti, tjs)
-    ! Add tjs in iTri( vi,:) after tj
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: vi, ti
-    integer, dimension(:), intent(in   ) :: tjs
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'add_tjs_in_iTri_vi_after_ti'
-    logical                        :: found_it
-    integer                        :: iti, i
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do iti = 1, mesh%niTri( vi)
-      if (mesh%iTri( vi,iti) == ti) then
-        if (par%primary) then
-          call warning('vi = {int_01}, ti = {int_02}, iti = {int_03}',&
-            int_01 = vi, int_02 = ti, int_03 = iti)
-          do i = 1, size( tjs)
-            call warning('tjs({int_01}) = {int_02}', int_01 = i, int_02 = tjs(i))
-          end do
-        end if
-        found_it = .true.
-        mesh%iTri( vi,1:mesh%niTri( vi) + size( tjs,1)) = &
-          [mesh%iTri( vi,1:iti), tjs, mesh%iTri( vi,iti+1:mesh%niTri( vi))]
-        mesh%niTri( vi) = mesh%niTri( vi) + size( tjs,1)
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find ti in iTri(vi,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine add_tjs_in_iTri_vi_after_ti
-
-  subroutine replace_vi_in_Tri_ti_with_vj( mesh, ti, vi, vj)
-    ! Replace vi in Tri(ti,:) with tj
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: ti, vi, vj
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'replace_vi_in_Tri_ti_with_vj'
-    logical                        :: found_it
-    integer                        :: n
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do n = 1, 3
-      if (mesh%Tri( ti,n) == vi) then
-        if (par%primary) then
-          call warning('ti = {int_01}, vi = {int_02}, vj = {int_03}, n = {int_04}',&
-            int_01 = ti, int_02 = vi, int_03 = vj, int_04 = n)
-        end if
-        found_it = .true.
-        mesh%Tri( ti,n) = vj
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find vi in Tri(ti,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine replace_vi_in_Tri_ti_with_vj
-
-  subroutine replace_tj_in_TriC_ti_with_tk( mesh, ti, tj, tk)
-    ! Replace tj in TriC(ti,:) with tk
-
-    ! In/output variables:
-    type(type_mesh),       intent(inout) :: mesh
-    integer,               intent(in   ) :: ti, tj, tk
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'replace_tj_in_TriC_ti_with_tk'
-    logical                        :: found_it
-    integer                        :: n
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    found_it = .false.
-    do n = 1, 3
-      if (mesh%TriC( ti,n) == tj) then
-        if (par%primary) then
-          call warning('ti = {int_01}, tj = {int_02}, tk = {int_03}, n = {int_04}',&
-            int_01 = ti, int_02 = tj, int_03 = tk, int_04 = n)
-        end if
-        found_it = .true.
-        mesh%TriC( ti,n) = tk
-        exit
-      end if
-    end do
-    if (.not. found_it) call crash('couldnt find tj in TriC(ti,:)')
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine replace_tj_in_TriC_ti_with_tk
 
   subroutine delete_vertex_V( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
 
