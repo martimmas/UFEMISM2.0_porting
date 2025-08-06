@@ -254,23 +254,23 @@ CONTAINS
     CALL reallocate_bounds( GIA%dHb_next                  , mesh_new%vi1, mesh_new%vi2)
 
     ! Determine which GIA model to remap
-    IF     (C%choice_GIA_model == 'none') THEN
+    select case (C%choice_GIA_model)
+    case default
+      call crash('unknown choice_GIA_model "' // TRIM( C%choice_GIA_model) // '"')
+    case ('none')
       ! No need to do anything
-    ELSEIF (C%choice_GIA_model == 'ELRA') THEN
-
+    case ('ELRA')
       call deallocate_grid(GIA%grid)
       ! Create the new square grid for the GIA model
       grid_name = 'square_grid_GIA_' // region_name
-      CALL setup_square_grid( grid_name, mesh_new%xmin, mesh_new%xmax, mesh_new%ymin, mesh_new%ymax, &
+      call setup_square_grid( grid_name, mesh_new%xmin, mesh_new%xmax, mesh_new%ymin, mesh_new%ymax, &
          C%dx_GIA, GIA%grid, &
          lambda_M = mesh_new%lambda_M, phi_M = mesh_new%phi_M, beta_stereo = mesh_new%beta_stereo)
 
-      ALLOCATE( GIA%relative_surface_load_grid( GIA%grid%n1:GIA%grid%n2))
+      allocate( GIA%relative_surface_load_grid( GIA%grid%n1:GIA%grid%n2))
       GIA%relative_surface_load_grid = 0._dp
-      CALL remap_ELRA_model( mesh_old, mesh_new, ELRA, refgeo_GIAeq, GIA%grid)
-    ELSE
-      CALL crash('unknown choice_GIA_model "' // TRIM( C%choice_GIA_model) // '"')
-    END IF
+      call remap_ELRA_model( mesh_old, mesh_new, ELRA, refgeo_GIAeq, GIA%grid)
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
