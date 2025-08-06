@@ -11,10 +11,7 @@ MODULE laddie_main
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
-  USE ice_model_types                                        , ONLY: type_ice_model
   USE laddie_model_types                                     , ONLY: type_laddie_model, type_laddie_timestep
-  USE ocean_model_types                                      , ONLY: type_ocean_model
-  USE BMB_model_types                                        , ONLY: type_BMB_model
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   USE remapping_main                                         , ONLY: map_from_mesh_to_mesh_with_reallocation_2D, &
                                                                      map_from_mesh_tri_to_mesh_tri_with_reallocation_2D
@@ -45,18 +42,15 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  subroutine run_laddie_model( mesh, ice, ocean, laddie, forcing, time, is_initial, region_name)
+  subroutine run_laddie_model( mesh, laddie, forcing, time, is_initial)
     ! Run the laddie model
 
     ! In/output variables
     type(type_mesh),           intent(in   ) :: mesh
-    type(type_ice_model),      intent(in   ) :: ice
-    type(type_ocean_model),    intent(in   ) :: ocean
     type(type_laddie_model),   intent(inout) :: laddie
     type(type_laddie_forcing), intent(inout) :: forcing
     real(dp),                  intent(in   ) :: time
     logical,                   intent(in   ) :: is_initial
-    character(len=3),          intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_laddie_model'
@@ -85,13 +79,13 @@ CONTAINS
       call repartition_laddie( mesh, mesh_repartitioned, laddie, forcing)
 
       ! Run laddie on the repartitioned mesh
-      call run_laddie_model_leg( mesh_repartitioned, laddie, forcing, time, is_initial, region_name)
+      call run_laddie_model_leg( mesh_repartitioned, laddie, forcing, time, is_initial)
 
       ! Un-repartition laddie
       call repartition_laddie( mesh_repartitioned, mesh, laddie, forcing)
     else
       ! Run laddie on the original mesh
-      call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, region_name)
+      call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
     end if
 
     ! Clean up after yourself
@@ -102,7 +96,7 @@ CONTAINS
 
   end subroutine run_laddie_model
 
-  subroutine run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, region_name)
+  subroutine run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
     ! Run one leg of the laddie model
 
     ! In/output variables
@@ -111,7 +105,6 @@ CONTAINS
     type(type_laddie_forcing), intent(in   ) :: forcing
     real(dp),                  intent(in   ) :: time
     logical,                   intent(in   ) :: is_initial
-    character(len=3),          intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_laddie_model_leg'
@@ -218,7 +211,7 @@ CONTAINS
 
       ! Write to output
       if (C%do_write_laddie_output_fields) then
-        call write_to_laddie_output_fields_file( mesh, laddie, region_name, ref_time + tl)
+        call write_to_laddie_output_fields_file( mesh, laddie, ref_time + tl)
       end if
 
       if (C%do_write_laddie_output_scalar) then
@@ -239,7 +232,7 @@ CONTAINS
 
   end subroutine run_laddie_model_leg
 
-  SUBROUTINE initialise_laddie_model( mesh, laddie, forcing, ocean, ice, region_name)
+  SUBROUTINE initialise_laddie_model( mesh, laddie, forcing)
     ! Initialise the laddie model
 
     ! In- and output variables
@@ -247,9 +240,6 @@ CONTAINS
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
     TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
     type(type_laddie_forcing),              intent(in   ) :: forcing
-    TYPE(type_ocean_model),                 INTENT(IN)    :: ocean
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    character(len=3),                       intent(in   ) :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_laddie_model'
@@ -288,8 +278,8 @@ CONTAINS
     END SELECT
 
     ! Create output file
-    if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie, region_name)
-    if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie, region_name)
+    if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
+    if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie)
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -583,18 +573,15 @@ CONTAINS
 
   END SUBROUTINE extrapolate_laddie_variables
 
-  SUBROUTINE remap_laddie_model( mesh_old, mesh_new, ice, ocean, laddie, forcing, time, region_name)
+  SUBROUTINE remap_laddie_model( mesh_old, mesh_new, laddie, forcing, time)
     ! Reallocate and remap laddie variables
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_ocean_model),                 INTENT(IN)    :: ocean
     TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
     type(type_laddie_forcing),              intent(inout) :: forcing
     REAL(dp),                               INTENT(IN)    :: time
-    character(len=3),                       intent(in   ) :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'remap_laddie_model'
@@ -759,7 +746,7 @@ CONTAINS
     END SELECT
 
     ! == Re-initialise ==
-    CALL run_laddie_model( mesh_new, ice, ocean, laddie, forcing, time, .FALSE., region_name)
+    CALL run_laddie_model( mesh_new, laddie, forcing, time, .FALSE.)
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
