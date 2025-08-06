@@ -23,7 +23,8 @@ MODULE BMB_main
   USE BMB_parameterised                                      , ONLY: initialise_BMB_model_parameterised, run_BMB_model_parameterised
   USE BMB_laddie                                             , ONLY: initialise_BMB_model_laddie, run_BMB_model_laddie, remap_BMB_model_laddie
   use BMB_inverted, only: initialise_BMB_model_inverted, run_BMB_model_inverted
-  use laddie_main, only: initialise_laddie_model, run_laddie_model, remap_laddie_model
+  use LADDIE_main_model, only: initialise_laddie_model, run_laddie_model
+  use laddie_main_utils, only: remap_laddie_model
   use laddie_utilities, only: allocate_laddie_forcing
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use ice_geometry_basics, only: is_floating
@@ -601,7 +602,8 @@ CONTAINS
       CASE ('laddie')
         call remap_laddie_forcing( mesh_old, mesh_new, BMB%forcing)
         call update_laddie_forcing( mesh_new, ice, ocean, BMB%forcing)
-        CALL remap_laddie_model( mesh_old, mesh_new, BMB%laddie, BMB%forcing, time)
+        call remap_laddie_model( mesh_old, mesh_new, BMB%laddie, BMB%forcing, time)
+        call run_laddie_model( mesh_new, BMB%laddie, BMB%forcing, time, .FALSE.)
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
     END SELECT

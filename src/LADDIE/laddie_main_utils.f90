@@ -1,4 +1,4 @@
-MODULE laddie_main
+MODULE laddie_main_utils
 
   ! The main laddie model module.
 
@@ -16,22 +16,16 @@ MODULE laddie_main
   USE remapping_main                                         , ONLY: map_from_mesh_to_mesh_with_reallocation_2D, &
                                                                      map_from_mesh_tri_to_mesh_tri_with_reallocation_2D
   use laddie_forcing_types, only: type_laddie_forcing
-  USE laddie_utilities                                       , ONLY: compute_ambient_TS, allocate_laddie_model, &
-                                                                     allocate_laddie_timestep, map_H_a_b, map_H_a_c, &
-                                                                     allocate_laddie_forcing
+  use laddie_utilities, only: map_H_a_b, map_H_a_c
   use laddie_operators                                       , only: update_laddie_operators
   use laddie_velocity                                        , only: map_UV_b_c
-  use laddie_physics                                         , only: compute_subglacial_discharge
   USE mesh_utilities                                         , ONLY: extrapolate_Gaussian
   use mesh_disc_apply_operators                              , only: map_b_a_2D
   use mesh_integrate_over_domain                             , only: integrate_over_domain, calc_and_print_min_mean_max
   USE mpi_distributed_memory                                 , ONLY: gather_to_all
   use mpi_distributed_shared_memory, only: reallocate_dist_shared, hybrid_to_dist, dist_to_hybrid
   use mesh_halo_exchange, only: exchange_halos
-  use laddie_output, only: create_laddie_output_fields_file, create_laddie_output_scalar_file, &
-      write_to_laddie_output_fields_file, write_to_laddie_output_scalar_file, buffer_laddie_scalars
-  use laddie_integration, only: integrate_euler, integrate_fbrk3, integrate_lfra, move_laddie_timestep
-  use mesh_repartitioning, only: repartition_mesh, repartition
+  use mesh_repartitioning, only: repartition
   use mesh_memory, only: deallocate_mesh
   use checksum_mod, only: checksum
 
@@ -41,303 +35,6 @@ CONTAINS
 
 ! ===== Main routines =====
 ! =========================
-
-  subroutine run_laddie_model( mesh, laddie, forcing, time, is_initial)
-    ! Run the laddie model
-
-    ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh
-    type(type_laddie_model),   intent(inout) :: laddie
-    type(type_laddie_forcing), intent(inout) :: forcing
-    real(dp),                  intent(in   ) :: time
-    logical,                   intent(in   ) :: is_initial
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'run_laddie_model'
-    type(type_mesh)                :: mesh_repartitioned
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! Only in first time step
-    SELECT CASE (C%choice_laddie_SGD)
-      CASE DEFAULT
-        CALL crash('unknown choice_laddie_SGD "' // trim( C%choice_laddie_SGD) // '"!')
-      CASE ('none')
-        ! Do nothing
-      CASE ('idealised','read_from_file')
-        ! Compute SGD
-        CALL compute_subglacial_discharge( mesh, laddie, forcing)
-    END SELECT
-
-    if (C%do_repartition_laddie) then
-      ! Repartition the mesh so each process has (approximately)
-      ! the same number of ice shelf vertices/triangles
-      call repartition_mesh( mesh, mesh_repartitioned, laddie%mask_a, laddie%mask_b)
-
-      ! Repartition laddie
-      call repartition_laddie( mesh, mesh_repartitioned, laddie, forcing)
-
-      ! Run laddie on the repartitioned mesh
-      call run_laddie_model_leg( mesh_repartitioned, laddie, forcing, time, is_initial)
-
-      ! Un-repartition laddie
-      call repartition_laddie( mesh_repartitioned, mesh, laddie, forcing)
-    else
-      ! Run laddie on the original mesh
-      call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
-    end if
-
-    ! Clean up after yourself
-    call deallocate_mesh( mesh_repartitioned)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine run_laddie_model
-
-  subroutine run_laddie_model_leg( mesh, laddie, forcing, time, is_initial)
-    ! Run one leg of the laddie model
-
-    ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh
-    type(type_laddie_model),   intent(inout) :: laddie
-    type(type_laddie_forcing), intent(in   ) :: forcing
-    real(dp),                  intent(in   ) :: time
-    logical,                   intent(in   ) :: is_initial
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'run_laddie_model_leg'
-    integer                        :: vi, ti
-    real(dp)                       :: tl               ! [s] Laddie time
-    real(dp)                       :: dt               ! [s] Laddie time step
-    real(dp)                       :: duration         ! [days] Duration of run
-    real(dp)                       :: ref_time         ! [s] Reference time for writing
-    real(dp), parameter            :: time_relax_laddie = 0.02_dp ! [days]
-    real(dp), parameter            :: fac_dt_relax = 3.0_dp ! Reduction factor of time step
-    real(dp)                       :: time_to_write    ! [days]
-    real(dp)                       :: last_write_time  ! [days]
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    ! == Preparation ==
-    ! =================
-
-    ! Extrapolate data into new cells
-    CALL extrapolate_laddie_variables( mesh, laddie, forcing)
-
-    ! == Update masks ==
-    CALL update_laddie_masks( mesh, laddie, forcing)
-
-    ! Set values to zero if outside laddie mask
-    DO vi = mesh%vi1, mesh%vi2
-      IF (.NOT. laddie%mask_a( vi)) THEN
-        laddie%now%H( vi)     = 0.0_dp
-        laddie%now%T( vi)     = 0.0_dp
-        laddie%now%S( vi)     = 0.0_dp
-        laddie%melt( vi)  = 0.0_dp
-        laddie%entr( vi)  = 0.0_dp
-      END IF
-    END DO
-
-    call checksum( laddie%now%H, 'laddie%now%H', mesh%pai_V)
-    call checksum( laddie%now%T, 'laddie%now%T', mesh%pai_V)
-    call checksum( laddie%now%S, 'laddie%now%S', mesh%pai_V)
-    call checksum( laddie%melt , 'laddie%melt' , mesh%pai_V)
-    call checksum( laddie%entr , 'laddie%entr' , mesh%pai_V)
-
-    DO ti = mesh%ti1, mesh%ti2
-      IF (.NOT. laddie%mask_b( ti)) THEN
-        laddie%now%U( ti)     = 0.0_dp
-        laddie%now%V( ti)     = 0.0_dp
-        laddie%now%H_b( ti)   = 0.0_dp
-      END IF
-    END DO
-
-    call checksum( laddie%now%U  , 'laddie%now%U'  , mesh%pai_Tri)
-    call checksum( laddie%now%V  , 'laddie%now%V'  , mesh%pai_Tri)
-    call checksum( laddie%now%H_b, 'laddie%now%H_b', mesh%pai_Tri)
-
-    ! Simply set H_c zero everywhere, will be recomputed through mapping later
-    laddie%now%H_c( mesh%ei1:mesh%ei2) = 0.0_dp
-
-    ! == Update operators ==
-    CALL update_laddie_operators( mesh, laddie)
-
-    ! == Main time loop ==
-    ! ====================
-
-    ! Determine run duration and apply offset for initial run
-    if (is_initial) then
-      duration = C%time_duration_laddie_init
-      ref_time = time*sec_per_year - duration*sec_per_day
-    else
-      duration = C%time_duration_laddie
-      ref_time = time*sec_per_year
-    end if
-
-    tl = 0.0_dp
-    last_write_time = 0.0_dp
-    time_to_write = C%time_interval_scalar_output
-
-    ! Perform first integration with half the time step for LFRA scheme
-    dt = C%dt_laddie / fac_dt_relax
-    if (C%choice_laddie_integration_scheme == 'lfra') then
-      call integrate_lfra( mesh, laddie, forcing, tl, time, dt)
-    end if
-
-    DO WHILE (tl < duration * sec_per_day)
-
-      ! Set time step
-      IF (tl < time_relax_laddie * sec_per_day) THEN
-        ! Relaxation, take short time step
-        dt = C%dt_laddie / fac_dt_relax
-      ELSE
-        ! Regular timestep
-        dt = C%dt_laddie
-      END IF
-
-      SELECT CASE(C%choice_laddie_integration_scheme)
-        CASE DEFAULT
-          CALL crash('unknown choice_laddie_integration_scheme "' // TRIM( C%choice_laddie_integration_scheme) // '"')
-        CASE ('euler')
-          CALL integrate_euler( mesh, laddie, forcing, tl, time, dt)
-        CASE ('fbrk3')
-          CALL integrate_fbrk3( mesh, laddie, forcing, tl, time, dt)
-        CASE ('lfra')
-          CALL integrate_lfra( mesh, laddie, forcing, tl, time, 2*dt)
-      END SELECT
-
-      ! Write to output
-      if (C%do_write_laddie_output_fields) then
-        call write_to_laddie_output_fields_file( mesh, laddie, ref_time + tl)
-      end if
-
-      if (C%do_write_laddie_output_scalar) then
-        call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-
-        ! Write if required
-        if (tl > time_to_write * sec_per_day) then
-          call write_to_laddie_output_scalar_file( laddie)
-          last_write_time = time_to_write
-          time_to_write = time_to_write + C%time_interval_scalar_output
-        end if
-      end if
-
-    END DO !DO WHILE (tl < C%time_duration_laddie)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  end subroutine run_laddie_model_leg
-
-  SUBROUTINE initialise_laddie_model( mesh, laddie, forcing)
-    ! Initialise the laddie model
-
-    ! In- and output variables
-
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
-    type(type_laddie_forcing),              intent(in   ) :: forcing
-
-    ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_laddie_model'
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    ! Print to terminal
-    IF (par%primary)  WRITE(*,"(A)") '   Initialising LADDIE model...'
-
-    ! Allocate variables
-    CALL allocate_laddie_model( mesh, laddie)
-
-    ! == Update masks ==
-    call update_laddie_masks( mesh, laddie, forcing)
-
-    ! == Update operators ==
-    CALL update_laddie_operators( mesh, laddie)
-
-    ! Initialise requested timesteps
-    CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%now)
-
-    SELECT CASE(C%choice_laddie_integration_scheme)
-      CASE DEFAULT
-        CALL crash('unknown choice_laddie_integration_scheme "' // TRIM( C%choice_laddie_integration_scheme) // '"')
-      CASE ('euler')
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%np1)
-      CASE ('fbrk3')
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%np13)
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%np12)
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%np1)
-      CASE ('lfra')
-        call crash('LeapFrog RobertAsselin scheme does not work yet, use euler or fbrk3')
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%nm1)
-        CALL initialise_laddie_model_timestep( mesh, laddie, forcing, laddie%np1)
-    END SELECT
-
-    ! Create output file
-    if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
-    if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE initialise_laddie_model
-
-  SUBROUTINE initialise_laddie_model_timestep( mesh, laddie, forcing, npx)
-    ! Initialise the laddie model for given timestep
-
-    ! In- and output variables
-
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
-    type(type_laddie_forcing),              intent(in   ) :: forcing
-    TYPE(type_laddie_timestep),             INTENT(INOUT) :: npx
-
-    ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_laddie_model_timestep'
-    INTEGER                                               :: vi
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    ! Allocate timestep
-    CALL allocate_laddie_timestep( mesh, npx)
-
-    ! Layer thickness
-    DO vi = mesh%vi1, mesh%vi2
-       IF (laddie%mask_a( vi)) THEN
-         npx%H( vi)      = C%laddie_initial_thickness
-       END IF
-    END DO
-    call exchange_halos( mesh, npx%H)
-    call checksum( npx%H, 'npx%H', mesh%pai_V)
-
-    ! Layer thickness on b and c grid
-    CALL map_H_a_b( mesh, laddie, npx%H, npx%H_b)
-    CALL map_H_a_c( mesh, laddie, npx%H, npx%H_c)
-    call checksum( npx%H_b, 'npx%H_b', mesh%pai_Tri)
-    call checksum( npx%H_c, 'npx%H_c', mesh%pai_E)
-
-    ! Initialise ambient T and S
-    CALL compute_ambient_TS( mesh, laddie, forcing, npx%H)
-
-    ! Initialise main T and S
-    DO vi = mesh%vi1, mesh%vi2
-       IF (laddie%mask_a( vi)) THEN
-         npx%T( vi)      = laddie%T_amb( vi) + C%laddie_initial_T_offset
-         npx%S( vi)      = laddie%S_amb( vi) + C%laddie_initial_S_offset
-       END IF
-    END DO
-    call checksum( npx%T, 'npx%T', mesh%pai_V)
-    call checksum( npx%S, 'npx%S', mesh%pai_V)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE initialise_laddie_model_timestep
 
   SUBROUTINE update_laddie_masks( mesh, laddie, forcing)
     ! Update bunch of masks for laddie at the start of a new run
@@ -745,9 +442,6 @@ CONTAINS
         CALL remap_laddie_timestep( mesh_old, mesh_new, laddie, laddie%np1)
     END SELECT
 
-    ! == Re-initialise ==
-    CALL run_laddie_model( mesh_new, laddie, forcing, time, .FALSE.)
-
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
@@ -1119,5 +813,5 @@ CONTAINS
 
   end subroutine repartition_laddie
 
-END MODULE laddie_main
+END MODULE laddie_main_utils
 
