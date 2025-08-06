@@ -36,6 +36,7 @@ program LADDIE_program
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use reference_geometry_types, only: type_reference_geometry
+  use laddie_forcing_main, only: initialise_forcing
   use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
   use laddie_unit_tests, only: run_laddie_unit_tests
 
@@ -101,6 +102,11 @@ program LADDIE_program
 
     ! Create the resource tracking output file
     call create_resource_tracking_file( C%output_dir)
+
+    ! == Initialise forcing and mesh ==
+    ! ==================================
+
+    call initialise_forcing( mesh, forcing)
 
     ! == Initialise the model ==
     ! ==========================
