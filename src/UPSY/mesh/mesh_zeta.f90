@@ -35,6 +35,9 @@ CONTAINS
     ! Add routine to path
     call init_routine( routine_name)
 
+    if (allocated( mesh%zeta     )) deallocate( mesh%zeta)
+    if (allocated( mesh%zeta_stag)) deallocate( mesh%zeta_stag)
+
     allocate( mesh%zeta(      mesh%nz  ))
     allocate( mesh%zeta_stag( mesh%nz-1))
 

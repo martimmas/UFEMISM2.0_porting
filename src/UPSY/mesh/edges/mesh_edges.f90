@@ -60,15 +60,24 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    ! Deallocate memory if necessary
+    if (allocated( mesh%E   )) deallocate( mesh%E   )
+    if (allocated( mesh%VE  )) deallocate( mesh%VE  )
+    if (allocated( mesh%EV  )) deallocate( mesh%EV  )
+    if (allocated( mesh%ETri)) deallocate( mesh%ETri)
+    if (allocated( mesh%TriE)) deallocate( mesh%TriE)
+    if (allocated( mesh%EBI )) deallocate( mesh%EBI )
+    if (allocated( mesh%EA  )) deallocate( mesh%EA  )
+
     ! Allocate memory
     mesh%nE = sum( mesh%nC) / 2   ! Because every edge is listed by both vertices spanning it
-    allocate( mesh%E(    mesh%nE,   2          ), source = 0._dp)
-    allocate( mesh%VE(   mesh%nV,   mesh%nC_mem), source = 0    )
-    allocate( mesh%EV(   mesh%nE,   4          ), source = 0    )
-    allocate( mesh%ETri( mesh%nE,   2          ), source = 0    )
-    allocate( mesh%TriE( mesh%nTri, 3          ), source = 0    )
-    allocate( mesh%EBI(  mesh%nE               ), source = 0    )
-    allocate( mesh%EA(   mesh%nE               ), source = 0._dp)
+    allocate( mesh%E    (mesh%nE,   2          ), source = 0._dp)
+    allocate( mesh%VE   (mesh%nV,   mesh%nC_mem), source = 0    )
+    allocate( mesh%EV   (mesh%nE,   4          ), source = 0    )
+    allocate( mesh%ETri (mesh%nE,   2          ), source = 0    )
+    allocate( mesh%TriE (mesh%nTri, 3          ), source = 0    )
+    allocate( mesh%EBI  (mesh%nE               ), source = 0    )
+    allocate( mesh%EA   (mesh%nE               ), source = 0._dp)
 
     ei = 0
     do vi = 1, mesh%nV
