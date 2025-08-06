@@ -400,7 +400,7 @@ contains
 
     ! Fill test data
     cc(:,1) = [1, 2,  3,  4,  5,  6,  7]
-    cc(:,1) = [8, 9, 10, 11, 12, 13, 14]
+    cc(:,2) = [8, 9, 10, 11, 12, 13, 14]
 
     if (par%i == 0) then
       aa = cc( 1:2,:)
@@ -503,7 +503,7 @@ contains
 
     ! Fill test data
     cc(:,1) = [1._dp, 2._dp,  3._dp,  4._dp,  5._dp,  6._dp,  7._dp]
-    cc(:,1) = [8._dp, 9._dp, 10._dp, 11._dp, 12._dp, 13._dp, 14._dp]
+    cc(:,2) = [8._dp, 9._dp, 10._dp, 11._dp, 12._dp, 13._dp, 14._dp]
 
     if (par%i == 0) then
       aa = cc( 1:2,:)
