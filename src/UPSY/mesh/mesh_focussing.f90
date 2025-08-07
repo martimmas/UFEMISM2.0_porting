@@ -7,14 +7,37 @@ module mesh_focussing
   use remapping_types, only: type_single_row_mapping_matrices
   use line_tracing_Voronoi, only: trace_line_Vor
   use delete_vertices, only: delete_vertex
+  use split_triangles, only: split_triangle
+  use mesh_memory, only: extend_mesh_primary, crop_mesh_primary
 
   implicit none
 
   private
 
-  public :: delete_vertices_along_polyline
+  public :: delete_vertices_along_polyline, focus_mesh_on_polyline
 
 contains
+
+  subroutine focus_mesh_on_polyline( mesh, ll)
+    !< Focus a mesh on a polyline
+
+    ! In/output variables:
+    type(type_mesh),     intent(inout) :: mesh
+    type(type_polyline), intent(in   ) :: ll
+
+    ! Local variables:
+    character(len=1024), parameter     :: routine_name = 'focus_mesh_on_polyline'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call delete_vertices_along_polyline( mesh, ll)
+    call add_polyline_vertices_to_mesh( mesh, ll)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine focus_mesh_on_polyline
 
   subroutine delete_vertices_along_polyline( mesh, ll)
     !< Delete all vertices whose Voronoi cells are crossed by the polyline
@@ -110,5 +133,36 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine list_vertices_crossed_by_polyline
+
+  subroutine add_polyline_vertices_to_mesh( mesh, ll)
+    !< Add the vertices of the polyline to the mesh
+
+    ! In/output variables:
+    type(type_mesh),     intent(inout) :: mesh
+    type(type_polyline), intent(in   ) :: ll
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'add_polyline_vertices_to_mesh'
+    integer                        :: i, ti_in
+    real(dp), dimension(2)         :: p
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Make sure there's enough memory for the new vertices
+    call extend_mesh_primary( mesh, mesh%nV + ll%n, mesh%nTri + ll%n*3)
+
+    ti_in = 1
+    do i = 1, ll%n
+      p = ll%p( i,:)
+      call split_triangle( mesh, ti_in, p)
+    end do
+
+    call crop_mesh_primary( mesh)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine add_polyline_vertices_to_mesh
 
 end module mesh_focussing

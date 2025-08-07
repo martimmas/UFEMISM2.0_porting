@@ -15,7 +15,7 @@ module ut_mesh_delete_vertices
   use delete_vertices, only: delete_vertex
   use polyline_types, only: type_polyline
   use mesh_memory, only: duplicate_mesh_primary
-  use mesh_focussing, only: delete_vertices_along_polyline
+  use mesh_focussing, only: delete_vertices_along_polyline, focus_mesh_on_polyline
 
   implicit none
 
@@ -44,6 +44,7 @@ contains
 
     call test_delete_single_vertex          ( test_name)
     call test_delete_vertices_along_polyline( test_name)
+    call test_focus_mesh_on_polyline        ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -187,5 +188,86 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_delete_vertices_along_polyline
+
+  subroutine test_focus_mesh_on_polyline( test_name_parent)
+    ! Test the focus_mesh_on_polyline subroutine
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_focus_mesh_on_polyline'
+    character(len=1024), parameter :: test_name_local = 'focus_mesh_on_polyline'
+    character(len=1024)            :: test_name
+    real(dp), parameter            :: xmin = -1._dp
+    real(dp), parameter            :: xmax =  1._dp
+    real(dp), parameter            :: ymin = -1._dp
+    real(dp), parameter            :: ymax =  1._dp
+    real(dp)                       :: alpha_min
+    real(dp)                       :: res_max
+    type(type_mesh)                :: mesh, mesh2
+    type(type_polyline)            :: ll
+    integer                        :: i, vi
+    real(dp)                       :: r, theta, x, y
+    integer                        :: nV_before
+    logical                        :: has_all_polyline_vertices, has_polyline_vertex
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    call allocate_mesh_primary( mesh, 'test_mesh', 100, 200)
+    call initialise_dummy_mesh_5( mesh, xmin, xmax, ymin, ymax)
+
+    ! Refine the test mesh
+    alpha_min = 25._dp * pi / 180._dp
+    res_max = pi / 50._dp
+    call refine_mesh_uniform( mesh, res_max, alpha_min)
+    call crop_mesh_primary( mesh)
+    call calc_all_secondary_mesh_data( mesh , 0._dp, -90._dp, 71._dp)
+
+    ! Define a nice circular polyline
+    ll%is_closed = .true.
+    ll%n         = 100
+    allocate( ll%p( ll%n,2), source = 0._dp)
+
+    r = mesh%xmax * 0.6_dp
+    do i = 1, ll%n
+      theta = real( i,dp) / real( ll%n,dp) * 2._dp * pi
+      x = r * cos( theta)
+      y = r * sin( theta)
+      ll%p( i,:) = [x,y]
+    end do
+
+    ! Duplicate the mesh
+    call duplicate_mesh_primary( mesh, mesh2)
+    call calc_all_secondary_mesh_data( mesh2, 0._dp, -90._dp, 71._dp)
+
+    ! Focus mesh on the polyline
+    call focus_mesh_on_polyline( mesh2, ll)
+    call calc_all_secondary_mesh_data( mesh2, 0._dp, -90._dp, 71._dp)
+
+    ! Check if it worked
+    has_all_polyline_vertices = .true.
+    do i = 1, ll%n
+      has_polyline_vertex = .false.
+      do vi = mesh2%nV, 1, -1
+        if (norm2( mesh2%V( vi,:) - ll%p( i,:)) < mesh%tol_dist) then
+          has_polyline_vertex = .true.
+          exit
+        end if
+      end do
+      has_all_polyline_vertices = has_all_polyline_vertices .and. has_polyline_vertex
+    end do
+
+    call unit_test( test_mesh_is_self_consistent( mesh2), trim( test_name) // '/mesh_self_consistency')
+    call unit_test( has_all_polyline_vertices, trim( test_name) // '/has_all_polyline_vertices')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_focus_mesh_on_polyline
 
 end module ut_mesh_delete_vertices
