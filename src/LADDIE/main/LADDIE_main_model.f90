@@ -222,16 +222,15 @@ contains
 
       ! Write to output
       if (is_standalone) then
-        ! TODO
-        if (C%do_write_laddie_output_scalar) then
-          call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
+        ! TODO mesh and grid
+        ! Always include scalar output
+        call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
   
-          ! Write if required
-          if (tl > time_to_write * sec_per_day) then
-            call write_to_laddie_scalar_output_file( laddie)
-            last_write_time = time_to_write
-            time_to_write = time_to_write + C%time_interval_scalar_output
-          end if
+        ! Write if required
+        if (tl > time_to_write * sec_per_day) then
+          call write_to_laddie_scalar_output_file( laddie)
+          last_write_time = time_to_write
+          time_to_write = time_to_write + C%time_interval_scalar_output
         end if
       else
         if (C%do_write_laddie_output_fields) then
@@ -314,7 +313,8 @@ contains
 
     ! Create output file
     if (is_standalone) then
-      if (C%do_write_laddie_output_scalar) call create_laddie_scalar_output_file( laddie)
+      ! Always include scalar output
+      call create_laddie_scalar_output_file( laddie)
       ! TODO
     else
       if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
