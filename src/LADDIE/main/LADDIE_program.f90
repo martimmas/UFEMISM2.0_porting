@@ -19,44 +19,39 @@ program LADDIE_program
   ! NOTE: the executable should be run using mpiexec to specify the number of
   !       cores n, and with the path to the config file as the only argument, e.g.:
   !
-  !       mpi_exec  -n 2  LADDIE_program  config-files/config_test
+  !       mpirun -n 2 LADDIE_program  config-files/config_test
 
 ! ===== Preamble =====
 ! ====================
 
   use petscksp
-  use precisions                                             , only: dp
+  use precisions, only: dp
   use mpi_basic, only: par, initialise_parallelisation
-  use control_resources_and_error_messaging                  , only: warning, crash, happy, init_routine, finalise_routine, colour_string, do_colour_strings, &
-                                                                     initialise_control_and_resource_tracker, reset_resource_tracker, &
-                                                                     print_UFEMISM_start, print_UFEMISM_end
-  use model_configuration                                    , only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
-!  use netcdf_io_main
-!  USE region_types                                           , ONLY: type_model_region
-!  USE mesh_types                                             , ONLY: type_mesh
-!  USE laddie_model_types                                     , ONLY: type_laddie_model
-!  USE reference_geometry_types                               , ONLY: type_reference_geometry
-!  USE global_forcing_types                                   , ONLY: type_global_forcing
-!  USE LADDIE_main_model                                      , ONLY: initialise_model_region, run_model_region
-  use laddie_unit_tests                                       , only: run_laddie_unit_tests
+  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
+    colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
+    print_UFEMISM_start, print_UFEMISM_end
+  use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
+  use netcdf_io_main
+  use mesh_types, only: type_mesh
+  use laddie_model_types, only: type_laddie_model
+  use laddie_forcing_types, only: type_laddie_forcing
+  use reference_geometry_types, only: type_reference_geometry
+  use laddie_forcing_main, only: initialise_forcing
+  use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
+  use laddie_unit_tests, only: run_laddie_unit_tests
 
   implicit none
 
 ! ===== Main variables =====
 ! ==========================
 
-  ! The model region
-!  TYPE(type_model_region)                :: ANT
+  ! The LADDIE forcing
+  type(type_laddie_forcing)              :: forcing
 
-  ! The global forcings
-!  TYPE(type_global_forcing)              :: forcing
-
-!  type(type_laddie_model)                :: laddie
-!  type(type_reference_geometry)          :: refgeo
-!  type(type_mesh)                        :: mesh
-
-  ! Coupling
-!  REAL(dp)                               :: t_coupling, t_end_models
+  ! The LADDIE model
+  type(type_laddie_model)                :: laddie
+  type(type_reference_geometry)          :: refgeo
+  type(type_mesh)                        :: mesh
 
   ! Computation time tracking
   real(dp)                               :: tstart, tstop, tcomp
@@ -65,6 +60,9 @@ program LADDIE_program
   character(len=1024)                    :: input_argument
 
   integer :: ierr, perr
+  real(dp), parameter                    :: time = 0.0_dp
+  logical, parameter                     :: is_initial = .false.
+  logical, parameter                     :: is_standalone = .true.
 
 ! ===== START =====
 ! =================
@@ -74,7 +72,7 @@ program LADDIE_program
   if (iargc() == 1) then
     call getarg( 1, input_argument)
   else
-    stop 'LADDIE requires a single argument, being the path to the config file, e.g. "mpi_exec  -n 2  LADDIE_program  config-files/config_test"'
+    stop 'LADDIE requires a single argument, being the path to the config file, e.g. "mpirun -n 2 LADDIE_program  config-files/config_test"'
   end if
 
   ! Initialise MPI parallelisation and PETSc
@@ -98,40 +96,33 @@ program LADDIE_program
   if (input_argument == 'unit_tests') then
     call initialise_model_configuration_unit_tests
     call run_laddie_unit_tests
-!  else ! An actual model simulation
-!
-!    ! Initialise the main model configuration
-!    CALL initialise_model_configuration
-!
-!    ! Create the resource tracking output file
-!    CALL create_resource_tracking_file( C%output_dir)
-!
-!    ! == Initialise the model regions
-!    ! ===============================
-!
-!    call initialise_model_region( ANT, 'ANT', laddie, refgeo, mesh, forcing, C%start_time_of_run)
-!
-!    ! == The coupling time loop
-!    ! =========================
-!
-!    t_coupling = C%start_time_of_run
-!
-!    DO WHILE (t_coupling < C%end_time_of_run)
-!
-!      ! Run all model regions forward in time for one coupling interval
-!      t_end_models = MIN( C%end_time_of_run, t_coupling + C%dt_coupling)
-!
-!      CALL run_model_region( ANT, t_end_models, forcing)
-!
-!      ! Advance coupling time
-!      t_coupling = t_end_models
-!
-!      ! Write to resource tracking file
-!      CALL write_to_resource_tracking_file( t_coupling)
-!      CALL reset_resource_tracker
-!
-!    END DO ! DO WHILE (t_coupling < C%end_time_of_run)
-!
+  else ! An actual model simulation
+
+    ! Initialise the main model configuration
+    call initialise_model_configuration
+
+    ! Create the resource tracking output file
+    call create_resource_tracking_file( C%output_dir)
+
+    ! == Initialise forcing and mesh ==
+    ! ==================================
+
+    call initialise_forcing( mesh, forcing)
+
+    ! == Initialise the model ==
+    ! ==========================
+
+    call initialise_laddie_model( mesh, laddie, forcing, is_standalone)
+
+    ! == Run the model ==
+    ! ===================
+
+    call run_laddie_model( mesh, laddie, forcing, time, is_initial, is_standalone)
+     
+    ! Write to resource tracking file
+    call write_to_resource_tracking_file( time)
+    call reset_resource_tracker
+
   end if ! do_unit_test/do_benchmark/run
 
 ! ===== FINISH =====

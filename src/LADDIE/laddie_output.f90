@@ -23,12 +23,11 @@ module laddie_output
 
 contains
 
-  subroutine write_to_laddie_output_fields_file( mesh, laddie, region_name, time)
+  subroutine write_to_laddie_output_fields_file( mesh, laddie, time)
 
     ! In/output variables
     type(type_mesh),         intent(in   ) :: mesh
     type(type_laddie_model), intent(inout) :: laddie
-    character(len=3),        intent(in   ) :: region_name
     real(dp),                intent(in   ) :: time
 
     ! Local variables:
@@ -40,7 +39,7 @@ contains
 
     ! If the mesh has been updated, create a new output file
     if (.not. laddie%output_fields_file_matches_current_mesh) then
-      call create_laddie_output_fields_file( mesh, laddie, region_name)
+      call create_laddie_output_fields_file( mesh, laddie)
     end if
 
     ! Open the NetCDF file
@@ -64,12 +63,11 @@ contains
 
   end subroutine write_to_laddie_output_fields_file
 
-  subroutine create_laddie_output_fields_file( mesh, laddie, region_name)
+  subroutine create_laddie_output_fields_file( mesh, laddie)
 
     ! In/output variables
     type(type_mesh),         intent(in   ) :: mesh
     type(type_laddie_model), intent(inout) :: laddie
-    character(len=3),        intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'create_laddie_output_fields_file'
@@ -80,7 +78,7 @@ contains
     call init_routine( routine_name)
 
     ! Set filename
-    filename_base = trim( C%output_dir) // 'laddie_output_fields_' // region_name
+    filename_base = trim( C%output_dir) // 'laddie_output_fields'
     call generate_filename_XXXXXdotnc( filename_base, laddie%output_fields_filename)
 
     ! Print to terminal
@@ -181,12 +179,11 @@ contains
 
   end subroutine write_to_laddie_output_scalar_file
 
-  subroutine create_laddie_output_scalar_file( laddie, region_name)
-    !< Create the scalar regional output NetCDF file
+  subroutine create_laddie_output_scalar_file( laddie)
+    !< Create the scalar output NetCDF file
 
     ! In/output variables:
     type(type_laddie_model), intent(inout) :: laddie
-    character(len=3),        intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'create_laddie_output_scalar_file'
@@ -203,7 +200,7 @@ contains
     end if
 
     ! Set the filename
-    filename_base = trim( C%output_dir) // 'laddie_output_scalar_' // region_name
+    filename_base = trim( C%output_dir) // 'laddie_output_scalar'
     call generate_filename_XXXXXdotnc( filename_base, laddie%output_scalar_filename)
 
     ! Print to terminal
