@@ -20,6 +20,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Update submodules
+        run: |
+          git submodule update --init --remote
+
       - name: Restore LADDIE program from cache
         uses: actions/cache/restore@v3
         id: LADDIE_program_cache_restore
