@@ -8,7 +8,9 @@ module mesh_focussing
   use line_tracing_Voronoi, only: trace_line_Vor
   use delete_vertices, only: delete_vertex
   use split_triangles, only: split_triangle
-  use mesh_memory, only: extend_mesh_primary, crop_mesh_primary
+  use mesh_memory, only: duplicate_mesh_primary, extend_mesh_primary, crop_mesh_primary
+  use mesh_edges, only: construct_mesh_edges
+  use mesh_secondary, only: calc_all_secondary_mesh_data
 
   implicit none
 
@@ -18,12 +20,13 @@ module mesh_focussing
 
 contains
 
-  subroutine focus_mesh_on_polyline( mesh, ll)
+  subroutine focus_mesh_on_polyline( mesh, ll, mesh_focused)
     !< Focus a mesh on a polyline
 
     ! In/output variables:
-    type(type_mesh),     intent(inout) :: mesh
+    type(type_mesh),     intent(in   ) :: mesh
     type(type_polyline), intent(in   ) :: ll
+    type(type_mesh),     intent(  out) :: mesh_focused
 
     ! Local variables:
     character(len=1024), parameter     :: routine_name = 'focus_mesh_on_polyline'
@@ -31,8 +34,15 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call delete_vertices_along_polyline( mesh, ll)
-    call add_polyline_vertices_to_mesh( mesh, ll)
+    ! Duplicate the mesh
+    call duplicate_mesh_primary( mesh, mesh_focused)
+    call construct_mesh_edges( mesh_focused)
+
+    ! Focus the mesh
+    call delete_vertices_along_polyline( mesh_focused, ll)
+    call add_polyline_vertices_to_mesh ( mesh_focused, ll)
+
+    call calc_all_secondary_mesh_data( mesh_focused, 0._dp, -90._dp, 71._dp)
 
     ! Finalise routine path
     call finalise_routine( routine_name)

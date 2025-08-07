@@ -7,7 +7,7 @@ module ut_mesh_delete_vertices
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use mpi_basic, only: par
   use mesh_types, only: type_mesh
-  use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
+  use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary, deallocate_mesh
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform
   use parameters, only: pi
@@ -16,6 +16,9 @@ module ut_mesh_delete_vertices
   use polyline_types, only: type_polyline
   use mesh_memory, only: duplicate_mesh_primary
   use mesh_focussing, only: delete_vertices_along_polyline, focus_mesh_on_polyline
+
+  use netcdf_io_main
+  use control_resources_and_error_messaging, only: insert_val_into_string_dp
 
   implicit none
 
@@ -205,7 +208,7 @@ contains
     real(dp), parameter            :: ymax =  1._dp
     real(dp)                       :: alpha_min
     real(dp)                       :: res_max
-    type(type_mesh)                :: mesh, mesh2
+    type(type_mesh)                :: mesh, mesh_focused
     type(type_polyline)            :: ll
     integer                        :: i, vi
     real(dp)                       :: r, theta, x, y
@@ -241,20 +244,15 @@ contains
       ll%p( i,:) = [x,y]
     end do
 
-    ! Duplicate the mesh
-    call duplicate_mesh_primary( mesh, mesh2)
-    call calc_all_secondary_mesh_data( mesh2, 0._dp, -90._dp, 71._dp)
-
     ! Focus mesh on the polyline
-    call focus_mesh_on_polyline( mesh2, ll)
-    call calc_all_secondary_mesh_data( mesh2, 0._dp, -90._dp, 71._dp)
+    call focus_mesh_on_polyline( mesh, ll, mesh_focused)
 
     ! Check if it worked
     has_all_polyline_vertices = .true.
     do i = 1, ll%n
       has_polyline_vertex = .false.
-      do vi = mesh2%nV, 1, -1
-        if (norm2( mesh2%V( vi,:) - ll%p( i,:)) < mesh%tol_dist) then
+      do vi = mesh_focused%nV, 1, -1
+        if (norm2( mesh_focused%V( vi,:) - ll%p( i,:)) < mesh%tol_dist) then
           has_polyline_vertex = .true.
           exit
         end if
@@ -262,7 +260,7 @@ contains
       has_all_polyline_vertices = has_all_polyline_vertices .and. has_polyline_vertex
     end do
 
-    call unit_test( test_mesh_is_self_consistent( mesh2), trim( test_name) // '/mesh_self_consistency')
+    call unit_test( test_mesh_is_self_consistent( mesh_focused), trim( test_name) // '/mesh_self_consistency')
     call unit_test( has_all_polyline_vertices, trim( test_name) // '/has_all_polyline_vertices')
 
     ! Remove routine from call stack
