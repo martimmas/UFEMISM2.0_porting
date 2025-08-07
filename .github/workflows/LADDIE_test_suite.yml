@@ -17,7 +17,7 @@ jobs:
   #   uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_MacOS.yml
 
   compile_and_cache_LADDIE_perf_MacOS:
-    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacoOS.yml
+    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacOS.yml
 
   compile_and_cache_LADDIE_dev_Linux:
     uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_Linux.yml
