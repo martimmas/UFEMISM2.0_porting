@@ -13,11 +13,11 @@ on:
 jobs:
 
   # Compile the model and cache the executable
-  compile_and_cache_LADDIE_dev_MacOS:
-    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_MacOS.yml
+  # compile_and_cache_LADDIE_dev_MacOS:
+  #   uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_MacOS.yml
 
-  # compile_and_cache_LADDIE_perf_MacOS:
-  #  uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacoOS.yml
+  compile_and_cache_LADDIE_perf_MacOS:
+    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacoOS.yml
 
   compile_and_cache_LADDIE_dev_Linux:
     uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_Linux.yml
@@ -32,6 +32,6 @@ jobs:
     uses: ./.github/workflows/LADDIE_test_suite_run_unit_tests.yml
 
   # Run the integrated tests and analyse the results
-  #run_integrated_tests:
-  #  needs: compile_and_cache_LADDIE_perf_MacOS
-  #  uses: ./.github/workflows/LADDIE_test_suite_run_and_analyse_integrated_tests.yml
+  run_integrated_tests:
+    needs: compile_and_cache_LADDIE_perf_MacOS
+    uses: ./.github/workflows/LADDIE_test_suite_run_and_analyse_integrated_tests.yml
