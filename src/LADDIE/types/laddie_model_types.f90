@@ -75,9 +75,9 @@ MODULE laddie_model_types
     ! The laddie model structure
 
     ! Output
-    character(len=1024)                         :: output_fields_filename
+    character(len=1024)                         :: output_mesh_filename
     character(len=1024)                         :: output_scalar_filename
-    logical                                     :: output_fields_file_matches_current_mesh
+    logical                                     :: mesh_output_file_matches_current_mesh
 
     ! Time domain
     real(dp)                                    :: dt                          ! [s]               Time step
