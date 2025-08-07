@@ -81,6 +81,14 @@ subroutine construct_Voronoi_mesh_translation_tables( mesh)
   ! Add routine to path
   call init_routine( routine_name)
 
+  if (allocated( mesh%vi2vori)) deallocate( mesh%vi2vori)
+  if (allocated( mesh%ti2vori)) deallocate( mesh%ti2vori)
+  if (allocated( mesh%ei2vori)) deallocate( mesh%ei2vori)
+
+  if (allocated( mesh%vori2vi)) deallocate( mesh%vori2vi)
+  if (allocated( mesh%vori2ti)) deallocate( mesh%vori2ti)
+  if (allocated( mesh%vori2ei)) deallocate( mesh%vori2ei)
+
   allocate( mesh%vi2vori( mesh%nV  ), source = 0)
   allocate( mesh%ti2vori( mesh%nTri), source = 0)
   allocate( mesh%ei2vori( mesh%nE  ), source = 0)
@@ -133,6 +141,7 @@ subroutine calc_Voronoi_vertex_coordinates( mesh)
   ! Add routine to path
   call init_routine( routine_name)
 
+  if (allocated( mesh%Vor)) deallocate( mesh%Vor)
   allocate( mesh%Vor( mesh%nVor,2), source = 0._dp)
 
   do vori = 1, mesh%nVor
@@ -168,6 +177,9 @@ subroutine construct_Voronoi_mesh_connectivity( mesh)
 
   ! Add routine to path
   call init_routine( routine_name)
+
+  if (allocated( mesh%VornC)) deallocate( mesh%VornC)
+  if (allocated( mesh%VorC )) deallocate( mesh%VorC)
 
   allocate( mesh%VornC( mesh%nVor  ), source = 0)
   allocate( mesh%VorC ( mesh%nVor,3), source = 0)
@@ -374,6 +386,9 @@ subroutine construct_Voronoi_cells( mesh)
 
   ! Add routine to path
   call init_routine( routine_name)
+
+  if (allocated( mesh%nVVor)) deallocate( mesh%nVVor)
+  if (allocated( mesh%VVor )) deallocate( mesh%VVor )
 
   allocate( mesh%nVVor( mesh%nV)             , source = 0)
   allocate( mesh%VVor ( mesh%nV, mesh%nC_mem), source = 0)

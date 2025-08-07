@@ -64,6 +64,7 @@ cd build
 if ($version == 'dev') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_UFEMISM=ON \
     -DDO_ASSERTIONS=ON \
     -DDO_RESOURCE_TRACKING=ON \
     -DEXTRA_Fortran_FLAGS="\
@@ -85,6 +86,7 @@ if ($version == 'dev') then
 else if ($version == 'perf') then
 
   cmake -G Ninja -DPETSC_DIR=`brew --prefix petsc` \
+    -DBUILD_UFEMISM=ON \
     -DDO_ASSERTIONS=OFF \
     -DDO_RESOURCE_TRACKING=OFF \
     -DEXTRA_Fortran_FLAGS="\
@@ -106,14 +108,14 @@ cd ..
 if ($version == 'dev') then
 
   rm -f UFEMISM_program_dev
-  mv build/UFEMISM_program UFEMISM_program_dev
+  mv build/src/UFEMISM/UFEMISM_program UFEMISM_program_dev
   rm -f UFEMISM_program
   cp UFEMISM_program_dev UFEMISM_program
 
 else if ($version == 'perf') then
 
   rm -f UFEMISM_program_perf
-  mv build/UFEMISM_program UFEMISM_program_perf
+  mv build/src/UFEMISM/UFEMISM_program UFEMISM_program_perf
   rm -f UFEMISM_program
   cp UFEMISM_program_perf UFEMISM_program
 

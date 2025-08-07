@@ -1,0 +1,49 @@
+name: LADDIE Test Suite - compile and cache LADDIE (development build) on Linux
+run-name: ${{ github.actor }} - LADDIE Test Suite - compile and cache LADDIE (development build) on Linux
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  compile_LADDIE_dev:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Install basics
+        run: |
+          sudo apt-get update
+          sudo apt-get install csh
+          sudo apt-get install cmake
+          sudo apt-get install ninja-build
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Install packages with Homebrew   # Packages end up in /opt/homebrew/Cellar
+        run: |
+          brew install open-mpi
+          brew install netcdf
+          brew install netcdf-fortran
+          brew unlink hdf5
+          brew install petsc
+
+      - name: Set up Fortran compiler          # See: https://github.com/marketplace/actions/setup-fortran
+        uses: fortran-lang/setup-fortran@v1
+        id: setup-fortran
+        with:
+          compiler: gcc
+          version: 13
+
+      - name: Verify compiler setup
+        run: gfortran --version
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Update submodules
+        run: |
+          git submodule update --init --remote
+
+      - name: Compile LADDIE
+        run: csh compile_LADDIE.csh  dev  clean

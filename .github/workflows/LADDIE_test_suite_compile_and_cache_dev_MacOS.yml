@@ -1,11 +1,11 @@
-name: UPSY Test Suite - compile and cache UPSY (development build) on MacOS
-run-name: ${{ github.actor }} - UPSY Test Suite - compile and cache UPSY (development build) on MacOS
+name: LADDIE Test Suite - compile and cache LADDIE (development build) on MacOS
+run-name: ${{ github.actor }} - LADDIE Test Suite - compile and cache LADDIE (development build) on MacOS
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
-  compile_UPSY_dev:
+  compile_LADDIE_dev:
     runs-on: macos-latest
     steps:
 
@@ -37,19 +37,12 @@ jobs:
         run: |
           git submodule update --init --remote
 
-      - name: Compile UPSY
-        run: ./compile_UPSY.csh  dev  clean
+      - name: Compile LADDIE
+        run: ./compile_LADDIE.csh  dev  clean
 
-      - name: Cache UPSY unit test program
+      - name: Cache LADDIE unit test program
         uses: actions/cache/save@v3
-        id: UPSY_unit_test_program_cache_save
+        id: LADDIE_program_cache_save
         with:
-          path: UPSY_unit_test_program
-          key: UPSY_unit_test_program_dev_MacOS_${{ github.ref_name }}_${{ github.run_id }}
-
-      - name: Cache UPSY component test program
-        uses: actions/cache/save@v3
-        id: UPSY_component_test_program_cache_save
-        with:
-          path: UPSY_component_test_program
-          key: UPSY_component_test_program_dev_MacOS_${{ github.ref_name }}_${{ github.run_id }}
+          path: LADDIE_program
+          key: LADDIE_program_dev_${{ github.ref_name }}_${{ github.run_id }}

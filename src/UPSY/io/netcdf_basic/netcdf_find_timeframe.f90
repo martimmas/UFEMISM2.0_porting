@@ -57,15 +57,15 @@ contains
     ! Find timeframe closest to desired time
     if (time_from_file( 1) > time) then
       ! Desired time beyond lower limit
-      call warning('desired timeframe at t = {dp_01} before start of file time for file "' &
-        // trim( filename) // '"; reading data from t = {dp_02} instead!', &
-        dp_01 = time, dp_02 = time_from_file( 1))
+      !call warning('desired timeframe at t = {dp_01} before start of file time for file "' &
+      !  // trim( filename) // '"; reading data from t = {dp_02} instead!', &
+      !  dp_01 = time, dp_02 = time_from_file( 1))
       ti = 1
     elseif (time_from_file( nt) < time) then
       ! Desired time beyond upper limit
-      call warning('desired timeframe at t = {dp_01} after end of file time for file "' &
-        // trim( filename) // '"; reading data from t = {dp_02} instead!', &
-        dp_01 = time, dp_02 = time_from_file( nt))
+      !call warning('desired timeframe at t = {dp_01} after end of file time for file "' &
+      !  // trim( filename) // '"; reading data from t = {dp_02} instead!', &
+      !  dp_01 = time, dp_02 = time_from_file( nt))
       ti = nt
     else
       ! Desired time is within the file time
@@ -77,9 +77,9 @@ contains
         end if
       end do
       if (dt_min > 0._dp) then
-        call warning('desired timeframe at t = {dp_01} not present in file "' &
-          // trim( filename) // '"; reading data from closest match at t = {dp_02} instead!', &
-          dp_01 = time, dp_02 = time_from_file( ti))
+        !call warning('desired timeframe at t = {dp_01} not present in file "' &
+        !  // trim( filename) // '"; reading data from closest match at t = {dp_02} instead!', &
+        !  dp_01 = time, dp_02 = time_from_file( ti))
       end if
     end if
 
