@@ -180,23 +180,23 @@ contains
 
       ! Ice geometry
       case ('Hi')
-        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hi, d_grid_vec_partial_2D)
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hi, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hi', d_grid_vec_partial_2D)
       case ('Hib')
-        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hib, d_grid_vec_partial_2D)
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hib, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hib', d_grid_vec_partial_2D)
 
       ! Ice temperature
       case ('Ti')
-        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%Ti, d_grid_vec_partial_3D)
+        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%Ti, d_grid_vec_partial_3D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_3D_notime( grid, laddie%output_grid_filename, ncid, 'Ti', d_grid_vec_partial_3D)
 
       ! Main ocean variables
       case ('T_ocean')
-        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%T_ocean, d_grid_vec_partial_3D_ocean)
+        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%T_ocean, d_grid_vec_partial_3D_ocean, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_3D_ocean( grid, laddie%output_grid_filename, ncid, 'T_ocean', d_grid_vec_partial_3D_ocean)
       case ('S_ocean')
-        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%S_ocean, d_grid_vec_partial_3D_ocean)
+        call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%S_ocean, d_grid_vec_partial_3D_ocean, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_3D_ocean( grid, laddie%output_grid_filename, ncid, 'S_ocean', d_grid_vec_partial_3D_ocean)
 
     ! ===== Masks =====
