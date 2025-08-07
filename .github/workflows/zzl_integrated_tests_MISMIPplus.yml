@@ -25,8 +25,8 @@ jobs:
         id: LADDIE_program_cache_restore
         with:
           path: LADDIE_program
-          key: LADDIE_program_dev_${{ github.ref_name }}_${{ github.run_id }}
+          key: LADDIE_program_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run integrated_tests/idealised/MISMIPplus - mesh
-        run: mpiexec  -n 2  LADDIE_program  src/LADDIE/validation/integrated_tests/MISMIPplus/config_mesh.cfg
+        run: mpirun  -n 2  LADDIE_program  src/LADDIE/validation/integrated_tests/MISMIPplus/config_mesh.cfg
 

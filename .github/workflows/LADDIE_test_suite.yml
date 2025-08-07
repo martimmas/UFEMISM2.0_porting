@@ -16,8 +16,8 @@ jobs:
   # compile_and_cache_LADDIE_dev_MacOS:
   #   uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_MacOS.yml
 
-  #compile_and_cache_LADDIE_perf_MacOS:
-  #  uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacoOS.yml
+  compile_and_cache_LADDIE_perf_MacOS:
+    uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_perf_MacoOS.yml
 
   compile_and_cache_LADDIE_dev_Linux:
     uses: ./.github/workflows/LADDIE_test_suite_compile_and_cache_dev_Linux.yml
@@ -33,5 +33,5 @@ jobs:
 
   # Run the integrated tests and analyse the results
   run_integrated_tests:
-    needs: compile_and_cache_LADDIE_dev_Linux
+    needs: compile_and_cache_LADDIE_perf_MacOS
     uses: ./.github/workflows/LADDIE_test_suite_run_and_analyse_integrated_tests.yml
