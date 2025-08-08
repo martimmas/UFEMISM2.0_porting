@@ -70,11 +70,12 @@ contains
     real(dp), parameter                :: ymax = 1._dp
     real(dp)                           :: alpha_min
     real(dp)                           :: res_max
-    type(type_mesh)                    :: mesh
+    type(type_mesh)                    :: mesh, mesh2
     integer                            :: vi, ci, vj, vi_kill
     logical                            :: is_border_vertex, has_border_neighbours
-    integer                            :: nV_before, nTri_before
     integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
+    logical                            :: verified_vi_new2vi_old, verified_vi_old2vi_new
+    integer                            :: vi_new, vi_old
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -90,7 +91,6 @@ contains
     res_max = pi / 20._dp
     call refine_mesh_uniform( mesh, res_max, alpha_min)
     call crop_mesh_primary( mesh)
-    call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
     ! Find a nice vertex to kill
     ! (must not be a border vertex, nor be adjacent to any border vertices)
@@ -111,14 +111,30 @@ contains
       end if
     end do
 
-    nV_before   = mesh%nV
-    nTri_before = mesh%nTri
+    call duplicate_mesh_primary( mesh, mesh2)
+    call delete_vertex( mesh2, vi_kill, vi_new2vi_old, vi_old2vi_new)
 
-    call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
+    verified_vi_new2vi_old = .true.
+    do vi_new = 1, mesh2%nV
+      vi_old = vi_new2vi_old( vi_new)
+      verified_vi_new2vi_old = verified_vi_new2vi_old .and. &
+        norm2( mesh2%V( vi_new,:) - mesh%V( vi_old,:)) < mesh%tol_dist
+    end do
 
-    call unit_test( test_mesh_is_self_consistent( mesh), trim( test_name) // '/mesh_self_consistency')
-    call unit_test( mesh%nV   == nV_before   - 1       , trim( test_name) // '/nV')
-    call unit_test( mesh%nTri == nTri_before - 2       , trim( test_name) // '/nTri')
+    verified_vi_old2vi_new = .true.
+    do vi_old = 1, mesh%nV
+      vi_new = vi_old2vi_new( vi_old)
+      if (vi_new > 0) then
+        verified_vi_old2vi_new = verified_vi_old2vi_new .and. &
+          norm2( mesh2%V( vi_new,:) - mesh%V( vi_old,:)) < mesh%tol_dist
+      end if
+    end do
+
+    call unit_test( test_mesh_is_self_consistent( mesh2), trim( test_name) // '/mesh_self_consistency')
+    call unit_test( mesh2%nV   == mesh%nV   - 1, trim( test_name) // '/nV')
+    call unit_test( mesh2%nTri == mesh%nTri - 2, trim( test_name) // '/nTri')
+    call unit_test( verified_vi_new2vi_old, trim( test_name) // '/vi_new2vi_old')
+    call unit_test( verified_vi_old2vi_new, trim( test_name) // '/vi_old2vi_new')
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
