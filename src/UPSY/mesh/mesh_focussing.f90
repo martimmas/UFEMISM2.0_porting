@@ -20,17 +20,20 @@ module mesh_focussing
 
 contains
 
-  subroutine focus_mesh_on_polyline( mesh, ll, mesh_focused)
+  subroutine focus_mesh_on_polyline( mesh, ll, mesh_focused, &
+    vi_new2vi_old, vi_old2vi_new, vi_ll2vi, vi2vi_ll)
     !< Focus a mesh on a polyline
 
     ! In/output variables:
-    type(type_mesh),     intent(in   ) :: mesh
-    type(type_polyline), intent(in   ) :: ll
-    type(type_mesh),     intent(  out) :: mesh_focused
+    type(type_mesh),                    intent(in   ) :: mesh
+    type(type_polyline),                intent(in   ) :: ll
+    type(type_mesh),                    intent(  out) :: mesh_focused
+    integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
+    integer, dimension(:), allocatable, intent(  out) :: vi_ll2vi, vi2vi_ll
 
     ! Local variables:
     character(len=1024), parameter     :: routine_name = 'focus_mesh_on_polyline'
-    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
+    integer, dimension(:), allocatable :: vi_new2vi_old_temp
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -41,9 +44,15 @@ contains
 
     ! Focus the mesh
     call delete_vertices_along_polyline( mesh_focused, ll, vi_new2vi_old, vi_old2vi_new)
-    call add_polyline_vertices_to_mesh ( mesh_focused, ll)
-
+    call add_polyline_vertices_to_mesh ( mesh_focused, ll, vi_ll2vi, vi2vi_ll)
     call calc_all_secondary_mesh_data( mesh_focused, 0._dp, -90._dp, 71._dp)
+
+    ! Update translation table
+    vi_new2vi_old_temp = vi_new2vi_old
+    deallocate( vi_new2vi_old)
+    allocate( vi_new2vi_old( mesh%nV), source = 0)
+    vi_new2vi_old( 1: size( vi_new2vi_old_temp)) = vi_new2vi_old_temp
+    deallocate( vi_new2vi_old_temp)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -163,16 +172,25 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertices_along_polyline'
+    integer, dimension(:), allocatable :: vi_old2vi_prev, vi_prev2vi_old
     integer :: vi_new, vi_prev, vi_old
 
     ! Add routine to path
     call init_routine( routine_name)
 
+    ! Save old lists
+    vi_old2vi_prev = vi_old2vi_new
+    vi_prev2vi_old = vi_new2vi_old
+
+    deallocate( vi_old2vi_new, vi_new2vi_old)
+    allocate( vi_old2vi_new( size( vi_old2vi_prev)), source = 0)
+    allocate( vi_new2vi_old( mesh%nV), source = 0)
+
     ! Update lists
     vi_old2vi_new = 0
     do vi_new = 1, mesh%nV
       vi_prev = vi_new2vi_prev( vi_new)
-      vi_old  = vi_new2vi_old( vi_prev)
+      vi_old  = vi_prev2vi_old( vi_prev)
       vi_old2vi_new( vi_old) = vi_new
       vi_new2vi_old( vi_new) = vi_old
     end do
@@ -182,16 +200,17 @@ contains
 
   end subroutine delete_vertices_along_polyline_update_vertex_translation_tables
 
-  subroutine add_polyline_vertices_to_mesh( mesh, ll)
+  subroutine add_polyline_vertices_to_mesh( mesh, ll, vi_ll2vi, vi2vi_ll)
     !< Add the vertices of the polyline to the mesh
 
     ! In/output variables:
-    type(type_mesh),     intent(inout) :: mesh
-    type(type_polyline), intent(in   ) :: ll
+    type(type_mesh),                    intent(inout) :: mesh
+    type(type_polyline),                intent(in   ) :: ll
+    integer, dimension(:), allocatable, intent(  out) :: vi_ll2vi, vi2vi_ll
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'add_polyline_vertices_to_mesh'
-    integer                        :: i, ti_in
+    integer                        :: i, ti_in, vi
     real(dp), dimension(2)         :: p
 
     ! Add routine to path
@@ -207,6 +226,16 @@ contains
     end do
 
     call crop_mesh_primary( mesh)
+
+    ! Translation tables
+    allocate( vi_ll2vi( ll%n   ), source = 0)
+    allocate( vi2vi_ll( mesh%nV), source = 0)
+
+    do i = 1, ll%n
+      vi = mesh%nV - ll%n + i
+      vi_ll2vi( i ) = vi
+      vi2vi_ll( vi) = i
+    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name)
