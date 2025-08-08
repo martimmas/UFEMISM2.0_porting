@@ -7,6 +7,7 @@ MODULE laddie_model_types
 
   USE precisions                                             , ONLY: dp
   USE CSR_sparse_matrix_type                                 , ONLY: type_sparse_matrix_CSR_dp
+  use grid_types, only: type_grid
   use mpi_f08, only: MPI_WIN
 
   IMPLICIT NONE
@@ -75,9 +76,10 @@ MODULE laddie_model_types
     ! The laddie model structure
 
     ! Output
-    character(len=1024)                         :: output_fields_filename
+    character(len=1024)                         :: output_mesh_filename
+    character(len=1024)                         :: output_grid_filename
     character(len=1024)                         :: output_scalar_filename
-    logical                                     :: output_fields_file_matches_current_mesh
+    logical                                     :: mesh_output_file_matches_current_mesh
 
     ! Time domain
     real(dp)                                    :: dt                          ! [s]               Time step
@@ -206,6 +208,9 @@ MODULE laddie_model_types
 
     ! Scalar output buffer
     type(type_scalar_output_buffer)         :: buffer
+
+    ! Output grid
+    type(type_grid)                         :: output_grid
 
   END TYPE type_laddie_model
 

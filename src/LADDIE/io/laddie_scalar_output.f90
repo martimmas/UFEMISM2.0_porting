@@ -1,125 +1,33 @@
-module laddie_output
+module laddie_scalar_output
 
-  use precisions, only: dp
-  use mpi_basic, only: par, sync
   use parameters
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string
+  use mpi_basic, only: par 
+  use precisions, only: dp
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
   use laddie_model_types, only: type_laddie_model
+  use mesh_types, only: type_mesh
   use netcdf_io_main
-  use mesh_integrate_over_domain, only: integrate_over_domain, average_over_domain
   use reallocate_mod
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_MIN, MPI_SUM, MPI_COMM_WORLD
   use scalar_output_files, only: write_buffer_to_scalar_file_single_variable
+  use mesh_integrate_over_domain, only: integrate_over_domain, average_over_domain
 
   implicit none
 
   private
 
-  public :: create_laddie_output_fields_file, create_laddie_output_scalar_file, &
-            write_to_laddie_output_fields_file, write_to_laddie_output_scalar_file, &
-            buffer_laddie_scalars
+  public :: create_laddie_scalar_output_file, buffer_laddie_scalars, write_to_laddie_scalar_output_file
 
 contains
 
-  subroutine write_to_laddie_output_fields_file( mesh, laddie, time)
-
-    ! In/output variables
-    type(type_mesh),         intent(in   ) :: mesh
-    type(type_laddie_model), intent(inout) :: laddie
-    real(dp),                intent(in   ) :: time
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'write_to_laddie_output_fields_file'
-    integer                        :: ncid
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! If the mesh has been updated, create a new output file
-    if (.not. laddie%output_fields_file_matches_current_mesh) then
-      call create_laddie_output_fields_file( mesh, laddie)
-    end if
-
-    ! Open the NetCDF file
-    call open_existing_netcdf_file_for_writing( laddie%output_fields_filename, ncid)
-
-    ! write the time to the file
-    call write_time_to_file( laddie%output_fields_filename, ncid, time)
-
-    ! write the default data fields to the file
-    call write_to_field_multopt_mesh_dp_2D(   mesh, laddie%output_fields_filename, ncid, 'H_lad', laddie%now%H, d_is_hybrid = .true.)
-    call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_fields_filename, ncid, 'U_lad', laddie%now%U, d_is_hybrid = .true.)
-    call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_fields_filename, ncid, 'V_lad', laddie%now%V, d_is_hybrid = .true.)
-    call write_to_field_multopt_mesh_dp_2D(   mesh, laddie%output_fields_filename, ncid, 'T_lad', laddie%now%T, d_is_hybrid = .true.)
-    call write_to_field_multopt_mesh_dp_2D(   mesh, laddie%output_fields_filename, ncid, 'S_lad', laddie%now%S, d_is_hybrid = .true.)
-
-    ! Close the file
-    call close_netcdf_file( ncid)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine write_to_laddie_output_fields_file
-
-  subroutine create_laddie_output_fields_file( mesh, laddie)
-
-    ! In/output variables
-    type(type_mesh),         intent(in   ) :: mesh
-    type(type_laddie_model), intent(inout) :: laddie
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'create_laddie_output_fields_file'
-    character(len=1024)            :: filename_base
-    integer                        :: ncid
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! Set filename
-    filename_base = trim( C%output_dir) // 'laddie_output_fields'
-    call generate_filename_XXXXXdotnc( filename_base, laddie%output_fields_filename)
-
-    ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating laddie output file "' // colour_string( trim( laddie%output_fields_filename), 'light blue') // '"...'
-
-    ! Create the NetCDF file
-    call create_new_netcdf_file_for_writing( laddie%output_fields_filename, ncid)
-
-    ! Set up the mesh in the file
-    call setup_mesh_in_netcdf_file( laddie%output_fields_filename, ncid, mesh)
-
-    ! Add time dimension+variable to the file
-    call add_time_dimension_to_file(  laddie%output_fields_filename, ncid)
-
-    ! Add the default data fields to the file
-    call add_field_mesh_dp_2D(   laddie%output_fields_filename, ncid, 'H_lad', long_name = 'Laddie layer thickness', units = 'm')
-    call add_field_mesh_dp_2D_b( laddie%output_fields_filename, ncid, 'U_lad', long_name = 'Laddie U velocity', units = 'm s^-1')
-    call add_field_mesh_dp_2D_b( laddie%output_fields_filename, ncid, 'V_lad', long_name = 'Laddie V velocity', units = 'm s^-1')
-    call add_field_mesh_dp_2D(   laddie%output_fields_filename, ncid, 'T_lad', long_name = 'Laddie temperature', units = 'deg C')
-    call add_field_mesh_dp_2D(   laddie%output_fields_filename, ncid, 'S_lad', long_name = 'Laddie salinity', units = 'PSU')
-
-    ! Confirm that the current output file match the current model mesh
-    ! (set to false whenever a new mesh is created,
-    ! and set to true whenever a new output file is created)
-    laddie%output_fields_file_matches_current_mesh = .true.
-
-    ! Close the file
-    call close_netcdf_file( ncid)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine create_laddie_output_fields_file
-
-  subroutine write_to_laddie_output_scalar_file( laddie)
+  subroutine write_to_laddie_scalar_output_file( laddie)
 
     ! In/output variables
     type(type_laddie_model), intent(inout) :: laddie
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'write_to_laddie_output_scalar_file'
+    character(len=1024), parameter :: routine_name = 'write_to_laddie_scalar_output_file'
     character(len=1024)            :: filename
     integer                        :: ncid, n, id_dim_time, ti
 
@@ -134,7 +42,7 @@ contains
     call open_existing_netcdf_file_for_writing( filename, ncid)
 
     ! Inquire number of timeframes already present in the file
-    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti)
+    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti) 
 
     ! Write the time to the file
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'time',              laddie%buffer%time,              n, ti+1)
@@ -169,7 +77,7 @@ contains
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'divQH_sum',         laddie%buffer%divQH_sum,         n, ti+1)
 
     ! Reset buffer
-    laddie%buffer%n = 0
+    laddie%buffer%n = 0 
 
     ! Close the file
     call close_netcdf_file( ncid)
@@ -177,16 +85,16 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine write_to_laddie_output_scalar_file
+  end subroutine write_to_laddie_scalar_output_file
 
-  subroutine create_laddie_output_scalar_file( laddie)
+  subroutine create_laddie_scalar_output_file( laddie)
     !< Create the scalar output NetCDF file
 
     ! In/output variables:
     type(type_laddie_model), intent(inout) :: laddie
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'create_laddie_output_scalar_file'
+    character(len=1024), parameter :: routine_name = 'create_laddie_scalar_output_file'
     character(len=1024)            :: filename_base
     integer                        :: ncid
 
@@ -250,7 +158,7 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine create_laddie_output_scalar_file
+  end subroutine create_laddie_scalar_output_file
 
   subroutine allocate_laddie_buffer( laddie)
     !< Allocate memory to buffer the scalar output data between output writing intervals
@@ -473,6 +381,4 @@ contains
 
   end subroutine extend_laddie_buffer
 
-end module laddie_output
-
-
+end module laddie_scalar_output

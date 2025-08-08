@@ -19,8 +19,10 @@ module LADDIE_main_model
   use laddie_utilities, only: compute_ambient_TS, allocate_laddie_model, allocate_laddie_timestep, &
     map_H_a_b, map_H_a_c, allocate_laddie_forcing
   use laddie_operators, only: update_laddie_operators
-  use laddie_output, only: create_laddie_output_fields_file, create_laddie_output_scalar_file, &
-      write_to_laddie_output_fields_file, write_to_laddie_output_scalar_file, buffer_laddie_scalars
+  use laddie_mesh_output, only: create_laddie_mesh_output_file, write_to_laddie_mesh_output_file
+  use laddie_grid_output, only: create_laddie_output_file_grid, write_to_laddie_output_file_grid
+  use laddie_scalar_output, only: create_laddie_scalar_output_file, write_to_laddie_scalar_output_file, &
+    buffer_laddie_scalars
   use laddie_integration, only: integrate_euler, integrate_fbrk3, integrate_lfra, move_laddie_timestep
   use laddie_physics, only: compute_subglacial_discharge
   use mesh_types, only: type_mesh
@@ -221,14 +223,31 @@ contains
 
       ! Write to output
       if (is_standalone) then
-        ! TODO
+        ! Always include scalar output
+        call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
+  
+        ! Write scalars if required
+        if (tl > time_to_write * sec_per_day) then
+          call write_to_laddie_scalar_output_file( laddie)
+          last_write_time = time_to_write
+          time_to_write = time_to_write + C%time_interval_scalar_output
+        end if
+
+        ! Write mesh and grid if required
+        if (tl > time_to_write_fields * sec_per_day) then
+          call write_to_laddie_mesh_output_file( mesh, laddie, ref_time + tl, is_standalone)
+          call write_to_laddie_output_file_grid( mesh, laddie, forcing, ref_time + tl)
+          last_write_time_fields = time_to_write_fields
+          ! TODO use proper config param for frequency
+          time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+        end if
+
       else
         if (C%do_write_laddie_output_fields) then
           ! Write if required
           if (tl > time_to_write_fields * sec_per_day) then
-            call write_to_laddie_output_fields_file( mesh, laddie, ref_time + tl)
+            call write_to_laddie_mesh_output_file( mesh, laddie, ref_time + tl, is_standalone)
             last_write_time_fields = time_to_write_fields
-            ! TODO add config file for fields output frequency
             time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
           end if
         end if
@@ -238,7 +257,7 @@ contains
   
           ! Write if required
           if (tl > time_to_write * sec_per_day) then
-            call write_to_laddie_output_scalar_file( laddie)
+            call write_to_laddie_scalar_output_file( laddie)
             last_write_time = time_to_write
             time_to_write = time_to_write + C%time_interval_scalar_output
           end if
@@ -268,6 +287,7 @@ contains
 
     ! Local variables:
     character(len=256), parameter                                      :: routine_name = 'initialise_laddie_model'
+    character(len=256), parameter                                      :: grid_name = 'square_grid'
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -303,10 +323,17 @@ contains
 
     ! Create output file
     if (is_standalone) then
-      ! TODO
+      ! Always include scalar output
+      call create_laddie_scalar_output_file( laddie)
+      ! Always include mesh output
+      call create_laddie_mesh_output_file( mesh, laddie, is_standalone)
+      ! Always include grid output
+      call setup_square_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, C%dx_output_grid_ANT, laddie%output_grid, &
+        lambda_M = mesh%lambda_M, phi_M = mesh%phi_M, beta_stereo = mesh%beta_stereo)
+      call create_laddie_output_file_grid( mesh, laddie, forcing)
     else
-      if (C%do_write_laddie_output_fields) call create_laddie_output_fields_file( mesh, laddie)
-      if (C%do_write_laddie_output_scalar) call create_laddie_output_scalar_file( laddie)
+      if (C%do_write_laddie_output_fields) call create_laddie_mesh_output_file( mesh, laddie, is_standalone)
+      if (C%do_write_laddie_output_scalar) call create_laddie_scalar_output_file( laddie)
     end if
 
     ! Finalise routine path
