@@ -74,7 +74,7 @@ contains
     integer                            :: vi, ci, vj, vi_kill
     logical                            :: is_border_vertex, has_border_neighbours
     integer                            :: nV_before, nTri_before
-    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new
+    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -114,7 +114,7 @@ contains
     nV_before   = mesh%nV
     nTri_before = mesh%nTri
 
-    call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+    call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
 
     call unit_test( test_mesh_is_self_consistent( mesh), trim( test_name) // '/mesh_self_consistency')
     call unit_test( mesh%nV   == nV_before   - 1       , trim( test_name) // '/nV')

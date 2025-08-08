@@ -60,7 +60,7 @@ contains
     character(len=1024), parameter     :: routine_name = 'delete_vertices_along_polyline'
     integer, dimension(:), allocatable :: vi_list
     integer                            :: i, vi_kill, ii
-    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new
+    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -71,7 +71,7 @@ contains
 
       ! Delete vertex
       vi_kill = vi_list( i)
-      call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+      call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
 
       ! Update indices of remaining to-be-deleted vertices
       do ii = i+1, size( vi_list)
@@ -81,8 +81,6 @@ contains
       ! Clean up after yourself (not sure if memory is automatically deallocated when arrays are allocated in another procedure...)
       deallocate( vi_new2vi_old)
       deallocate( vi_old2vi_new)
-      deallocate( ti_new2ti_old)
-      deallocate( ti_old2ti_new)
 
     end do
 
