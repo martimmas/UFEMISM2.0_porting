@@ -5,6 +5,7 @@ module tests_mesh
   use precisions, only: dp
   use mesh_types, only: type_mesh
   use control_resources_and_error_messaging, only: warning
+  use tests_dp, only: test_tol => test_tol_dp_0D
 
   implicit none
 
@@ -165,6 +166,7 @@ contains
     res = res .and. is_self_consistent_triangle_duplicates( mesh)
     res = res .and. is_self_consistent_TriC( mesh)
     res = res .and. is_self_consistent_VorC( mesh)
+    res = res .and. is_self_consistent_Tricc( mesh)
 
   end function test_mesh_is_self_consistent
 
@@ -687,5 +689,33 @@ contains
     end do
 
   end function is_self_consistent_VorC
+
+  !> Check if Tricc is self-consistent
+  pure function is_self_consistent_Tricc( mesh) result(res)
+
+    ! In/output variables:
+    type(type_mesh), intent( in) :: mesh
+    logical                      :: res
+    ! Local variables:
+    integer  :: ti, via, vib, vic
+    real(dp) :: da, db, dc
+
+    res = .true.
+
+    do ti = 1, mesh%nTri
+
+      via = mesh%Tri( ti,1)
+      vib = mesh%Tri( ti,2)
+      vic = mesh%Tri( ti,3)
+
+      da = norm2( mesh%Tricc( ti,:) - mesh%V( via,:))
+      db = norm2( mesh%Tricc( ti,:) - mesh%V( vib,:))
+      dc = norm2( mesh%Tricc( ti,:) - mesh%V( vic,:))
+
+      res = res .and. test_tol( da, db, mesh%tol_dist) .and. test_tol( db, dc, mesh%tol_dist)
+
+    end do
+
+  end function is_self_consistent_Tricc
 
 end module tests_mesh
