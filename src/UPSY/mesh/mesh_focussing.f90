@@ -30,6 +30,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter     :: routine_name = 'focus_mesh_on_polyline'
+    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -39,7 +40,7 @@ contains
     call construct_mesh_edges( mesh_focused)
 
     ! Focus the mesh
-    call delete_vertices_along_polyline( mesh_focused, ll)
+    call delete_vertices_along_polyline( mesh_focused, ll, vi_new2vi_old, vi_old2vi_new)
     call add_polyline_vertices_to_mesh ( mesh_focused, ll)
 
     call calc_all_secondary_mesh_data( mesh_focused, 0._dp, -90._dp, 71._dp)
@@ -49,38 +50,49 @@ contains
 
   end subroutine focus_mesh_on_polyline
 
-  subroutine delete_vertices_along_polyline( mesh, ll)
+  subroutine delete_vertices_along_polyline( mesh, ll, vi_new2vi_old, vi_old2vi_new)
     !< Delete all vertices whose Voronoi cells are crossed by the polyline
 
     ! In/output variables:
-    type(type_mesh),     intent(inout) :: mesh
-    type(type_polyline), intent(in   ) :: ll
+    type(type_mesh),                    intent(inout) :: mesh
+    type(type_polyline),                intent(in   ) :: ll
+    integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
 
     ! Local variables:
     character(len=1024), parameter     :: routine_name = 'delete_vertices_along_polyline'
     integer, dimension(:), allocatable :: vi_list
-    integer                            :: i, vi_kill, ii
-    integer, dimension(:), allocatable :: vi_new2vi_old, vi_old2vi_new
+    integer                            :: vi, i, vi_kill, ii
+    integer, dimension(:), allocatable :: vi_new2vi_prev, vi_prev2vi_new
 
     ! Add routine to path
     call init_routine( routine_name)
 
     call list_vertices_crossed_by_polyline( mesh, ll, vi_list)
 
+    allocate( vi_new2vi_old( mesh%nV))
+    allocate( vi_old2vi_new( mesh%nV))
+    do vi = 1, mesh%nV
+      vi_new2vi_old( vi) = vi
+      vi_old2vi_new( vi) = vi
+    end do
+
     do i = 1, size( vi_list)
 
       ! Delete vertex
       vi_kill = vi_list( i)
-      call delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
+      call delete_vertex( mesh, vi_kill, vi_new2vi_prev, vi_prev2vi_new)
 
       ! Update indices of remaining to-be-deleted vertices
       do ii = i+1, size( vi_list)
-        vi_list( ii) = vi_old2vi_new( vi_list( ii))
+        vi_list( ii) = vi_prev2vi_new( vi_list( ii))
       end do
 
+      ! Update vertex translation tables
+      call delete_vertices_along_polyline_update_vertex_translation_tables( mesh, &
+        vi_new2vi_prev, vi_prev2vi_new, vi_new2vi_old, vi_old2vi_new)
+
       ! Clean up after yourself (not sure if memory is automatically deallocated when arrays are allocated in another procedure...)
-      deallocate( vi_new2vi_old)
-      deallocate( vi_old2vi_new)
+      deallocate( vi_new2vi_prev, vi_prev2vi_new)
 
     end do
 
@@ -141,6 +153,34 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine list_vertices_crossed_by_polyline
+
+  subroutine delete_vertices_along_polyline_update_vertex_translation_tables( mesh, &
+    vi_new2vi_prev, vi_prev2vi_new, vi_new2vi_old, vi_old2vi_new)
+
+    ! In/output variables:
+    type(type_mesh),                    intent(in   ) :: mesh
+    integer, dimension(:), allocatable, intent(inout) :: vi_new2vi_prev, vi_prev2vi_new, vi_new2vi_old, vi_old2vi_new
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'delete_vertices_along_polyline'
+    integer :: vi_new, vi_prev, vi_old
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Update lists
+    vi_old2vi_new = 0
+    do vi_new = 1, mesh%nV
+      vi_prev = vi_new2vi_prev( vi_new)
+      vi_old  = vi_new2vi_old( vi_prev)
+      vi_old2vi_new( vi_old) = vi_new
+      vi_new2vi_old( vi_new) = vi_old
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine delete_vertices_along_polyline_update_vertex_translation_tables
 
   subroutine add_polyline_vertices_to_mesh( mesh, ll)
     !< Add the vertices of the polyline to the mesh
