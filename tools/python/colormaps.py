@@ -72,7 +72,15 @@ def get_cmap(varname):
         cmap = copy(plt.get_cmap('turbo'))
         norm = mpl.colors.Normalize(vmin=0,vmax=2000,clip=True)
         #norm = mpl.colors.LogNorm(vmin=1.,vmax=3000,clip=True)
+
+    elif varname == 'mask_SGD':
+        cmap = copy(plt.get_cmap('Greys'))
+        norm = mpl.colors.Normalize(vmin=0,vmax=1,clip=True)
     
+    elif varname == 'SGD':
+        cmap = copy(plt.get_cmap('Blues'))
+        norm = mpl.colors.Normalize(vmin=0,vmax=1e-5,clip=True)
+
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
         return

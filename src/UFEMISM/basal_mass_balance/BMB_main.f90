@@ -721,6 +721,7 @@ CONTAINS
 
     forcing%Hi                ( mesh%vi1:mesh%vi2  ) = ice%Hi                ( mesh%vi1:mesh%vi2  )
     forcing%Hib               ( mesh%vi1:mesh%vi2  ) = ice%Hib               ( mesh%vi1:mesh%vi2  )
+    forcing%TAF               ( mesh%vi1:mesh%vi2  ) = ice%TAF               ( mesh%vi1:mesh%vi2  )
     forcing%dHib_dx_b         ( mesh%ti1:mesh%ti2  ) = ice%dHib_dx_b         ( mesh%ti1:mesh%ti2  )
     forcing%dHib_dy_b         ( mesh%ti1:mesh%ti2  ) = ice%dHib_dy_b         ( mesh%ti1:mesh%ti2  )
     forcing%mask_icefree_land ( mesh%vi1:mesh%vi2  ) = ice%mask_icefree_land ( mesh%vi1:mesh%vi2  )
@@ -730,6 +731,7 @@ CONTAINS
 
     forcing%mask_gl_fl        ( mesh%vi1:mesh%vi2  ) = ice%mask_gl_fl        ( mesh%vi1:mesh%vi2  )
     forcing%mask_SGD          ( mesh%vi1:mesh%vi2  ) = ice%mask_SGD          ( mesh%vi1:mesh%vi2  )
+    forcing%mask              ( mesh%vi1:mesh%vi2  ) = ice%mask              ( mesh%vi1:mesh%vi2  )
     
     forcing%Ti                ( mesh%vi1:mesh%vi2,:) = ice%Ti                ( mesh%vi1:mesh%vi2,:) - 273.15 ! [degC]
     forcing%T_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%T               ( mesh%vi1:mesh%vi2,:)
@@ -737,6 +739,7 @@ CONTAINS
 
     call checksum( forcing%Hi                , 'forcing%Hi'                , mesh%pai_V)
     call checksum( forcing%Hib               , 'forcing%Hib'               , mesh%pai_V)
+    call checksum( forcing%TAF               , 'forcing%TAF'               , mesh%pai_V)
     call checksum( forcing%dHib_dx_b         , 'forcing%dHib_dx_b'         , mesh%pai_Tri)
     call checksum( forcing%dHib_dy_b         , 'forcing%dHib_dy_b'         , mesh%pai_Tri)
     call checksum( forcing%mask_icefree_land , 'forcing%mask_icefree_land' , mesh%pai_V)
@@ -745,6 +748,7 @@ CONTAINS
     call checksum( forcing%mask_floating_ice , 'forcing%mask_floating_ice' , mesh%pai_V)
     call checksum( forcing%mask_gl_fl        , 'forcing%mask_gl_fl'        , mesh%pai_V)
     call checksum( forcing%mask_SGD          , 'forcing%mask_SGD'          , mesh%pai_V)
+    call checksum( forcing%mask              , 'forcing%mask'              , mesh%pai_V)
     call checksum( forcing%Ti                , 'forcing%Ti'                , mesh%pai_V)
     call checksum( forcing%T_ocean           , 'forcing%T_ocean'           , mesh%pai_V)
     call checksum( forcing%S_ocean           , 'forcing%S_ocean'           , mesh%pai_V)
@@ -771,6 +775,7 @@ CONTAINS
     ! Forcing
     call reallocate_dist_shared( forcing%Hi                , forcing%wHi                , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%Hib               , forcing%wHib               , mesh_new%pai_V%n_nih)
+    call reallocate_dist_shared( forcing%TAF               , forcing%wTAF               , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%dHib_dx_b         , forcing%wdHib_dx_b         , mesh_new%pai_Tri%n_nih)
     call reallocate_dist_shared( forcing%dHib_dy_b         , forcing%wdHib_dy_b         , mesh_new%pai_Tri%n_nih)
     call reallocate_dist_shared( forcing%mask_icefree_land , forcing%wmask_icefree_land , mesh_new%pai_V%n_nih)
@@ -779,11 +784,13 @@ CONTAINS
     call reallocate_dist_shared( forcing%mask_floating_ice , forcing%wmask_floating_ice , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%mask_gl_fl        , forcing%wmask_gl_fl        , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%mask_SGD          , forcing%wmask_SGD          , mesh_new%pai_V%n_nih)
+    call reallocate_dist_shared( forcing%mask              , forcing%wmask              , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%Ti                , forcing%wTi                , mesh_new%pai_V%n_nih, mesh_new%nz)
     call reallocate_dist_shared( forcing%T_ocean           , forcing%wT_ocean           , mesh_new%pai_V%n_nih, C%nz_ocean)
     call reallocate_dist_shared( forcing%S_ocean           , forcing%wS_ocean           , mesh_new%pai_V%n_nih, C%nz_ocean)
     forcing%Hi                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hi
     forcing%Hib               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hib
+    forcing%TAF               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%TAF
     forcing%dHib_dx_b         ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%dHib_dx_b
     forcing%dHib_dy_b         ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%dHib_dy_b
     forcing%mask_icefree_land ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_icefree_land
@@ -792,6 +799,7 @@ CONTAINS
     forcing%mask_floating_ice ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_floating_ice
     forcing%mask_gl_fl        ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_gl_fl
     forcing%mask_SGD          ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_SGD
+    forcing%mask              ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask
     forcing%Ti                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:mesh_new%nz) => forcing%Ti
     forcing%T_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%T_ocean
     forcing%S_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%S_ocean

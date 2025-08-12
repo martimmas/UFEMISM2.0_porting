@@ -154,7 +154,13 @@ class Field(object):
             vvar = self.Timeframe.ds['V_lad']
             self.data = (uvar**2+vvar**2)**.5
         elif self.varname[:3] == 'BMB':
-            self.data = -self.Timeframe.ds['BMB']
+            if 'BMB' in self.Timeframe.ds:
+                self.data = -self.Timeframe.ds['BMB']
+            elif 'melt' in self.Timeframe.ds:
+                self.data = self.Timeframe.ds['melt']*3600*24*365.25
+            else:
+                print(f"ERROR: no valid BMB or melt variable in Timeframe")
+                return
         else:
             try:
                 self.data = self.Timeframe.ds[self.varname]
@@ -168,7 +174,7 @@ class Field(object):
                     self.Timeframe.get_mask()
 
                 if self.mask == 'shelf':
-                    self.data = xr.where(self.Timeframe.mask == 4, self.data, np.nan)
+                    self.data = xr.where([x in [4] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
