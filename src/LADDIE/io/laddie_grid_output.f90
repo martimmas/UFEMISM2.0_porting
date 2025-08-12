@@ -215,6 +215,7 @@ contains
       case ('mask_floating_ice')
       case ('mask_gl_fl')
       case ('mask_SGD')
+      case ('mask')
 
 
       case ('grounding_line')
@@ -475,6 +476,7 @@ contains
       case ('mask_floating_ice')
       case ('mask_gl_fl')
       case ('mask_SGD')
+      case ('mask')
 
 
       case ('grounding_line')

@@ -574,6 +574,7 @@ CONTAINS
     call repartition( mesh_old, mesh_new, forcing%mask_floating_ice , forcing%wmask_floating_ice )
     call repartition( mesh_old, mesh_new, forcing%mask_gl_fl        , forcing%wmask_gl_fl        )
     call repartition( mesh_old, mesh_new, forcing%mask_SGD          , forcing%wmask_SGD          )
+    call repartition( mesh_old, mesh_new, forcing%mask              , forcing%wmask              )
     call repartition( mesh_old, mesh_new, forcing%Ti                , forcing%wTi                )
     call repartition( mesh_old, mesh_new, forcing%T_ocean           , forcing%wT_ocean           )
     call repartition( mesh_old, mesh_new, forcing%S_ocean           , forcing%wS_ocean           )
@@ -589,6 +590,7 @@ CONTAINS
     forcing%mask_floating_ice ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_floating_ice
     forcing%mask_gl_fl        ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_gl_fl
     forcing%mask_SGD          ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_SGD
+    forcing%mask              ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask
     forcing%Ti                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:mesh_new%nz) => forcing%Ti
     forcing%T_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%T_ocean
     forcing%S_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%S_ocean
@@ -604,6 +606,7 @@ CONTAINS
     call checksum( forcing%mask_floating_ice , 'forcing%mask_floating_ice' , mesh_new%pai_V)
     call checksum( forcing%mask_gl_fl        , 'forcing%mask_gl_fl'        , mesh_new%pai_V)
     call checksum( forcing%mask_SGD          , 'forcing%mask_SGD'          , mesh_new%pai_V)
+    call checksum( forcing%mask              , 'forcing%mask'              , mesh_new%pai_V)
     call checksum( forcing%Ti                , 'forcing%Ti'                , mesh_new%pai_V)
     call checksum( forcing%T_ocean           , 'forcing%T_ocean'           , mesh_new%pai_V)
     call checksum( forcing%S_ocean           , 'forcing%S_ocean'           , mesh_new%pai_V)

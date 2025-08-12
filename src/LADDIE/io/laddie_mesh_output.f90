@@ -199,6 +199,8 @@ contains
           mask_int = 0
         end where
         call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask_SGD', mask_int, d_is_hybrid = .true.)
+      case ('mask')
+        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask', forcing%mask, d_is_hybrid = .true.)
 
     ! == LADDIE ==
     ! ============
@@ -444,6 +446,8 @@ contains
 
       case ('mask_SGD')
         call add_field_mesh_int_2d( filename, ncid, 'mask_SGD', long_name = 'Mask indicating potential subglacial discharge cells')
+      case ('mask')
+        call add_field_mesh_int_2d( filename, ncid, 'mask', long_name = 'General mask')
 
     ! == LADDIE ==
     ! ============

@@ -174,7 +174,7 @@ class Field(object):
                     self.Timeframe.get_mask()
 
                 if self.mask == 'shelf':
-                    self.data = xr.where(self.Timeframe.mask == 4, self.data, np.nan)
+                    self.data = xr.where([x in [4] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
