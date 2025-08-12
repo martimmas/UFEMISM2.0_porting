@@ -122,6 +122,8 @@ CONTAINS
     laddie%diffT( mesh%vi1:mesh%vi2) = 0.0_dp
     laddie%diffS( mesh%vi1:mesh%vi2) = 0.0_dp
 
+    call sync
+
     ! Loop over vertices
     DO vi = mesh%vi1, mesh%vi2
 
@@ -190,6 +192,8 @@ CONTAINS
     ! Initialise with zeros
     laddie%divQT( mesh%vi1:mesh%vi2) = 0.0_dp
     laddie%divQS( mesh%vi1:mesh%vi2) = 0.0_dp
+
+    call sync
 
     ! == Loop over vertices ==
     ! =========================

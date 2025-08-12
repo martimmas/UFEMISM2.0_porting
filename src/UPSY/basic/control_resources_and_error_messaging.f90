@@ -292,7 +292,10 @@ CONTAINS
 ! ===== Error messaging =====
 ! ===========================
 
-  subroutine print_UFEMISM_start
+  subroutine print_MODEL_start( model_name)
+
+    ! In/output variables
+    character(len=*), intent(in) :: model_name
 
     ! Local variables:
     character(len=1024) :: str1, str2
@@ -300,10 +303,12 @@ CONTAINS
 
     str1 = ' '
     if (par%n_nodes == 1) then
-      str1 = '===== Running UFEMISM on {int_01} cores ====='
+      str1 = '===== Running {str_01} on {int_01} cores ====='
+      str1 = strrep( str1, '{str_01}', model_name)
       call insert_val_into_string_int( str1, '{int_01}', par%n)
     else
-      str1 = '===== Running UFEMISM on {int_01} cores ({int_02} nodes) ====='
+      str1 = '===== Running {str_01} on {int_01} cores ({int_02} nodes) ====='
+      str1 = strrep( str1, '{str_01}', model_name)
       call insert_val_into_string_int( str1, '{int_01}', par%n)
       call insert_val_into_string_int( str1, '{int_02}', par%n_nodes)
     end if
@@ -321,15 +326,16 @@ CONTAINS
     end if
     call sync
 
-  end subroutine print_UFEMISM_start
+  end subroutine print_MODEL_start
 
-  SUBROUTINE print_UFEMISM_end( tcomp)
+  SUBROUTINE print_MODEL_end( model_name, tcomp)
     ! Print the UFEMISM end message to the screen
 
     IMPLICIT NONE
 
     ! In/output variables:
     ! REAL(dp), DIMENSION(:,:,:,:), ALLOCATABLE, OPTIONAL, INTENT(INOUT) :: i
+    character(len=*), intent(in) :: model_name
     REAL(dp)                                           , INTENT(IN)    :: tcomp
 
     ! Local variables:
@@ -354,7 +360,8 @@ CONTAINS
 
     ! Print to screen
     str1 = ' '
-    str1 = '===== Finished running UFEMISM in {int_01} days, {int_02} hours, {int_03} minutes, and {int_04} seconds ====='
+    str1 = '===== Finished running {str_01} in {int_01} days, {int_02} hours, {int_03} minutes, and {int_04} seconds ====='
+    str1 = strrep( str1, '{str_01}', model_name)
     CALL insert_val_into_string_int( str1, '{int_01}', nd)
     CALL insert_val_into_string_int( str1, '{int_02}', nh)
     CALL insert_val_into_string_int( str1, '{int_03}', nm)
@@ -373,7 +380,7 @@ CONTAINS
     IF (par%primary) WRITE(0,'(A)') ''
     CALL sync
 
-  END SUBROUTINE print_UFEMISM_end
+  END SUBROUTINE print_MODEL_end
 
   SUBROUTINE crash( err_msg, int_01, int_02, int_03, int_04, int_05, int_06, int_07, int_08, int_09, int_10, &
                               dp_01,  dp_02,  dp_03,  dp_04,  dp_05,  dp_06,  dp_07,  dp_08,  dp_09,  dp_10)

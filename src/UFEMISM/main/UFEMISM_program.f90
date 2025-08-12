@@ -28,7 +28,7 @@ PROGRAM UFEMISM_program
   use mpi_basic, only: par, initialise_parallelisation
   USE control_resources_and_error_messaging                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string, do_colour_strings, &
                                                                      initialise_control_and_resource_tracker, reset_resource_tracker, &
-                                                                     print_UFEMISM_start, print_UFEMISM_end
+                                                                     print_MODEL_start, print_MODEL_end
   USE model_configuration                                    , ONLY: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   USE region_types                                           , ONLY: type_model_region
@@ -89,7 +89,7 @@ PROGRAM UFEMISM_program
   tstart = MPI_WTIME()
 
   ! Print the UFEMISM start message to the terminal
-  CALL print_UFEMISM_start
+  CALL print_MODEL_start( 'UFEMISM')
 
   ! Initialise the control and resource tracker
   CALL initialise_control_and_resource_tracker
@@ -175,7 +175,7 @@ PROGRAM UFEMISM_program
   tcomp = tstop - tstart
 
   ! Print the UFEMISM end message to the terminal
-  CALL print_UFEMISM_end( tcomp)
+  CALL print_MODEL_end( 'UFEMISM', tcomp)
 
   ! Finalise PETSc and MPI parallelisation
   call PetscFinalize( perr)

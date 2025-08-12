@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project( UPSY_models LANGUAGES Fortran)
+project( UPSY_models LANGUAGES Fortran C)
 
 set( CMAKE_Fortran_STANDARD 2018)
 

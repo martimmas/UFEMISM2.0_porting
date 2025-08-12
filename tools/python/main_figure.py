@@ -175,6 +175,8 @@ class Field(object):
 
                 if self.mask == 'shelf':
                     self.data = xr.where([x in [4] for x in self.Timeframe.mask], self.data, np.nan)
+                elif self.mask == 'sheet':
+                    self.data = xr.where([x in [3] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
@@ -224,7 +226,7 @@ class Field(object):
         """ Get mask collection """
 
         mcmap = 'ocean'
-        mnorm = mpl.colors.Normalize(vmin=1.6, vmax=3.1, clip=True)
+        mnorm = mpl.colors.Normalize(vmin=1.7, vmax=3.1, clip=True)
 
         if not self.Mesh.got_voronois:
             self.Mesh.get_voronois()
@@ -316,9 +318,9 @@ class DiffField(object):
                     self.Timeframe.get_mask()
 
                 if self.mask == 'shelf':
-                    self.data = xr.where(self.Timeframe.mask == 4, self.data, np.nan)
+                    self.data = xr.where([ x in [4] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'sheet':
-                    self.data = xr.where(self.Timeframe.mask == 3, self.data, np.nan)
+                    self.data = xr.where([ x in [3] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
@@ -359,7 +361,7 @@ class DiffField(object):
         """ Get mask collection """
 
         mcmap = 'ocean'
-        mnorm = mpl.colors.Normalize(vmin=1.6, vmax=3.1, clip=True)
+        mnorm = mpl.colors.Normalize(vmin=1.7, vmax=3.1, clip=True)
 
         if not self.Mesh.got_voronois:
             self.Mesh.get_voronois()
