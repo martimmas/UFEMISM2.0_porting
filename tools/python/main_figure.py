@@ -154,7 +154,13 @@ class Field(object):
             vvar = self.Timeframe.ds['V_lad']
             self.data = (uvar**2+vvar**2)**.5
         elif self.varname[:3] == 'BMB':
-            self.data = -self.Timeframe.ds['BMB']
+            if 'BMB' in self.Timeframe.ds:
+                self.data = -self.Timeframe.ds['BMB']
+            elif 'melt' in self.Timeframe.ds:
+                self.data = self.Timeframe.ds['melt']*3600*24*365.25
+            else:
+                print(f"ERROR: no valid BMB or melt variable in Timeframe")
+                return
         else:
             try:
                 self.data = self.Timeframe.ds[self.varname]
