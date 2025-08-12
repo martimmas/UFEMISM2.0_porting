@@ -62,6 +62,7 @@ CONTAINS
     ! if needed for IMAU-ITM or climate matrix, we need to update insolation
     IF (climate%snapshot%has_insolation) THEN
       CALL get_insolation_at_time( mesh, time, climate%snapshot)
+      climate%Q_TOA = climate%snapshot%Q_TOA
     
       IF (C%choice_climate_model_realistic == 'climate_matrix') THEN
         ! This is probably where we will update insolation, CO2, etc...
@@ -165,6 +166,7 @@ CONTAINS
             timeframe_init_insolation = 0._dp
           END IF
           CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot)
+          climate%Q_TOA = climate%snapshot%Q_TOA
         END IF
       END IF
 

@@ -63,6 +63,7 @@ CONTAINS
     ! if needed for IMAU-ITM or climate matrix, we need to update insolation
     IF (climate%snapshot_unif_deltaT%has_insolation) THEN
       CALL get_insolation_at_time( mesh, time, climate%snapshot_unif_deltaT)
+      climate%Q_TOA = climate%snapshot_unif_deltaT%Q_TOA
     END IF
 
     ! Finalise routine path
@@ -152,17 +153,18 @@ CONTAINS
     
 
     ! Initialises the insolation (if needed)
-    IF (climate%snapshot_unif_deltaT%snapshot%has_insolation) THEN
+    IF (climate%snapshot_unif_deltaT%has_insolation) THEN
     IF (C%choice_insolation_forcing == 'none') THEN
         CALL crash('Chosen climate or SMB model cannot be used with choice_insolation_forcing = "none"!')
     ELSE
-        CALL initialise_insolation_forcing( climate%snapshot_unif_deltaT%snapshot, mesh)
+        CALL initialise_insolation_forcing( climate%snapshot_unif_deltaT, mesh)
         IF (C%start_time_of_run < 0._dp) THEN
         timeframe_init_insolation = C%start_time_of_run
         ELSE
         timeframe_init_insolation = 0._dp
         END IF
-        CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot_unif_deltaT%snapshot)
+        CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot_unif_deltaT)
+        climate%Q_TOA = climate%snapshot_unif_deltaT%Q_TOA
     END IF
     END IF
 
