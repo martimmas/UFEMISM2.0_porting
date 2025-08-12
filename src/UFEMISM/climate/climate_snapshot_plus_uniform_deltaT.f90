@@ -60,6 +60,11 @@ CONTAINS
     ! the ice sheet surface elevation in the forcing climate and the model's ice sheet surface elevation
     CALL apply_geometry_downscaling_corrections( mesh, ice, climate)
 
+    ! if needed for IMAU-ITM or climate matrix, we need to update insolation
+    IF (climate%snapshot%has_insolation) THEN
+      CALL get_insolation_at_time( mesh, time, climate%snapshot)
+    END IF
+
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
@@ -93,7 +98,7 @@ CONTAINS
       colour_string( TRIM( C%choice_climate_model_realistic),'light blue') // '"...'
 
     ! Run the chosen realistic climate model
-    climate%snapshot%has_insolation = .FALSE.
+    climate%snapshot_deltaT%snapshot%has_insolation = .FALSE.
     IF (C%choice_climate_model_realistic == 'snapshot') THEN
       ! Read single-time data from external file
 
@@ -103,36 +108,36 @@ CONTAINS
         climate%snapshot_deltaT%precip_CC_correction     = C%precip_CC_correction_NAM
         climate%snapshot_deltaT%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
         IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
-           climate%snapshot%has_insolation = .TRUE.
+           climate%snapshot_deltaT%%snapshot%has_insolation = .TRUE.
         END IF
       ELSEIF (region_name == 'EAS') THEN
         filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_EAS
         climate%snapshot_deltaT%precip_CC_correction     = C%precip_CC_correction_EAS
         climate%snapshot_deltaT%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
         IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
-           climate%snapshot%has_insolation = .TRUE.
+           climate%snapshot_deltaT%snapshot%has_insolation = .TRUE.
         END IF
       ELSEIF (region_name == 'GRL') THEN
         filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_GRL
         climate%snapshot_deltaT%precip_CC_correction     = C%precip_CC_correction_GRL
         climate%snapshot_deltaT%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
         IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
-           climate%snapshot%has_insolation = .TRUE.
+           climate%snapshot_deltaT%%snapshot%has_insolation = .TRUE.
         END IF
       ELSEIF (region_name == 'ANT') THEN
         filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_ANT
         climate%snapshot_deltaT%precip_CC_correction.    = C%precip_CC_correction_ANT
         climate%snapshot_deltaT%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
         IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
-           climate%snapshot%has_insolation = .TRUE.
+           climate%snapshot_deltaT%%snapshot%has_insolation = .TRUE.
         END IF
       ELSE
         CALL crash('unknown region_name "' // region_name // '"')
       END IF
 
-      CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot%Hs)
-      CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%T2m)
-      CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%Precip)
+      CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_deltaT%snapshot%Hs)
+      CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_deltaT%snapshot%T2m)
+      CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_deltaT%snapshot%Precip)
 
 
       ! Adding deltaT to the temperature field (uniform in space and time)
@@ -148,17 +153,17 @@ CONTAINS
       
 
       ! Initialises the insolation (if needed)
-      IF (climate%snapshot%has_insolation) THEN
+      IF (climate%snapshot_deltaT%snapshot%has_insolation) THEN
         IF (C%choice_insolation_forcing == 'none') THEN
           CALL crash('Chosen climate or SMB model cannot be used with choice_insolation_forcing = "none"!')
         ELSE
-          CALL initialise_insolation_forcing( climate%snapshot, mesh)
+          CALL initialise_insolation_forcing( climate%snapshot_deltaT%snapshot, mesh)
           IF (C%start_time_of_run < 0._dp) THEN
             timeframe_init_insolation = C%start_time_of_run
           ELSE
             timeframe_init_insolation = 0._dp
           END IF
-          CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot)
+          CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot_deltaT%snapshot)
         END IF
       END IF
 
