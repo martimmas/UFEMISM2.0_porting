@@ -13,6 +13,8 @@ module laddie_mesh_output
   use netcdf, only: NF90_DOUBLE
   use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
   use mesh_contour, only: calc_mesh_contour
+  use mpi_f08, only: MPI_WIN
+  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
 
   implicit none
 
@@ -134,9 +136,8 @@ contains
 
     ! Local variables:
     character(len=1024), parameter     :: routine_name = 'write_to_laddie_output_file_mesh_field'
-    integer, dimension(mesh%vi1:mesh%vi2) :: mask_int
-
-    ! Add routine to path
+    integer, dimension(:  ), pointer     :: mask_int => null()
+    type(MPI_WIN)                        :: wmask_int
     call init_routine( routine_name)
 
     ! if no NetCDF output should be created, do nothing
@@ -144,6 +145,12 @@ contains
       call finalise_routine( routine_name)
       return
     end if
+
+
+    ! Allocate mask_int
+    call allocate_dist_shared( mask_int, wmask_int, mesh%pai_V%n_nih)
+    mask_int( mesh%pai_V%i1_nih : mesh%pai_V%i2_nih) => mask_int
+
 
     ! Add the specified data field to the file
     select case (choice_output_field)
@@ -180,6 +187,18 @@ contains
         call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'T_ocean', forcing%T_ocean, d_is_hybrid = .true.)
       case ('S_ocean')
         call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'S_ocean', forcing%S_ocean, d_is_hybrid = .true.)
+
+
+    ! ===== Masks =====
+    ! =================
+
+      case ('mask_SGD')
+        where (forcing%mask_SGD)
+          mask_int = 1
+        elsewhere
+          mask_int = 0
+        end where
+        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask_SGD', mask_int, d_is_hybrid = .true.)
 
     ! == LADDIE ==
     ! ============
@@ -241,6 +260,10 @@ contains
         call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'HV_lad', laddie%now%H_b*laddie%now%V, d_is_hybrid = .true.)
 
     end select
+
+    ! Deallocate mask_int
+    call deallocate_dist_shared( mask_int, wmask_int)
+
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -418,6 +441,9 @@ contains
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'PSU')
+
+      case ('mask_SGD')
+        call add_field_mesh_int_2d( filename, ncid, 'mask_SGD', long_name = 'Mask indicating potential subglacial discharge cells')
 
     ! == LADDIE ==
     ! ============
