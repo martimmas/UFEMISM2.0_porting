@@ -78,6 +78,8 @@ CONTAINS
     ! Add routine to path
     call init_routine( routine_name)
 
+    call sync
+
     call multiply_CSR_matrix_with_vector_1D( laddie%M_map_H_a_b, &
       mesh%pai_V, H_a, mesh%pai_Tri, H_b)
     call checksum( H_b, 'H_b', mesh%pai_Tri)
@@ -102,6 +104,8 @@ CONTAINS
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    call sync
 
     call multiply_CSR_matrix_with_vector_1D( laddie%M_map_H_a_c, &
       mesh%pai_V, H_a, mesh%pai_E, H_c)
