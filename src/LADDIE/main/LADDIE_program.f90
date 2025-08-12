@@ -29,7 +29,7 @@ program LADDIE_program
   use mpi_basic, only: par, initialise_parallelisation
   use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
     colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
-    print_UFEMISM_start, print_UFEMISM_end
+    print_MODEL_start, print_MODEL_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   use mesh_types, only: type_mesh
@@ -87,7 +87,7 @@ program LADDIE_program
   tstart = MPI_WTIME()
 
   ! Print the LADDIE start message to the terminal
-  call print_UFEMISM_start
+  call print_MODEL_start( 'LADDIE')
 
   ! Initialise the control and resource tracker
   call initialise_control_and_resource_tracker
@@ -133,7 +133,7 @@ program LADDIE_program
   tcomp = tstop - tstart
 
   ! Print the LADDIE end message to the terminal
-  call print_UFEMISM_end( tcomp)
+  call print_MODEL_end( 'LADDIE', tcomp)
 
   ! Finalise PETSc and MPI parallelisation
   call PetscFinalize( perr)
