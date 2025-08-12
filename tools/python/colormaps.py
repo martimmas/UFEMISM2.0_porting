@@ -81,6 +81,10 @@ def get_cmap(varname):
         cmap = copy(plt.get_cmap('Blues'))
         norm = mpl.colors.Normalize(vmin=0,vmax=1e-5,clip=True)
 
+    elif varname == 'mask':
+        cmap = copy(plt.get_cmap('tab10'))
+        norm = mpl.colors.Normalize(vmin=.5,vmax=10.5,clip=True)
+
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
         return
