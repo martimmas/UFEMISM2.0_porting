@@ -643,6 +643,20 @@ MODULE model_configuration
     REAL(dp)            :: lapse_rate_precip_GRL_config                 = 0.07_dp                            !
     REAL(dp)            :: lapse_rate_precip_ANT_config                 = 0.07_dp                            !
 
+    ! == Climate - snapshot plus a uniform deltaT
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_NAM_config = ''
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_EAS_config = ''
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_GRL_config = ''
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_ANT_config = ''
+    REAL(dp)            :: uniform_deltaT_NAM_config                    = 0.0_dp                          ! Temperature anomaly to be added to the T2m field [K]
+    REAL(dp)            :: uniform_deltaT_EAS_config                    = 0.0_dp                          !
+    REAL(dp)            :: uniform_deltaT_GRL_config                    = 0.0_dp                          !
+    REAL(dp)            :: uniform_deltaT_ANT_config                    = 0.0_dp                          !
+    REAL(dp)            :: precip_CC_correction_NAM_config              = 1.068_dp                        ! Precipitation correction due to increased temperatures [1.0 = no correction; 1.068 = 6.8%]
+    REAL(dp)            :: precip_CC_correction_EAS_config              = 1.068_dp                        !
+    REAL(dp)            :: precip_CC_correction_GRL_config              = 1.068_dp                        !
+    REAL(dp)            :: precip_CC_correction_ANT_config              = 1.068_dp                        !
+
 
     ! == Climate - Insolation
     CHARACTER(LEN=256)  :: choice_insolation_forcing_config             = 'none'                           ! 'none', 'static' or 'realistic'
@@ -1767,6 +1781,21 @@ MODULE model_configuration
     REAL(dp)            :: lapse_rate_precip_GRL
     REAL(dp)            :: lapse_rate_precip_ANT
 
+    ! == Climate - snapshots plus uniform deltaT
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_NAM
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_EAS
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_GRL
+    CHARACTER(LEN=256)  :: filename_climate_snapshot_unif_dT_ANT
+    REAL(dp)            :: uniform_deltaT_NAM
+    REAL(dp)            :: uniform_deltaT_EAS
+    REAL(dp)            :: uniform_deltaT_GRL
+    REAL(dp)            :: uniform_deltaT_ANT
+    REAL(dp)            :: precip_CC_correction_NAM
+    REAL(dp)            :: precip_CC_correction_EAS
+    REAL(dp)            :: precip_CC_correction_GRL
+    REAL(dp)            :: precip_CC_correction_ANT
+
+
     ! == Climate - Insolation
     CHARACTER(LEN=256)  :: choice_insolation_forcing
     CHARACTER(LEN=256)  :: filename_insolation
@@ -2890,6 +2919,18 @@ CONTAINS
       lapse_rate_precip_EAS_config                                , &
       lapse_rate_precip_GRL_config                                , &
       lapse_rate_precip_ANT_config                                , &
+      filename_climate_snapshot_unif_dT_NAM_config                , &
+      filename_climate_snapshot_unif_dT_EAS_config                , &
+      filename_climate_snapshot_unif_dT_GRL_config                , &
+      filename_climate_snapshot_unif_dT_ANT_config                , &
+      uniform_deltaT_NAM_config                                   , &
+      uniform_deltaT_EAS_config                                   , &
+      uniform_deltaT_GRL_config                                   , &
+      uniform_deltaT_ANT_config                                   , &
+      precip_CC_correction_NAM_config                             , &
+      precip_CC_correction_EAS_config                             , &
+      precip_CC_correction_GRL_config                             , &
+      precip_CC_correction_ANT_config                             , &
       choice_insolation_forcing_config                            , &
       filename_insolation_config                                  , &
       static_insolation_time_config                               , &
@@ -3869,6 +3910,20 @@ CONTAINS
     C%lapse_rate_precip_EAS                                  = lapse_rate_precip_EAS_config
     C%lapse_rate_precip_GRL                                  = lapse_rate_precip_GRL_config
     C%lapse_rate_precip_ANT                                  = lapse_rate_precip_ANT_config
+
+    ! Climate - snapshot plus uniform deltaT
+    C%filename_climate_snapshot_unif_dT_NAM                  = filename_climate_snapshot_unif_dT_NAM_config
+    C%filename_climate_snapshot_unif_dT_EAS                  = filename_climate_snapshot_unif_dT_EAS_config
+    C%filename_climate_snapshot_unif_dT_GRL                  = filename_climate_snapshot_unif_dT_GRL_config
+    C%filename_climate_snapshot_unif_dT_ANT                  = filename_climate_snapshot_unif_dT_ANT_config
+    C%uniform_deltaT_NAM                                     = uniform_deltaT_NAM_config
+    C%uniform_deltaT_EAS                                     = uniform_deltaT_EAS_config
+    C%uniform_deltaT_GRL                                     = uniform_deltaT_GRL_config
+    C%uniform_deltaT_ANT                                     = uniform_deltaT_ANT_config
+    C%precip_CC_correction_NAM                               = precip_CC_correction_NAM_config
+    C%precip_CC_correction_EAS                               = precip_CC_correction_EAS_config
+    C%precip_CC_correction_GRL                               = precip_CC_correction_GRL_config
+    C%precip_CC_correction_ANT                               = precip_CC_correction_ANT_config
 
     C%choice_insolation_forcing                              = choice_insolation_forcing_config
     C%filename_insolation                                    = filename_insolation_config
