@@ -221,6 +221,7 @@ CONTAINS
     ELSEIF (choice_climate_model == 'idealised') THEN
       ! No need to do anything
     ELSEIF (choice_climate_model == 'realistic' .OR. &
+            choice_climate_model == 'snapshot_plus_deltaT' .OR. &
             choice_climate_model == 'matrix') THEN
       CALL write_to_restart_file_climate_model_region( mesh, climate, region_name, time)
     ELSE
@@ -314,6 +315,7 @@ CONTAINS
     ELSEIF (choice_climate_model == 'idealised') THEN
       ! No need to do anything
     ELSEIF (choice_climate_model == 'realistic' .OR. &
+            choice_climate_model == 'snapshot_plus_deltaT' .OR. &
             choice_climate_model == 'matrix') THEN
       CALL create_restart_file_climate_model_region( mesh, climate, region_name)
     ELSE
