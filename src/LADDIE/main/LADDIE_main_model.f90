@@ -235,7 +235,7 @@ contains
 
         ! Write mesh and grid if required
         if (tl > time_to_write_fields * sec_per_day) then
-          call write_to_laddie_mesh_output_file( mesh, laddie, ref_time + tl, is_standalone)
+          call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
           call write_to_laddie_output_file_grid( mesh, laddie, forcing, ref_time + tl)
           last_write_time_fields = time_to_write_fields
           ! TODO use proper config param for frequency
@@ -246,8 +246,9 @@ contains
         if (C%do_write_laddie_output_fields) then
           ! Write if required
           if (tl > time_to_write_fields * sec_per_day) then
-            call write_to_laddie_mesh_output_file( mesh, laddie, ref_time + tl, is_standalone)
+            call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
             last_write_time_fields = time_to_write_fields
+            ! TODO use proper frequency
             time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
           end if
         end if
