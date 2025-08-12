@@ -721,6 +721,7 @@ CONTAINS
 
     forcing%Hi                ( mesh%vi1:mesh%vi2  ) = ice%Hi                ( mesh%vi1:mesh%vi2  )
     forcing%Hib               ( mesh%vi1:mesh%vi2  ) = ice%Hib               ( mesh%vi1:mesh%vi2  )
+    forcing%TAF               ( mesh%vi1:mesh%vi2  ) = ice%TAF               ( mesh%vi1:mesh%vi2  )
     forcing%dHib_dx_b         ( mesh%ti1:mesh%ti2  ) = ice%dHib_dx_b         ( mesh%ti1:mesh%ti2  )
     forcing%dHib_dy_b         ( mesh%ti1:mesh%ti2  ) = ice%dHib_dy_b         ( mesh%ti1:mesh%ti2  )
     forcing%mask_icefree_land ( mesh%vi1:mesh%vi2  ) = ice%mask_icefree_land ( mesh%vi1:mesh%vi2  )
@@ -737,6 +738,7 @@ CONTAINS
 
     call checksum( forcing%Hi                , 'forcing%Hi'                , mesh%pai_V)
     call checksum( forcing%Hib               , 'forcing%Hib'               , mesh%pai_V)
+    call checksum( forcing%TAF               , 'forcing%TAF'               , mesh%pai_V)
     call checksum( forcing%dHib_dx_b         , 'forcing%dHib_dx_b'         , mesh%pai_Tri)
     call checksum( forcing%dHib_dy_b         , 'forcing%dHib_dy_b'         , mesh%pai_Tri)
     call checksum( forcing%mask_icefree_land , 'forcing%mask_icefree_land' , mesh%pai_V)
@@ -771,6 +773,7 @@ CONTAINS
     ! Forcing
     call reallocate_dist_shared( forcing%Hi                , forcing%wHi                , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%Hib               , forcing%wHib               , mesh_new%pai_V%n_nih)
+    call reallocate_dist_shared( forcing%TAF               , forcing%wTAF               , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%dHib_dx_b         , forcing%wdHib_dx_b         , mesh_new%pai_Tri%n_nih)
     call reallocate_dist_shared( forcing%dHib_dy_b         , forcing%wdHib_dy_b         , mesh_new%pai_Tri%n_nih)
     call reallocate_dist_shared( forcing%mask_icefree_land , forcing%wmask_icefree_land , mesh_new%pai_V%n_nih)
@@ -784,6 +787,7 @@ CONTAINS
     call reallocate_dist_shared( forcing%S_ocean           , forcing%wS_ocean           , mesh_new%pai_V%n_nih, C%nz_ocean)
     forcing%Hi                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hi
     forcing%Hib               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hib
+    forcing%TAF               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%TAF
     forcing%dHib_dx_b         ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%dHib_dx_b
     forcing%dHib_dy_b         ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%dHib_dy_b
     forcing%mask_icefree_land ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%mask_icefree_land

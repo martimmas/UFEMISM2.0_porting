@@ -18,7 +18,7 @@ module mesh_output_files
 
   private
 
-  public :: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh
+  public :: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh, write_contour_to_file
 
 contains
 

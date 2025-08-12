@@ -10,6 +10,9 @@ module laddie_mesh_output
   use laddie_forcing_types, only: type_laddie_forcing
   use netcdf_io_main
   use reallocate_mod
+  use netcdf, only: NF90_DOUBLE
+  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
+  use mesh_contour, only: calc_mesh_contour
 
   implicit none
 
@@ -163,6 +166,10 @@ contains
         call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hi', forcing%Hi, d_is_hybrid = .true.)
       case ('Hib')
         call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hib', forcing%Hib, d_is_hybrid = .true.)
+      case ('TAF')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'TAF', forcing%TAF, d_is_hybrid = .true.)
+      case ('grounding_line')
+        call write_grounding_line_to_file( laddie%output_mesh_filename, ncid, mesh, forcing)
 
       ! Ice temperature
       case ('Ti')
@@ -358,10 +365,6 @@ contains
     character(len=1024), parameter :: routine_name = 'create_laddie_output_file_mesh_field'
     integer                        :: int_dummy, id_dim_ei, id_dim_two, id_dim_time
     integer                        :: id_var_grounding_line
-    integer                        :: id_var_calving_front
-    integer                        :: id_var_ice_margin
-    integer                        :: id_var_coastline
-    integer                        :: id_var_grounded_ice_contour
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -394,7 +397,17 @@ contains
       case ('Hi')
         call add_field_mesh_dp_2D_notime( filename, ncid, 'Hi', long_name = 'Ice thickness', units = 'm')
       case ('Hib')
-        call add_field_mesh_dp_2D_notime( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. PD sea level')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. sea level')
+      case ('TAF')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'TAF', long_name = 'Ice thickness above floatation', units = 'm w.r.t. sea level')
+      case ('grounding_line')
+        call inquire_dim( filename, ncid, 'ei', int_dummy, id_dim_ei)
+        call inquire_dim( filename, ncid, 'two', int_dummy, id_dim_two)
+        call inquire_dim( filename, ncid, 'time', int_dummy, id_dim_time)
+        call create_variable( filename, ncid, 'grounding_line', NF90_DOUBLE, (/ id_dim_ei, id_dim_two/), id_var_grounding_line)
+        call add_attribute_char( filename, ncid, id_var_grounding_line, 'long_name', 'Grounding-line coordinates')
+        call add_attribute_char( filename, ncid, id_var_grounding_line, 'units', 'm')
+        call add_attribute_char( filename, ncid, id_var_grounding_line, 'format', 'Matlab/Python contour format')
 
       ! Ice temperature
       case ('Ti')
@@ -471,5 +484,72 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine create_laddie_output_file_mesh_field
+
+  subroutine write_grounding_line_to_file( filename, ncid, mesh, forcing) 
+
+    ! In/output variables:
+    character(len=*),          intent(in   ) :: filename
+    integer,                   intent(in   ) :: ncid 
+    type(type_mesh),           intent(in   ) :: mesh 
+    type(type_laddie_forcing), intent(in   ) :: forcing
+
+    ! Local variables:
+    character(len=1024), parameter          :: routine_name = 'write_grounding_line_to_file'
+    real(dp)                                :: NaN
+    real(dp), dimension(mesh%vi1:mesh%vi2)  :: TAF_for_GL
+    integer                                 :: vi
+    real(dp), dimension(:,:  ), allocatable :: CC
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    NaN = ieee_value( NaN, ieee_signaling_nan)
+
+    ! Replace thickness above floatation with NaN in ice-free vertices so GL wont be found there
+    do vi = mesh%vi1, mesh%vi2
+      if (forcing%Hi( vi) > 0.1_dp) then 
+        TAF_for_GL( vi) = forcing%TAF( vi)
+      else 
+        TAF_for_GL( vi) = NaN
+      end if
+    end do
+
+    ! Calculate grounding line contour
+    if (par%primary) allocate( CC( mesh%nE,2))
+    call calc_mesh_contour( mesh, TAF_for_GL, 0._dp, CC)
+
+    ! Write to NetCDF
+    call write_contour_to_file_notime( filename, ncid, mesh, CC, 'grounding_line')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine write_grounding_line_to_file
+
+  subroutine write_contour_to_file_notime( filename, ncid, mesh, CC, var_name)
+
+    ! In/output variables:
+    character(len=*),         intent(in   ) :: filename
+    integer,                  intent(in   ) :: ncid
+    type(type_mesh),          intent(in   ) :: mesh
+    real(dp), dimension(:,:), intent(in   ) :: CC
+    character(len=*),         intent(in   ) :: var_name
+
+    ! Local variables:
+    character(len=1024), parameter          :: routine_name = 'write_contour_to_file_notime'
+    real(dp), dimension(:,:,:), allocatable :: CC_with_time
+    integer                                 :: id_dim_time, ti, id_var
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Write to NetCDF
+    call inquire_var( filename, ncid, var_name, id_var)
+    call write_var_primary( filename, ncid, id_var, CC)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine write_contour_to_file_notime
 
 end module laddie_mesh_output
