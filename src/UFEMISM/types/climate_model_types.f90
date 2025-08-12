@@ -148,7 +148,7 @@ MODULE climate_model_types
     ! Add different climate model options
     TYPE(type_climate_model_snapshot)                 :: snapshot
     TYPE(type_climate_model_matrix)                   :: matrix             ! The "matrix"          climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
-    TYPE(type_climate_model_snapshot_uniform_deltaT)  :: snapshot_deltaT
+    TYPE(type_climate_model_snapshot_uniform_deltaT)  :: snapshot_unif_deltaT
 
   END TYPE type_climate_model
   
