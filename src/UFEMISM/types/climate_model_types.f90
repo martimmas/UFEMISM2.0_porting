@@ -38,18 +38,18 @@ MODULE climate_model_types
     REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Wind_DU                       ! Monthly mean wind speed in the y-direction (m/s)
     !INTEGER :: wHs, wmask_ice, wmask_ocean, wmask_shelf, wT2m, wPrecip, wHs_ref, wWind_WE, wWind_SN, wWind_LR, wWind_DU
 
-          ! lapse-rate correction variables for GCM snapshots 
-      REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: lambda ! Spatially variable (see Berends et al., 2018)
-      LOGICAL                                   :: do_lapse_rates     ! whether or not to apply the lapse rates below
-      REAL(dp)                                  :: lapse_rate_precip  ! single-value per region (precipitation)
-      REAL(dp)                                  :: lapse_rate_temp    ! single-value per region (precipitation)
+    ! lapse-rate correction variables for GCM snapshots 
+    REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: lambda ! Spatially variable (see Berends et al., 2018)
+    LOGICAL                                   :: do_lapse_rates     ! whether or not to apply the lapse rates below
+    REAL(dp)                                  :: lapse_rate_precip  ! single-value per region (precipitation)
+    REAL(dp)                                  :: lapse_rate_temp    ! single-value per region (precipitation)
 
-      ! Insolation variables
-      LOGICAL                                     :: has_insolation          ! whether or not this instance of the climate model needs insolation data
-      INTEGER,                    ALLOCATABLE     :: ins_nyears
-      INTEGER,                    ALLOCATABLE     :: ins_nlat,ins_nlon
-      REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_time
-      REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_lat
+    ! Insolation variables
+    LOGICAL                                     :: has_insolation          ! whether or not this instance of the climate model needs insolation data
+    INTEGER,                    ALLOCATABLE     :: ins_nyears
+    INTEGER,                    ALLOCATABLE     :: ins_nlat,ins_nlon
+    REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_time
+    REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_lat
       REAL(dp),                   ALLOCATABLE     :: ins_t0, ins_t1
       INTEGER,                    ALLOCATABLE     :: ins_ti0,ins_ti1
       REAL(dp), DIMENSION(:,:  ), ALLOCATABLE     :: ins_Q_TOA0, ins_Q_TOA1
@@ -84,6 +84,14 @@ MODULE climate_model_types
     REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: I_abs
 
   END TYPE type_climate_model_matrix
+
+  TYPE type_climate_model_snapshot_uniform_deltaT
+
+    TYPE(type_climate_model_snapshot)       :: snapshot
+    REAL(dp)                                :: deltaT
+    REAL(dp)                                :: precip_CC_correction
+
+  END TYPE type_climate_model_snapshot_uniform_deltaT
   
   TYPE type_climate_model
     ! The climate model data structure.
@@ -113,8 +121,9 @@ MODULE climate_model_types
     REAL(dp)                                :: t_next
     
     ! Add different climate model options
-    TYPE(type_climate_model_snapshot)       :: snapshot
-    TYPE(type_climate_model_matrix)         :: matrix             ! The "matrix"          climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
+    TYPE(type_climate_model_snapshot)                 :: snapshot
+    TYPE(type_climate_model_matrix)                   :: matrix             ! The "matrix"          climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
+    TYPE(type_climate_model_snapshot_uniform_deltaT)  :: snapshot_deltaT
 
   END TYPE type_climate_model
   
