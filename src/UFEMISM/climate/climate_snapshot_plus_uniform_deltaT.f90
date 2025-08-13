@@ -144,7 +144,7 @@ CONTAINS
     ! Adding deltaT to the temperature field (uniform in space and time)
     do vi = mesh%vi1, mesh%vi2
     do m = 1, 12
-        climate%T2m( vi, m) = climate%snapshot%T2m + climate%snapshot%deltaT
+        climate%T2m( vi, m) = climate%snapshot%T2m( vi, m) + climate%snapshot%deltaT
     end do
     end do
 
