@@ -15,6 +15,7 @@ module ut_mesh_graphs
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
     test_graph_connectivity_is_self_consistent
+  use graph_contiguous_domains, only: enforce_contiguous_process_domains_graph
 
   use netcdf_io_main
 
@@ -32,19 +33,16 @@ contains
     character(len=*), intent(in) :: test_name_parent
 
     ! Local variables:
-    character(len=1024), parameter     :: routine_name = 'test_graphs'
-    character(len=1024), parameter     :: test_name_local = 'graphs'
-    character(len=1024)                :: test_name
-    real(dp), parameter                :: xmin = -1._dp
-    real(dp), parameter                :: xmax =  1._dp
-    real(dp), parameter                :: ymin = -1._dp
-    real(dp), parameter                :: ymax =  1._dp
-    real(dp)                           :: alpha_min
-    real(dp)                           :: res_max
-    type(type_mesh)                    :: mesh
-    logical, dimension(:), allocatable :: mask_a
-    integer                            :: vi
-    type(type_graph)                   :: graph_a, graph_b
+    character(len=1024), parameter :: routine_name = 'test_graphs'
+    character(len=1024), parameter :: test_name_local = 'graphs'
+    character(len=1024)            :: test_name
+    real(dp), parameter            :: xmin = -1._dp
+    real(dp), parameter            :: xmax =  1._dp
+    real(dp), parameter            :: ymin = -1._dp
+    real(dp), parameter            :: ymax =  1._dp
+    real(dp)                       :: alpha_min
+    real(dp)                       :: res_max
+    type(type_mesh)                :: mesh
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -62,6 +60,34 @@ contains
     call crop_mesh_primary( mesh)
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
+    call test_create_graph_from_masked_mesh( test_name, mesh)
+    call test_enforce_contiguous_process_domains_graph( test_name, mesh)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_graphs
+
+  subroutine test_create_graph_from_masked_mesh( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter     :: routine_name = 'test_create_graph_from_masked_mesh'
+    character(len=1024), parameter     :: test_name_local = 'create_graph_from_masked_mesh'
+    character(len=1024)                :: test_name
+    logical, dimension(:), allocatable :: mask_a
+    integer                            :: vi
+    type(type_graph)                   :: graph_a, graph_b
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
     ! Define a masked set of vertices
     allocate( mask_a( mesh%vi1:mesh%vi2), source = .false.)
     do vi = mesh%vi1, mesh%vi2
@@ -78,6 +104,62 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine test_graphs
+  end subroutine test_create_graph_from_masked_mesh
+
+  subroutine test_enforce_contiguous_process_domains_graph( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter     :: routine_name = 'test_enforce_contiguous_process_domains_graph'
+    character(len=1024), parameter     :: test_name_local = 'enforce_contiguous_process_domains_graph'
+    character(len=1024)                :: test_name
+    logical, dimension(:), allocatable :: mask_a
+    integer                            :: vi
+    type(type_graph)                   :: graph_a, graph_b
+    integer                            :: ni
+    logical                            :: is_sorted
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! Define a masked set of vertices
+    allocate( mask_a( mesh%vi1:mesh%vi2), source = .false.)
+    do vi = mesh%vi1, mesh%vi2
+      if (hypot( mesh%V( vi,1), mesh%V( vi,2)) < mesh%xmax * 0.5_dp) mask_a( vi) = .true.
+    end do
+
+    ! Create graphs from the masked vertices and triangles
+    call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
+
+    ! Sort the nodes in the graph by x-coordinate, thereby enforcing contiguous process domains
+    call enforce_contiguous_process_domains_graph( graph_a)
+    call enforce_contiguous_process_domains_graph( graph_b)
+
+    call unit_test( test_graph_connectivity_is_self_consistent( graph_a), trim( test_name) // '/a/self_consistent')
+    call unit_test( test_graph_connectivity_is_self_consistent( graph_b), trim( test_name) // '/b/self_consistent')
+
+    is_sorted = .true.
+    do ni = 2, graph_a%n
+      is_sorted = is_sorted .and. graph_a%V( ni,1) >= graph_a%V( ni-1,1)
+    end do
+    call unit_test( is_sorted, trim( test_name) // '/a/is_sorted')
+
+    is_sorted = .true.
+    do ni = 2, graph_b%n
+      is_sorted = is_sorted .and. graph_b%V( ni,1) >= graph_b%V( ni-1,1)
+    end do
+    call unit_test( is_sorted, trim( test_name) // '/b/is_sorted')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_enforce_contiguous_process_domains_graph
 
 end module ut_mesh_graphs

@@ -16,7 +16,7 @@ module create_graphs_from_masked_mesh
   public :: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
     test_graph_connectivity_is_self_consistent
 
-  contains
+contains
 
   subroutine create_graph_from_masked_mesh_a( mesh, mask_a, graph)
 
