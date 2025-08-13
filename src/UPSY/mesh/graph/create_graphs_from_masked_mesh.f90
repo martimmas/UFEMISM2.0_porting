@@ -8,6 +8,8 @@ module create_graphs_from_masked_mesh
   use mpi_distributed_shared_memory, only: allocate_dist_shared
   use plane_geometry, only: mirror_p_across_qr
   use assertions_basic, only: assert
+  use graph_contiguous_domains, only: enforce_contiguous_process_domains_graph
+  use graph_parallelisation, only: setup_graph_parallelisation
 
   implicit none
 
@@ -90,6 +92,10 @@ contains
 
       end if
     end do
+
+    ! Finalisation
+    call enforce_contiguous_process_domains_graph( graph)
+    call setup_graph_parallelisation( graph)
 
 #if (DO_ASSERTIONS)
     call assert(test_graph_connectivity_is_self_consistent( graph), 'inconsistent graph connectivity')
@@ -219,6 +225,10 @@ contains
 
       end if
     end do
+
+    ! Finalisation
+    call enforce_contiguous_process_domains_graph( graph)
+    call setup_graph_parallelisation( graph)
 
 #if (DO_ASSERTIONS)
     call assert(test_graph_connectivity_is_self_consistent( graph), 'inconsistent graph connectivity')
