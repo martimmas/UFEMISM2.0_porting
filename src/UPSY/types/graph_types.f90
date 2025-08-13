@@ -18,6 +18,7 @@ module graph_types
     integer                               :: n                    !< Total number of nodes in the graph
     integer                               :: nn                   !< Number of non-ghost nodes in the graph
     integer                               :: ng                   !< Number of ghost nodes in the graph
+    integer                               :: nC_mem               !< Maximum allowed number of connections per node
 
     ! Mapping between parent mesh and graph
     integer,  dimension(:  ), allocatable :: mi2ni                !<     Graph node (ni) to mesh node (mi) translation table

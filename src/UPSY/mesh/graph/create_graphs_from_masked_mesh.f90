@@ -40,17 +40,18 @@ module create_graphs_from_masked_mesh
     graph%n                = count( mask_a_tot)
     graph%nn               = 0
     graph%ng               = 0
+    graph%nC_mem           = maxval( mesh%nC)
 
     ! Allocate memory
-    allocate( graph%mi2ni     ( mesh%nV             ), source = 0)
-    allocate( graph%ni2mi     ( graph%n             ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nV              ), source = 0)
+    allocate( graph%ni2mi     ( graph%n              ), source = 0)
 
-    allocate( graph%V         ( graph%n, 2          ), source = 0._dp)
-    allocate( graph%nC        ( graph%n             ), source = 0)
-    allocate( graph%C         ( graph%n, mesh%nC_mem), source = 0)
+    allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
+    allocate( graph%nC        ( graph%n              ), source = 0)
+    allocate( graph%C         ( graph%n, graph%nC_mem), source = 0)
 
-    allocate( graph%is_ghost  ( graph%n             ), source = .false.)
-    allocate( graph%ghost_nhat( graph%n, 2          ), source = 0._dp)
+    allocate( graph%is_ghost  ( graph%n              ), source = .false.)
+    allocate( graph%ghost_nhat( graph%n, 2           ), source = 0._dp)
 
     ! Create vertex-to-node mapping
     ni = 0
@@ -128,17 +129,18 @@ module create_graphs_from_masked_mesh
     graph%n                = n_mask_b + n_boundary_c
     graph%nn               = n_mask_b
     graph%ng               = n_boundary_c
+    graph%nC_mem           = 3
 
     ! Allocate memory
-    allocate( graph%mi2ni     ( mesh%nTri ), source = 0)
-    allocate( graph%ni2mi     ( graph%n   ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nTri            ), source = 0)
+    allocate( graph%ni2mi     ( graph%n              ), source = 0)
 
-    allocate( graph%V         ( graph%n, 2), source = 0._dp)
-    allocate( graph%nC        ( graph%n   ), source = 0)
-    allocate( graph%C         ( graph%n, 3), source = 0)
+    allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
+    allocate( graph%nC        ( graph%n              ), source = 0)
+    allocate( graph%C         ( graph%n, graph%nC_mem), source = 0)
 
-    allocate( graph%is_ghost  ( graph%n   ), source = .false.)
-    allocate( graph%ghost_nhat( graph%n, 2), source = 0._dp)
+    allocate( graph%is_ghost  ( graph%n              ), source = .false.)
+    allocate( graph%ghost_nhat( graph%n, 2           ), source = 0._dp)
 
     ! Create triangle-to-node mapping
     ni = 0
