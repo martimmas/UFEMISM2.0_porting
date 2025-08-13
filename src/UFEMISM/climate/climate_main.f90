@@ -164,6 +164,9 @@ CONTAINS
     climate%t_next = C%start_time_of_run
 
     ! Determine which climate model to initialise
+    ! Print to terminal
+    IF (par%primary)  WRITE(*,"(A)") '     Initialising climate model "' // &
+      colour_string( TRIM( choice_climate_model),'light blue') // '"...'
     select case (choice_climate_model)
       ! No need to do anything
     case ('idealised')
