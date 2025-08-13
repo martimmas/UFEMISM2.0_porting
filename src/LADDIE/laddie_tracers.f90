@@ -60,6 +60,7 @@ CONTAINS
         ! Time-derivative heat equation
         dHTdt = -laddie%divQT( vi) &
                + laddie%melt( vi) * laddie%T_base( vi) &
+               - laddie%gamma_T( vi) * (npx_ref%T( vi) - laddie%T_base( vi)) &
                + MAX(0.0_dp,laddie%entr( vi)) * laddie%T_amb( vi) &
                + laddie%entr_dmin( vi) * laddie%T_amb( vi) &
                - laddie%detr( vi) * npx_ref%T( vi) &
