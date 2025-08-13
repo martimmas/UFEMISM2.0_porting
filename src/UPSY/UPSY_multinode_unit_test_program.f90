@@ -3,8 +3,8 @@ program UPSY_multinode_unit_test_program
 
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
-  use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path
-  use ut_basic, only: create_unit_tests_output_folder, create_unit_tests_output_file, foldername_unit_tests_output
+  use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path, crash
+  use ut_basic, only: foldername_unit_tests_output, filename_unit_tests_output
   use netcdf_resource_tracking, only: create_resource_tracking_file
   use checksum_mod, only: create_checksum_logfile
   use mpi_f08, only: MPI_FINALIZE
@@ -18,6 +18,7 @@ program UPSY_multinode_unit_test_program
 
   integer                        :: perr, ierr
   character(len=1024), parameter :: test_name = 'UPSY'
+  logical                        :: ex
 
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation('')
@@ -27,10 +28,11 @@ program UPSY_multinode_unit_test_program
   call initialise_control_and_resource_tracker
   routine_path = 'UPSY_multinode_unit_test_program'
 
-  ! Create the unit test output folder and file
+  ! Check if a unit tests output file exists (should have been created by UPSY_unit_test_program)
   foldername_unit_tests_output = 'automated_testing/unit_tests/results'
-  call create_unit_tests_output_folder( foldername_unit_tests_output)
-  call create_unit_tests_output_file
+  filename_unit_tests_output = trim( foldername_unit_tests_output) // '/unit_tests_output.txt'
+  inquire( file = trim( filename_unit_tests_output), exist = ex)
+  if (.not. ex) call crash('Unit tests output file not found - run UPSY_unit_test_program first')
 
   ! Create the resource tracking output file
   call create_resource_tracking_file( foldername_unit_tests_output)
