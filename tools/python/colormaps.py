@@ -49,24 +49,28 @@ def get_cmap(varname):
         norm = mpl.colors.Normalize(vmin=0,vmax=1000,clip=True)
 
     elif varname == 'H_lad':
-        cmap = copy(plt.get_cmap('gist_stern'))
-        norm = mpl.colors.Normalize(vmin=1,vmax=300,clip=True)
+        cmap = copy(plt.get_cmap('cmo.deep'))
+        norm = mpl.colors.LogNorm(vmin=1,vmax=200,clip=True)
 
-    elif varname == 'T_lad':
+    elif varname in ['T_lad', 'T_amb']:
         cmap = copy(plt.get_cmap('cmo.thermal'))
         norm = mpl.colors.Normalize(vmin=-2,vmax=1,clip=True)
 
-    elif varname == 'S_lad':
+    elif varname == 'T_base':
+        cmap = copy(plt.get_cmap('cmo.thermal'))
+        norm = mpl.colors.Normalize(vmin=-2,vmax=-1,clip=True)
+
+    elif varname in ['S_lad', 'S_amb']:
         cmap = copy(plt.get_cmap('cmo.haline'))
-        norm = mpl.colors.Normalize(vmin=32,vmax=34,clip=True)
+        norm = mpl.colors.Normalize(vmin=33,vmax=34.5,clip=True)
 
     elif varname in ['U_lad', 'V_lad']:
         cmap = copy(plt.get_cmap('cmo.balance'))
-        norm = mpl.colors.Normalize(vmin=-.2,vmax=.2,clip=True)
+        norm = mpl.colors.Normalize(vmin=-.5,vmax=.5,clip=True)
 
     elif varname in ['Uabs_lad']:
         cmap = copy(plt.get_cmap('Greens'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=.2,clip=True)
+        norm = mpl.colors.Normalize(vmin=0,vmax=1.0,clip=True)
 
     elif varname in ['uabs_surf', 'uabs_vav']:
         cmap = copy(plt.get_cmap('turbo'))
@@ -80,6 +84,14 @@ def get_cmap(varname):
     elif varname == 'SGD':
         cmap = copy(plt.get_cmap('Blues'))
         norm = mpl.colors.Normalize(vmin=0,vmax=1e-5,clip=True)
+
+    elif varname == 'entr':
+        cmap = copy(plt.get_cmap('cmo.balance'))
+        norm = mpl.colors.Normalize(vmin=-1e-3,vmax=1e-3,clip=True)
+
+    elif varname == 'gamma_T':
+        cmap = copy(plt.get_cmap('Reds'))
+        norm = mpl.colors.Normalize(vmin=0,vmax=1e-4,clip=True)
 
     elif varname == 'mask':
         cmap = copy(plt.get_cmap('tab10'))
