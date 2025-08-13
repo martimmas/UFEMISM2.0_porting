@@ -95,10 +95,6 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    ! Print to terminal
-    IF (par%primary)  WRITE(*,"(A)") '     Initialising realistic climate model "' // &
-      colour_string( TRIM( C%choice_climate_model_realistic),'light blue') // '"...'
-
     ! Run the chosen realistic climate model
     climate%snapshot%has_insolation = .FALSE.
     
@@ -107,28 +103,32 @@ CONTAINS
     IF     (region_name == 'NAM') THEN
         filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_NAM
         climate%snapshot%precip_CC_correction     = C%precip_CC_correction_NAM
-        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
+        climate%snapshot%lapse_rate_temp          = C%lapse_rate_temp_NAM
+        climate%snapshot%deltaT                   = C%uniform_deltaT_NAM
         IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
             climate%snapshot%has_insolation = .TRUE.
         END IF
     ELSEIF (region_name == 'EAS') THEN
         filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_EAS
         climate%snapshot%precip_CC_correction     = C%precip_CC_correction_EAS
-        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
+        climate%snapshot%lapse_rate_temp          = C%lapse_rate_temp_EAS
+        climate%snapshot%deltaT                   = C%uniform_deltaT_EAS
         IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
             climate%snapshot%has_insolation = .TRUE.
         END IF
     ELSEIF (region_name == 'GRL') THEN
         filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_GRL
         climate%snapshot%precip_CC_correction     = C%precip_CC_correction_GRL
-        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
+        climate%snapshot%lapse_rate_temp          = C%lapse_rate_temp_GRL
+        climate%snapshot%deltaT                   = C%uniform_deltaT_GRL
         IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
             climate%snapshot%has_insolation = .TRUE.
         END IF
     ELSEIF (region_name == 'ANT') THEN
         filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_ANT
         climate%snapshot%precip_CC_correction     = C%precip_CC_correction_ANT
-        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
+        climate%snapshot%lapse_rate_temp          = C%lapse_rate_temp_ANT
+        climate%snapshot%deltaT                   = C%uniform_deltaT_ANT
         IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
             climate%snapshot%has_insolation = .TRUE.
         END IF
@@ -137,14 +137,14 @@ CONTAINS
     END IF
 
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot%Hs)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot%T2m)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot%Precip)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%T2m)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%Precip)
 
 
     ! Adding deltaT to the temperature field (uniform in space and time)
     do vi = mesh%vi1, mesh%vi2
     do m = 1, 12
-        climate%T2m( vi, m) = climate%snapshot%T2m( vi, m) + climate%snapshot%deltaT
+        climate%T2m( vi, m) = climate%T2m( vi, m) + climate%snapshot%deltaT
     end do
     end do
 
