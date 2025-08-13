@@ -13,9 +13,91 @@ module create_graphs_from_masked_mesh
 
   private
 
-  public :: create_graph_from_masked_mesh_b
+  public :: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
+    test_graph_connectivity_is_self_consistent
 
   contains
+
+  subroutine create_graph_from_masked_mesh_a( mesh, mask_a, graph)
+
+    ! In/output variables:
+    type(type_mesh),                       intent(in   ) :: mesh
+    logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: mask_a
+    type(type_graph),                      intent(  out) :: graph
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'create_graph_from_masked_mesh_a'
+    logical, dimension(1:mesh%nV  ) :: mask_a_tot
+    integer                         :: ni, vi, ci, vj, nj
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call gather_to_all( mask_a, mask_a_tot)
+
+    ! Set graph metadata
+    graph%parent_mesh_name = mesh%name
+    graph%n                = count( mask_a_tot)
+    graph%nn               = 0
+    graph%ng               = 0
+
+    ! Allocate memory
+    allocate( graph%mi2ni     ( mesh%nV             ), source = 0)
+    allocate( graph%ni2mi     ( graph%n             ), source = 0)
+
+    allocate( graph%V         ( graph%n, 2          ), source = 0._dp)
+    allocate( graph%nC        ( graph%n             ), source = 0)
+    allocate( graph%C         ( graph%n, mesh%nC_mem), source = 0)
+
+    allocate( graph%is_ghost  ( graph%n             ), source = .false.)
+    allocate( graph%ghost_nhat( graph%n, 2          ), source = 0._dp)
+
+    ! Create vertex-to-node mapping
+    ni = 0
+    do vi = 1, mesh%nV
+      if (mask_a_tot( vi)) then
+        ni = ni + 1
+        graph%mi2ni( vi) = ni
+        graph%ni2mi( ni) = vi
+      end if
+    end do
+
+    ! Construct reduced graph
+    do vi = 1, mesh%nV
+      if (mask_a_tot( vi)) then
+
+        ni = graph%mi2ni( vi)
+
+        ! Add this masked vertex
+        graph%V ( ni,:) = mesh%V( vi,:)
+
+        ! Add its connectivity
+        graph%nC( ni) = 0
+        do ci = 1, mesh%nC( vi)
+
+          vj = mesh%C( vi,ci)
+
+          if (mask_a_tot( vj)) then
+            ! This connection points to a masked vertex
+
+            nj = graph%mi2ni( vj)
+            graph%nC( ni) = graph%nC( ni) + 1
+            graph%C( ni, graph%nC( ni)) = nj
+
+          end if
+        end do
+
+      end if
+    end do
+
+#if (DO_ASSERTIONS)
+    call assert(test_graph_connectivity_is_self_consistent( graph), 'inconsistent graph connectivity')
+#endif
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine create_graph_from_masked_mesh_a
 
   subroutine create_graph_from_masked_mesh_b( mesh, mask_a, graph)
 
