@@ -21,7 +21,7 @@ program UPSY_multinode_unit_test_program
   logical                        :: ex
 
   ! Initialise MPI parallelisation and PETSc
-  call initialise_parallelisation('')
+  call initialise_parallelisation('unit_tests_multinode')
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   ! Initialise the control and resource tracker
