@@ -5,8 +5,6 @@ program UPSY_component_test_program
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path
-  use netcdf_resource_tracking, only: create_resource_tracking_file
-  use checksum_mod, only: create_checksum_logfile
   use mpi_f08, only: MPI_FINALIZE
 
   use ct_basic, only: create_component_tests_output_folder

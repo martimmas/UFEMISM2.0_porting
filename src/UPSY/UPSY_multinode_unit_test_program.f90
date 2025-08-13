@@ -5,8 +5,6 @@ program UPSY_multinode_unit_test_program
   use mpi_basic, only: initialise_parallelisation
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path, crash
   use ut_basic, only: foldername_unit_tests_output, filename_unit_tests_output
-  use netcdf_resource_tracking, only: create_resource_tracking_file
-  use checksum_mod, only: create_checksum_logfile
   use mpi_f08, only: MPI_FINALIZE
 
   use ut_mpi_dist_shared_memory, only: unit_tests_mpi_hybrid_distributed_shared_memory_main
@@ -33,10 +31,6 @@ program UPSY_multinode_unit_test_program
   filename_unit_tests_output = trim( foldername_unit_tests_output) // '/unit_tests_output.txt'
   inquire( file = trim( filename_unit_tests_output), exist = ex)
   if (.not. ex) call crash('Unit tests output file not found - run UPSY_unit_test_program first')
-
-  ! Create the resource tracking output file
-  call create_resource_tracking_file( foldername_unit_tests_output)
-  call create_checksum_logfile( foldername_unit_tests_output)
 
   ! Run all the multi-node unit tests
   call unit_tests_mpi_hybrid_distributed_shared_memory_main( test_name)
