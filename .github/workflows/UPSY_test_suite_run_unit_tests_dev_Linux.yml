@@ -26,18 +26,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Restore UPSY program from cache
+      - name: Restore UPSY unit test program from cache
         uses: actions/cache/restore@v3
-        id: UPSY_program_cache_restore
+        id: UPSY_unit_test_program_cache_restore
         with:
           path: UPSY_unit_test_program
           key: UPSY_unit_test_program_dev_Linux_${{ github.ref_name }}_${{ github.run_id }}
 
+      - name: Restore UPSY multi-node unit test program from cache
+        uses: actions/cache/restore@v3
+        id: UPSY_multinode_unit_test_program_cache_restore
+        with:
+          path: UPSY_multinode_unit_test_program
+          key: UPSY_multinode_unit_test_program_dev_Linux_${{ github.ref_name }}_${{ github.run_id }}
+
       - name: Run unit tests
         run: mpiexec  -n 2  UPSY_unit_test_program
 
-      # - name: Run multi-node unit tests
-      #   run: mpiexec  -n 7 --map-by :OVERSUBSCRIBE  UPSY_unit_test_program  unit_tests_multinode
+      - name: Run multi-node unit tests
+        run: mpiexec  -n 7 --map-by :OVERSUBSCRIBE  UPSY_multinode_unit_test_program
 
       - name: Upload output as artifacts
         uses: actions/upload-artifact@v4.3.4

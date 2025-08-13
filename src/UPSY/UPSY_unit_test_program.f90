@@ -5,8 +5,6 @@ program UPSY_unit_test_program
   use mpi_basic, only: initialise_parallelisation
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path
   use ut_basic, only: create_unit_tests_output_folder, create_unit_tests_output_file, foldername_unit_tests_output
-  use netcdf_resource_tracking, only: create_resource_tracking_file
-  use checksum_mod, only: create_checksum_logfile
   use mpi_f08, only: MPI_FINALIZE
 
   use ut_mpi, only: unit_tests_mpi_distributed_memory_main
@@ -32,10 +30,6 @@ program UPSY_unit_test_program
   foldername_unit_tests_output = 'automated_testing/unit_tests/results'
   call create_unit_tests_output_folder( foldername_unit_tests_output)
   call create_unit_tests_output_file
-
-  ! Create the resource tracking output file
-  call create_resource_tracking_file( foldername_unit_tests_output)
-  call create_checksum_logfile( foldername_unit_tests_output)
 
   ! Run all the unit tests
   call unit_tests_mpi_distributed_memory_main( test_name)
