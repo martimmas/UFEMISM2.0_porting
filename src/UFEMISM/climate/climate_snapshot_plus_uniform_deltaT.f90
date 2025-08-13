@@ -105,33 +105,33 @@ CONTAINS
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
-    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_NAM
-    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_NAM
-    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
-    IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
-        climate%snapshot%has_insolation = .TRUE.
-    END IF
+        filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_NAM
+        climate%snapshot%precip_CC_correction     = C%precip_CC_correction_NAM
+        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
+        IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
+            climate%snapshot%has_insolation = .TRUE.
+        END IF
     ELSEIF (region_name == 'EAS') THEN
-    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_EAS
-    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_EAS
-    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
-    IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
-        climate%snapshot%has_insolation = .TRUE.
-    END IF
+        filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_EAS
+        climate%snapshot%precip_CC_correction     = C%precip_CC_correction_EAS
+        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
+        IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
+            climate%snapshot%has_insolation = .TRUE.
+        END IF
     ELSEIF (region_name == 'GRL') THEN
-    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_GRL
-    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_GRL
-    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
-    IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
-        climate%snapshot%has_insolation = .TRUE.
-    END IF
+        filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_GRL
+        climate%snapshot%precip_CC_correction     = C%precip_CC_correction_GRL
+        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
+        IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
+            climate%snapshot%has_insolation = .TRUE.
+        END IF
     ELSEIF (region_name == 'ANT') THEN
-    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_ANT
-    climate%snapshot%precip_CC_correction.    = C%precip_CC_correction_ANT
-    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
-    IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
-        climate%snapshot%has_insolation = .TRUE.
-    END IF
+        filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_ANT
+        climate%snapshot%precip_CC_correction     = C%precip_CC_correction_ANT
+        climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
+        IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
+            climate%snapshot%has_insolation = .TRUE.
+        END IF
     ELSE
     CALL crash('unknown region_name "' // region_name // '"')
     END IF
@@ -160,16 +160,14 @@ CONTAINS
     ELSE
         CALL initialise_insolation_forcing( climate%snapshot, mesh)
         IF (C%start_time_of_run < 0._dp) THEN
-        timeframe_init_insolation = C%start_time_of_run
+            timeframe_init_insolation = C%start_time_of_run
         ELSE
-        timeframe_init_insolation = 0._dp
+            timeframe_init_insolation = 0._dp
         END IF
         CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot)
         climate%Q_TOA = climate%snapshot%Q_TOA
     END IF
     END IF
-
-    
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
