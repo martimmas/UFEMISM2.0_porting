@@ -14,6 +14,8 @@ module ut_netcdf_mesh
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform
   use mesh_secondary, only: calc_all_secondary_mesh_data
+  use graph_types, only: type_graph
+  use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b
 
   implicit none
 
@@ -65,6 +67,7 @@ contains
     call unit_tests_netcdf_mesh_dp_3D        ( test_name, mesh)
     call unit_tests_netcdf_mesh_dp_3D_b      ( test_name, mesh)
     call unit_tests_netcdf_mesh_dp_3D_ocean  ( test_name, mesh)
+    call unit_tests_netcdf_mesh_graph        ( test_name, mesh)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -524,5 +527,54 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine unit_tests_netcdf_mesh_dp_3D_ocean
+
+  subroutine unit_tests_netcdf_mesh_graph( test_name_parent, mesh)
+    ! Test the netcdf i/o subroutines for meshed data
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter     :: routine_name = 'unit_tests_netcdf_mesh_graph'
+    character(len=1024), parameter     :: test_name_local = 'graph'
+    character(len=1024)                :: test_name
+    logical, dimension(:), allocatable :: mask_a
+    integer                            :: vi
+    type(type_graph)                   :: graph_a, graph_b
+    character(len=1024)                :: filename_a, filename_b
+    logical                            :: ex_a, ex_b
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! Define a masked set of vertices
+    allocate( mask_a( mesh%vi1:mesh%vi2), source = .false.)
+    do vi = mesh%vi1, mesh%vi2
+      if (hypot( mesh%V( vi,1), mesh%V( vi,2)) < mesh%xmax * 0.5_dp) mask_a( vi) = .true.
+    end do
+
+    ! Create graphs from the masked vertices and triangles
+    call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
+
+    filename_a = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '_a.nc'
+    filename_b = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '_b.nc'
+    call save_graph_as_netcdf( filename_a, graph_a)
+    call save_graph_as_netcdf( filename_b, graph_b)
+
+    inquire( file = trim( filename_a), exist = ex_a)
+    inquire( file = trim( filename_b), exist = ex_b)
+
+    call unit_test( ex_a, trim( test_name) // '/a')
+    call unit_test( ex_b, trim( test_name) // '/b')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine unit_tests_netcdf_mesh_graph
 
 end module ut_netcdf_mesh

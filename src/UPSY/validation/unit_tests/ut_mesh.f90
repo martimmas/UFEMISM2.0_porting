@@ -6,6 +6,7 @@ module ut_mesh
   use ut_mesh_Delaunay, only: test_Delaunay
   use ut_mesh_refinement, only: test_refinement
   use ut_mesh_remapping, only: test_remapping
+  use ut_mesh_graphs, only: test_graphs
 
   implicit none
 
@@ -36,6 +37,7 @@ contains
     call test_Delaunay  ( test_name)
     call test_refinement( test_name)
     call test_remapping ( test_name)
+    call test_graphs    ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
