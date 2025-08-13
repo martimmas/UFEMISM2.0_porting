@@ -192,7 +192,7 @@ CONTAINS
     do vi = mesh%vi1, mesh%vi2
         do m = 1, 12
             ! Precip(\Delta T) = Precip(PD) \times 1.068^{\Delta T}
-            climate%Precip( vi, m) = climate%snapshot%Precip( vi, m) * climate%snapshot%precip_CC_correction**climate%snapshot%deltaT
+            climate%Precip( vi, m) = climate%Precip( vi, m) * climate%snapshot%precip_CC_correction**climate%snapshot%deltaT
         end do
     end do
 
