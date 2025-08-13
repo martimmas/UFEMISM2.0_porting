@@ -1,49 +1,61 @@
 function H = add_graph_to_plot( ax, graph, varargin)
 
-nn = sum( graph.nC)*3;
-xx = zeros( nn,1);
-yy = zeros( nn,1);
+% Regular nodes
+nn = sum( graph.nC( 1: graph.nn))*3;
+xx = NaN( nn,1);
+yy = NaN( nn,1);
 
 n = 0;
-for ni = 1: graph.n
+for ni = 1: graph.nn
   for ci = 1: graph.nC( ni)
     nj = graph.C( ni,ci);
-    xx( n+1:n+3) = [graph.V( ni,1); graph.V( nj,1); NaN];
-    yy( n+1:n+3) = [graph.V( ni,2); graph.V( nj,2); NaN];
+    if (~graph.is_ghost( nj))
+      xx( n+1:n+3) = [graph.V( ni,1); graph.V( nj,1); NaN];
+      yy( n+1:n+3) = [graph.V( ni,2); graph.V( nj,2); NaN];
+      n = n+3;
+    end
+  end
+end
+
+% Ghost nodes
+nn = sum( graph.nC( graph.nn+1 : graph.n))*3;
+xxg = NaN( nn,1);
+yyg = NaN( nn,1);
+
+n = 0;
+for ni = graph.nn+1 : graph.n
+  for ci = 1: graph.nC( ni)
+    nj = graph.C( ni,ci);
+    xxg( n+1:n+3) = [graph.V( ni,1); graph.V( nj,1); NaN];
+    yyg( n+1:n+3) = [graph.V( ni,2); graph.V( nj,2); NaN];
     n = n+3;
   end
 end
 
+%% Plot
+
 linewidth       = 1;
-linestyle       = '-';
 color           = 'k';
-marker          = 'none';
-markersize      = 8;
-markerfacecolor = 'none';
-markeredgecolor = 'k';
+markersize      = 5;
 
 for vi = 1: 2: length( varargin)
   switch varargin{vi}
     case 'linewidth'
       linewidth = varargin{vi+1};
-    case 'linestyle'
-      linestyle = varargin{vi+1};
     case 'color'
       color = varargin{vi+1};
-    case 'marker'
-      marker = varargin{vi+1};
     case 'markersize'
       markersize = varargin{vi+1};
-    case 'markerfacecolor'
-      markerfacecolor = varargin{vi+1};
-    case 'markeredgecolor'
-      markeredgecolor = varargin{vi+1};
   end
 end
 
-H = line('parent',ax,'xdata',xx,'ydata',yy,...
-  'linewidth',linewidth,'linestyle',linestyle,'color',color,...
-  'marker',marker','markersize',markersize,...
-  'markerfacecolor',markerfacecolor,'markeredgecolor',markeredgecolor);
+H(1) = line('parent',ax,'xdata',xx,'ydata',yy,...
+  'linewidth',linewidth,'linestyle','-','color',color,...
+  'marker','o','markersize',markersize,...
+  'markerfacecolor',color,'markeredgecolor',color);
+H(2) = line('parent',ax,'xdata',xxg,'ydata',yyg,...
+  'linewidth',linewidth,'linestyle','--','color',color,...
+  'marker','o','markersize',markersize,...
+  'markerfacecolor','none','markeredgecolor',color);
 
 end
