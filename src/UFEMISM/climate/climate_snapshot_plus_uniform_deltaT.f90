@@ -19,7 +19,7 @@ MODULE climate_snapshot_plus_uniform_deltaT
   USE netcdf_io_main
   USE netcdf_basic
   use mpi_distributed_memory, only: distribute_from_primary
-  use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot,
+  use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, get_insolation_at_time
 
   IMPLICIT NONE
 
@@ -61,9 +61,9 @@ CONTAINS
     CALL apply_geometry_downscaling_corrections( mesh, ice, climate)
 
     ! if needed for IMAU-ITM or climate matrix, we need to update insolation
-    IF (climate%snapshot_unif_deltaT%has_insolation) THEN
-      CALL get_insolation_at_time( mesh, time, climate%snapshot_unif_deltaT)
-      climate%Q_TOA = climate%snapshot_unif_deltaT%Q_TOA
+    IF (climate%snapshot%has_insolation) THEN
+      CALL get_insolation_at_time( mesh, time, climate%snapshot)
+      climate%Q_TOA = climate%snapshot%Q_TOA
     END IF
 
     ! Finalise routine path
@@ -87,6 +87,7 @@ CONTAINS
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_climate_model_snapshot_plus_uniform_deltaT'
+    INTEGER                                               :: vi, m
     CHARACTER(LEN=256)                                    :: filename_climate_snapshot
     LOGICAL                                               :: do_lapse_rates
     REAL(dp)                                              :: timeframe_init_insolation
@@ -99,51 +100,51 @@ CONTAINS
       colour_string( TRIM( C%choice_climate_model_realistic),'light blue') // '"...'
 
     ! Run the chosen realistic climate model
-    climate%snapshot_unif_deltaT%has_insolation = .FALSE.
+    climate%snapshot%has_insolation = .FALSE.
     
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
-    filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_NAM
-    climate%snapshot_unif_deltaT%precip_CC_correction     = C%precip_CC_correction_NAM
-    climate%snapshot_unif_deltaT%lapse_rate_temp = C%lapse_rate_temp_NAM
+    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_NAM
+    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_NAM
+    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
     IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
-        climate%snapshot_unif_deltaT%has_insolation = .TRUE.
+        climate%snapshot%has_insolation = .TRUE.
     END IF
     ELSEIF (region_name == 'EAS') THEN
-    filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_EAS
-    climate%snapshot_unif_deltaT%precip_CC_correction     = C%precip_CC_correction_EAS
-    climate%snapshot_unif_deltaT%lapse_rate_temp = C%lapse_rate_temp_EAS
+    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_EAS
+    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_EAS
+    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
     IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
-        climate%snapshot_unif_deltaT%has_insolation = .TRUE.
+        climate%snapshot%has_insolation = .TRUE.
     END IF
     ELSEIF (region_name == 'GRL') THEN
-    filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_GRL
-    climate%snapshot_unif_deltaT%precip_CC_correction     = C%precip_CC_correction_GRL
-    climate%snapshot_unif_deltaT%lapse_rate_temp = C%lapse_rate_temp_GRL
+    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_GRL
+    climate%snapshot%precip_CC_correction     = C%precip_CC_correction_GRL
+    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
     IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
-        climate%snapshot_unif_deltaT%%has_insolation = .TRUE.
+        climate%snapshot%has_insolation = .TRUE.
     END IF
     ELSEIF (region_name == 'ANT') THEN
-    filename_climate_snapshot                        = C%filename_climate_snapshot_unif_dT_ANT
-    climate%snapshot_unif_deltaT%precip_CC_correction.    = C%precip_CC_correction_ANT
-    climate%snapshot_unif_deltaT%lapse_rate_temp = C%lapse_rate_temp_ANT
+    filename_climate_snapshot                 = C%filename_climate_snapshot_unif_dT_ANT
+    climate%snapshot%precip_CC_correction.    = C%precip_CC_correction_ANT
+    climate%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
     IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
-        climate%snapshot_unif_deltaT%has_insolation = .TRUE.
+        climate%snapshot%has_insolation = .TRUE.
     END IF
     ELSE
     CALL crash('unknown region_name "' // region_name // '"')
     END IF
 
-    CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_unif_deltaT%Hs)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_unif_deltaT%T2m)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_unif_deltaT%Precip)
+    CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot%Hs)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot%T2m)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot%Precip)
 
 
     ! Adding deltaT to the temperature field (uniform in space and time)
     do vi = mesh%vi1, mesh%vi2
     do m = 1, 12
-        climate%T2m( vi, m) = climate%snapshot_unif_deltaT%T2m + climate%snapshot_unif_deltaT%deltaT
+        climate%T2m( vi, m) = climate%snapshot%T2m + climate%snapshot%deltaT
     end do
     end do
 
@@ -153,18 +154,18 @@ CONTAINS
     
 
     ! Initialises the insolation (if needed)
-    IF (climate%snapshot_unif_deltaT%has_insolation) THEN
+    IF (climate%snapshot%has_insolation) THEN
     IF (C%choice_insolation_forcing == 'none') THEN
         CALL crash('Chosen climate or SMB model cannot be used with choice_insolation_forcing = "none"!')
     ELSE
-        CALL initialise_insolation_forcing( climate%snapshot_unif_deltaT, mesh)
+        CALL initialise_insolation_forcing( climate%snapshot, mesh)
         IF (C%start_time_of_run < 0._dp) THEN
         timeframe_init_insolation = C%start_time_of_run
         ELSE
         timeframe_init_insolation = 0._dp
         END IF
-        CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot_unif_deltaT)
-        climate%Q_TOA = climate%snapshot_unif_deltaT%Q_TOA
+        CALL get_insolation_at_time( mesh, timeframe_init_insolation, climate%snapshot)
+        climate%Q_TOA = climate%snapshot%Q_TOA
     END IF
     END IF
 
@@ -193,63 +194,13 @@ CONTAINS
     do vi = mesh%vi1, mesh%vi2
         do m = 1, 12
             ! Precip(\Delta T) = Precip(PD) \times 1.068^{\Delta T}
-            climate%Precip( vi, m) = climate%snapshot_unif_deltaT%Precip( vi, m) * climate%snapshot_unif_deltaT%precip_CC_correction**climate%snapshot_unif_deltaT%deltaT
+            climate%Precip( vi, m) = climate%snapshot%Precip( vi, m) * climate%snapshot%precip_CC_correction**climate%snapshot%deltaT
         end do
     end do
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
   END SUBROUTINE apply_precipitation_CC_correction
-
-  SUBROUTINE apply_geometry_downscaling_corrections( mesh, ice, climate)
-    ! Applies the lapse rate corrections for temperature and precipitation
-    ! to correct for the mismatch between T and P at the forcing's ice surface elevation and the model's ice surface elevation
-
-    IMPLICIT NONE
-
-    TYPE(type_mesh),                       INTENT(IN)    :: mesh
-    TYPE(type_ice_model),                  INTENT(IN)    :: ice
-    TYPE(type_climate_model),              INTENT(INOUT) :: climate
-
-    ! Local Variables
-    CHARACTER(LEN=256), PARAMETER                        :: routine_name = 'apply_geometry_downscaling_corrections'
-    INTEGER                                              :: vi, m
-    REAL(dp)                                             :: deltaH, deltaT, deltaP
-    REAL(dp), DIMENSION(:,:), ALLOCATABLE                :: T_inv, T_inv_ref
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    allocate( T_inv     (mesh%vi1:mesh%vi2, 12))
-    allocate( T_inv_ref (mesh%vi1:mesh%vi2, 12))
-
-
-    do vi = mesh%vi1, mesh%vi2
-    ! we only apply corrections where it is not open ocean
-    if (ice%mask_icefree_ocean( vi) .eqv. .FALSE.) then
-        deltaT  = (ice%Hs( vi) - climate%snapshot_unif_deltaT%Hs( vi)) * (-1._dp * abs(climate%snapshot_unif_deltaT%lapse_rate_temp))
-        do m = 1, 12
-        ! Do corrections - based on Eq. 11 of Albrecht et al. (2020; TC) for PISM
-        climate%T2m( vi, m)    = climate%T2m( vi, m)    + deltaT
-
-        ! Calculate inversion-layer temperatures
-        T_inv_ref( vi, m) = 88.9_dp + 0.67_dp *  climate%T2m( vi, m)
-        T_inv(     vi, m) = 88.9_dp + 0.67_dp * (climate%T2m( vi, m) - climate%snapshot_unif_deltaT%lapse_rate_temp * (ice%Hs( vi) - climate%snapshot_unif_deltaT%Hs( vi)))
-        ! Correct precipitation based on a simple Clausius-Clapeyron method (Jouzel & Merlivat, 1984; Huybrechts, 2002)
-        ! Same as implemented in IMAU-ICE
-        climate%Precip( vi, m) = climate%Precip( vi, m) * (T_inv_ref( vi, m) / T_inv( vi, m))**2 * EXP(22.47_dp * (T0 / T_inv_ref( vi, m) - T0 / T_inv( vi, m)))
-
-        end do ! m
-    end if
-    end do ! vi
-
-    deallocate(T_inv)
-    deallocate(T_inv_ref)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE apply_geometry_downscaling_corrections
 
 
 END MODULE climate_snapshot_plus_uniform_deltaT

@@ -27,6 +27,7 @@ MODULE climate_realistic
   public :: run_climate_model_realistic
   public :: initialise_climate_model_realistic
   public :: initialise_insolation_forcing
+  public :: apply_geometry_downscaling_corrections
 
 CONTAINS
 
