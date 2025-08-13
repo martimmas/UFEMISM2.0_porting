@@ -5,7 +5,7 @@ module graph_parallelisation
   use graph_types, only: type_graph
   use mesh_parallelisation, only: determine_ownership_ranges_equal
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
-  use mpi_basic, only: par
+  use mpi_basic, only: par, sync
   use mpi_f08, only: MPI_ALLGATHER, MPI_INTEGER, MPI_COMM_WORLD
 
   implicit none
