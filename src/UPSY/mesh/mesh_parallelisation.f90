@@ -62,7 +62,7 @@ module mesh_parallelisation
 
   private
 
-  public :: setup_mesh_parallelisation
+  public :: setup_mesh_parallelisation, determine_ownership_ranges_equal
 
 contains
 
