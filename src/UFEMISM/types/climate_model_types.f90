@@ -50,22 +50,28 @@ MODULE climate_model_types
     INTEGER,                    ALLOCATABLE     :: ins_nlat,ins_nlon
     REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_time
     REAL(dp), DIMENSION(:    ), ALLOCATABLE     :: ins_lat
-      REAL(dp),                   ALLOCATABLE     :: ins_t0, ins_t1
-      INTEGER,                    ALLOCATABLE     :: ins_ti0,ins_ti1
-      REAL(dp), DIMENSION(:,:  ), ALLOCATABLE     :: ins_Q_TOA0, ins_Q_TOA1
+    REAL(dp),                   ALLOCATABLE     :: ins_t0, ins_t1
+    INTEGER,                    ALLOCATABLE     :: ins_ti0,ins_ti1
+    REAL(dp), DIMENSION(:,:  ), ALLOCATABLE     :: ins_Q_TOA0, ins_Q_TOA1
 
     ! Reference absorbed insolation (for GCM snapshots), or insolation at model time for the applied climate
     REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Q_TOA                         ! Monthly mean insolation at the top of the atmosphere (W/m2) (taken from the prescribed insolation solution at orbit_time)
     REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Albedo                        ! Monthly mean surface albedo (calculated using our own SMB scheme for consistency)
     REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: I_abs                         ! Total yearly absorbed insolation, used in the climate matrix for interpolation
 
+  END TYPE type_climate_model_snapshot
+
+  TYPE type_climate_model_snapshot_plus_unif_dT
+
+    TYPE(type_climate_model_snapshot)         :: snapshot
+
     ! deltaT and precipitation correction
     REAL(dp)                                  :: deltaT
     REAL(dp)                                  :: precip_CC_correction
 
-  END TYPE type_climate_model_snapshot
+  END TYPE type_climate_model_snapshot_plus_unif_dT
   
-   TYPE type_climate_model_matrix
+  TYPE type_climate_model_matrix
     ! The "matrix" climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
 
     ! The three GCM snapshots
@@ -82,7 +88,7 @@ MODULE climate_model_types
     REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: GCM_bias_Hs
     REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: GCM_bias_Wind_LR
     REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: GCM_bias_Wind_DU
-!    INTEGER :: wGCM_bias_T2m, wGCM_bias_Precip, wGCM_bias_Hs, wGCM_bias_Wind_LR, wGCM_bias_Wind_DU
+    !    INTEGER :: wGCM_bias_T2m, wGCM_bias_Precip, wGCM_bias_Hs, wGCM_bias_Wind_LR, wGCM_bias_Wind_DU
 
    ! Total yearly absorbed insolation, used in the climate matrix for interpolation
     REAL(dp), DIMENSION(:  ), ALLOCATABLE     :: I_abs
@@ -118,6 +124,7 @@ MODULE climate_model_types
     
     ! Add different climate model options
     TYPE(type_climate_model_snapshot)                 :: snapshot
+    TYPE(type_climate_model_snapshot_plus_unif_dT)    :: snapshot_unif_dT
     TYPE(type_climate_model_matrix)                   :: matrix             ! The "matrix"          climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
 
   END TYPE type_climate_model
