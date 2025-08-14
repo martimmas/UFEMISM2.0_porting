@@ -24,7 +24,7 @@ contains
     character(len=256), parameter              :: routine_name = 'enforce_contiguous_process_domains_graph'
     real(dp), dimension(graph%n)               :: xx
     integer,  dimension(graph%n)               :: ni_new2ni_old, ni_old2ni_new
-    integer                                    :: ni_old, ni_new, ci, nj_old, nj_new, mi
+    integer                                    :: ni_old, ni_new, ci, nj_old, nj_new, ni, mi
     real(dp), dimension(graph%n,2)             :: V_old
     integer,  dimension(graph%n)               :: nC_old
     integer,  dimension(graph%n, graph%nC_mem) :: C_old
@@ -60,10 +60,10 @@ contains
     graph%V          = 0._dp
     graph%nC         = 0
     graph%C          = 0
-    graph%ni2mi      = 0
-    graph%mi2ni      = 0
     graph%is_ghost   = .false.
     graph%ghost_nhat = 0._dp
+    graph%ni2mi      = 0
+    graph%mi2ni      = 0
 
     do ni_new = 1, graph%n
 
@@ -83,17 +83,16 @@ contains
         graph%C( ni_new,ci) = nj_new
       end do
 
-      ! ni2mi
-      graph%ni2mi( ni_new) = ni_old2mi( ni_old)
-
-      ! mi2ni
-      graph%mi2ni( ni_old2mi( ni_old)) = ni_new
-
       ! is_ghost
       graph%is_ghost( ni_new) = is_ghost_old( ni_old)
 
       ! ghost_nhat
       graph%ghost_nhat( ni_new,:) = ghost_nhat_old( ni_old,:)
+
+      ! ni2mi, mi2ni
+      mi = ni_old2mi( ni_old)
+      graph%ni2mi( ni_new) = mi
+      if (.not. graph%is_ghost( ni_new)) graph%mi2ni( mi) = ni_new
 
     end do
 

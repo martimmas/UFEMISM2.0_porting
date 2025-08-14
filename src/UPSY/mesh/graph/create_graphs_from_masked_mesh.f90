@@ -298,7 +298,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_graph_connectivity_is_self_consistent'
-    integer                        :: ni, ci, nj, cj, nk
+    integer                        :: ni, ci, nj, cj, nk, mi
     logical                        :: found_reverse
 
     ! Add routine to path
@@ -319,6 +319,18 @@ contains
         end do
         isso = isso .and. found_reverse
       end do
+    end do
+
+    do mi = 1, size( graph%mi2ni)
+      ni = graph%mi2ni( mi)
+      if (ni > 0) isso = isso .and. graph%ni2mi( ni) == mi
+    end do
+
+    do ni = 1, graph%n
+      if (.not. graph%is_ghost( ni)) then
+        mi = graph%ni2mi( ni)
+        isso = isso .and. graph%mi2ni( mi) == ni
+      end if
     end do
 
     ! Finalise routine path
