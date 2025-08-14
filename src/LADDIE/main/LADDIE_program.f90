@@ -26,10 +26,11 @@ program LADDIE_program
 
   use petscksp
   use precisions, only: dp
+  use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
   use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
     colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
-    print_MODEL_start, print_MODEL_end
+    print_model_start, print_model_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   use mesh_types, only: type_mesh
@@ -67,6 +68,8 @@ program LADDIE_program
 ! ===== START =====
 ! =================
 
+  program_name = 'LADDIE'
+
   ! Get the input argument (either the path to the config file,
   ! or an instruction to run unit/component tests)
   if (iargc() == 1) then
@@ -87,7 +90,7 @@ program LADDIE_program
   tstart = MPI_WTIME()
 
   ! Print the LADDIE start message to the terminal
-  call print_MODEL_start( 'LADDIE')
+  call print_model_start
 
   ! Initialise the control and resource tracker
   call initialise_control_and_resource_tracker
@@ -118,7 +121,7 @@ program LADDIE_program
     ! ===================
 
     call run_laddie_model( mesh, laddie, forcing, time, is_initial, is_standalone)
-     
+
     ! Write to resource tracking file
     call write_to_resource_tracking_file( time)
     call reset_resource_tracker
@@ -133,7 +136,7 @@ program LADDIE_program
   tcomp = tstop - tstart
 
   ! Print the LADDIE end message to the terminal
-  call print_MODEL_end( 'LADDIE', tcomp)
+  call print_model_end( tcomp)
 
   ! Finalise PETSc and MPI parallelisation
   call PetscFinalize( perr)

@@ -93,7 +93,7 @@ contains
       call MPI_COMM_SPLIT( MPI_COMM_WORLD, 1, par%i, par%mpi_comm_secondaries, ierr)
     end if
 
-    if (UFEMISM_program_input_argument == 'unit_tests_multinode') call print_parallelisation_info
+    ! if (UFEMISM_program_input_argument == 'unit_tests_multinode') call print_parallelisation_info
 
   end subroutine initialise_parallelisation
 

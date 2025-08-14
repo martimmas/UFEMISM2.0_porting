@@ -1,6 +1,7 @@
 program UPSY_component_test_program
   !< A program to run all of UPSY's component tests
 
+  use basic_program_info, only: program_name
   use mpi_basic, only: par
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
@@ -20,13 +21,14 @@ program UPSY_component_test_program
   character(len=1024), dimension(:), allocatable :: test_mesh_filenames
   character(len=1024), dimension(:), allocatable :: test_grid_filenames
 
+  program_name = 'UPSY_component_tests'
+
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation('')
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   ! Initialise the control and resource tracker
   call initialise_control_and_resource_tracker
-  routine_path = 'UPSY_component_test_program'
 
   if (par%primary) write(0,'(a)') ''
   if (par%primary) write(0,'(a)') ' Running UPSY component tests...'
