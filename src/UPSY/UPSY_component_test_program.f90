@@ -4,6 +4,7 @@ program UPSY_component_test_program
   use mpi_basic, only: par
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
+  use parameters, only: initialise_constants
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, routine_path
   use mpi_f08, only: MPI_FINALIZE
 
@@ -23,6 +24,9 @@ program UPSY_component_test_program
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation('')
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
+
+  ! Initialise constants (pi, NaN, ...)
+  call initialise_constants
 
   ! Initialise the control and resource tracker
   call initialise_control_and_resource_tracker

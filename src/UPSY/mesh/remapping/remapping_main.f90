@@ -14,7 +14,7 @@ module remapping_main
   use remapping_gridlonlat_to_mesh
   use remapping_mesh_to_mesh
   use apply_maps
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
+  use parameters, only: NaN
 
   implicit none
 
@@ -1088,13 +1088,9 @@ contains
     logical                            :: got_ocean
     integer, dimension(:), allocatable :: z_mask_old, z_mask_new
     real(dp)                           :: z_floor, z_ceil
-    real(dp)                           :: NaN
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    ! Initialise
-    NaN = ieee_value( NaN, ieee_signaling_nan)
 
     ! allocate mask for valid points in a data column
     allocate( z_mask_old( size( vert_src)))

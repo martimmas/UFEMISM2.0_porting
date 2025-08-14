@@ -27,6 +27,7 @@ program LADDIE_program
   use petscksp
   use precisions, only: dp
   use mpi_basic, only: par, initialise_parallelisation
+  use parameters, only: initialise_constants
   use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
     colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
     print_MODEL_start, print_MODEL_end
@@ -79,6 +80,9 @@ program LADDIE_program
   call initialise_parallelisation( input_argument)
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
+  ! Initialise constants (pi, NaN, ...)
+  call initialise_constants
+
   ! Only the primary process "sees" the input argument; all the others are
   ! initialised by MPI without it. Broadcast it so they know what to do.
   call MPI_BCAST( input_argument, len(input_argument), MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
@@ -118,7 +122,7 @@ program LADDIE_program
     ! ===================
 
     call run_laddie_model( mesh, laddie, forcing, time, is_initial, is_standalone)
-     
+
     ! Write to resource tracking file
     call write_to_resource_tracking_file( time)
     call reset_resource_tracker
