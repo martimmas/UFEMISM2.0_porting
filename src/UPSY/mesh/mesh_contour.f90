@@ -5,7 +5,7 @@ module mesh_contour
   use mesh_types, only: type_mesh
   use mpi_basic, only: par
   use mpi_distributed_memory, only: gather_to_primary
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
+  use parameters, only: NaN
 
   implicit none
 
@@ -33,14 +33,11 @@ module mesh_contour
       integer,  dimension(:), allocatable    :: nT_cross_C
       logical,  dimension(:), allocatable    :: E_end
       integer                                :: ei
-      real(dp)                               :: NaN
       real(dp), dimension(:,:), allocatable  :: C_sub
       integer                                :: n_sub
 
       ! Add routine to path
       call init_routine( routine_name)
-
-      NaN = ieee_value( NaN, ieee_signaling_nan)
 
       call centre_d_around_zero( d, level, d_centred)
 

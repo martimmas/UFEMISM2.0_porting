@@ -11,7 +11,6 @@ module laddie_mesh_output
   use netcdf_io_main
   use reallocate_mod
   use netcdf, only: NF90_DOUBLE
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
   use mesh_contour, only: calc_mesh_contour
   use mpi_f08, only: MPI_WIN
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
@@ -46,7 +45,7 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...' 
+    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( laddie%output_mesh_filename, ncid)
@@ -515,17 +514,16 @@ contains
 
   end subroutine create_laddie_output_file_mesh_field
 
-  subroutine write_grounding_line_to_file( filename, ncid, mesh, forcing) 
+  subroutine write_grounding_line_to_file( filename, ncid, mesh, forcing)
 
     ! In/output variables:
     character(len=*),          intent(in   ) :: filename
-    integer,                   intent(in   ) :: ncid 
-    type(type_mesh),           intent(in   ) :: mesh 
+    integer,                   intent(in   ) :: ncid
+    type(type_mesh),           intent(in   ) :: mesh
     type(type_laddie_forcing), intent(in   ) :: forcing
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'write_grounding_line_to_file'
-    real(dp)                                :: NaN
     real(dp), dimension(mesh%vi1:mesh%vi2)  :: TAF_for_GL
     integer                                 :: vi
     real(dp), dimension(:,:  ), allocatable :: CC
@@ -533,13 +531,11 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    NaN = ieee_value( NaN, ieee_signaling_nan)
-
     ! Replace thickness above floatation with NaN in ice-free vertices so GL wont be found there
     do vi = mesh%vi1, mesh%vi2
-      if (forcing%Hi( vi) > 0.1_dp) then 
+      if (forcing%Hi( vi) > 0.1_dp) then
         TAF_for_GL( vi) = forcing%TAF( vi)
-      else 
+      else
         TAF_for_GL( vi) = NaN
       end if
     end do

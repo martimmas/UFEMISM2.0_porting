@@ -5,6 +5,7 @@ program UPSY_multinode_unit_test_program
   use precisions, only: dp
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
+  use parameters, only: initialise_constants
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, &
     print_model_start, print_model_end, crash
   use ut_basic, only: foldername_unit_tests_output, filename_unit_tests_output
@@ -28,6 +29,9 @@ program UPSY_multinode_unit_test_program
   call initialise_parallelisation('unit_tests_multinode')
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
+  ! Initialise constants (pi, NaN, ...)
+  call initialise_constants
+  
   ! Start the clock
   tstart = MPI_WTIME()
 

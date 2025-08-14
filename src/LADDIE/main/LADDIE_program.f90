@@ -28,6 +28,7 @@ program LADDIE_program
   use precisions, only: dp
   use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
+  use parameters, only: initialise_constants
   use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
     colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
     print_model_start, print_model_end
@@ -81,6 +82,9 @@ program LADDIE_program
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation( input_argument)
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
+
+  ! Initialise constants (pi, NaN, ...)
+  call initialise_constants
 
   ! Only the primary process "sees" the input argument; all the others are
   ! initialised by MPI without it. Broadcast it so they know what to do.
