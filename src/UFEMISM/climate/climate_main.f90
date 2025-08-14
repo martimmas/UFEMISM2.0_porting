@@ -89,19 +89,20 @@ CONTAINS
     END IF
 
     ! Run the chosen climate model
-    IF     (choice_climate_model == 'none') THEN
-      ! No need to do anything
-    ELSEIF (choice_climate_model == 'idealised') THEN
-      CALL run_climate_model_idealised( mesh, ice, climate, time)
-    ELSEIF (choice_climate_model == 'realistic') THEN
-      CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
-    ELSEIF (choice_climate_model == 'snapshot_plus_uniform_deltaT') THEN
-      CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, forcing, time)  
-    ELSEIF (choice_climate_model == 'matrix') THEN
-      call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
-    ELSE
-      CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
-    END IF
+    SELECT CASE (choice_climate_model)
+      CASE ('none')
+        ! No need to do anything
+      CASE ('idealised')
+        CALL run_climate_model_idealised( mesh, ice, climate, time)
+      CASE ('realistic')
+        CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
+      CASE ('snapshot_plus_uniform_deltaT')
+        CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)  
+      CASE ('matrix')
+        call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
+      CASE DEFAULT
+        CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
+    END SELECT
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -174,7 +175,7 @@ CONTAINS
     case ('realistic')
       call initialise_climate_model_realistic( mesh, ice, climate, forcing, region_name)
     case ('snapshot_plus_uniform_deltaT')
-      call initialise_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, forcing, region_name)
+      call initialise_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, region_name)
     case ('matrix')
       if (par%primary)  write(*,"(A)") '   Initialising climate matrix model...'
       call initialise_climate_matrix( mesh, grid, ice, climate, region_name, forcing)
