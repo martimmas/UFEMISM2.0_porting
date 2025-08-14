@@ -21,8 +21,7 @@ module graph_types
     integer                                 :: nC_mem                        !< Maximum allowed number of connections per node
 
     ! Mapping between parent mesh and graph
-    integer,  dimension(:    ), allocatable :: mi2ni                         !<     Graph node (ni) to mesh node (mi) translation table
-    integer,  dimension(:    ), allocatable :: ni2mi                         !<     Graph node (ni) to mesh node (mi) translation table
+    integer,  dimension(:    ), allocatable :: ni2mi                         !<     Graph node (ni) to parent mesh node (mi) translation table
 
     ! Node coordinates and connectivity
     real(dp), dimension(:,:  ), allocatable :: V                             !< [m] Node coordinates
