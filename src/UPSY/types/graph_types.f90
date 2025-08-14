@@ -22,6 +22,7 @@ module graph_types
 
     ! Mapping between parent mesh and graph
     integer,  dimension(:    ), allocatable :: ni2mi                         !<     Graph node (ni) to parent mesh node (mi) translation table
+    integer,  dimension(:    ), allocatable :: mi2ni                         !<     Parent mesh node (mi) to graph node (ni) translation table
 
     ! Node coordinates and connectivity
     real(dp), dimension(:,:  ), allocatable :: V                             !< [m] Node coordinates

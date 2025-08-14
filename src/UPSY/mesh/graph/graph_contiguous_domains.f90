@@ -29,6 +29,7 @@ contains
     integer,  dimension(graph%n)               :: nC_old
     integer,  dimension(graph%n, graph%nC_mem) :: C_old
     integer,  dimension(graph%n)               :: ni_old2mi
+    integer,  dimension(size(graph%mi2ni))     :: mi2ni_old
     logical,  dimension(graph%n)               :: is_ghost_old
     real(dp), dimension(graph%n,2)             :: ghost_nhat_old
 
@@ -52,6 +53,7 @@ contains
     nC_old         = graph%nC
     C_old          = graph%C
     ni_old2mi      = graph%ni2mi
+    mi2ni_old      = graph%mi2ni
     is_ghost_old   = graph%is_ghost
     ghost_nhat_old = graph%ghost_nhat
 
@@ -59,6 +61,7 @@ contains
     graph%nC         = 0
     graph%C          = 0
     graph%ni2mi      = 0
+    graph%mi2ni      = 0
     graph%is_ghost   = .false.
     graph%ghost_nhat = 0._dp
 
@@ -82,6 +85,9 @@ contains
 
       ! ni2mi
       graph%ni2mi( ni_new) = ni_old2mi( ni_old)
+
+      ! mi2ni
+      graph%mi2ni( ni_old2mi( ni_old)) = ni_new
 
       ! is_ghost
       graph%is_ghost( ni_new) = is_ghost_old( ni_old)

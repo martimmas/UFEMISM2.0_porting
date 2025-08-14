@@ -30,7 +30,6 @@ contains
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_graph_from_masked_mesh_a'
     logical, dimension(1:mesh%nV  ) :: mask_a_tot
-    integer, dimension(1:mesh%nV  ) :: mi2ni
     integer                         :: ni, vi, ci, vj, nj
 
     ! Add routine to path
@@ -47,6 +46,7 @@ contains
 
     ! Allocate memory
     allocate( graph%ni2mi     ( graph%n              ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nV              ), source = 0)
 
     allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
     allocate( graph%nC        ( graph%n              ), source = 0)
@@ -60,7 +60,7 @@ contains
     do vi = 1, mesh%nV
       if (mask_a_tot( vi)) then
         ni = ni + 1
-        mi2ni( vi) = ni
+        graph%mi2ni( vi) = ni
         graph%ni2mi( ni) = vi
       end if
     end do
@@ -69,7 +69,7 @@ contains
     do vi = 1, mesh%nV
       if (mask_a_tot( vi)) then
 
-        ni = mi2ni( vi)
+        ni = graph%mi2ni( vi)
 
         ! Add this masked vertex
         graph%V ( ni,:) = mesh%V( vi,:)
@@ -83,7 +83,7 @@ contains
           if (mask_a_tot( vj)) then
             ! This connection points to a masked vertex
 
-            nj = mi2ni( vj)
+            nj = graph%mi2ni( vj)
             graph%nC( ni) = graph%nC( ni) + 1
             graph%C( ni, graph%nC( ni)) = nj
 
@@ -120,7 +120,6 @@ contains
     integer                         :: n_mask_b
     logical, dimension(1:mesh%nE  ) :: mask_boundary_c_tot
     integer                         :: n_boundary_c
-    integer, dimension(1:mesh%nTri) :: mi2ni
     integer                         :: ni, ti, ng, n, ei, tj, nj, til, tir, vi, vj, vi1, vi2
     real(dp), dimension(2)          :: p, q, r, s, normal_vector
 
@@ -140,6 +139,7 @@ contains
 
     ! Allocate memory
     allocate( graph%ni2mi     ( graph%n              ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nTri            ), source = 0)
 
     allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
     allocate( graph%nC        ( graph%n              ), source = 0)
@@ -153,7 +153,7 @@ contains
     do ti = 1, mesh%nTri
       if (mask_b_tot( ti)) then
         ni = ni + 1
-        mi2ni( ti) = ni
+        graph%mi2ni( ti) = ni
         graph%ni2mi( ni) = ti
       end if
     end do
@@ -163,7 +163,7 @@ contains
     do ti = 1, mesh%nTri
       if (mask_b_tot( ti)) then
 
-        ni = mi2ni( ti)
+        ni = graph%mi2ni( ti)
 
         ! Add this masked triangle
         graph%V ( ni,:) = mesh%TriGC( ti,:)
@@ -178,7 +178,7 @@ contains
           if (mask_b_tot( tj)) then
             ! This connection points to a masked triangle
 
-            nj = mi2ni( tj)
+            nj = graph%mi2ni( tj)
             graph%C( ni,n) = nj
 
           else
