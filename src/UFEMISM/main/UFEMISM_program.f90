@@ -25,11 +25,12 @@ PROGRAM UFEMISM_program
 
   USE petscksp
   USE precisions                                             , ONLY: dp
+  use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
   use parameters, only: initialise_constants
   USE control_resources_and_error_messaging                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string, do_colour_strings, &
                                                                      initialise_control_and_resource_tracker, reset_resource_tracker, &
-                                                                     print_MODEL_start, print_MODEL_end
+                                                                     print_model_start, print_model_end
   USE model_configuration                                    , ONLY: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   USE region_types                                           , ONLY: type_model_region
@@ -44,31 +45,18 @@ PROGRAM UFEMISM_program
 
   IMPLICIT NONE
 
-! ===== Main variables =====
-! ==========================
-
-  ! The four model regions
-  TYPE(type_model_region)                :: NAM, EAS, GRL, ANT
-
-  ! The global forcings
-  TYPE(type_global_forcing)              :: forcing
-
-  ! Coupling
-  REAL(dp)                               :: t_coupling, t_end_models
-
-  ! Computation time tracking
-  REAL(dp)                               :: tstart, tstop, tcomp
-
-  ! Surface elevations for the automated flow factor tuning in MISMIP+
-  REAL(dp)                               :: Hs_prev, Hs_cur
-
-  ! Input argument
-  character(len=1024)                    :: input_argument
-
-  integer :: ierr, perr
+  character(len=1024)       :: input_argument
+  type(type_model_region)   :: NAM, EAS, GRL, ANT          !< The four model regions
+  type(type_global_forcing) :: forcing                     !< The global forcings
+  real(dp)                  :: t_coupling, t_end_models    !< Coupling times
+  real(dp)                  :: tstart, tstop, tcomp        !< Computation time tracking
+  real(dp)                  :: Hs_prev, Hs_cur             !< Surface elevations for the automated flow factor tuning in MISMIP+
+  integer                   :: ierr, perr
 
 ! ===== START =====
 ! =================
+
+  program_name = 'UFEMISM'
 
   ! Get the input argument (either the path to the config file,
   ! or an instruction to run unit/component tests)
@@ -93,7 +81,7 @@ PROGRAM UFEMISM_program
   tstart = MPI_WTIME()
 
   ! Print the UFEMISM start message to the terminal
-  CALL print_MODEL_start( 'UFEMISM')
+  call print_model_start
 
   ! Initialise the control and resource tracker
   CALL initialise_control_and_resource_tracker
@@ -179,7 +167,7 @@ PROGRAM UFEMISM_program
   tcomp = tstop - tstart
 
   ! Print the UFEMISM end message to the terminal
-  CALL print_MODEL_end( 'UFEMISM', tcomp)
+  CALL print_model_end( tcomp)
 
   ! Finalise PETSc and MPI parallelisation
   call PetscFinalize( perr)
