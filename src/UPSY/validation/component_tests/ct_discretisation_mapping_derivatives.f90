@@ -17,7 +17,8 @@ module ct_discretisation_mapping_derivatives
 
   private
 
-  public :: run_all_map_deriv_tests
+  public :: run_all_map_deriv_tests, test_function, test_function_linear, test_function_quadratic, &
+    test_function_periodic
 
   abstract interface
     function test_function(x,y,xmin,xmax,ymin,ymax) result(d_all)
