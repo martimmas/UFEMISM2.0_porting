@@ -31,7 +31,7 @@ program UPSY_unit_test_program
 
   ! Initialise constants (pi, NaN, ...)
   call initialise_constants
-  
+
   ! Start the clock
   tstart = MPI_WTIME()
 

@@ -14,8 +14,9 @@ module ut_mesh_graphs
   use mesh_refinement_basic, only: refine_mesh_uniform
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
-    test_graph_connectivity_is_self_consistent
-  use graph_contiguous_domains, only: enforce_contiguous_process_domains_graph
+    test_graph_connectivity_is_self_consistent, test_graph_matches_mesh
+  use graph_contiguous_domains, only: test_graph_nodes_are_sorted
+  use ut_mesh_graphs_mapping, only: test_mesh_graph_mapping
 
   use netcdf_io_main
 
@@ -61,6 +62,7 @@ contains
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
     call test_create_graph_from_masked_mesh( test_name, mesh)
+    call test_mesh_graph_mapping( test_name, mesh)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -80,8 +82,6 @@ contains
     logical, dimension(:), allocatable :: mask_a
     integer                            :: vi
     type(type_graph)                   :: graph_a, graph_b
-    integer                            :: ni
-    logical                            :: is_sorted
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -99,22 +99,19 @@ contains
     call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
     call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
 
-    ! Test if the graph connectivity lists are self-consistent
-    call unit_test( test_graph_connectivity_is_self_consistent( graph_a), trim( test_name) // '/a/self_consistent')
-    call unit_test( test_graph_connectivity_is_self_consistent( graph_b), trim( test_name) // '/b/self_consistent')
+    call unit_test( test_graph_connectivity_is_self_consistent( graph_a), &
+      trim( test_name) // '/a/is_self_consistent')
+    call unit_test( test_graph_nodes_are_sorted( graph_a), &
+      trim( test_name) // '/a/is_sorted')
+    call unit_test( test_graph_matches_mesh( mesh, graph_a), &
+      trim( test_name) // '/a/matches_mesh')
 
-    ! Test if the nodes in the graph are sorted into contiguous process domains
-    is_sorted = .true.
-    do ni = 2, graph_a%n
-      is_sorted = is_sorted .and. graph_a%V( ni,1) >= graph_a%V( ni-1,1)
-    end do
-    call unit_test( is_sorted, trim( test_name) // '/a/is_sorted')
-
-    is_sorted = .true.
-    do ni = 2, graph_b%n
-      is_sorted = is_sorted .and. graph_b%V( ni,1) >= graph_b%V( ni-1,1)
-    end do
-    call unit_test( is_sorted, trim( test_name) // '/b/is_sorted')
+    call unit_test( test_graph_connectivity_is_self_consistent( graph_b), &
+      trim( test_name) // '/b/is_self_consistent')
+    call unit_test( test_graph_nodes_are_sorted( graph_b), &
+      trim( test_name) // '/b/is_sorted')
+    call unit_test( test_graph_matches_mesh( mesh, graph_b), &
+      trim( test_name) // '/b/matches_mesh')
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

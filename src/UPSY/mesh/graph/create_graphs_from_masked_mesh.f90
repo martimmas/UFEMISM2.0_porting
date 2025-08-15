@@ -16,7 +16,7 @@ module create_graphs_from_masked_mesh
   private
 
   public :: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
-    test_graph_connectivity_is_self_consistent
+    test_graph_connectivity_is_self_consistent, test_graph_matches_mesh
 
 contains
 
@@ -38,15 +38,15 @@ contains
     call gather_to_all( mask_a, mask_a_tot)
 
     ! Set graph metadata
-    graph%parent_mesh_name = mesh%name
+    graph%parent_mesh_name = trim( mesh%name) // '_vertices'
     graph%n                = count( mask_a_tot)
     graph%nn               = 0
     graph%ng               = 0
     graph%nC_mem           = maxval( mesh%nC)
 
     ! Allocate memory
-    allocate( graph%mi2ni     ( mesh%nV              ), source = 0)
     allocate( graph%ni2mi     ( graph%n              ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nV              ), source = 0)
 
     allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
     allocate( graph%nC        ( graph%n              ), source = 0)
@@ -131,15 +131,15 @@ contains
     call calc_masks_b_c( mesh, mask_a_tot, mask_b_tot, n_mask_b, mask_boundary_c_tot, n_boundary_c)
 
     ! Set graph metadata
-    graph%parent_mesh_name = mesh%name
+    graph%parent_mesh_name = trim( mesh%name) // '_triangles'
     graph%n                = n_mask_b + n_boundary_c
     graph%nn               = n_mask_b
     graph%ng               = n_boundary_c
     graph%nC_mem           = 3
 
     ! Allocate memory
-    allocate( graph%mi2ni     ( mesh%nTri            ), source = 0)
     allocate( graph%ni2mi     ( graph%n              ), source = 0)
+    allocate( graph%mi2ni     ( mesh%nTri            ), source = 0)
 
     allocate( graph%V         ( graph%n, 2           ), source = 0._dp)
     allocate( graph%nC        ( graph%n              ), source = 0)
@@ -298,7 +298,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_graph_connectivity_is_self_consistent'
-    integer                        :: ni, ci, nj, cj, nk
+    integer                        :: ni, ci, nj, cj, nk, mi
     logical                        :: found_reverse
 
     ! Add routine to path
@@ -321,9 +321,101 @@ contains
       end do
     end do
 
+    do mi = 1, size( graph%mi2ni)
+      ni = graph%mi2ni( mi)
+      if (ni > 0) isso = isso .and. graph%ni2mi( ni) == mi
+    end do
+
+    do ni = 1, graph%n
+      if (.not. graph%is_ghost( ni)) then
+        mi = graph%ni2mi( ni)
+        isso = isso .and. graph%mi2ni( mi) == ni
+      end if
+    end do
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end function test_graph_connectivity_is_self_consistent
+
+  function test_graph_matches_mesh( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_matches_mesh'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    if (graph%parent_mesh_name == trim( mesh%name) // '_vertices') then
+      isso = test_graph_matches_mesh_vertices( mesh, graph)
+    elseif (graph%parent_mesh_name == trim( mesh%name) // '_triangles') then
+      isso = test_graph_matches_mesh_triangles( mesh, graph)
+    else
+      call crash('mesh is not this graphs parent mesh')
+    end if
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_matches_mesh
+
+  function test_graph_matches_mesh_vertices( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_matches_mesh'
+    integer                        :: ni, vi
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+    do ni = 1, graph%nn
+      if (.not. graph%is_ghost( ni)) then
+        vi = graph%ni2mi( ni)
+        isso = isso .and. norm2( graph%V( ni,:) - mesh%V( vi,:)) < mesh%tol_dist
+      end if
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_matches_mesh_vertices
+
+  function test_graph_matches_mesh_triangles( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_matches_mesh_triangles'
+    integer                        :: ni, ti
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+    do ni = 1, graph%n
+      if (.not. graph%is_ghost( ni)) then
+        ti = graph%ni2mi( ni)
+        isso = isso .and. norm2( graph%V( ni,:) - mesh%TriGC( ti,:)) < mesh%tol_dist
+      end if
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_matches_mesh_triangles
 
 end module create_graphs_from_masked_mesh
