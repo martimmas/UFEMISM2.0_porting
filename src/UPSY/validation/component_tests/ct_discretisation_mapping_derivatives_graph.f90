@@ -13,7 +13,8 @@ module ct_discretisation_mapping_derivatives_graph
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b
   use netcdf_io_main
   use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
-  use graph_operators, only: calc_graph_matrix_operators_2nd_order
+  use graph_operators, only: calc_graph_matrix_operators_2nd_order, &
+    calc_graph_a_to_graph_b_matrix_operators
   use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper
   use ct_discretisation_mapping_derivatives, only: test_function, test_function_linear, &
     test_function_quadratic, test_function_periodic
@@ -21,7 +22,7 @@ module ct_discretisation_mapping_derivatives_graph
   use tests_main
   use mpi_f08, only: MPI_WIN
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
-  use mesh_graph_mapping, only: map_graph_to_mesh_triangles
+  use mesh_graph_mapping, only: map_graph_to_mesh_vertices, map_graph_to_mesh_triangles
 
   implicit none
 
@@ -148,8 +149,9 @@ contains
     call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
     call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
 
-    ! Test 2nd-order operators on the regular nodes of the graph from the mesh triangles
     call test_2nd_order_operators_on_regular_nodes( foldername_discretisation, mesh, graph_b)
+    call test_1nd_order_operators_a_to_b_graph( foldername_discretisation, &
+      mesh, graph_a, graph_b)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -206,7 +208,6 @@ contains
 
   end subroutine test_2nd_order_operators_on_regular_nodes
 
-  !> Test 2nd-order operators on the regular nodes of the graph from the mesh triangles
   subroutine test_2nd_order_operators_on_regular_nodes_with_function( foldername_discretisation, &
     mesh, graph, M2_ddx, M2_ddy, M2_d2dx2, M2_d2dxdy, M2_d2dy2, test_function_ptr, function_name)
 
@@ -327,7 +328,6 @@ contains
 
   end subroutine test_2nd_order_operators_on_regular_nodes_with_function
 
-  !> Write the results of the mapping/derivative tests, for a particular mesh with a particular test function, to a file.
   subroutine test_2nd_or_op_on_reg_nod_w_func_write_to_file( &
     foldername_discretisation, mesh, graph, function_name, &
     d_ex, ddx_ex, ddy_ex, d2dx2_ex, d2dxdy_ex, d2dy2_ex, &
@@ -412,5 +412,253 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_2nd_or_op_on_reg_nod_w_func_write_to_file
+
+  !> Test 1nd-order operators from the vertex-based graph to the triangle-based graph
+  subroutine test_1nd_order_operators_a_to_b_graph( foldername_discretisation, &
+    mesh, graph_a, graph_b)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: foldername_discretisation
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph_a, graph_b
+
+    ! Local variables:
+    character(len=1024), parameter    :: routine_name = 'test_1nd_order_operators_a_to_b_graph'
+    character(len=1024)               :: graph_a_name_disp, graph_b_name_disp
+    type(type_sparse_matrix_CSR_dp)   :: M_map_a_b, M_ddx_a_b, M_ddy_a_b
+    procedure(test_function), pointer :: test_function_ptr
+    character(len=1024)               :: function_name
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    graph_a_name_disp = graph_a%parent_mesh_name
+    graph_a_name_disp = strrep( graph_a_name_disp, '.nc"', '')
+    graph_a_name_disp = graph_a_name_disp( index( graph_a_name_disp,'/',back=.true.)+1: &
+      len_trim( graph_a_name_disp))
+
+    graph_b_name_disp = graph_a%parent_mesh_name
+    graph_b_name_disp = strrep( graph_b_name_disp, '.nc"', '')
+    graph_b_name_disp = graph_b_name_disp( index( graph_b_name_disp,'/',back=.true.)+1: &
+      len_trim( graph_b_name_disp))
+
+    if (par%primary) write(0,*) '       Testing 1nd-order operators from graph ', &
+      colour_string( trim( graph_a_name_disp),'light blue'), ' to graph ', &
+      colour_string( trim( graph_b_name_disp),'light blue'), '...'
+
+    call calc_graph_a_to_graph_b_matrix_operators( mesh, graph_a, graph_b, &
+      M_map_a_b, M_ddx_a_b, M_ddy_a_b)
+
+    ! Run all the tests with different test functions
+
+    test_function_ptr => test_function_linear
+    function_name = 'linear'
+    call test_1nd_order_operators_a_to_b_graph_with_function( foldername_discretisation, &
+      mesh, graph_a, graph_b, M_map_a_b, M_ddx_a_b, M_ddy_a_b, test_function_ptr, function_name)
+
+    test_function_ptr => test_function_quadratic
+    function_name = 'quadratic'
+    call test_1nd_order_operators_a_to_b_graph_with_function( foldername_discretisation, &
+      mesh, graph_a, graph_b, M_map_a_b, M_ddx_a_b, M_ddy_a_b, test_function_ptr, function_name)
+
+    test_function_ptr => test_function_periodic
+    function_name = 'periodic'
+    call test_1nd_order_operators_a_to_b_graph_with_function( foldername_discretisation, &
+      mesh, graph_a, graph_b, M_map_a_b, M_ddx_a_b, M_ddy_a_b, test_function_ptr, function_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_1nd_order_operators_a_to_b_graph
+
+  subroutine test_1nd_order_operators_a_to_b_graph_with_function( foldername_discretisation, &
+      mesh, graph_a, graph_b, M_map_a_b, M_ddx_a_b, M_ddy_a_b, test_function_ptr, function_name)
+
+    ! In/output variables:
+    character(len=*),                intent(in) :: foldername_discretisation
+    type(type_mesh),                 intent(in) :: mesh
+    type(type_graph),                intent(in) :: graph_a, graph_b
+    type(type_sparse_matrix_CSR_dp), intent(in) :: M_map_a_b, M_ddx_a_b, M_ddy_a_b
+    procedure(test_function),           pointer :: test_function_ptr
+    character(len=1024),             intent(in) :: function_name
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'test_1nd_order_operators_a_to_b_graph_with_function'
+
+    real(dp), dimension(:), pointer :: d_a_ex      => null()
+    real(dp), dimension(:), pointer :: d_b_ex      => null()
+    real(dp), dimension(:), pointer :: ddx_b_ex    => null()
+    real(dp), dimension(:), pointer :: ddy_b_ex    => null()
+    type(MPI_WIN)                   :: wd_a_ex, wd_b_ex, wddx_b_ex, wddy_b_ex
+    real(dp), dimension(:), pointer :: d_b_disc      => null()
+    real(dp), dimension(:), pointer :: ddx_b_disc    => null()
+    real(dp), dimension(:), pointer :: ddy_b_disc    => null()
+    type(MPI_WIN)                   :: wd_a_disc, wd_b_disc, wddx_b_disc, wddy_b_disc
+    integer                         :: ni
+    real(dp)                        :: x,y
+    real(dp), dimension(6)          :: d_all
+    real(dp)                        :: d, ddx, ddy
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    if (par%primary) write(0,*) '        Running all mapping/derivative tests on function ', &
+      colour_string( trim( function_name),'light blue'), '...'
+
+    ! ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( d_a_ex    , wd_a_ex    , graph_a%pai%n_nih)
+
+    call allocate_dist_shared( d_b_ex    , wd_b_ex    , graph_b%pai%n_nih)
+    call allocate_dist_shared( ddx_b_ex  , wddx_b_ex  , graph_b%pai%n_nih)
+    call allocate_dist_shared( ddy_b_ex  , wddy_b_ex  , graph_b%pai%n_nih)
+
+    call allocate_dist_shared( d_b_disc  , wd_b_disc  , graph_b%pai%n_nih)
+    call allocate_dist_shared( ddx_b_disc, wddx_b_disc, graph_b%pai%n_nih)
+    call allocate_dist_shared( ddy_b_disc, wddy_b_disc, graph_b%pai%n_nih)
+
+    ! Calculate exact solutions
+    do ni = graph_a%ni1, graph_a%ni2
+
+      x = graph_a%V( ni,1)
+      y = graph_a%V( ni,2)
+
+      d_all = test_function_ptr( x, y, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax)
+      d = d_all( 1)
+
+      d_a_ex( ni) = d
+    end do
+
+    do ni = graph_b%ni1, graph_b%ni2
+
+      x = graph_b%V( ni,1)
+      y = graph_b%V( ni,2)
+
+      d_all = test_function_ptr( x, y, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax)
+      d   = d_all( 1)
+      ddx = d_all( 2)
+      ddy = d_all( 3)
+
+      d_b_ex  ( ni) = d
+      ddx_b_ex( ni) = ddx
+      ddy_b_ex( ni) = ddy
+    end do
+
+    ! Calculate discretised approximations
+    call multiply_CSR_matrix_with_vector_1D_wrapper( M_map_a_b, graph_a%pai, d_a_ex, graph_b%pai, d_b_disc, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graph_a%buffer1_g_nih, buffer_yy_nih = graph_b%buffer2_g_nih)
+
+    call multiply_CSR_matrix_with_vector_1D_wrapper( M_ddx_a_b, graph_a%pai, d_a_ex, graph_b%pai, ddx_b_disc, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graph_a%buffer1_g_nih, buffer_yy_nih = graph_b%buffer2_g_nih)
+
+    call multiply_CSR_matrix_with_vector_1D_wrapper( M_ddy_a_b, graph_a%pai, d_a_ex, graph_b%pai, ddy_b_disc, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graph_a%buffer1_g_nih, buffer_yy_nih = graph_b%buffer2_g_nih)
+
+    ! Write results to NetCDF
+    call test_1nd_or_op_a2b_w_func_write_to_file( &
+      foldername_discretisation, mesh, graph_a, graph_b, function_name, &
+      d_a_ex, d_b_ex, ddx_b_ex, ddy_b_ex, &
+      d_b_disc, ddx_b_disc, ddy_b_disc)
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( d_a_ex    , wd_a_ex    )
+
+    call deallocate_dist_shared( d_b_ex    , wd_b_ex    )
+    call deallocate_dist_shared( ddx_b_ex  , wddx_b_ex  )
+    call deallocate_dist_shared( ddy_b_ex  , wddy_b_ex  )
+
+    call deallocate_dist_shared( d_b_disc  , wd_b_disc  )
+    call deallocate_dist_shared( ddx_b_disc, wddx_b_disc)
+    call deallocate_dist_shared( ddy_b_disc, wddy_b_disc)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_1nd_order_operators_a_to_b_graph_with_function
+
+  subroutine test_1nd_or_op_a2b_w_func_write_to_file( &
+      foldername_discretisation, mesh, graph_a, graph_b, function_name, &
+      d_a_ex, d_b_ex, ddx_b_ex, ddy_b_ex, &
+      d_b_disc, ddx_b_disc, ddy_b_disc)
+
+    ! In/output variables:
+    character(len=*),       intent(in) :: foldername_discretisation
+    type(type_mesh),        intent(in) :: mesh
+    type(type_graph),       intent(in) :: graph_a, graph_b
+    character(len=1024),    intent(in) :: function_name
+    real(dp), dimension(:), intent(in) :: d_a_ex, d_b_ex, ddx_b_ex, ddy_b_ex
+    real(dp), dimension(:), intent(in) :: d_b_disc, ddx_b_disc, ddy_b_disc
+
+    ! Local variables:
+    character(len=1024), parameter         :: routine_name = 'test_1nd_or_op_a2b_w_func_write_to_file'
+    real(dp), dimension(mesh%vi1:mesh%vi2) :: d_a_ex_mesh
+    real(dp), dimension(mesh%ti1:mesh%ti2) :: d_b_ex_mesh, ddx_b_ex_mesh, ddy_b_ex_mesh
+    real(dp), dimension(mesh%ti1:mesh%ti2) :: d_b_disc_mesh, ddx_b_disc_mesh, ddy_b_disc_mesh
+    integer                                :: ncid
+    character(len=1024)                    :: graph_a_name, graph_b_name
+    character(len=1024)                    :: filename
+    integer                                :: i
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Map data from the graph to the mesh
+    call map_graph_to_mesh_vertices ( graph_a, d_a_ex    , mesh, d_a_ex_mesh    )
+
+    call map_graph_to_mesh_triangles( graph_b, d_b_ex    , mesh, d_b_ex_mesh    )
+    call map_graph_to_mesh_triangles( graph_b, ddx_b_ex  , mesh, ddx_b_ex_mesh  )
+    call map_graph_to_mesh_triangles( graph_b, ddy_b_ex  , mesh, ddy_b_ex_mesh  )
+
+    call map_graph_to_mesh_triangles( graph_b, d_b_disc  , mesh, d_b_disc_mesh  )
+    call map_graph_to_mesh_triangles( graph_b, ddx_b_disc, mesh, ddx_b_disc_mesh)
+    call map_graph_to_mesh_triangles( graph_b, ddy_b_disc, mesh, ddy_b_disc_mesh)
+
+    ! Create a file and write the mesh to it
+    graph_a_name = graph_a%parent_mesh_name
+    graph_a_name = strrep( graph_a_name, '.nc"', '')
+    i = index( graph_a_name, '/', back = .true.)
+    graph_a_name = graph_a_name( i+1:len_trim( graph_a_name))
+
+    graph_b_name = graph_b%parent_mesh_name
+    graph_b_name = strrep( graph_b_name, '.nc"', '')
+    i = index( graph_b_name, '/', back = .true.)
+    graph_b_name = graph_b_name( i+1:len_trim( graph_b_name))
+
+    filename = trim( foldername_discretisation) // '/res_' // &
+      trim( graph_a_name) // '_to_' // trim( graph_b_name) // '_' // trim( function_name) // '.nc'
+    call create_new_netcdf_file_for_writing( filename, ncid)
+    call setup_mesh_in_netcdf_file( filename, ncid, mesh)
+
+    ! Add all the variables
+    call add_field_mesh_dp_2D_notime  ( filename, ncid, 'd_a_ex'    )
+
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'd_b_ex'    )
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'ddx_b_ex'  )
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'ddy_b_ex'  )
+
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'd_b_disc'  )
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'ddx_b_disc')
+    call add_field_mesh_dp_2D_b_notime( filename, ncid, 'ddy_b_disc')
+
+    ! Write all the variables
+    call write_to_field_multopt_mesh_dp_2D_notime  ( mesh, filename, ncid, 'd_a_ex'    , d_a_ex_mesh    )
+
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'd_b_ex'    , d_b_ex_mesh    )
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'ddx_b_ex'  , ddx_b_ex_mesh  )
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'ddy_b_ex'  , ddy_b_ex_mesh  )
+
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'd_b_disc'  , d_b_disc_mesh  )
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'ddx_b_disc', ddx_b_disc_mesh)
+    call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, filename, ncid, 'ddy_b_disc', ddy_b_disc_mesh)
+
+    ! Close the file
+    call close_netcdf_file( ncid)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_1nd_or_op_a2b_w_func_write_to_file
 
 end module ct_discretisation_mapping_derivatives_graph
