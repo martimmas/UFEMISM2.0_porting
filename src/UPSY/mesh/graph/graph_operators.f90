@@ -12,12 +12,14 @@ module graph_operators
 
   private
 
-  public :: calc_graph_matrix_operators_2nd_order
+  public :: calc_graph_matrix_operators_2nd_order, calc_graph_matrix_operators_1st_order_margin
 
 contains
 
   subroutine calc_graph_matrix_operators_2nd_order( graph, M2_ddx, M2_ddy, M2_d2dx2, M2_d2dxdy, M2_d2dy2)
     !< Calculate 2nd-order accurate matrix operators on a graph
+    !< Do not calculate shape functions for ghost nodes, but
+    !< do include ghost nodes in the shape functions of regular nodes.
 
     ! In/output variables:
     type(type_graph),                intent(in   ) :: graph
@@ -41,7 +43,7 @@ contains
     real(dp), dimension(:), allocatable :: x_c, y_c
     real(dp)                            :: Nfx_i, Nfy_i, Nfxx_i, Nfxy_i, Nfyy_i
     real(dp), dimension(:), allocatable :: Nfx_c, Nfy_c, Nfxx_c, Nfxy_c, Nfyy_c
-    LOGICAL                             :: succeeded
+    logical                             :: succeeded
     integer                             :: col
 
 
@@ -117,7 +119,7 @@ contains
       succeeded = .false.
       do while (.not. succeeded)
 
-       call extend_group_single_iteration_graph( graph, map, stack, stackN, list, listN)
+        call extend_group_single_iteration_graph( graph, map, stack, stackN, list, listN)
 
         ! Remove ni from local neighbourhood
         n_c = listN - 1
@@ -171,6 +173,144 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_graph_matrix_operators_2nd_order
+
+  subroutine calc_graph_matrix_operators_1st_order_margin( graph, M_map, M_ddx, M_ddy)
+    !< Calculate 1st-order accurate matrix operators on a graph
+    !< Only calculate shape functions for ghost nodes
+
+    ! In/output variables:
+    type(type_graph),                intent(in   ) :: graph
+    type(type_sparse_matrix_CSR_dp), intent(  out) :: M_map, M_ddx, M_ddy
+
+    ! Local variables:
+    character(len=1024), parameter      :: routine_name = 'calc_graph_matrix_operators_1st_order_margin'
+    integer                             :: ncols, ncols_loc, nrows, nrows_loc
+    integer                             :: nnz_per_row_est, nnz_est_proc
+    integer                             :: ni
+    integer                             :: ti
+    real(dp)                            :: x, y
+    integer                             :: nj
+    integer                             :: n_neighbours_min
+    integer                             :: n_neighbours_max
+    integer,  dimension(graph%n)        :: map, stack, list
+    integer                             :: stackN, listN
+    integer                             :: i
+    integer                             :: n_c
+    integer,  dimension(:), allocatable :: i_c
+    real(dp), dimension(:), allocatable :: x_c, y_c
+    real(dp), dimension(:), allocatable :: Nf_c, Nfx_c, Nfy_c
+    logical                             :: succeeded
+    integer                             :: col
+
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    n_neighbours_min = 3
+
+    ! == Initialise the matrices using the native UPSY CSR-matrix format
+    ! ==================================================================
+
+    ! Matrix size
+    ncols           = graph%n        ! from
+    ncols_loc       = graph%n_loc
+    nrows           = graph%n        ! to
+    nrows_loc       = graph%n_loc
+    nnz_per_row_est = graph%nC_mem+1
+    nnz_est_proc    = nrows_loc * nnz_per_row_est
+
+    call allocate_matrix_CSR_dist( M_map, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph%pai, pai_y = graph%pai)
+    call allocate_matrix_CSR_dist( M_ddx, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph%pai, pai_y = graph%pai)
+    call allocate_matrix_CSR_dist( M_ddy, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph%pai, pai_y = graph%pai)
+
+    ! Calculate shape functions and fill them into the matrices
+    ! =========================================================
+
+    ! allocate memory for map, stack, and shape functions
+    n_neighbours_max = 32
+    allocate( i_c(    n_neighbours_max))
+    allocate( x_c(    n_neighbours_max))
+    allocate( y_c(    n_neighbours_max))
+    allocate( Nf_c(   n_neighbours_max))
+    allocate( Nfx_c(  n_neighbours_max))
+    allocate( Nfy_c(  n_neighbours_max))
+
+    map    = 0
+    stack  = 0
+    stackN = 0
+
+    do ni = graph%ni1, graph%ni2
+
+      ! Skip regular nodes
+      if (.not. graph%is_ghost( ni)) then
+        call add_empty_row_CSR_dist( M_map, ni)
+        call add_empty_row_CSR_dist( M_ddx, ni)
+        call add_empty_row_CSR_dist( M_ddy, ni)
+        cycle
+      end if
+
+      ! Calculate shape functions at the margin, which is
+      ! at the midpoint between the ghost node and the regular node
+      nj = graph%C( ni,1)
+      x = (graph%V( ni,1) + graph%V( nj,1)) / 2._dp
+      y = (graph%V( ni,2) + graph%V( nj,2)) / 2._dp
+
+      ! Initialise local neighbourhood with node ni
+      map    = 0
+      stackN = 1
+      stack( 1) = ni
+      map( ni) = 1
+      listN = 0
+
+      ! Calculate shape functions; if this fails, add more neighbours until it succeeds
+      succeeded = .false.
+      do while (.not. succeeded)
+
+        call extend_group_single_iteration_graph( graph, map, stack, stackN, list, listN)
+
+        ! Remove ni from local neighbourhood
+        n_c = listN
+        i_c( 1:n_c) = list( 1: listN)
+
+        if (n_c < n_neighbours_min) cycle
+
+        ! List coordinates of neighbourhood nodes
+        do i = 1, n_c
+          nj = i_c( i)
+          x_c( i) = graph%V( nj,1)
+          y_c( i) = graph%V( nj,2)
+        end do
+
+        ! Calculate shape functions
+        call calc_shape_functions_2D_stag_1st_order( x, y, n_neighbours_max, n_c, x_c, y_c, &
+          Nf_c, Nfx_c, Nfy_c, succeeded)
+
+      end do
+
+      ! Fill them into the matrices
+
+      ! Off-diagonal elements: shape functions for the neighbours
+      do i = 1, n_c
+        nj = i_c( i)
+        call add_entry_CSR_dist( M_map, ni, nj, Nfx_c( i))
+        call add_entry_CSR_dist( M_ddx, ni, nj, Nfx_c( i))
+        call add_entry_CSR_dist( M_ddy, ni, nj, Nfy_c( i))
+      end do
+
+    end do
+
+    ! Crop matrix memory
+    call finalise_matrix_CSR_dist( M_map)
+    call finalise_matrix_CSR_dist( M_ddx)
+    call finalise_matrix_CSR_dist( M_ddy)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_graph_matrix_operators_1st_order_margin
 
   subroutine extend_group_single_iteration_graph( graph, map, stack, stackN, list, listN)
 
