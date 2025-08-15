@@ -36,6 +36,48 @@ def get_cmap(varname):
         cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', colors)
         norm = mpl.colors.SymLogNorm(linthresh, vmin=vmin, vmax=vmax, linscale=linscale)
         
+    elif varname == 'BMB_v3':
+        #Create BMB colormap
+        vmax = 200
+        vmin = -10
+        vdark = 10
+        linthresh = .3
+        linscale = .25
+        fracpos = (np.log10(vmax/linthresh)+linscale)/(np.log10(vmax/linthresh)+np.log10(-(vmin/linthresh))+2*linscale)
+        nneg = np.int_((1-fracpos)*256) + 1
+        fraclopos = (np.log10(vdark/linthresh)+linscale)/(np.log10(vmax/linthresh)+linscale)
+        npos = 256-nneg
+        nlopos = np.int_(fraclopos*npos) + 1
+        colors1 = plt.get_cmap('cmo.diff')(np.linspace(0,.48,nneg))
+        colors2 = plt.get_cmap('cmo.curl')(np.linspace(.5,.91,nlopos))
+        colors3 = plt.get_cmap('inferno')(np.linspace(.3,1,256-nneg-nlopos))
+
+        colors = np.vstack((colors1, colors2, colors3))
+
+        cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', colors)
+        norm = mpl.colors.SymLogNorm(linthresh, vmin=vmin, vmax=vmax, linscale=linscale)
+
+    elif varname == 'BMB_v4':
+        #Create BMB colormap
+        vmax = 200
+        vmin = -10
+        vdark = 10
+        linthresh = .3
+        linscale = .25
+        fracpos = (np.log10(vmax/linthresh)+linscale)/(np.log10(vmax/linthresh)+np.log10(-(vmin/linthresh))+2*linscale)
+        nneg = np.int_((1-fracpos)*256) + 1
+        fraclopos = (np.log10(vdark/linthresh)+linscale)/(np.log10(vmax/linthresh)+linscale)
+        npos = 256-nneg
+        nlopos = np.int_(fraclopos*npos) + 1
+        colors1 = plt.get_cmap('cmo.diff')(np.linspace(0,.48,nneg))
+        colors2 = plt.get_cmap('cmo.amp')(np.linspace(0,1,nlopos))
+        colors3 = plt.get_cmap('cmo.solar')(np.linspace(0,1,256-nneg-nlopos))
+
+        colors = np.vstack((colors1, colors2, colors3))
+
+        cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', colors)
+        norm = mpl.colors.SymLogNorm(linthresh, vmin=vmin, vmax=vmax, linscale=linscale)
+
     elif varname == 'Hi':
         cmap = copy(plt.get_cmap('cmo.ice'))
         norm = mpl.colors.Normalize(vmin=0,vmax=4000,clip=True)
