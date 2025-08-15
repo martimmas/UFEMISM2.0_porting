@@ -71,7 +71,7 @@ def get_cmap(varname):
         nlopos = np.int_(fraclopos*npos) + 1
         colors1 = plt.get_cmap('cmo.diff')(np.linspace(0,.46,nneg))
         colors2 = plt.get_cmap('cmo.amp')(np.linspace(.02,1,nlopos))
-        colors3 = plt.get_cmap('cmo.solar')(np.linspace(0,1,256-nneg-nlopos))
+        colors3 = plt.get_cmap('afmhot')(np.linspace(.14,1,256-nneg-nlopos))
 
         colors = np.vstack((colors1, colors2, colors3))
 
