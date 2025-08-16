@@ -16,7 +16,7 @@ module graph_operators
   private
 
   public :: calc_graph_matrix_operators_2nd_order, calc_graph_matrix_operators_1st_order_margin, &
-    calc_graph_a_to_graph_b_matrix_operators
+    calc_graph_a_to_graph_b_matrix_operators, calc_graph_b_to_graph_a_matrix_operators
 
 contains
 
@@ -34,7 +34,6 @@ contains
     integer                             :: ncols, ncols_loc, nrows, nrows_loc
     integer                             :: nnz_per_row_est, nnz_est_proc
     integer                             :: ni
-    integer                             :: ti
     real(dp)                            :: x, y
     integer                             :: nj
     integer                             :: n_neighbours_min
@@ -48,7 +47,6 @@ contains
     real(dp)                            :: Nfx_i, Nfy_i, Nfxx_i, Nfxy_i, Nfyy_i
     real(dp), dimension(:), allocatable :: Nfx_c, Nfy_c, Nfxx_c, Nfxy_c, Nfyy_c
     logical                             :: succeeded
-    integer                             :: col
 
 
     ! Add routine to path
@@ -191,7 +189,6 @@ contains
     integer                             :: ncols, ncols_loc, nrows, nrows_loc
     integer                             :: nnz_per_row_est, nnz_est_proc
     integer                             :: ni
-    integer                             :: ti
     real(dp)                            :: x, y
     integer                             :: nj
     integer                             :: n_neighbours_min
@@ -204,7 +201,6 @@ contains
     real(dp), dimension(:), allocatable :: x_c, y_c
     real(dp), dimension(:), allocatable :: Nf_c, Nfx_c, Nfy_c
     logical                             :: succeeded
-    integer                             :: col
 
 
     ! Add routine to path
@@ -334,15 +330,12 @@ contains
     integer                             :: nj
     integer                             :: n_neighbours_min
     integer                             :: n_neighbours_max
-    integer,  dimension(graph_a%n)      :: map, stack, list
-    integer                             :: stackN, listN
     integer                             :: i
     integer                             :: n_c
     integer,  dimension(:), allocatable :: i_c
     real(dp), dimension(:), allocatable :: x_c, y_c
     real(dp), dimension(:), allocatable :: Nf_c, Nfx_c, Nfy_c
     logical                             :: succeeded
-    integer                             :: col
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -378,10 +371,6 @@ contains
     allocate( Nf_c(   n_neighbours_max))
     allocate( Nfx_c(  n_neighbours_max))
     allocate( Nfy_c(  n_neighbours_max))
-
-    map    = 0
-    stack  = 0
-    stackN = 0
 
     do ni = graph_b%ni1, graph_b%ni2
 
@@ -441,6 +430,149 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_graph_a_to_graph_b_matrix_operators
+
+  subroutine calc_graph_b_to_graph_a_matrix_operators( mesh, graph_b, graph_a, &
+    M_map_b_a, M_ddx_b_a, M_ddy_b_a)
+    !< Calculate 1st-order accurate matrix operators between two graphs
+
+    ! In/output variables:
+    type(type_mesh),                 intent(in   ) :: mesh
+    type(type_graph),                intent(in   ) :: graph_b, graph_a
+    type(type_sparse_matrix_CSR_dp), intent(  out) :: M_map_b_a, M_ddx_b_a, M_ddy_b_a
+
+    ! Local variables:
+    character(len=1024), parameter      :: routine_name = 'calc_graph_b_to_graph_a_matrix_operators'
+    integer                             :: ncols, ncols_loc, nrows, nrows_loc
+    integer                             :: nnz_per_row_est, nnz_est_proc
+    integer                             :: ni
+    integer                             :: vi, iti, ti
+    real(dp)                            :: x, y
+    integer                             :: nj
+    integer                             :: n_neighbours_min
+    integer                             :: n_neighbours_max
+    integer,  dimension(graph_b%n)      :: map, stack, list
+    integer                             :: stackN, listN
+    integer                             :: i
+    integer                             :: n_c
+    integer,  dimension(:), allocatable :: i_c
+    real(dp), dimension(:), allocatable :: x_c, y_c
+    real(dp), dimension(:), allocatable :: Nf_c, Nfx_c, Nfy_c
+    logical                             :: succeeded
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    n_neighbours_min = 3
+
+    ! == Initialise the matrices using the native UPSY CSR-matrix format
+    ! ==================================================================
+
+    ! Matrix size
+    ncols           = graph_b%n        ! from
+    ncols_loc       = graph_b%n_loc
+    nrows           = graph_a%n        ! to
+    nrows_loc       = graph_a%n_loc
+    nnz_per_row_est = graph_a%nC_mem+1
+    nnz_est_proc    = nrows_loc * nnz_per_row_est
+
+    call allocate_matrix_CSR_dist( M_map_b_a, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph_a%pai, pai_y = graph_b%pai)
+    call allocate_matrix_CSR_dist( M_ddx_b_a, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph_a%pai, pai_y = graph_b%pai)
+    call allocate_matrix_CSR_dist( M_ddy_b_a, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc, &
+      pai_x = graph_a%pai, pai_y = graph_b%pai)
+
+    ! Calculate shape functions and fill them into the matrices
+    ! =========================================================
+
+    ! allocate memory for map, stack, and shape functions
+    n_neighbours_max = 32
+    allocate( i_c(    n_neighbours_max))
+    allocate( x_c(    n_neighbours_max))
+    allocate( y_c(    n_neighbours_max))
+    allocate( Nf_c(   n_neighbours_max))
+    allocate( Nfx_c(  n_neighbours_max))
+    allocate( Nfy_c(  n_neighbours_max))
+
+    map    = 0
+    stack  = 0
+    stackN = 0
+
+    do ni = graph_a%ni1, graph_a%ni2
+
+      ! Skip ghost nodes
+      if (graph_a%is_ghost( ni)) then
+        call add_empty_row_CSR_dist( M_map_b_a, ni)
+        call add_empty_row_CSR_dist( M_ddx_b_a, ni)
+        call add_empty_row_CSR_dist( M_ddy_b_a, ni)
+        cycle
+      end if
+
+      ! Calculate shape functions at this graph node
+      x = graph_a%V( ni,1)
+      y = graph_a%V( ni,2)
+
+      ! Initialise the local neighbourhood with the masked itriangles around this vertex
+      map    = 0
+      stackN = 0
+      listN = 0
+
+      vi = graph_a%ni2mi( ni)
+      do iti = 1, mesh%niTri( vi)
+        ti = mesh%iTri( vi,iti)
+        nj = graph_b%mi2ni( ti)
+        if (nj > 0) then
+          stackN = stackN+1
+          stack( stackN) = nj
+          map( ni) = 1
+        end if
+      end do
+
+      ! Calculate shape functions; if this fails, add more neighbours until it succeeds
+      succeeded = .false.
+      do while (.not. succeeded)
+
+        call extend_group_single_iteration_graph( graph_b, map, stack, stackN, list, listN)
+
+        n_c = listN
+        i_c( 1:n_c) = list( 1: listN)
+
+        if (n_c < n_neighbours_min) cycle
+
+        ! List coordinates of neighbourhood nodes
+        do i = 1, n_c
+          nj = i_c( i)
+          x_c( i) = graph_b%V( nj,1)
+          y_c( i) = graph_b%V( nj,2)
+        end do
+
+        ! Calculate shape functions
+        call calc_shape_functions_2D_stag_1st_order( x, y, n_neighbours_max, n_c, x_c, y_c, &
+          Nf_c, Nfx_c, Nfy_c, succeeded)
+
+      end do
+
+      ! Fill them into the matrices
+
+      ! Off-diagonal elements: shape functions for the neighbours
+      do i = 1, n_c
+        nj = i_c( i)
+        call add_entry_CSR_dist( M_map_b_a, ni, nj, Nf_c ( i))
+        call add_entry_CSR_dist( M_ddx_b_a, ni, nj, Nfx_c( i))
+        call add_entry_CSR_dist( M_ddy_b_a, ni, nj, Nfy_c( i))
+      end do
+
+    end do
+
+    ! Crop matrix memory
+    call finalise_matrix_CSR_dist( M_map_b_a)
+    call finalise_matrix_CSR_dist( M_ddx_b_a)
+    call finalise_matrix_CSR_dist( M_ddy_b_a)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_graph_b_to_graph_a_matrix_operators
 
   subroutine extend_group_single_iteration_graph( graph, map, stack, stackN, list, listN)
 
