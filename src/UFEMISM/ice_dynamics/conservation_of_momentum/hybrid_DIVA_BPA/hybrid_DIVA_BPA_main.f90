@@ -14,7 +14,7 @@ module hybrid_DIVA_BPA_main
   use ice_model_types, only: type_ice_model, type_ice_velocity_solver_DIVA, type_ice_velocity_solver_BPA, type_ice_velocity_solver_hybrid
   use reallocate_mod, only: reallocate_bounds
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D, map_from_mesh_to_mesh_with_reallocation_3D
-  use DIVA_infinite_slab, only: allocate_DIVA_solver, remap_DIVA_solver => remap_DIVA_solver_infinite_slab, &
+  use DIVA_main, only: allocate_DIVA_solver, remap_DIVA_solver, &
     calc_vertical_shear_strain_rates_DIVA => calc_vertical_shear_strain_rates, &
     calc_effective_viscosity_DIVA => calc_effective_viscosity, &
     calc_F_integrals_DIVA => calc_F_integrals, &
