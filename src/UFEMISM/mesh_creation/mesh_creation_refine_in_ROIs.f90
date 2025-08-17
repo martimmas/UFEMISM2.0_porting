@@ -279,6 +279,11 @@ contains
     call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
     deallocate( poly_ROI)
 
+    ! Shackleton glacier
+    call calc_polygon_Shackleton_glacier( poly_ROI)
+    call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
+    deallocate( poly_ROI)
+
     ! Amundsen glacier
     call calc_polygon_Amundsen_glacier( poly_ROI)
     call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)

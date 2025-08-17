@@ -30,6 +30,7 @@ module mesh_ROI_polygons
   public :: calc_polygon_Byrd_glacier
   public :: calc_polygon_Nimrod_glacier
   public :: calc_polygon_Beardmore_glacier
+  public :: calc_polygon_Shackleton_glacier
   public :: calc_polygon_Amundsen_glacier
   public :: calc_polygon_Scott_glacier
   public :: calc_polygon_Mercer_glacier
@@ -1034,6 +1035,38 @@ subroutine calc_polygon_Beardmore_glacier( poly)
   call finalise_routine( routine_name)
 
 end subroutine calc_polygon_Beardmore_glacier
+
+subroutine calc_polygon_Shackleton_glacier( poly)
+  ! Return a polygon enveloping Shackleton glacier in the Transantarctic Mountains
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Shackleton_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 12,2))
+
+  poly( 1,:) = [-0.40e5, -6.05e5]
+  poly( 2,:) = [-0.30e5, -5.90e5]
+  poly( 3,:) = [-0.30e5, -5.25e5]
+  poly( 4,:) = [-0.15e5, -5.10e5]
+  poly( 5,:) = [-0.00e5, -4.95e5]
+  poly( 6,:) = [-0.00e5, -4.70e5]
+  poly( 7,:) = [-0.15e5, -4.85e5]
+  poly( 8,:) = [-0.25e5, -5.00e5]
+  poly( 9,:) = [-0.25e5, -5.10e5]
+  poly(10,:) = [-0.40e5, -5.15e5]
+  poly(11,:) = [-0.40e5, -5.80e5]
+  poly(12,:) = [-0.55e5, -6.05e5]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Shackleton_glacier
 
 subroutine calc_polygon_Amundsen_glacier( poly)
   ! Return a polygon enveloping Amundsen glacier in the Transantarctic Mountains
