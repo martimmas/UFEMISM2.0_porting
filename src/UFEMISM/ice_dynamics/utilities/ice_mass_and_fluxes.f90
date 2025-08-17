@@ -145,25 +145,31 @@ contains
     call init_routine( routine_name)
 
     ! Initialise
-    scalars%ice_area      = 0._dp
-    scalars%ice_volume    = 0._dp
-    scalars%ice_volume_af = 0._dp
+    scalars%ice_area         = 0._dp
+    scalars%ice_volume       = 0._dp
+    scalars%ice_volume_af    = 0._dp
+    scalars%ice_shelf_area   = 0._dp
+    scalars%ice_shelf_volume = 0._dp
 
     ! Calculate ice area and volume for each process
     do vi = mesh%vi1, mesh%vi2
 
       if (ice%mask_grounded_ice( vi) .or. ice%mask_floating_ice( vi)) then
-        scalars%ice_volume    = scalars%ice_volume    + max( 0._dp, (ice%Hi( vi) * mesh%A( vi) * ice_density / (seawater_density * ocean_area)))
-        scalars%ice_area      = scalars%ice_area      + mesh%A( vi) * 1.0E-06_dp ! [km^2]
-        scalars%ice_volume_af = scalars%ice_volume_af + max( 0._dp, ice%TAF( vi) * mesh%A( vi) * ice_density / (seawater_density * ocean_area))
+        scalars%ice_volume       = scalars%ice_volume       + max( 0._dp, (ice%Hi( vi) * mesh%A( vi) * ice_density / (seawater_density * ocean_area)))
+        scalars%ice_area         = scalars%ice_area         + mesh%A( vi) * 1.0E-06_dp ! [km^2]
+        scalars%ice_volume_af    = scalars%ice_volume_af    + max( 0._dp, ice%TAF( vi) * mesh%A( vi) * ice_density / (seawater_density * ocean_area))
+        scalars%ice_shelf_area   = scalars%ice_shelf_area   + mesh%A( vi) * (1._dp - ice%fraction_gr( vi)) * 1.0E-06_dp ! [km^2]
+        scalars%ice_shelf_volume = scalars%ice_shelf_volume + max( 0._dp, (ice%Hi( vi) * mesh%A( vi) * (1._dp - ice%fraction_gr( vi)) * 1.0E-09_dp ![km^3]
       end if
 
     end do
 
     ! Add together values from each process
-    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_area,      1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_volume,    1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_volume_af, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_area,         1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_volume,       1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_volume_af,    1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_shelf_area,   1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ice_shelf_volume, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
