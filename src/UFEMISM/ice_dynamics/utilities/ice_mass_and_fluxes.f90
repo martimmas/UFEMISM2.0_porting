@@ -159,7 +159,7 @@ contains
         scalars%ice_area         = scalars%ice_area         + mesh%A( vi) * 1.0E-06_dp ! [km^2]
         scalars%ice_volume_af    = scalars%ice_volume_af    + max( 0._dp, ice%TAF( vi) * mesh%A( vi) * ice_density / (seawater_density * ocean_area))
         scalars%ice_shelf_area   = scalars%ice_shelf_area   + mesh%A( vi) * (1._dp - ice%fraction_gr( vi)) * 1.0E-06_dp ! [km^2]
-        scalars%ice_shelf_volume = scalars%ice_shelf_volume + max( 0._dp, (ice%Hi( vi) * mesh%A( vi) * (1._dp - ice%fraction_gr( vi)) * 1.0E-09_dp ![km^3]
+        scalars%ice_shelf_volume = scalars%ice_shelf_volume + max( 0._dp, (ice%Hi( vi) * mesh%A( vi) * (1._dp - ice%fraction_gr( vi))) * 1.0E-09_dp ![km^3]
       end if
 
     end do
