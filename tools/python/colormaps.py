@@ -105,9 +105,20 @@ def get_cmap(varname):
         cmap = copy(plt.get_cmap('cmo.ice'))
         norm = mpl.colors.Normalize(vmin=0,vmax=4000,clip=True)
 
+    elif varname == 'dHi':
+        colors1 = plt.get_cmap('afmhot')(np.linspace(0,1,128))
+        colors2 = plt.get_cmap('bone_r')(np.linspace(0,1,128))
+        colors = np.vstack((colors1,colors2))
+        cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', colors, 256)
+        norm = mpl.colors.Normalize(vmin=-1000,vmax=1000,clip=True)
+
     elif varname == 'Hib':
         cmap = copy(plt.get_cmap('cmo.deep'))
         norm = mpl.colors.Normalize(vmin=-500,vmax=0,clip=True)
+
+    elif varname == 'Hb':
+        cmap = copy(plt.get_cmap('cmo.topo'))
+        norm = mpl.colors.Normalize(vmin=-3000,vmax=3000, clip=True)
     
     elif varname == 'Hs':
         cmap = copy(plt.get_cmap('cmo.ice'))
@@ -139,8 +150,7 @@ def get_cmap(varname):
 
     elif varname in ['uabs_surf', 'uabs_vav']:
         cmap = copy(plt.get_cmap('turbo'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=2000,clip=True)
-        #norm = mpl.colors.LogNorm(vmin=1.,vmax=3000,clip=True)
+        norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
 
     elif varname == 'mask_SGD':
         cmap = copy(plt.get_cmap('Greys'))
@@ -161,6 +171,10 @@ def get_cmap(varname):
     elif varname == 'mask':
         cmap = copy(plt.get_cmap('tab10'))
         norm = mpl.colors.Normalize(vmin=.5,vmax=10.5,clip=True)
+
+    elif varname == 'R':
+        cmap = copy(plt.get_cmap('nipy_spectral'))
+        norm = mpl.colors.LogNorm(vmin=3000,vmax=30e3)
 
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
