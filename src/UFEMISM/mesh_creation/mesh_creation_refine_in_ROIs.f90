@@ -279,6 +279,21 @@ contains
     call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
     deallocate( poly_ROI)
 
+    ! Amundsen glacier
+    call calc_polygon_Amundsen_glacier( poly_ROI)
+    call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
+    deallocate( poly_ROI)
+
+    ! Scott glacier
+    call calc_polygon_Scott_glacier( poly_ROI)
+    call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
+    deallocate( poly_ROI)
+
+    ! Mercer glacier
+    call calc_polygon_Mercer_glacier( poly_ROI)
+    call refine_mesh_polygon( mesh, poly_ROI, C%max_res_TransAntMounts_glaciers, C%alpha_min)
+    deallocate( poly_ROI)
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
