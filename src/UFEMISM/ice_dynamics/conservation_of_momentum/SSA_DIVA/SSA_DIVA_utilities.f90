@@ -36,6 +36,8 @@ contains
       call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
     case ('infinite_slab')
       call calc_driving_stress_infinite_slab( mesh, ice, tau_dx_b, tau_dy_b)
+    case ('ocean_pressure')
+      call calc_driving_stress_ocean_pressure( mesh, ice, tau_dx_b, tau_dy_b)
     end select
 
     ! Finalise routine path
@@ -81,6 +83,46 @@ contains
 
   end subroutine calc_driving_stress_infinite_slab
 
+  subroutine calc_driving_stress_ocean_pressure( mesh, ice, tau_dx_b, tau_dy_b)
+
+    ! In/output variables:
+    type(type_mesh),                        intent(in   ) :: mesh
+    type(type_ice_model),                   intent(in   ) :: ice
+    real(dp), dimension(mesh%ti1:mesh%ti2), intent(  out) :: tau_dx_b, tau_dy_b
+
+    ! Local variables:
+    character(len=1024), parameter      :: routine_name = 'calc_driving_stress_ocean_pressure'
+    ! real(dp), dimension(:), allocatable :: Hi_b
+    ! real(dp), dimension(:), allocatable :: dHs_dx_b
+    ! real(dp), dimension(:), allocatable :: dHs_dy_b
+    ! integer                             :: ti
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call crash('fixme!')
+
+    ! ! allocate shared memory
+    ! allocate( Hi_b(     mesh%ti1:mesh%ti2))
+    ! allocate( dHs_dx_b( mesh%ti1:mesh%ti2))
+    ! allocate( dHs_dy_b( mesh%ti1:mesh%ti2))
+
+    ! ! Calculate Hi, dHs/dx, and dHs/dy on the b-grid
+    ! call map_a_b_2D( mesh, ice%Hi, Hi_b    )
+    ! call ddx_a_b_2D( mesh, ice%Hs, dHs_dx_b)
+    ! call ddy_a_b_2D( mesh, ice%Hs, dHs_dy_b)
+
+    ! ! Calculate the driving stress
+    ! do ti = mesh%ti1, mesh%ti2
+    !   tau_dx_b( ti) = -ice_density * grav * Hi_b( ti) * dHs_dx_b( ti)
+    !   tau_dy_b( ti) = -ice_density * grav * Hi_b( ti) * dHs_dy_b( ti)
+    ! end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_driving_stress_ocean_pressure
+
   subroutine calc_horizontal_strain_rates( mesh, u_b, v_b, du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
     !< Calculate the vertically averaged horizontal strain rates
 
@@ -100,7 +142,10 @@ contains
       call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
     case ('infinite_slab')
       call calc_horizontal_strain_rates_infinite_slab( mesh, u_b, v_b, &
-      du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
+        du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
+    case ('ocean_pressure')
+      call calc_horizontal_strain_rates_ocean_pressure( mesh, u_b, v_b, &
+        du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
     end select
 
     ! Finalise routine path
@@ -133,6 +178,34 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_horizontal_strain_rates_infinite_slab
+
+  subroutine calc_horizontal_strain_rates_ocean_pressure( mesh, u_b, v_b, &
+    du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
+    !< Calculate the vertically averaged horizontal strain rates
+
+    ! In/output variables:
+    type(type_mesh),                        intent(in   ) :: mesh
+    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: u_b, v_b
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: du_dx_a, du_dy_a, dv_dx_a, dv_dy_a
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_horizontal_strain_rates_ocean_pressure'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call crash('fixme!')
+
+    ! ! Calculate the strain rates
+    ! call ddx_b_a_2D( mesh, u_b, du_dx_a)
+    ! call ddy_b_a_2D( mesh, u_b, du_dy_a)
+    ! call ddx_b_a_2D( mesh, v_b, dv_dx_a)
+    ! call ddy_b_a_2D( mesh, v_b, dv_dy_a)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_horizontal_strain_rates_ocean_pressure
 
   subroutine relax_viscosity_iterations( mesh, u_b, v_b, u_b_prev, v_b_prev, visc_it_relax)
     !< Reduce the change between velocity solutions
