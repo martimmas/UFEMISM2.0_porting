@@ -5,6 +5,7 @@ module solve_linearised_SSA_DIVA
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use solve_linearised_SSA_DIVA_infinite_slab, only: solve_SSA_DIVA_linearised_infinite_slab
+  use solve_linearised_SSA_DIVA_ocean_pressure, only: solve_SSA_DIVA_linearised_ocean_pressure
 
   implicit none
 
@@ -43,6 +44,10 @@ contains
       call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
     case ('infinite_slab')
       call solve_SSA_DIVA_linearised_infinite_slab( mesh, u_b, v_b, N_b, dN_dx_b, dN_dy_b, &
+        basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
+        PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
+    case ('ocean_pressure')
+      call solve_SSA_DIVA_linearised_ocean_pressure( mesh, u_b, v_b, N_b, dN_dx_b, dN_dy_b, &
         basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
         PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
     end select
