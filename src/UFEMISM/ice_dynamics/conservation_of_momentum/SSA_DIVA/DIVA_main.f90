@@ -10,6 +10,8 @@ module DIVA_main
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning, colour_string
   use model_configuration, only: C
   use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
+  use graph_pair_creation, only: create_ice_only_graph_pair, deallocate_graph_pair
   use ice_model_types, only: type_ice_model, type_ice_velocity_solver_DIVA
   use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
   use CSR_matrix_basics, only: allocate_matrix_CSR_dist, add_entry_CSR_dist, read_single_row_CSR_dist
@@ -107,6 +109,7 @@ contains
     integer,  dimension(:), allocatable :: BC_prescr_mask_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_u_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_v_b_applied
+    type(type_graph_pair)               :: graphs
     integer                             :: viscosity_iteration_i
     logical                             :: has_converged
     real(dp)                            :: L2_uv, L2_uv_prev
@@ -150,6 +153,18 @@ contains
       BC_prescr_u_b_applied    = 0._dp
       BC_prescr_v_b_applied    = 0._dp
     end if
+
+    ! If ocean pressure boundary conditions are used at the ice front,
+    ! we're going to solve the DIVA only within the ice, using
+    ! the sparkly new 'graph' feature!
+    select case (C%BC_ice_front)
+    case default
+      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
+    case ('infinite_slab')
+      ! No need to do anything
+    case ('ocean_pressure')
+      call create_ice_only_graph_pair( mesh, ice, graphs)
+    end select
 
     ! Calculate the driving stress
     call calc_driving_stress( mesh, ice, DIVA%tau_dx_b, DIVA%tau_dy_b)
@@ -255,6 +270,16 @@ contains
 
     ! Stability info
     n_visc_its = viscosity_iteration_i
+
+    ! If needed, deallocate graphs
+    select case (C%BC_ice_front)
+    case default
+      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
+    case ('infinite_slab')
+      ! No need to do anything
+    case ('ocean_pressure')
+      call deallocate_graph_pair( graphs)
+    end select
 
     ! Finalise routine path
     call finalise_routine( routine_name)
