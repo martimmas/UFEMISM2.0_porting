@@ -379,7 +379,7 @@ contains
     elseif (size( d_mesh,1) == mesh%pai_Tri%n_nih) then
       call gather_dist_shared_to_all( mesh%pai_Tri, d_mesh, d_mesh_tot)
     else
-      call crash('inTrialid size for d_mesh')
+      call crash('invalid size for d_mesh')
     end if
 
     do ni = graph%pai%i1, graph%pai%i2
@@ -452,7 +452,7 @@ contains
     elseif (size( d_mesh,1) == mesh%pai_Tri%n_nih) then
       call gather_dist_shared_to_all( mesh%pai_Tri, d_mesh, d_mesh_tot)
     else
-      call crash('inTrialid size for d_mesh')
+      call crash('invalid size for d_mesh')
     end if
 
     do ni = graph%pai%i1, graph%pai%i2
