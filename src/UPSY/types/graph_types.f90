@@ -9,7 +9,7 @@ module graph_types
 
   private
 
-  public :: type_graph
+  public :: type_graph, type_graph_pair
 
   type type_graph
 
@@ -49,5 +49,29 @@ module graph_types
     ! type(MPI_WIN) :: wbuffer1_g_nih, wbuffer2_g_nih, wbuffer1_d_gk_nih, wbuffer2_d_gk_nih     !< MPI window to pre-allocated buffer memory on the graph
 
   end type type_graph
+
+  type type_graph_pair
+
+    type(type_graph)                :: graph_a, graph_b
+
+    type(type_sparse_matrix_CSR_dp) :: M2_ddx_b_b
+    type(type_sparse_matrix_CSR_dp) :: M2_ddy_b_b
+    type(type_sparse_matrix_CSR_dp) :: M2_d2dx2_b_b
+    type(type_sparse_matrix_CSR_dp) :: M2_d2dxdy_b_b
+    type(type_sparse_matrix_CSR_dp) :: M2_d2dy2_b_b
+
+    type(type_sparse_matrix_CSR_dp) :: M_map_ghost_b_b
+    type(type_sparse_matrix_CSR_dp) :: M_ddx_ghost_b_b
+    type(type_sparse_matrix_CSR_dp) :: M_ddy_ghost_b_b
+
+    type(type_sparse_matrix_CSR_dp) :: M_map_a_b
+    type(type_sparse_matrix_CSR_dp) :: M_ddx_a_b
+    type(type_sparse_matrix_CSR_dp) :: M_ddy_a_b
+
+    type(type_sparse_matrix_CSR_dp) :: M_map_b_a
+    type(type_sparse_matrix_CSR_dp) :: M_ddx_b_a
+    type(type_sparse_matrix_CSR_dp) :: M_ddy_b_a
+
+  end type type_graph_pair
 
 end module graph_types

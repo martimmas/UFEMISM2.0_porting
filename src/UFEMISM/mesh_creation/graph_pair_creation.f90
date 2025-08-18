@@ -1,0 +1,71 @@
+module graph_pair_creation
+
+  use precisions, only: dp
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
+  use ice_model_types, only: type_ice_model
+  use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, &
+    create_graph_from_masked_mesh_b
+  use graph_operators, only: calc_graph_matrix_operators_2nd_order, &
+    calc_graph_matrix_operators_1st_order_margin, calc_graph_a_to_graph_b_matrix_operators, &
+    calc_graph_b_to_graph_a_matrix_operators
+
+  implicit none
+
+  private
+
+  public :: create_ice_only_graph_pair
+
+contains
+
+  subroutine create_ice_only_graph_pair( mesh, ice, graphs)
+    !< Write the mesh creation success message to the terminal
+
+    ! In/output variables:
+    type(type_mesh),       intent(in   ) :: mesh
+    type(type_ice_model),  intent(in   ) :: ice
+    type(type_graph_pair), intent(  out) :: graphs
+
+    ! Local variables:
+    character(len=1024), parameter        :: routine_name = 'create_ice_only_graph_pair'
+    logical, dimension(mesh%vi1:mesh%vi2) :: mask_ice_a
+    integer                               :: vi
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Calculate the ice mask
+    do vi = mesh%vi1, mesh%vi2
+      mask_ice_a( vi) = ice%Hi( vi) > 0._dp
+    end do
+
+    ! Create graphs from the masked vertices and triangles
+    call create_graph_from_masked_mesh_a( mesh, mask_ice_a, graphs%graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_ice_a, graphs%graph_b)
+
+    ! Calculate matrix operators
+    call calc_graph_matrix_operators_2nd_order( graphs%graph_b, &
+      graphs%M2_ddx_b_b, &
+      graphs%M2_ddy_b_b, &
+      graphs%M2_d2dx2_b_b, &
+      graphs%M2_d2dxdy_b_b, &
+      graphs%M2_d2dy2_b_b)
+
+    call calc_graph_matrix_operators_1st_order_margin( graphs%graph_b, &
+      graphs%M_map_ghost_b_b, graphs%M_ddx_ghost_b_b, graphs%M_ddy_ghost_b_b)
+
+    call calc_graph_a_to_graph_b_matrix_operators( mesh, graphs%graph_a, graphs%graph_b, &
+      graphs%M_map_a_b, graphs%M_ddx_a_b, graphs%M_ddy_a_b)
+
+    call calc_graph_b_to_graph_a_matrix_operators( mesh, graphs%graph_b, graphs%graph_a, &
+      graphs%M_map_b_a, graphs%M_ddx_b_a, graphs%M_ddy_b_a)
+
+    call crash('whoopsiedaisy')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine create_ice_only_graph_pair
+
+end module graph_pair_creation
