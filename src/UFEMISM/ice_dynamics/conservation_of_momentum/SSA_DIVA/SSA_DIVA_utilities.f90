@@ -296,8 +296,6 @@ contains
     call deallocate_dist_shared( dv_dx_a_g, wdv_dx_a_g)
     call deallocate_dist_shared( dv_dy_a_g, wdv_dy_a_g)
 
-    call crash('fixme!')
-
     ! Finalise routine path
     call finalise_routine( routine_name)
 
