@@ -5,7 +5,7 @@ module create_graphs_from_masked_mesh
   use mesh_types, only: type_mesh
   use graph_types, only: type_graph
   use mpi_distributed_memory, only: gather_to_all
-  use mpi_distributed_shared_memory, only: allocate_dist_shared
+  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
   use plane_geometry, only: mirror_p_across_qr
   use assertions_basic, only: assert
   use graph_contiguous_domains, only: enforce_contiguous_process_domains_graph
@@ -16,7 +16,8 @@ module create_graphs_from_masked_mesh
   private
 
   public :: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b, &
-    test_graph_connectivity_is_self_consistent, test_graph_matches_mesh
+    test_graph_connectivity_is_self_consistent, test_graph_matches_mesh, &
+    deallocate_graph
 
 contains
 
@@ -417,5 +418,41 @@ contains
     call finalise_routine( routine_name)
 
   end function test_graph_matches_mesh_triangles
+
+  subroutine deallocate_graph( graph)
+
+    ! In/output variables:
+    type(type_graph), intent(inout) :: graph
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'deallocate_graph'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Mapping between parent mesh and graph
+    deallocate( graph%ni2mi)
+    deallocate( graph%mi2ni)
+
+    ! Node coordinates and connectivity
+    deallocate( graph%V )
+    deallocate( graph%nC)
+    deallocate( graph%C )
+
+    ! Ghost nodes
+    deallocate( graph%is_ghost  )
+    deallocate( graph%ghost_nhat)
+
+    ! Parallelisation ranges
+    deallocate( graph%owning_process)
+    deallocate( graph%owning_node   )
+
+    call deallocate_dist_shared( graph%buffer1_g_nih, graph%wbuffer1_g_nih)
+    call deallocate_dist_shared( graph%buffer2_g_nih, graph%wbuffer2_g_nih)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine deallocate_graph
 
 end module create_graphs_from_masked_mesh
