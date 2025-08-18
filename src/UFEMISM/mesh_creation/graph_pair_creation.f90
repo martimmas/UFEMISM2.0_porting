@@ -30,7 +30,7 @@ contains
     ! Local variables:
     character(len=1024), parameter        :: routine_name = 'create_ice_only_graph_pair'
     logical, dimension(mesh%vi1:mesh%vi2) :: mask_ice_a
-    integer                               :: vi
+    integer                               :: vi, ni, uv, n
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -60,6 +60,20 @@ contains
 
     call calc_graph_b_to_graph_a_matrix_operators( mesh, graphs%graph_b, graphs%graph_a, &
       graphs%M_map_b_a, graphs%M_ddx_b_a, graphs%M_ddy_b_a)
+
+    ! Calculate b-graph-node-to-matrix-row translation tables
+    allocate( graphs%biuv2n( graphs%graph_b%n   ,  2), source = 0)
+    allocate( graphs%n2biuv( graphs%graph_b%n * 2, 2), source = 0)
+
+    n = 0
+    do ni = 1, graphs%graph_b%n
+      do uv = 1, 2
+        n = n+1
+        graphs%biuv2n( ni,uv) = n
+        graphs%n2biuv( n,1) = ni
+        graphs%n2biuv( n,2) = uv
+      end do
+    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name, n_extra_MPI_windows_expected = 4)

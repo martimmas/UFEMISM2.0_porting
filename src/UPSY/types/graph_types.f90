@@ -72,6 +72,9 @@ module graph_types
     type(type_sparse_matrix_CSR_dp) :: M_ddx_b_a
     type(type_sparse_matrix_CSR_dp) :: M_ddy_b_a
 
+    integer, dimension(:,:), allocatable :: biuv2n
+    integer, dimension(:,:), allocatable :: n2biuv
+
   end type type_graph_pair
 
 end module graph_types
