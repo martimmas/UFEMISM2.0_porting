@@ -186,7 +186,8 @@ contains
       viscosity_iteration_i = viscosity_iteration_i + 1
 
       ! Calculate the horizontal strain rates for the current velocity solution
-      call calc_horizontal_strain_rates( mesh, DIVA%u_vav_b, DIVA%v_vav_b, DIVA%du_dx_a, DIVA%du_dy_a, DIVA%dv_dx_a, DIVA%dv_dy_a)
+      call calc_horizontal_strain_rates( mesh, graphs, DIVA%u_vav_b, DIVA%v_vav_b, &
+        DIVA%du_dx_a, DIVA%du_dy_a, DIVA%dv_dx_a, DIVA%dv_dy_a)
 
       ! Calculate the vertical shear strain rates
       call calc_vertical_shear_strain_rates( mesh, DIVA)

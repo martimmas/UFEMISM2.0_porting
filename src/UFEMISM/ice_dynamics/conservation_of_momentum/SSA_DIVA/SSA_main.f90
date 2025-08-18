@@ -168,7 +168,8 @@ contains
       viscosity_iteration_i = viscosity_iteration_i + 1
 
       ! Calculate the strain rates for the current velocity solution
-      call calc_horizontal_strain_rates( mesh, SSA%u_b, SSA%v_b, SSA%du_dx_a, SSA%du_dy_a, SSA%dv_dx_a, SSA%dv_dy_a)
+      call calc_horizontal_strain_rates( mesh, graphs, SSA%u_b, SSA%v_b, &
+        SSA%du_dx_a, SSA%du_dy_a, SSA%dv_dx_a, SSA%dv_dy_a)
 
       ! Calculate the effective viscosity for the current velocity solution
       call calc_effective_viscosity( mesh, ice, SSA, Glens_flow_law_epsilon_sq_0_applied)

@@ -211,7 +211,7 @@ contains
       ! ========================================
 
       ! Calculate the horizontal strain rates for the current velocity solution
-      call calc_horizontal_strain_rates_DIVA( mesh, hybrid%DIVA%u_vav_b, hybrid%DIVA%v_vav_b, &
+      call calc_horizontal_strain_rates_DIVA( mesh, graphs, hybrid%DIVA%u_vav_b, hybrid%DIVA%v_vav_b, &
         hybrid%DIVA%du_dx_a, hybrid%DIVA%du_dy_a, hybrid%DIVA%dv_dx_a, hybrid%DIVA%dv_dy_a)
 
       ! Calculate the vertical shear strain rates
