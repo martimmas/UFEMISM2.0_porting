@@ -167,7 +167,7 @@ contains
     end select
 
     ! Calculate the driving stress
-    call calc_driving_stress( mesh, ice, DIVA%tau_dx_b, DIVA%tau_dy_b)
+    call calc_driving_stress( mesh, graphs, ice, DIVA%tau_dx_b, DIVA%tau_dy_b)
 
     ! Adaptive relaxation parameter for the viscosity iteration
     L2_uv                               = 1E9_dp

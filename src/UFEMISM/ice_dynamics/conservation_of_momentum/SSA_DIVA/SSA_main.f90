@@ -10,6 +10,7 @@ module SSA_main
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning, colour_string
   use model_configuration, only: C
   use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
   use ice_model_types, only: type_ice_model, type_ice_velocity_solver_SSA
   use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
   use CSR_matrix_basics, only: allocate_matrix_CSR_dist, add_entry_CSR_dist, read_single_row_CSR_dist
@@ -106,6 +107,7 @@ contains
     integer,  dimension(:), allocatable :: BC_prescr_mask_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_u_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_v_b_applied
+    type(type_graph_pair)               :: graphs
     integer                             :: viscosity_iteration_i
     logical                             :: has_converged
     real(dp)                            :: L2_uv, L2_uv_prev
@@ -147,7 +149,7 @@ contains
     end if
 
     ! Calculate the driving stress
-    call calc_driving_stress( mesh, ice, SSA%tau_dx_b, SSA%tau_dy_b)
+    call calc_driving_stress( mesh, graphs, ice, SSA%tau_dx_b, SSA%tau_dy_b)
 
     ! Adaptive relaxation parameter for the viscosity iteration
     L2_uv                               = 1E9_dp

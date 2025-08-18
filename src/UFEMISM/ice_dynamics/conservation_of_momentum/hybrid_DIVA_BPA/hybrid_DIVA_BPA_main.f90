@@ -11,6 +11,7 @@ module hybrid_DIVA_BPA_main
   use parameters
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
   use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
   use ice_model_types, only: type_ice_model, type_ice_velocity_solver_DIVA, type_ice_velocity_solver_BPA, type_ice_velocity_solver_hybrid
   use reallocate_mod, only: reallocate_bounds
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D, map_from_mesh_to_mesh_with_reallocation_3D
@@ -131,6 +132,7 @@ contains
     integer,  dimension(:), allocatable :: BC_prescr_mask_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_u_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_v_b_applied
+    type(type_graph_pair)               :: graphs
     integer                             :: viscosity_iteration_i
     logical                             :: has_converged
     real(dp)                            :: resid_UV, resid_UV_prev
@@ -183,7 +185,7 @@ contains
       ice%d2zeta_dx2_bk, ice%d2zeta_dxdy_bk, ice%d2zeta_dy2_bk)
 
     ! Calculate the driving stress
-    call calc_driving_stress_DIVA( mesh, ice, hybrid%DIVA%tau_dx_b, hybrid%DIVA%tau_dy_b)
+    call calc_driving_stress_DIVA( mesh, graphs, ice, hybrid%DIVA%tau_dx_b, hybrid%DIVA%tau_dy_b)
     call calc_driving_stress_BPA ( mesh, ice, hybrid%BPA )
 
     ! Calculate the solving masks for the hybrid solver
