@@ -16,7 +16,7 @@ module graph_pair_creation
 
   private
 
-  public :: create_ice_only_graph_pair
+  public :: create_ice_only_graph_pair, deallocate_graph_pair
 
 contains
 
@@ -62,7 +62,7 @@ contains
       graphs%M_map_b_a, graphs%M_ddx_b_a, graphs%M_ddy_b_a)
 
     ! Finalise routine path
-    call finalise_routine( routine_name)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 4)
 
   end subroutine create_ice_only_graph_pair
 
