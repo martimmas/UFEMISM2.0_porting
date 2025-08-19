@@ -736,6 +736,12 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: filename_ocean_cold_snapshot_GRL_config      = ''
     CHARACTER(LEN=256)  :: filename_ocean_cold_snapshot_ANT_config      = ''
 
+    ! Choice of ocean deltaT
+    REAL(dp)            :: ocean_uniform_deltaT_NAM_config              = 0.0_dp
+    REAL(dp)            :: ocean_uniform_deltaT_EAS_config              = 0.0_dp
+    REAL(dp)            :: ocean_uniform_deltaT_GRL_config              = 0.0_dp
+    REAL(dp)            :: ocean_uniform_deltaT_ANT_config              = 0.0_dp
+    
     ! Choice of extrapolation method
     CHARACTER(LEN=256)  :: choice_ocean_extrapolation_method_config     = 'initialisation'                 ! Method to extrapolate ocean forcing into cavities: 'initialisation'
 
@@ -1873,6 +1879,12 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: filename_ocean_cold_snapshot_GRL
     CHARACTER(LEN=256)  :: filename_ocean_cold_snapshot_ANT
 
+    ! Choice of ocean deltaT
+    REAL(dp)            :: ocean_uniform_deltaT_NAM
+    REAL(dp)            :: ocean_uniform_deltaT_EAS
+    REAL(dp)            :: ocean_uniform_deltaT_GRL
+    REAL(dp)            :: ocean_uniform_deltaT_ANT
+    
     ! Choice of extrapolation method
     CHARACTER(LEN=256)  :: choice_ocean_extrapolation_method
 
@@ -2976,6 +2988,10 @@ CONTAINS
       filename_ocean_cold_snapshot_EAS_config                     , &
       filename_ocean_cold_snapshot_GRL_config                     , &
       filename_ocean_cold_snapshot_ANT_config                     , &
+      ocean_uniform_deltaT_NAM_config                             , &
+      ocean_uniform_deltaT_EAS_config                             , &
+      ocean_uniform_deltaT_GRL_config                             , &
+      ocean_uniform_deltaT_ANT_config                             , &
       choice_ocean_extrapolation_method_config                    , &
       choice_ocean_model_transient_config                         , &
       filename_ocean_dT_NAM_config                                , &
@@ -4001,6 +4017,12 @@ CONTAINS
     C%filename_ocean_cold_snapshot_GRL                       = filename_ocean_cold_snapshot_GRL_config
     C%filename_ocean_cold_snapshot_ANT                       = filename_ocean_cold_snapshot_ANT_config
 
+    ! Choice of ocean deltaT
+    C%ocean_uniform_deltaT_NAM                               = ocean_uniform_deltaT_NAM_config
+    C%ocean_uniform_deltaT_EAS                               = ocean_uniform_deltaT_EAS_config
+    C%ocean_uniform_deltaT_GRL                               = ocean_uniform_deltaT_GRL_config
+    C%ocean_uniform_deltaT_ANT                               = ocean_uniform_deltaT_ANT_config
+    
     ! Choice of extrapolation method
     C%choice_ocean_extrapolation_method                      = choice_ocean_extrapolation_method_config
 
