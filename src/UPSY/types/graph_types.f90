@@ -43,10 +43,10 @@ module graph_types
 
     real(dp), dimension(:    ), contiguous, pointer :: buffer1_g_nih  => null()     !< Pre-allocated buffer memory on the graph
     real(dp), dimension(:    ), contiguous, pointer :: buffer2_g_nih  => null()     !< Pre-allocated buffer memory on the graph
-    ! real(dp), dimension(:,:  ), contiguous, pointer :: buffer1_gk_nih => null()     !< Pre-allocated buffer memory on the graph
-    ! real(dp), dimension(:,:  ), contiguous, pointer :: buffer2_gk_nih => null()     !< Pre-allocated buffer memory on the graph
-    type(MPI_WIN) :: wbuffer1_g_nih, wbuffer2_g_nih     !< MPI window to pre-allocated buffer memory on the graph
-    ! type(MPI_WIN) :: wbuffer1_g_nih, wbuffer2_g_nih, wbuffer1_d_gk_nih, wbuffer2_d_gk_nih     !< MPI window to pre-allocated buffer memory on the graph
+    real(dp), dimension(:,:  ), contiguous, pointer :: buffer1_gk_nih => null()     !< Pre-allocated buffer memory on the graph
+    real(dp), dimension(:,:  ), contiguous, pointer :: buffer2_gk_nih => null()     !< Pre-allocated buffer memory on the graph
+    type(MPI_WIN) :: wbuffer1_g_nih, wbuffer2_g_nih                                 !< MPI window to pre-allocated buffer memory on the graph
+    type(MPI_WIN) :: wbuffer1_gk_nih, wbuffer2_gk_nih                               !< MPI window to pre-allocated buffer memory on the graph
 
   end type type_graph
 

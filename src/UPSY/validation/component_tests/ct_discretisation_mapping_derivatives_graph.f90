@@ -114,6 +114,7 @@ contains
     integer                            :: ncid
     logical, dimension(:), allocatable :: mask_a
     real(dp)                           :: xmid, ymid, wx, wy, wmin
+    integer                            :: nz
     integer                            :: vi
     type(type_graph)                   :: graph_a, graph_b
     procedure(test_function), pointer  :: test_function_ptr
@@ -146,8 +147,9 @@ contains
     end do
 
     ! Create graphs from the masked vertices and triangles
-    call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
-    call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
+    nz = 12
+    call create_graph_from_masked_mesh_a( mesh, mask_a, nz, graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_a, nz, graph_b)
 
     call test_2nd_order_operators_on_regular_nodes( foldername_discretisation, mesh, graph_b)
     call test_1nd_order_operators_a_to_b_graph( foldername_discretisation, &

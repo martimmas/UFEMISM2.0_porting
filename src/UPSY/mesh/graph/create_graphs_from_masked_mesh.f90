@@ -21,11 +21,12 @@ module create_graphs_from_masked_mesh
 
 contains
 
-  subroutine create_graph_from_masked_mesh_a( mesh, mask_a, graph)
+  subroutine create_graph_from_masked_mesh_a( mesh, mask_a, nz, graph)
 
     ! In/output variables:
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: mask_a
+    integer,                               intent(in   ) :: nz
     type(type_graph),                      intent(  out) :: graph
 
     ! Local variables:
@@ -96,7 +97,7 @@ contains
 
     ! Finalisation
     call enforce_contiguous_process_domains_graph( graph)
-    call setup_graph_parallelisation( graph)
+    call setup_graph_parallelisation( graph, nz)
 
 #if (DO_ASSERTIONS)
     call assert(test_graph_connectivity_is_self_consistent( graph), 'inconsistent graph connectivity')
@@ -107,11 +108,12 @@ contains
 
   end subroutine create_graph_from_masked_mesh_a
 
-  subroutine create_graph_from_masked_mesh_b( mesh, mask_a, graph)
+  subroutine create_graph_from_masked_mesh_b( mesh, mask_a, nz, graph)
 
     ! In/output variables:
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: mask_a
+    integer,                               intent(in   ) :: nz
     type(type_graph),                      intent(  out) :: graph
 
     ! Local variables:
@@ -229,7 +231,7 @@ contains
 
     ! Finalisation
     call enforce_contiguous_process_domains_graph( graph)
-    call setup_graph_parallelisation( graph)
+    call setup_graph_parallelisation( graph, nz)
 
 #if (DO_ASSERTIONS)
     call assert(test_graph_connectivity_is_self_consistent( graph), 'inconsistent graph connectivity')

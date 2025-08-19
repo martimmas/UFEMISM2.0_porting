@@ -41,8 +41,8 @@ contains
     end do
 
     ! Create graphs from the masked vertices and triangles
-    call create_graph_from_masked_mesh_a( mesh, mask_ice_a, graphs%graph_a)
-    call create_graph_from_masked_mesh_b( mesh, mask_ice_a, graphs%graph_b)
+    call create_graph_from_masked_mesh_a( mesh, mask_ice_a, mesh%nz, graphs%graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_ice_a, mesh%nz, graphs%graph_b)
 
     ! Calculate matrix operators
     call calc_graph_matrix_operators_2nd_order( graphs%graph_b, &

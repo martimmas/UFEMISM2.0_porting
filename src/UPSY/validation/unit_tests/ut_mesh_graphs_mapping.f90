@@ -38,6 +38,7 @@ contains
     character(len=1024), parameter     :: test_name_local = 'mapping'
     character(len=1024)                :: test_name
     logical, dimension(:), allocatable :: mask_a
+    integer                            :: nz
     integer                            :: vi
     type(type_graph)                   :: graph_a, graph_b
 
@@ -54,8 +55,9 @@ contains
     end do
 
     ! Create graphs from the masked vertices and triangles
-    call create_graph_from_masked_mesh_a( mesh, mask_a, graph_a)
-    call create_graph_from_masked_mesh_b( mesh, mask_a, graph_b)
+    nz = 12
+    call create_graph_from_masked_mesh_a( mesh, mask_a, nz, graph_a)
+    call create_graph_from_masked_mesh_b( mesh, mask_a, nz, graph_b)
 
     call test_mesh_vertices_to_graph_mapping ( test_name, mesh, graph_a)
     call test_graph_to_mesh_vertices_mapping ( test_name, mesh, graph_a, mask_a)
