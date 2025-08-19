@@ -167,6 +167,8 @@ CONTAINS
     ! Initialise with zeros
     laddie%divQH( mesh%vi1:mesh%vi2) = 0.0_dp
 
+    call sync
+
     ! == Loop over vertices ==
     ! =========================
 

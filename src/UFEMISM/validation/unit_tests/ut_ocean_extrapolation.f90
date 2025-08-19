@@ -9,7 +9,7 @@ module ut_ocean_extrapolation
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use model_configuration, only: C
-  use parameters, only: pi
+  use parameters, only: pi, NaN
   use mesh_types, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
@@ -24,7 +24,6 @@ module ut_ocean_extrapolation
       extrapolate_ocean_forcing_horizontal_cavity, &
       extrapolate_ocean_forcing_vertical, extrapolate_ocean_forcing_horizontal_everywhere
   use mesh_translation_tables, only: calc_field_to_vector_form_translation_tables
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
 
   implicit none
 
@@ -44,7 +43,7 @@ subroutine unit_tests_ocean_extrapolation_main( test_name_parent)
   character(len=1024), parameter :: routine_name = 'unit_tests_ocean_extrapolation_main'
   character(len=1024), parameter :: test_name_local = 'ocean_extrapolation'
   character(len=1024)            :: test_name
-  real(dp)                       :: xmin, xmax, ymin, ymax, NaN
+  real(dp)                       :: xmin, xmax, ymin, ymax
   character(len=1024)            :: name
   type(type_mesh)                :: mesh
   integer                        :: vi, k, ierr
@@ -59,9 +58,6 @@ subroutine unit_tests_ocean_extrapolation_main( test_name_parent)
 
   ! Add test name to list
   test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-  ! Define NaN
-  NaN = ieee_value( NaN, ieee_signaling_nan)
 
   ! Create a simple test mesh
   name = 'test_mesh'

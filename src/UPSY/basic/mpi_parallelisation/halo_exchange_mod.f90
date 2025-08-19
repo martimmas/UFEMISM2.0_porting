@@ -106,6 +106,12 @@ subroutine exchange_halos_logical_1D( pai, d_nih)
 
 #endif
 
+  ! Make sure all processes have finished operating on the
+  ! memory before exchanging (since only the node primaries
+  ! send/receive data, the MPI syncing inside those routines
+  ! is not enough)
+  call sync
+
   ! Send halos from left to right
   if (par%node_ID < par%n_nodes-1 .and. par%node_primary) then
     call MPI_ISEND( d_hri, pai%n_hri, MPI_LOGICAL, node_ID_right, &
@@ -274,6 +280,12 @@ subroutine exchange_halos_int_1D( pai, d_nih)
   end if
 
 #endif
+
+  ! Make sure all processes have finished operating on the
+  ! memory before exchanging (since only the node primaries
+  ! send/receive data, the MPI syncing inside those routines
+  ! is not enough)
+  call sync
 
   ! Send halos from left to right
   if (par%node_ID < par%n_nodes-1 .and. par%node_primary) then
@@ -444,6 +456,12 @@ subroutine exchange_halos_dp_1D( pai, d_nih)
 
 #endif
 
+  ! Make sure all processes have finished operating on the
+  ! memory before exchanging (since only the node primaries
+  ! send/receive data, the MPI syncing inside those routines
+  ! is not enough)
+  call sync
+
   ! Send halos from left to right
   if (par%node_ID < par%n_nodes-1 .and. par%node_primary) then
     call MPI_ISEND( d_hri, pai%n_hri, MPI_DOUBLE_PRECISION, node_ID_right, &
@@ -612,6 +630,12 @@ subroutine exchange_halos_complex_1D( pai, d_nih)
   end if
 
 #endif
+
+  ! Make sure all processes have finished operating on the
+  ! memory before exchanging (since only the node primaries
+  ! send/receive data, the MPI syncing inside those routines
+  ! is not enough)
+  call sync
 
   ! Send halos from left to right
   if (par%node_ID < par%n_nodes-1 .and. par%node_primary) then

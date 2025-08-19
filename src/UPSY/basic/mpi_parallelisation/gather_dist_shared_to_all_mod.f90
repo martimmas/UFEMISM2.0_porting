@@ -46,6 +46,9 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    ! Make sure all processes have finished operating on the memory
+    call sync
+
     ! We only need to gather the interior of each node
     d_interior( pai%i1_node:pai%i2_node) => d_nih( pai%i1_node:pai%i2_node)
 
@@ -155,6 +158,9 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    ! Make sure all processes have finished operating on the memory
+    call sync
 
     ! We only need to gather the interior of each node
     d_interior( pai%i1_node:pai%i2_node) => d_nih( pai%i1_node:pai%i2_node)
@@ -266,6 +272,9 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    ! Make sure all processes have finished operating on the memory
+    call sync
+
     ! We only need to gather the interior of each node
     d_interior( pai%i1_node:pai%i2_node) => d_nih( pai%i1_node:pai%i2_node)
 
@@ -375,6 +384,9 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    ! Make sure all processes have finished operating on the memory
+    call sync
 
     ! We only need to gather the interior of each node
     d_interior( pai%i1_node:pai%i2_node) => d_nih( pai%i1_node:pai%i2_node)

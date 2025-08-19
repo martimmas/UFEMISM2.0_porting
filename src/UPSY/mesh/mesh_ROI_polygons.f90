@@ -30,6 +30,10 @@ module mesh_ROI_polygons
   public :: calc_polygon_Byrd_glacier
   public :: calc_polygon_Nimrod_glacier
   public :: calc_polygon_Beardmore_glacier
+  public :: calc_polygon_Shackleton_glacier
+  public :: calc_polygon_Amundsen_glacier
+  public :: calc_polygon_Scott_glacier
+  public :: calc_polygon_Mercer_glacier
   public :: calc_polygon_Wilkes_basins
   public :: calc_polygon_Antarctic_Peninsula
 
@@ -1032,6 +1036,131 @@ subroutine calc_polygon_Beardmore_glacier( poly)
   call finalise_routine( routine_name)
 
 end subroutine calc_polygon_Beardmore_glacier
+
+subroutine calc_polygon_Shackleton_glacier( poly)
+  ! Return a polygon enveloping Shackleton glacier in the Transantarctic Mountains
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Shackleton_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 12,2))
+
+  poly( 1,:) = [-0.40e5, -6.05e5]
+  poly( 2,:) = [-0.30e5, -5.90e5]
+  poly( 3,:) = [-0.30e5, -5.25e5]
+  poly( 4,:) = [-0.15e5, -5.10e5]
+  poly( 5,:) = [-0.00e5, -4.95e5]
+  poly( 6,:) = [-0.00e5, -4.70e5]
+  poly( 7,:) = [-0.15e5, -4.85e5]
+  poly( 8,:) = [-0.25e5, -5.00e5]
+  poly( 9,:) = [-0.25e5, -5.10e5]
+  poly(10,:) = [-0.40e5, -5.15e5]
+  poly(11,:) = [-0.40e5, -5.80e5]
+  poly(12,:) = [-0.55e5, -6.05e5]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Shackleton_glacier
+
+subroutine calc_polygon_Amundsen_glacier( poly)
+  ! Return a polygon enveloping Amundsen glacier in the Transantarctic Mountains
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Amundsen_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 10,2))
+
+  poly( 1,:) = [-1.60e5, -4.95e5]
+  poly( 2,:) = [-1.65e5, -4.65e5]
+  poly( 3,:) = [-1.50e5, -4.25e5]
+  poly( 4,:) = [-1.40e5, -4.05e5]
+  poly( 5,:) = [-1.20e5, -4.00e5]
+  poly( 6,:) = [-1.15e5, -3.85e5]
+  poly( 7,:) = [-1.40e5, -3.95e5]
+  poly( 8,:) = [-1.55e5, -4.15e5]
+  poly( 9,:) = [-1.75e5, -4.50e5]
+  poly(10,:) = [-1.85e5, -4.80e5]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Amundsen_glacier
+
+subroutine calc_polygon_Scott_glacier( poly)
+  ! Return a polygon enveloping Scott glacier in the Transantarctic Mountains
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Scott_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 14,2))
+
+  poly( 1,:) = [-1.95e5, -4.70e5]
+  poly( 2,:) = [-2.15e5, -4.45e5]
+  poly( 3,:) = [-2.05e5, -4.15e5]
+  poly( 4,:) = [-1.95e5, -3.90e5]
+  poly( 5,:) = [-1.95e5, -3.50e5]
+  poly( 6,:) = [-1.55e5, -3.05e5]
+  poly( 7,:) = [-1.55e5, -2.80e5]
+  poly( 8,:) = [-1.65e5, -3.05e5]
+  poly( 9,:) = [-1.90e5, -3.25e5]
+  poly(10,:) = [-2.05e5, -3.45e5]
+  poly(11,:) = [-2.10e5, -3.90e5]
+  poly(12,:) = [-2.15e5, -4.45e5]
+  poly(13,:) = [-2.35e5, -4.40e5]
+  poly(14,:) = [-2.25e5, -4.75e5]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Scott_glacier
+
+subroutine calc_polygon_Mercer_glacier( poly)
+  ! Return a polygon enveloping Mercer glacier in the Transantarctic Mountains
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Mercer_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 9,2))
+
+  poly( 1,:) = [-3.45e5, -3.65e5]
+  poly( 2,:) = [-3.30e5, -3.30e5]
+  poly( 3,:) = [-3.20e5, -2.80e5]
+  poly( 4,:) = [-3.10e5, -2.50e5]
+  poly( 5,:) = [-2.85e5, -2.20e5]
+  poly( 6,:) = [-3.10e5, -2.20e5]
+  poly( 7,:) = [-3.35e5, -2.65e5]
+  poly( 8,:) = [-3.40e5, -3.20e5]
+  poly( 9,:) = [-3.60e5, -3.45e5]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Mercer_glacier
 
 subroutine calc_polygon_Wilkes_basins( poly)
   ! Return a polygon enveloping basins 14, 15, and 16 of Wilkes basin, as requested for WilkesMIP

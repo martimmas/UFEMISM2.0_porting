@@ -26,15 +26,13 @@ module delete_vertices
 
 contains
 
-  subroutine delete_vertex( mesh, vi_kill, &
-    vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+  subroutine delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     ! Delete vertex vi from the mesh
 
     ! In/output variables:
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: vi_kill
     integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
-    integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex'
@@ -47,11 +45,9 @@ contains
 
     if (mesh%nC( vi_kill) == 3) then
       call crash('delete_vertex_nCeq3 not implemented yet')
-      ! call delete_vertex_nCeq3( mesh, vi_kill, &
-      !   vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+      ! call delete_vertex_nCeq3( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     else
-      call delete_vertex_nCge4( mesh, vi_kill, &
-        vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+      call delete_vertex_nCge4( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     end if
 
     ! Finalise routine path
@@ -62,8 +58,7 @@ contains
   ! Delete a vertex which has 4 or more neighbours
   ! ==============================================
 
-  subroutine delete_vertex_nCge4( mesh, vi_kill, &
-    vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+  subroutine delete_vertex_nCge4( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     ! Before, local geometry looks like this:
     !
     !                tj_opp()
@@ -100,13 +95,13 @@ contains
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: vi_kill
     integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
-    integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'delete_vertex_nCge4'
-    integer                         :: vi, ti
-    type(type_local_geometry_nCge4) :: locgeom
-    integer                         :: vii, tii
+    character(len=1024), parameter     :: routine_name = 'delete_vertex_nCge4'
+    integer, dimension(:), allocatable :: ti_new2ti_old, ti_old2ti_new
+    integer                            :: vi, ti
+    type(type_local_geometry_nCge4)    :: locgeom
+    integer                            :: vii, tii
 
     ! Add routine to path
     call init_routine( routine_name)
