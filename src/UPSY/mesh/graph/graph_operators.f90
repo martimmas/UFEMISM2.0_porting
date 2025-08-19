@@ -324,7 +324,7 @@ contains
     character(len=1024), parameter      :: routine_name = 'calc_graph_a_to_graph_b_matrix_operators'
     integer                             :: ncols, ncols_loc, nrows, nrows_loc
     integer                             :: nnz_per_row_est, nnz_est_proc
-    integer                             :: ni
+    integer                             :: ni, ni_reg
     integer                             :: ti, via, vib, vic, nja, njb, njc
     real(dp)                            :: x, y
     integer                             :: nj
@@ -374,20 +374,19 @@ contains
 
     do ni = graph_b%ni1, graph_b%ni2
 
-      ! Skip ghost nodes
-      if (graph_b%is_ghost( ni)) then
-        call add_empty_row_CSR_dist( M_map_a_b, ni)
-        call add_empty_row_CSR_dist( M_ddx_a_b, ni)
-        call add_empty_row_CSR_dist( M_ddy_a_b, ni)
-        cycle
+      if (.not. graph_b%is_ghost( ni)) then
+        ni_reg = ni
+      else
+        ! For ghost nodes, use coordinates and connectivity of their non-ghost neighbour
+        ni_reg = graph_b%C( ni,1)
       end if
 
       ! Calculate shape functions at this graph node
-      x = graph_b%V( ni,1)
-      y = graph_b%V( ni,2)
+      x = graph_b%V( ni_reg,1)
+      y = graph_b%V( ni_reg,2)
 
       ! Set local neighbourhood to the vertices spanning triangle ti
-      ti = graph_b%ni2mi( ni)
+      ti = graph_b%ni2mi( ni_reg)
       via = mesh%Tri( ti,1)
       vib = mesh%Tri( ti,2)
       vic = mesh%Tri( ti,3)
