@@ -89,7 +89,6 @@ contains
 
     ! Local variables:
     character(len=256), parameter                         :: routine_name = 'initialise_ocean_model_realistic'
-    character(len=256)                                    :: filename_ocean_snapshot
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -163,6 +162,7 @@ contains
 
     ! Local variables:
     character(len=256), parameter                         :: routine_name = 'initialise_ocean_model_snapshot'
+    character(len=256)                                    :: filename_ocean_snapshot
 
     ! Add routine to path
     call init_routine( routine_name)
