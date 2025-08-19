@@ -218,7 +218,7 @@ contains
       call calc_vertical_shear_strain_rates_DIVA( mesh, hybrid%DIVA)
 
       ! Calculate the effective viscosity for the current velocity solution
-      call calc_effective_viscosity_DIVA( mesh, ice, hybrid%DIVA, Glens_flow_law_epsilon_sq_0_applied)
+      call calc_effective_viscosity_DIVA( mesh, graphs, ice, hybrid%DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
       ! Calculate the F-integrals
       call calc_F_integrals_DIVA( mesh, ice, hybrid%DIVA)
