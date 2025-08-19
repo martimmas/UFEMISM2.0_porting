@@ -16,7 +16,8 @@ module mesh_graph_mapping
   private
 
   public :: map_mesh_vertices_to_graph, map_mesh_triangles_to_graph, &
-    map_graph_to_mesh_vertices, map_graph_to_mesh_triangles
+    map_graph_to_mesh_vertices, map_graph_to_mesh_triangles, &
+    map_mesh_vertices_to_graph_ghost_nodes
 
   interface map_mesh_vertices_to_graph
     procedure :: map_mesh_vertices_to_graph_logical_2D
@@ -26,6 +27,11 @@ module mesh_graph_mapping
     procedure :: map_mesh_vertices_to_graph_dp_2D
     procedure :: map_mesh_vertices_to_graph_dp_3D
   end interface map_mesh_vertices_to_graph
+
+  interface map_mesh_vertices_to_graph_ghost_nodes
+    procedure :: map_mesh_vertices_to_graph_ghost_nodes_dp_2D
+    procedure :: map_mesh_vertices_to_graph_ghost_nodes_dp_3D
+  end interface map_mesh_vertices_to_graph_ghost_nodes
 
   interface map_mesh_triangles_to_graph
     procedure :: map_mesh_triangles_to_graph_logical_2D
@@ -277,6 +283,84 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine map_mesh_vertices_to_graph_dp_3D
+
+  ! Mesh vertices to graph ghost nodes
+  ! ==================================
+
+  subroutine map_mesh_vertices_to_graph_ghost_nodes_dp_2D( mesh, d_mesh, graph, d_graph_nih)
+
+    ! In/output variables:
+    type(type_mesh),                                        intent(in   ) :: mesh
+    real(dp), dimension(:),                                 intent(in   ) :: d_mesh
+    type(type_graph),                                       intent(in   ) :: graph
+    real(dp), dimension(graph%pai%i1_nih:graph%pai%i2_nih), intent(  out) :: d_graph_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'map_mesh_vertices_to_graph_ghost_nodes_dp_2D'
+    real(dp), dimension(:), pointer :: d_mesh_tot => null()
+    type(MPI_WIN)                   :: wd_mesh_tot
+    integer                         :: ni, ei, vi, vj
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call allocate_dist_shared( d_mesh_tot, wd_mesh_tot, mesh%nV)
+
+    ! Check if the mesh data is distributed or hybrid distributed/shared
+    if (size( d_mesh,1) == mesh%pai_V%n_loc) then
+      call gather_to_all( d_mesh, d_mesh_tot)
+    elseif (size( d_mesh,1) == mesh%pai_V%n_nih) then
+      call gather_dist_shared_to_all( mesh%pai_V, d_mesh, d_mesh_tot)
+    else
+      call crash('invalid size for d_mesh')
+    end if
+
+    do ni = graph%pai%i1, graph%pai%i2
+      if (graph%is_ghost( ni)) then
+        ei = graph%ni2mi( ni)
+        vi = mesh%EV( ei,1)
+        vj = mesh%EV( ei,2)
+        d_graph_nih( ni) = (d_mesh_tot( vi) + d_mesh_tot( vj)) / 2._dp
+      else
+        d_graph_nih( ni) = 0._dp
+      end if
+    end do
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( d_mesh_tot, wd_mesh_tot)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine map_mesh_vertices_to_graph_ghost_nodes_dp_2D
+
+  subroutine map_mesh_vertices_to_graph_ghost_nodes_dp_3D( mesh, d_mesh, graph, d_graph_nih)
+
+    ! In/output variables:
+    type(type_mesh),                  intent(in   ) :: mesh
+    real(dp), dimension(:,:), target, intent(in   ) :: d_mesh
+    type(type_graph),                 intent(in   ) :: graph
+    real(dp), dimension(graph%pai%i1_nih:graph%pai%i2_nih, &
+      1:size(d_mesh,2)),      target, intent(  out) :: d_graph_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'map_mesh_vertices_to_graph_ghost_nodes_dp_3D'
+    integer                         :: k
+    real(dp), dimension(:), pointer :: d_mesh_k, d_graph_nih_k
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    do k = 1, size( d_mesh,2)
+      d_mesh_k      => d_mesh     ( :,k)
+      d_graph_nih_k => d_graph_nih( :,k)
+      call map_mesh_vertices_to_graph_ghost_nodes_dp_2D( mesh, d_mesh_k, graph, d_graph_nih_k)
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine map_mesh_vertices_to_graph_ghost_nodes_dp_3D
 
   ! Mesh triangles to graph
   ! =======================
