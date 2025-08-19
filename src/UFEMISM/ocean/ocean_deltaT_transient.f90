@@ -24,7 +24,7 @@ contains
 ! ===== Main routines =====
 ! =========================
 
-subroutine initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_time_of_run)
+subroutine initialise_ocean_model_transient_deltaT( mesh, ice, ocean, region_name, start_time_of_run)
     ! Initialise the ocean model
     !
     ! Use an realistic ocean scheme
@@ -37,7 +37,7 @@ subroutine initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_t
     real(dp),                               intent(in)    :: start_time_of_run
 
     ! Local variables:
-    character(len=256), parameter                         :: routine_name = 'initialise_ocean_model_deltaT'
+    character(len=256), parameter                         :: routine_name = 'initialise_ocean_model_transient_deltaT'
     character(len=256)                                    :: filename_ocean_snapshot, filename_ocean_dT
 
     ! Add routine to path
@@ -91,9 +91,9 @@ subroutine initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_t
 
         call finalise_routine(routine_name)
 
-    end subroutine initialise_ocean_model_deltaT
+    end subroutine initialise_ocean_model_transient_deltaT
 
-    subroutine run_ocean_model_deltaT(mesh, ocean, time)
+    subroutine run_ocean_model_transient_deltaT(mesh, ocean, time)
     ! Apply the dT anomalies to the snapshot ocean
     ! In- and output variables
     type(type_mesh),                        intent(in)    :: mesh
@@ -101,7 +101,7 @@ subroutine initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_t
     real(dp),                               intent(in)    :: time
 
     ! Local variables
-    CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'run_ocean_model_deltaT'
+    CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'run_ocean_model_transient_deltaT'
     REAL(dp)                                           :: dT_at_time
     INTEGER                                            :: vi, z
 
@@ -124,7 +124,7 @@ subroutine initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_t
 
     call finalise_routine(routine_name)
 
-    end subroutine run_ocean_model_deltaT
+    end subroutine run_ocean_model_transient_deltaT
 
 
 

@@ -152,7 +152,7 @@ contains
 
     select case (C%choice_ocean_model_transient)
       case ('deltaT')
-        call initialise_ocean_model_deltaT( mesh, ice, ocean, region_name, start_time_of_run)
+        call initialise_ocean_model_transient_deltaT( mesh, ice, ocean, region_name, start_time_of_run)
 
       case ('GlacialIndex')
         call initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, start_time_of_run)
@@ -181,7 +181,7 @@ contains
 
     select case (C%choice_ocean_model_transient)
       case('deltaT')
-        call run_ocean_model_deltaT(mesh, ocean, time)
+        call run_ocean_model_transient_deltaT(mesh, ocean, time)
 
       case('GlacialIndex')
         call run_ocean_model_GlacialIndex(mesh, ocean, time)
