@@ -76,7 +76,7 @@ contains
     end do
 
     ! Finalise routine path
-    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 4)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 8)
 
   end subroutine create_ice_only_graph_pair
 

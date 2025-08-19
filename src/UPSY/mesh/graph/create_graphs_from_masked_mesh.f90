@@ -104,7 +104,7 @@ contains
 #endif
 
     ! Finalise routine path
-    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 2)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 4)
 
   end subroutine create_graph_from_masked_mesh_a
 
@@ -238,7 +238,7 @@ contains
 #endif
 
     ! Finalise routine path
-    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 2)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 4)
 
   end subroutine create_graph_from_masked_mesh_b
 
