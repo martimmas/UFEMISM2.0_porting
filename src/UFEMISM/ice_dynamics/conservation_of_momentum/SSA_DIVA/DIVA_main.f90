@@ -29,6 +29,11 @@ module DIVA_main
   use solve_linearised_SSA_DIVA, only: solve_SSA_DIVA_linearised
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D, map_from_mesh_to_mesh_with_reallocation_3D
   use bed_roughness_model_types, only: type_bed_roughness_model
+  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
+  use mesh_graph_mapping, only: map_mesh_vertices_to_graph, map_graph_to_mesh_triangles
+  use mpi_f08, only: MPI_WIN
+  use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper, &
+    multiply_CSR_matrix_with_vector_2D_wrapper
 
   implicit none
 
@@ -193,7 +198,7 @@ contains
       call calc_vertical_shear_strain_rates( mesh, DIVA)
 
       ! Calculate the effective viscosity for the current velocity solution
-      call calc_effective_viscosity( mesh, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
+      call calc_effective_viscosity( mesh, graphs, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
       ! Calculate the F-integrals (Lipscomb et al. (2019), Eq. 30)
       call calc_F_integrals( mesh, ice, DIVA)
@@ -435,7 +440,39 @@ contains
 
   end subroutine calc_vertical_shear_strain_rates
 
-  subroutine calc_effective_viscosity( mesh, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
+  subroutine calc_effective_viscosity( mesh, graphs, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_model),                intent(inout) :: ice
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+    real(dp),                            intent(in   ) :: Glens_flow_law_epsilon_sq_0_applied
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_effective_viscosity'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%BC_ice_front)
+    case default
+      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
+    case ('infinite_slab')
+      call calc_effective_viscosity_infinite_slab( mesh, ice, &
+        DIVA, Glens_flow_law_epsilon_sq_0_applied)
+    case ('ocean_pressure')
+      call calc_effective_viscosity_ocean_pressure( mesh, graphs, ice, &
+        DIVA, Glens_flow_law_epsilon_sq_0_applied)
+    end select
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_effective_viscosity
+
+  subroutine calc_effective_viscosity_infinite_slab( mesh, ice, &
+    DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
     ! In/output variables:
     type(type_mesh),                     intent(in   ) :: mesh
@@ -444,7 +481,7 @@ contains
     real(dp),                            intent(in   ) :: Glens_flow_law_epsilon_sq_0_applied
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_effective_viscosity'
+    character(len=1024), parameter :: routine_name = 'calc_effective_viscosity_infinite_slab'
     integer                        :: vi,k
     real(dp)                       :: A_min, eta_max
     real(dp), dimension( mesh%nz)  :: prof
@@ -502,7 +539,123 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_effective_viscosity
+  end subroutine calc_effective_viscosity_infinite_slab
+
+  subroutine calc_effective_viscosity_ocean_pressure( mesh, graphs, ice, &
+    DIVA, Glens_flow_law_epsilon_sq_0_applied)
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_model),                intent(inout) :: ice
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+    real(dp),                            intent(in   ) :: Glens_flow_law_epsilon_sq_0_applied
+
+    ! Local variables:
+    character(len=1024), parameter    :: routine_name = 'calc_effective_viscosity_ocean_pressure'
+    integer                           :: vi,k
+    real(dp)                          :: A_min, eta_max
+    real(dp), dimension( mesh%nz)     :: prof
+    real(dp), dimension(:,:), pointer :: eta_3D_a_g => null()
+    real(dp), dimension(:,:), pointer :: eta_3D_b_g => null()
+    type(MPI_WIN)                     :: weta_3D_a_g, weta_3D_b_g
+    real(dp), dimension(:  ), pointer :: N_a_g      => null()
+    real(dp), dimension(:  ), pointer :: N_b_g      => null()
+    real(dp), dimension(:  ), pointer :: dN_dx_b_g  => null()
+    real(dp), dimension(:  ), pointer :: dN_dy_b_g  => null()
+    type(MPI_WIN)                     :: wN_a_g, wN_b_g, wdN_dx_b_g, wdN_dy_b_g
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( eta_3D_a_g, weta_3D_a_g, graphs%graph_a%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( eta_3D_b_g, weta_3D_b_g, graphs%graph_b%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( N_a_g     , wN_a_g     , graphs%graph_a%pai%n_nih)
+    call allocate_dist_shared( N_b_g     , wN_b_g     , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( dN_dx_b_g , wdN_dx_b_g , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( dN_dy_b_g , wdN_dy_b_g , graphs%graph_b%pai%n_nih)
+
+    ! Calculate maximum allowed effective viscosity, for stability
+    A_min = 1E-18_dp
+    eta_max = 0.5_dp * A_min**(-1._dp / C%Glens_flow_law_exponent) * (Glens_flow_law_epsilon_sq_0_applied)**((1._dp - C%Glens_flow_law_exponent)/(2._dp*C%Glens_flow_law_exponent))
+
+    ! Calculate the effective viscosity eta
+    if (C%choice_flow_law == 'Glen') then
+      ! Calculate the effective viscosity eta according to Glen's flow law
+
+      ! Calculate flow factors
+      call calc_ice_rheology_Glen( mesh, ice)
+
+      ! Calculate effective viscosity
+      do vi = mesh%vi1, mesh%vi2
+      do k  = 1, mesh%nz
+        DIVA%eta_3D_a( vi,k) = calc_effective_viscosity_Glen_3D_uv_only( &
+          Glens_flow_law_epsilon_sq_0_applied, &
+          DIVA%du_dx_a( vi), DIVA%du_dy_a( vi), DIVA%du_dz_3D_a( vi,k), &
+          DIVA%dv_dx_a( vi), DIVA%dv_dy_a( vi), DIVA%dv_dz_3D_a( vi,k), ice%A_flow( vi,k))
+      end do
+      end do
+
+    else
+      call crash('unknown choice_flow_law "' // TRIM( C%choice_flow_law) // '"!')
+    end if
+
+    ! Safety
+    DIVA%eta_3D_a = min( max( DIVA%eta_3D_a, C%visc_eff_min), eta_max)
+
+    ! Map effective viscosity to the b-grid
+    call map_mesh_vertices_to_graph( mesh, DIVA%eta_3D_a, graphs%graph_a, eta_3D_a_g)
+    call multiply_CSR_matrix_with_vector_2D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, eta_3D_a_g, graphs%graph_b%pai, eta_3D_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_gk_nih, buffer_yy_nih = graphs%graph_b%buffer2_gk_nih)
+    call map_graph_to_mesh_triangles( graphs%graph_b, eta_3D_b_g, mesh, DIVA%eta_3D_b)
+
+    ! Calculate vertically averaged effective viscosity on the a-grid
+    do vi = mesh%vi1, mesh%vi2
+      prof = DIVA%eta_3D_a( vi,:)
+      DIVA%eta_vav_a( vi) = vertical_average( mesh%zeta, prof)
+    end do
+
+    ! Calculate the product term N = eta * H on the a-grid
+    do vi = mesh%vi1, mesh%vi2
+      DIVA%N_a( vi) = DIVA%eta_vav_a( vi) * max( 0.1, ice%Hi( vi))
+    end do
+
+    ! Calculate the product term N and its gradients on the b-grid
+
+    call map_mesh_vertices_to_graph( mesh, DIVA%N_a, graphs%graph_a, N_a_g)
+
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, N_a_g, graphs%graph_b%pai, N_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddx_a_b, &
+      graphs%graph_a%pai, N_a_g, graphs%graph_b%pai, dN_dx_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddy_a_b, &
+      graphs%graph_a%pai, N_a_g, graphs%graph_b%pai, dN_dy_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+
+    call map_graph_to_mesh_triangles( graphs%graph_b, N_b_g,     mesh, DIVA%N_b    )
+    call map_graph_to_mesh_triangles( graphs%graph_b, dN_dx_b_g, mesh, DIVA%dN_dx_b)
+    call map_graph_to_mesh_triangles( graphs%graph_b, dN_dy_b_g, mesh, DIVA%dN_dy_b)
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( eta_3D_a_g, weta_3D_a_g)
+    call deallocate_dist_shared( eta_3D_b_g, weta_3D_b_g)
+    call deallocate_dist_shared( N_a_g     , wN_a_g     )
+    call deallocate_dist_shared( N_b_g     , wN_b_g     )
+    call deallocate_dist_shared( dN_dx_b_g , wdN_dx_b_g )
+    call deallocate_dist_shared( dN_dy_b_g , wdN_dy_b_g )
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_effective_viscosity_ocean_pressure
 
   subroutine calc_F_integrals( mesh, ice, DIVA)
     !< Calculate the F-integrals on the a-grid (Lipscomb et al. (2019), Eq. 30)
