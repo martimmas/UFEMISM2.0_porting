@@ -178,8 +178,10 @@ contains
       call calc_applied_basal_friction_coefficient( mesh, ice, bed_roughness, SSA)
 
       ! Solve the linearised SSA to calculate a new velocity solution
-      call solve_SSA_DIVA_linearised( mesh, SSA%u_b, SSA%v_b, SSA%N_b, SSA%dN_dx_b, SSA%dN_dy_b, &
-      SSA%basal_friction_coefficient_b, SSA%tau_dx_b, SSA%tau_dy_b, SSA%u_b_prev, SSA%v_b_prev, &
+      call solve_SSA_DIVA_linearised( mesh, graphs, SSA%u_b, SSA%v_b, SSA%N_b, &
+        ice%Hi, ice%Hb, ice%SL, &
+        SSA%dN_dx_b, SSA%dN_dy_b, &
+        SSA%basal_friction_coefficient_b, SSA%tau_dx_b, SSA%tau_dy_b, SSA%u_b_prev, SSA%v_b_prev, &
         SSA%PETSc_rtol, SSA%PETSc_abstol, n_Axb_its_visc_it, &
         BC_prescr_mask_b_applied, BC_prescr_u_b_applied, BC_prescr_v_b_applied)
 

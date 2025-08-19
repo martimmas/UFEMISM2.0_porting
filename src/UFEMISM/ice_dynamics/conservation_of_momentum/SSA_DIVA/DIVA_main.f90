@@ -207,7 +207,9 @@ contains
       call calc_effective_basal_friction_coefficient( mesh, ice, bed_roughness, DIVA)
 
       ! Solve the linearised DIVA to calculate a new velocity solution
-      call solve_SSA_DIVA_linearised( mesh, DIVA%u_vav_b, DIVA%v_vav_b, DIVA%N_b, DIVA%dN_dx_b, DIVA%dN_dy_b, &
+      call solve_SSA_DIVA_linearised( mesh, graphs, DIVA%u_vav_b, DIVA%v_vav_b, &
+        ice%Hi, ice%Hb, ice%SL, &
+        DIVA%N_b, DIVA%dN_dx_b, DIVA%dN_dy_b, &
         DIVA%beta_eff_b, DIVA%tau_dx_b, DIVA%tau_dy_b, DIVA%u_b_prev, DIVA%v_b_prev, &
         DIVA%PETSc_rtol, DIVA%PETSc_abstol, n_Axb_its_visc_it, &
         BC_prescr_mask_b_applied, BC_prescr_u_b_applied, BC_prescr_v_b_applied)
@@ -255,7 +257,7 @@ contains
       uv_max = maxval( DIVA%u_vav_b)
       call MPI_ALLREDUCE( MPI_IN_PLACE, uv_min, 1, MPI_doUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
       call MPI_ALLREDUCE( MPI_IN_PLACE, uv_max, 1, MPI_doUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
-      ! if (par%primary) WRITE(0,*) '    DIVA - viscosity iteration ', viscosity_iteration_i, ', u = [', uv_min, ' - ', uv_max, '], resid = ', resid_UV
+      ! if (par%primary) WRITE(0,*) '    DIVA - viscosity iteration ', viscosity_iteration_i, ', u = [', uv_min, ' - ', uv_max, '], L2_uv = ', L2_uv
 
       ! if the viscosity iteration has converged, or has reached the maximum allowed number of iterations, stop it.
       has_converged = .false.
@@ -268,6 +270,22 @@ contains
         if (par%primary) call warning('viscosity iteration failed to converge within {int_01} iterations!', int_01 = C%visc_it_nit)
         exit viscosity_iteration
       end if
+
+      ! ! DENK DROM
+      ! if (viscosity_iteration_i == 1) then
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%du_dx_a  , 'du_dx_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%du_dy_a  , 'du_dy_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%dv_dx_a  , 'dv_dx_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%dv_dy_a  , 'dv_dy_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%eta_vav_a, 'eta_vav_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%N_a      , 'N_a')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%N_b      , 'N_b')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%dN_dx_b  , 'dN_dx_b')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%dN_dy_b  , 'dN_dy_b')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%u_vav_b  , 'u_vav_b')
+      !   call save_variable_as_netcdf_dp_1D( trim( C%output_dir), DIVA%v_vav_b  , 'v_vav_b')
+      !   call crash('whoopsiedaisy')
+      ! end if
 
     end do viscosity_iteration
 

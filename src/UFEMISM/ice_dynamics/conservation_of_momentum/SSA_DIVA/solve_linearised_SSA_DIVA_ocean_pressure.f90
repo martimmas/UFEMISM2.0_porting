@@ -4,30 +4,43 @@ module solve_linearised_SSA_DIVA_ocean_pressure
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
   use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
   use CSR_matrix_basics, only: allocate_matrix_CSR_dist, add_entry_CSR_dist, read_single_row_CSR_dist, &
     finalise_matrix_CSR_dist
   use mesh_utilities, only: find_ti_copy_ISMIP_HOM_periodic, find_ti_copy_SSA_icestream_infinite
   use mpi_distributed_memory, only: gather_to_all
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
+  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared, &
+    gather_dist_shared_to_all
+  use mpi_f08, only: MPI_WIN
+  use mesh_graph_mapping, only: map_mesh_triangles_to_graph, map_graph_to_mesh_triangles, &
+    map_mesh_vertices_to_graph_ghost_nodes
+  use ice_geometry_basics, only: height_of_water_column_at_ice_front
+  use parameters, only: ice_density, seawater_density, grav
+
+  use netcdf_io_main
 
   implicit none
 
   private
 
-  public :: solve_SSA_DIVA_linearised_ocean_pressure, calc_SSA_DIVA_stiffness_matrix_row_BC, &
-    calc_SSA_DIVA_stiffness_matrix_row_free, calc_SSA_DIVA_sans_stiffness_matrix_row_free
+  public :: solve_SSA_DIVA_linearised_ocean_pressure
 
 contains
 
-  subroutine solve_SSA_DIVA_linearised_ocean_pressure( mesh, u_b, v_b, N_b, dN_dx_b, dN_dy_b, &
+  subroutine solve_SSA_DIVA_linearised_ocean_pressure( mesh, graphs, u_b, v_b, &
+    Hi_a, Hb_a, SL_a, &
+    N_b, dN_dx_b, dN_dy_b, &
     basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
     PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
     !< Solve the linearised SSA
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
+    type(type_graph_pair),                  intent(in   ) :: graphs
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(inout) :: u_b, v_b
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(inout) :: Hi_a, Hb_a, SL_a
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: N_b, dN_dx_b, dN_dy_b
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: basal_friction_coefficient_b
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: tau_dx_b, tau_dy_b
@@ -40,61 +53,110 @@ contains
 
     ! Local variables:
     character(len=1024), parameter      :: routine_name = 'solve_SSA_DIVA_linearised_ocean_pressure'
-    ! integer                             :: ncols, ncols_loc, nrows, nrows_loc, nnz_est_proc
-    ! type(type_sparse_matrix_CSR_dp)     :: A_CSR
-    ! real(dp), dimension(:), allocatable :: bb
-    ! real(dp), dimension(:), allocatable :: uv_buv
-    ! integer                             :: row_tiuv,ti,uv
-    ! character(len=256)                  :: choice_BC_u, choice_BC_v
+
+    real(dp), dimension(:), pointer     :: u_b_g     => null()
+    real(dp), dimension(:), pointer     :: v_b_g     => null()
+    type(MPI_WIN)                       :: wu_b_g, wv_b_g
+    real(dp), dimension(:), pointer     :: Hi_b_ggh  => null()
+    real(dp), dimension(:), pointer     :: Hb_b_ggh  => null()
+    real(dp), dimension(:), pointer     :: SL_b_ggh  => null()
+    real(dp), dimension(:), pointer     :: Ho_b_ggh  => null()
+    type(MPI_WIN)                       :: wHi_b_ggh, wHb_b_ggh, wSL_b_ggh, wHo_b_ggh
+    real(dp), dimension(:), pointer     :: N_b_g     => null()
+    real(dp), dimension(:), pointer     :: dN_dx_b_g => null()
+    real(dp), dimension(:), pointer     :: dN_dy_b_g => null()
+    type(MPI_WIN)                       :: wN_b_g, wdN_dx_b_g, wdN_dy_b_g
+    real(dp), dimension(:), pointer     :: basal_friction_coefficient_b_g => null()
+    real(dp), dimension(:), pointer     :: tau_dx_b_g => null()
+    real(dp), dimension(:), pointer     :: tau_dy_b_g => null()
+    type(MPI_WIN)                       :: wbasal_friction_coefficient_b_g, wtau_dx_b_g, wtau_dy_b_g
+
+    integer                             :: ncols, ncols_loc, nrows, nrows_loc, nnz_est_proc
+    type(type_sparse_matrix_CSR_dp)     :: A_CSR
+    real(dp), dimension(:), allocatable :: bb_b_g
+    real(dp), dimension(:), allocatable :: uv_buv_g
+    integer                             :: row_niuv, ni, uv
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    call crash('fixme!')
+    ! Store the previous solution
+    call gather_to_all( u_b, u_b_prev)
+    call gather_to_all( v_b, v_b_prev)
 
-    ! ! Store the previous solution
-    ! call gather_to_all( u_b, u_b_prev)
-    ! call gather_to_all( v_b, v_b_prev)
+    ! Allocate hybrid distrobuted/shared memory
+    call allocate_dist_shared( u_b_g                         , wu_b_g                         , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( v_b_g                         , wv_b_g                         , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Hi_b_ggh                      , wHi_b_ggh                      , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Hb_b_ggh                      , wHb_b_ggh                      , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( SL_b_ggh                      , wSL_b_ggh                      , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Ho_b_ggh                      , wHo_b_ggh                      , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( N_b_g                         , wN_b_g                         , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( basal_friction_coefficient_b_g, wbasal_friction_coefficient_b_g, graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( tau_dx_b_g                    , wtau_dx_b_g                    , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( tau_dy_b_g                    , wtau_dy_b_g                    , graphs%graph_b%pai%n_nih)
 
-    ! ! == Initialise the stiffness matrix using the native UFEMISM CSR-matrix format
-    ! ! =============================================================================
+    ! Map ice model data from the mesh triangles to the b-graph
+    call map_mesh_triangles_to_graph           ( mesh, u_b                         , graphs%graph_b, u_b_g                         )
+    call map_mesh_triangles_to_graph           ( mesh, v_b                         , graphs%graph_b, v_b_g                         )
+    call map_mesh_vertices_to_graph_ghost_nodes( mesh, Hi_a                        , graphs%graph_b, Hi_b_ggh                      )
+    call map_mesh_vertices_to_graph_ghost_nodes( mesh, Hb_a                        , graphs%graph_b, Hb_b_ggh                      )
+    call map_mesh_vertices_to_graph_ghost_nodes( mesh, SL_a                        , graphs%graph_b, SL_b_ggh                      )
+    call map_mesh_triangles_to_graph           ( mesh, N_b                         , graphs%graph_b, N_b_g                         )
+    call map_mesh_triangles_to_graph           ( mesh, dN_dx_b                     , graphs%graph_b, dN_dx_b_g                     )
+    call map_mesh_triangles_to_graph           ( mesh, dN_dy_b                     , graphs%graph_b, dN_dy_b_g                     )
+    call map_mesh_triangles_to_graph           ( mesh, basal_friction_coefficient_b, graphs%graph_b, basal_friction_coefficient_b_g)
+    call map_mesh_triangles_to_graph           ( mesh, tau_dx_b                    , graphs%graph_b, tau_dx_b_g                    )
+    call map_mesh_triangles_to_graph           ( mesh, tau_dy_b                    , graphs%graph_b, tau_dy_b_g                    )
 
-    ! ! Matrix size
-    ! ncols           = mesh%nTri     * 2      ! from
-    ! ncols_loc       = mesh%nTri_loc * 2
-    ! nrows           = mesh%nTri     * 2      ! to
-    ! nrows_loc       = mesh%nTri_loc * 2
-    ! nnz_est_proc    = mesh%M2_ddx_b_b%nnz * 4
+    ! Calculate height of the water column in contact with the ice front
+    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
+      if (graphs%graph_b%is_ghost( ni)) then
+        Ho_b_ggh( ni) = height_of_water_column_at_ice_front( Hi_b_ggh( ni), Hb_b_ggh( ni), SL_b_ggh( ni))
+      end if
+    end do
 
-    ! call allocate_matrix_CSR_dist( A_CSR, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc)
+    ! == Initialise the stiffness matrix using the native UFEMISM CSR-matrix format
+    ! =============================================================================
 
-    ! ! allocate memory for the load vector and the solution
-    ! allocate( bb(     mesh%ti1*2-1: mesh%ti2*2))
-    ! allocate( uv_buv( mesh%ti1*2-1: mesh%ti2*2))
+    ! Matrix size
+    ncols           = graphs%graph_b%n     * 2      ! from
+    ncols_loc       = graphs%graph_b%n_loc * 2
+    nrows           = graphs%graph_b%n     * 2      ! to
+    nrows_loc       = graphs%graph_b%n_loc * 2
+    nnz_est_proc    = graphs%M2_ddx_b_b%nnz * 4
 
-    ! ! Fill in the current velocity solution
-    ! do ti = mesh%ti1, mesh%ti2
+    call allocate_matrix_CSR_dist( A_CSR, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc)
 
-    !   ! u
-    !   row_tiuv = mesh%tiuv2n( ti,1)
-    !   uv_buv( row_tiuv) = u_b( ti)
+    ! Allocate memory for the load vector and the solution
+    allocate( bb_b_g(   graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2))
+    allocate( uv_buv_g( graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2))
 
-    !   ! v
-    !   row_tiuv = mesh%tiuv2n( ti,2)
-    !   uv_buv( row_tiuv) = v_b( ti)
+    ! Fill in the current velocity solution
+    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
 
-    ! end do
+      ! u
+      row_niuv = graphs%biuv2n( ni,1)
+      uv_buv_g( row_niuv) = u_b_g( ni)
 
-    ! ! == Construct the stiffness matrix for the linearised SSA
-    ! ! ========================================================
+      ! v
+      row_niuv = graphs%biuv2n( ni,2)
+      uv_buv_g( row_niuv) = v_b_g( ni)
 
-    ! do row_tiuv = A_CSR%i1, A_CSR%i2
+    end do
 
-    !   ti = mesh%n2tiuv( row_tiuv,1)
-    !   uv = mesh%n2tiuv( row_tiuv,2)
+    ! == Construct the stiffness matrix for the linearised SSA
+    ! ========================================================
 
-    !   if (BC_prescr_mask_b( ti) == 1) then
-    !     ! Dirichlet boundary condition; velocities are prescribed for this triangle
+    do row_niuv = A_CSR%i1, A_CSR%i2
+
+      ni = graphs%n2biuv( row_niuv,1)
+      uv = graphs%n2biuv( row_niuv,2)
+
+      ! if (BC_prescr_mask_b( ti) == 1) then
+      !   ! Dirichlet boundary condition; velocities are prescribed for this triangle
 
     !     ! Stiffness matrix: diagonal element set to 1
     !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, 1._dp)
@@ -108,79 +170,76 @@ contains
     !       call crash('uv can only be 1 or 2!')
     !     end if
 
-    !   elseif (mesh%TriBI( ti) > 0) then
-    !     ! Domain border: apply boundary conditions
+      if (graphs%graph_b%is_ghost( ni)) then
+        ! Ice margin: apply ocean pressure boundary condition
 
-    !     select case (mesh%TriBI( ti))
-    !     case default
-    !       call crash('invalid TriBI value at triangle {int_01}', int_01 = ti)
-    !     case (1,2)
-    !       ! Northern domain border
-    !       choice_BC_u = C%BC_u_north
-    !       choice_BC_v = C%BC_v_north
-    !     case (3,4)
-    !       ! Eastern domain border
-    !       choice_BC_u = C%BC_u_east
-    !       choice_BC_v = C%BC_v_east
-    !     case (5,6)
-    !       ! Southern domain border
-    !       choice_BC_u = C%BC_u_south
-    !       choice_BC_v = C%BC_v_south
-    !     case (7,8)
-    !       ! Western domain border
-    !       choice_BC_u = C%BC_u_west
-    !       choice_BC_v = C%BC_v_west
-    !     end select
+        call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, &
+          N_b_g, Hi_b_ggh, Ho_b_ggh, A_CSR, bb_b_g, row_niuv)
 
-    !     call calc_SSA_DIVA_stiffness_matrix_row_BC( mesh, u_b_prev, v_b_prev, &
-    !       A_CSR, bb, row_tiuv, choice_BC_u, choice_BC_v)
+      else
+        ! No boundary conditions apply; solve the SSA
 
-    !   else
-    !     ! No boundary conditions apply; solve the SSA
+        if (C%do_include_SSADIVA_crossterms) then
+          ! Calculate matrix coefficients for the full SSA/DIVA
+          call calc_SSA_DIVA_stiffness_matrix_row_free( graphs, N_b_g, dN_dx_b_g, dN_dy_b_g, &
+            basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+        else
+          ! Calculate matrix coefficients for the SSA sans the gradients of the effective viscosity (the "cross-terms")
+          call calc_SSA_DIVA_sans_stiffness_matrix_row_free( graphs, N_b_g, &
+            basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+        end if
 
-    !     if (C%do_include_SSADIVA_crossterms) then
-    !       ! Calculate matrix coefficients for the full SSA
-    !       call calc_SSA_DIVA_stiffness_matrix_row_free( mesh, N_b, dN_dx_b, dN_dy_b, &
-    !         basal_friction_coefficient_b, tau_dx_b, tau_dy_b, A_CSR, bb, row_tiuv)
-    !     else
-    !       ! Calculate matrix coefficients for the SSA sans the gradients of the effective viscosity (the "cross-terms")
-    !       call calc_SSA_DIVA_sans_stiffness_matrix_row_free( mesh, N_b, &
-    !         basal_friction_coefficient_b, tau_dx_b, tau_dy_b, A_CSR, bb, row_tiuv)
-    !     end if
+      end if
 
-    !   end if
+    end do
 
-    ! end do
-
-    ! call finalise_matrix_CSR_dist( A_CSR)
+    call finalise_matrix_CSR_dist( A_CSR)
 
     ! ! == Solve the matrix equation
     ! ! ============================
 
-    ! ! Use PETSc to solve the matrix equation
-    ! call solve_matrix_equation_CSR_PETSc( A_CSR, bb, uv_buv, PETSc_rtol, PETSc_abstol, &
-    !   n_Axb_its)
+    ! Use PETSc to solve the matrix equation
+    call solve_matrix_equation_CSR_PETSc( A_CSR, bb_b_g, uv_buv_g, PETSc_rtol, PETSc_abstol, &
+      n_Axb_its)
 
-    ! ! Disentangle the u and v components of the velocity solution
-    ! do ti = mesh%ti1, mesh%ti2
+    ! Disentangle the u and v components of the velocity solution
+    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
 
-    !   ! u
-    !   row_tiuv = mesh%tiuv2n( ti,1)
-    !   u_b( ti) = uv_buv( row_tiuv)
+      ! u
+      row_niuv = graphs%biuv2n( ni,1)
+      u_b_g( ni) = uv_buv_g( row_niuv)
 
-    !   ! v
-    !   row_tiuv = mesh%tiuv2n( ti,2)
-    !   v_b( ti) = uv_buv( row_tiuv)
+      ! v
+      row_niuv = graphs%biuv2n( ni,2)
+      v_b_g( ni) = uv_buv_g( row_niuv)
 
-    ! end do
+    end do
+
+    ! Map velocity solution from the b-graph to the mesh triangles
+    call map_graph_to_mesh_triangles( graphs%graph_b, u_b_g, mesh, u_b)
+    call map_graph_to_mesh_triangles( graphs%graph_b, v_b_g, mesh, v_b)
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( u_b_g                         , wu_b_g                         )
+    call deallocate_dist_shared( v_b_g                         , wv_b_g                         )
+    call deallocate_dist_shared( Hi_b_ggh                      , wHi_b_ggh                      )
+    call deallocate_dist_shared( Hb_b_ggh                      , wHb_b_ggh                      )
+    call deallocate_dist_shared( SL_b_ggh                      , wSL_b_ggh                      )
+    call deallocate_dist_shared( Ho_b_ggh                      , wHo_b_ggh                      )
+    call deallocate_dist_shared( N_b_g                         , wN_b_g                         )
+    call deallocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     )
+    call deallocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     )
+    call deallocate_dist_shared( basal_friction_coefficient_b_g, wbasal_friction_coefficient_b_g)
+    call deallocate_dist_shared( tau_dx_b_g                    , wtau_dx_b_g                    )
+    call deallocate_dist_shared( tau_dy_b_g                    , wtau_dy_b_g                    )
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine solve_SSA_DIVA_linearised_ocean_pressure
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_free( mesh, N_b, dN_dx_b, dN_dy_b, &
-    basal_friction_coefficient_b, tau_dx_b, tau_dy_b, A_CSR, bb, row_tiuv)
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_free( graphs, N_b_g, dN_dx_b_g, dN_dy_b_g, &
+    basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
     !< Add coefficients to this matrix row to represent the linearised SSA
 
     ! The SSA reads;
@@ -204,136 +263,130 @@ contains
     !
     !   4 N d2v/dy2  + 4 dN/dy dv/dy + N d2v/dx2 + dN/dx dv/dx - beta_b v + ...
     !   3 N d2u/dxdy + 2 dN/dy du/dx +             dN/dx du/dy = -tau_dy
-    !
-    ! We define the velocities u,v, the basal friction coefficient beta_b, and the driving
-    ! stress tau_d on the b-grid (triangles), and the effective viscosity eta and the
-    ! product term N = eta H on the a-grid (vertices).
 
     ! In/output variables:
-    type(type_mesh),                               intent(in   ) :: mesh
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: N_b, dN_dx_b, dN_dy_b
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: basal_friction_coefficient_b
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: tau_dx_b, tau_dy_b
-    type(type_sparse_matrix_CSR_dp),               intent(inout) :: A_CSR
-    real(dp), dimension(mesh%ti1*2-1: mesh%ti2*2), intent(inout) :: bb
-    integer,                                       intent(in   ) :: row_tiuv
+    type(type_graph_pair),                                                    intent(in   ) :: graphs
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, dN_dx_b_g, dN_dy_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b_g, tau_dy_b_g
+    type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
+    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b_g
+    integer,                                                                  intent(in   ) :: row_niuv
 
-    ! ! Local variables:
-    ! integer                             :: ti, uv
-    ! real(dp)                            :: N, dN_dx, dN_dy, basal_friction_coefficient, tau_dx, tau_dy
-    ! integer,  dimension(:), allocatable :: single_row_ind
-    ! real(dp), dimension(:), allocatable :: single_row_ddx_val
-    ! real(dp), dimension(:), allocatable :: single_row_ddy_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dx2_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dxdy_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dy2_val
-    ! integer                             :: single_row_nnz
-    ! real(dp)                            :: Au, Av
-    ! integer                             :: k, tj, col_tju, col_tjv
+    ! Local variables:
+    integer                             :: ni, uv
+    real(dp)                            :: N, dN_dx, dN_dy, basal_friction_coefficient, tau_dx, tau_dy
+    integer,  dimension(:), allocatable :: single_row_ind
+    real(dp), dimension(:), allocatable :: single_row_ddx_val
+    real(dp), dimension(:), allocatable :: single_row_ddy_val
+    real(dp), dimension(:), allocatable :: single_row_d2dx2_val
+    real(dp), dimension(:), allocatable :: single_row_d2dxdy_val
+    real(dp), dimension(:), allocatable :: single_row_d2dy2_val
+    integer                             :: single_row_nnz
+    real(dp)                            :: Au, Av
+    integer                             :: k, nj, col_nju, col_njv
 
-    call crash('fixme!')
+    ! Relevant indices for this graph node
+    ni = graphs%n2biuv( row_niuv,1)
+    uv = graphs%n2biuv( row_niuv,2)
 
-    ! ! Relevant indices for this triangle
-    ! ti = mesh%n2tiuv( row_tiuv,1)
-    ! uv = mesh%n2tiuv( row_tiuv,2)
+    ! N, dN/dx, dN/dy, basal_friction_coefficient_b, tau_dx, and tau_dy on this graph node
+    N                          = N_b_g                         ( ni)
+    dN_dx                      = dN_dx_b_g                     ( ni)
+    dN_dy                      = dN_dy_b_g                     ( ni)
+    basal_friction_coefficient = basal_friction_coefficient_b_g( ni)
+    tau_dx                     = tau_dx_b_g                    ( ni)
+    tau_dy                     = tau_dy_b_g                    ( ni)
 
-    ! ! N, dN/dx, dN/dy, basal_friction_coefficient_b, tau_dx, and tau_dy on this triangle
-    ! N                          = N_b(      ti)
-    ! dN_dx                      = dN_dx_b(  ti)
-    ! dN_dy                      = dN_dy_b(  ti)
-    ! basal_friction_coefficient = basal_friction_coefficient_b( ti)
-    ! tau_dx                     = tau_dx_b( ti)
-    ! tau_dy                     = tau_dy_b( ti)
+    ! allocate memory for single matrix rows
+    allocate( single_row_ind(        graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddx_val(    graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddy_val(    graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dx2_val(  graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dxdy_val( graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dy2_val(  graphs%graph_a%nC_mem*2))
 
-    ! ! allocate memory for single matrix rows
-    ! allocate( single_row_ind(        mesh%nC_mem*2))
-    ! allocate( single_row_ddx_val(    mesh%nC_mem*2))
-    ! allocate( single_row_ddy_val(    mesh%nC_mem*2))
-    ! allocate( single_row_d2dx2_val(  mesh%nC_mem*2))
-    ! allocate( single_row_d2dxdy_val( mesh%nC_mem*2))
-    ! allocate( single_row_d2dy2_val(  mesh%nC_mem*2))
+    ! Read coefficients of the operator matrices
+    call read_single_row_CSR_dist( graphs%M2_ddx_b_b   , ni, single_row_ind, single_row_ddx_val   , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_ddy_b_b   , ni, single_row_ind, single_row_ddy_val   , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dx2_b_b , ni, single_row_ind, single_row_d2dx2_val , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dxdy_b_b, ni, single_row_ind, single_row_d2dxdy_val, single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dy2_b_b , ni, single_row_ind, single_row_d2dy2_val , single_row_nnz)
 
-    ! ! Read coefficients of the operator matrices
-    ! call read_single_row_CSR_dist( mesh%M2_ddx_b_b   , ti, single_row_ind, single_row_ddx_val   , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_ddy_b_b   , ti, single_row_ind, single_row_ddy_val   , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dx2_b_b , ti, single_row_ind, single_row_d2dx2_val , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dxdy_b_b, ti, single_row_ind, single_row_d2dxdy_val, single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dy2_b_b , ti, single_row_ind, single_row_d2dy2_val , single_row_nnz)
+    if (uv == 1) then
+      ! x-component
 
-    ! if (uv == 1) then
-    !   ! x-component
+      do k = 1, single_row_nnz
 
-    !   do k = 1, single_row_nnz
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    !     ! Relevant indices for this neighbouring triangle
-    !     tj      = single_row_ind( k)
-    !     col_tju = mesh%tiuv2n( tj,1)
-    !     col_tjv = mesh%tiuv2n( tj,2)
+        !   4 N d2u/dx2  + 4 dN/dx du/dx + N d2u/dy2 + dN/dy du/dy - beta_b u + ...
+        !   3 N d2v/dxdy + 2 dN/dx dv/dy +             dN/dy dv/dx = -tau_dx
 
-    !     !   4 N d2u/dx2  + 4 dN/dx du/dx + N d2u/dy2 + dN/dy du/dy - beta_b u + ...
-    !     !   3 N d2v/dxdy + 2 dN/dx dv/dy +             dN/dy dv/dx = -tau_dx
+        ! Combine the mesh operators
+        Au = 4._dp * N     * single_row_d2dx2_val(  k) + &  ! 4  N    d2u/dx2
+             4._dp * dN_dx * single_row_ddx_val(    k) + &  ! 4 dN/dx du/dx
+                     N     * single_row_d2dy2_val(  k) + &  !    N    d2u/dy2
+                     dN_dy * single_row_ddy_val(    k)      !   dN/dy du/dy
+        if (nj == ni) Au = Au - basal_friction_coefficient  ! - beta_b u
 
-    !     ! Combine the mesh operators
-    !     Au = 4._dp * N     * single_row_d2dx2_val(  k) + &  ! 4  N    d2u/dx2
-    !         4._dp * dN_dx * single_row_ddx_val(    k) + &  ! 4 dN/dx du/dx
-    !                 N     * single_row_d2dy2_val(  k) + &  !    N    d2u/dy2
-    !                 dN_dy * single_row_ddy_val(    k)      !   dN/dy du/dy
-    !     if (tj == ti) Au = Au - basal_friction_coefficient  ! - beta_b u
+        Av = 3._dp * N     * single_row_d2dxdy_val( k) + &  ! 3  N    d2v/dxdy
+             2._dp * dN_dx * single_row_ddy_val(    k) + &  ! 2 dN/dx dv/dy
+                     dN_dy * single_row_ddx_val(    k)      !   dN/dy dv/dx
 
-    !     Av = 3._dp * N     * single_row_d2dxdy_val( k) + &  ! 3  N    d2v/dxdy
-    !         2._dp * dN_dx * single_row_ddy_val(    k) + &  ! 2 dN/dx dv/dy
-    !                 dN_dy * single_row_ddx_val(    k)      !   dN/dy dv/dx
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !     ! Add coefficients to the stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tju, Au)
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjv, Av)
+      end do
 
-    !   end do
+      ! Load vector
+      bb_b_g( row_niuv) = -tau_dx
 
-    !   ! Load vector
-    !   bb( row_tiuv) = -tau_dx
+    elseif (uv == 2) then
+      ! y-component
 
-    ! elseif (uv == 2) then
-    !   ! y-component
+      do k = 1, single_row_nnz
 
-    !   do k = 1, single_row_nnz
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    !     ! Relevant indices for this neighbouring triangle
-    !     tj      = single_row_ind( k)
-    !     col_tju = mesh%tiuv2n( tj,1)
-    !     col_tjv = mesh%tiuv2n( tj,2)
+        !   4 N d2v/dy2  + 4 dN/dy dv/dy + N d2v/dx2 + dN/dx dv/dx - beta_b v + ...
+        !   3 N d2u/dxdy + 2 dN/dy du/dx +             dN/dx du/dy = -tau_dy
 
-    !     !   4 N d2v/dy2  + 4 dN/dy dv/dy + N d2v/dx2 + dN/dx dv/dx - beta_b v + ...
-    !     !   3 N d2u/dxdy + 2 dN/dy du/dx +             dN/dx du/dy = -tau_dy
+        ! Combine the mesh operators
+        Av = 4._dp * N     * single_row_d2dy2_val(  k) + &  ! 4  N    d2v/dy2
+             4._dp * dN_dy * single_row_ddy_val(    k) + &  ! 4 dN/dy dv/dy
+                     N     * single_row_d2dx2_val(  k) + &  !    N    d2v/dx2
+                     dN_dx * single_row_ddx_val(    k)      !   dN/dx dv/dx
+        if (nj == ni) Av = Av - basal_friction_coefficient  ! - beta_b v
 
-    !     ! Combine the mesh operators
-    !     Av = 4._dp * N     * single_row_d2dy2_val(  k) + &  ! 4  N    d2v/dy2
-    !         4._dp * dN_dy * single_row_ddy_val(    k) + &  ! 4 dN/dy dv/dy
-    !                 N     * single_row_d2dx2_val(  k) + &  !    N    d2v/dx2
-    !                 dN_dx * single_row_ddx_val(    k)      !   dN/dx dv/dx
-    !     if (tj == ti) Av = Av - basal_friction_coefficient  ! - beta_b v
+        Au = 3._dp * N     * single_row_d2dxdy_val( k) + &  ! 3  N    d2u/dxdy
+             2._dp * dN_dy * single_row_ddx_val(    k) + &  ! 2 dN/dy du/dx
+                     dN_dx * single_row_ddy_val(    k)      !   dN/dx du/dy
 
-    !     Au = 3._dp * N     * single_row_d2dxdy_val( k) + &  ! 3  N    d2u/dxdy
-    !         2._dp * dN_dy * single_row_ddx_val(    k) + &  ! 2 dN/dy du/dx
-    !                 dN_dx * single_row_ddy_val(    k)      !   dN/dx du/dy
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !     ! Add coefficients to the stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tju, Au)
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjv, Av)
+      end do
 
-    !   end do
+      ! Load vector
+      bb_b_g( row_niuv) = -tau_dy
 
-    !   ! Load vector
-    !   bb( row_tiuv) = -tau_dy
-
-    ! else
-    !   call crash('uv can only be 1 or 2!')
-    ! end if
+    else
+      call crash('uv can only be 1 or 2!')
+    end if
 
   end subroutine calc_SSA_DIVA_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free( mesh, N_b, basal_friction_coefficient_b, &
-    tau_dx_b, tau_dy_b, A_CSR, bb, row_tiuv)
+  subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free( graphs, N_b_g, basal_friction_coefficient_b_g, &
+    tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
     !< Add coefficients to this matrix row to represent the linearised SSA
     !< sans the gradients of the effective viscosity (the "cross-terms")
 
@@ -368,284 +421,241 @@ contains
     ! The "sans" option makes the solver quite a lot more stable and therefore faster.
     ! Someone really ought to perform some proper experiments to determine whether or not
     ! this should be the default.
-    !
-    ! We define the velocities u,v, the basal friction coefficient beta_b, and the driving
-    ! stress tau_d on the b-grid (triangles), and the effective viscosity eta and the
-    ! product term N = eta H on the a-grid (vertices).
 
     ! In/output variables:
-    type(type_mesh),                               intent(in   ) :: mesh
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: N_b
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: basal_friction_coefficient_b
-    real(dp), dimension(mesh%ti1:mesh%ti2),        intent(in   ) :: tau_dx_b, tau_dy_b
-    type(type_sparse_matrix_CSR_dp),               intent(inout) :: A_CSR
-    real(dp), dimension(mesh%ti1*2-1: mesh%ti2*2), intent(inout) :: bb
-    integer,                                       intent(in   ) :: row_tiuv
+    type(type_graph_pair),                                                    intent(in   ) :: graphs
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b_g, tau_dy_b_g
+    type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
+    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b_g
+    integer,                                                                  intent(in   ) :: row_niuv
 
-    ! ! Local variables:
-    ! integer                             :: ti, uv
-    ! real(dp)                            :: N, basal_friction_coefficient, tau_dx, tau_dy
-    ! integer,  dimension(:), allocatable :: single_row_ind
-    ! real(dp), dimension(:), allocatable :: single_row_ddx_val
-    ! real(dp), dimension(:), allocatable :: single_row_ddy_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dx2_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dxdy_val
-    ! real(dp), dimension(:), allocatable :: single_row_d2dy2_val
-    ! integer                             :: single_row_nnz
-    ! real(dp)                            :: Au, Av
-    ! integer                             :: k, tj, col_tju, col_tjv
+    ! Local variables:
+    integer                             :: ni, uv
+    real(dp)                            :: N, basal_friction_coefficient, tau_dx, tau_dy
+    integer,  dimension(:), allocatable :: single_row_ind
+    real(dp), dimension(:), allocatable :: single_row_ddx_val
+    real(dp), dimension(:), allocatable :: single_row_ddy_val
+    real(dp), dimension(:), allocatable :: single_row_d2dx2_val
+    real(dp), dimension(:), allocatable :: single_row_d2dxdy_val
+    real(dp), dimension(:), allocatable :: single_row_d2dy2_val
+    integer                             :: single_row_nnz
+    real(dp)                            :: Au, Av
+    integer                             :: k, nj, col_nju, col_njv
 
-    call crash('fixme!')
+    ! Relevant indices for this triangle
+    ni = graphs%n2biuv( row_niuv,1)
+    uv = graphs%n2biuv( row_niuv,2)
 
-    ! ! Relevant indices for this triangle
-    ! ti = mesh%n2tiuv( row_tiuv,1)
-    ! uv = mesh%n2tiuv( row_tiuv,2)
+    ! N, beta_b, tau_dx, and tau_dy on this graph node
+    N                          = N_b_g                         ( ni)
+    basal_friction_coefficient = basal_friction_coefficient_b_g( ni)
+    tau_dx                     = tau_dx_b_g                    ( ni)
+    tau_dy                     = tau_dy_b_g                    ( ni)
 
-    ! ! N, beta_b, tau_dx, and tau_dy on this triangle
-    ! N                          = N_b(      ti)
-    ! basal_friction_coefficient = basal_friction_coefficient_b( ti)
-    ! tau_dx                     = tau_dx_b( ti)
-    ! tau_dy                     = tau_dy_b( ti)
+    ! allocate memory for single matrix rows
+    allocate( single_row_ind(        graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddx_val(    graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddy_val(    graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dx2_val(  graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dxdy_val( graphs%graph_a%nC_mem*2))
+    allocate( single_row_d2dy2_val(  graphs%graph_a%nC_mem*2))
 
-    ! ! allocate memory for single matrix rows
-    ! allocate( single_row_ind(        mesh%nC_mem*2))
-    ! allocate( single_row_ddx_val(    mesh%nC_mem*2))
-    ! allocate( single_row_ddy_val(    mesh%nC_mem*2))
-    ! allocate( single_row_d2dx2_val(  mesh%nC_mem*2))
-    ! allocate( single_row_d2dxdy_val( mesh%nC_mem*2))
-    ! allocate( single_row_d2dy2_val(  mesh%nC_mem*2))
+    ! Read coefficients of the operator matrices
+    call read_single_row_CSR_dist( graphs%M2_ddx_b_b   , ni, single_row_ind, single_row_ddx_val   , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_ddy_b_b   , ni, single_row_ind, single_row_ddy_val   , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dx2_b_b , ni, single_row_ind, single_row_d2dx2_val , single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dxdy_b_b, ni, single_row_ind, single_row_d2dxdy_val, single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M2_d2dy2_b_b , ni, single_row_ind, single_row_d2dy2_val , single_row_nnz)
 
-    ! ! Read coefficients of the operator matrices
-    ! call read_single_row_CSR_dist( mesh%M2_ddx_b_b   , ti, single_row_ind, single_row_ddx_val   , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_ddy_b_b   , ti, single_row_ind, single_row_ddy_val   , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dx2_b_b , ti, single_row_ind, single_row_d2dx2_val , single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dxdy_b_b, ti, single_row_ind, single_row_d2dxdy_val, single_row_nnz)
-    ! call read_single_row_CSR_dist( mesh%M2_d2dy2_b_b , ti, single_row_ind, single_row_d2dy2_val , single_row_nnz)
+    if (uv == 1) then
+      ! x-component
 
-    ! if (uv == 1) then
-    !   ! x-component
+      do k = 1, single_row_nnz
 
-    !   do k = 1, single_row_nnz
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    !     ! Relevant indices for this neighbouring triangle
-    !     tj      = single_row_ind( k)
-    !     col_tju = mesh%tiuv2n( tj,1)
-    !     col_tjv = mesh%tiuv2n( tj,2)
+        !   4 d2u/dx2 + d2u/dy2 + 3 d2v/dxdy - beta_b u / N = -tau_dx / N
 
-    !     !   4 d2u/dx2 + d2u/dy2 + 3 d2v/dxdy - beta_b u / N = -tau_dx / N
+        ! Combine the mesh operators
+        Au = 4._dp * single_row_d2dx2_val(  k) + &             ! 4 d2u/dx2
+                     single_row_d2dy2_val(  k)                 !   d2u/dy2
+        if (nj == ni) Au = Au - basal_friction_coefficient / N ! - beta_b u / N
 
-    !     ! Combine the mesh operators
-    !     Au = 4._dp * single_row_d2dx2_val(  k) + &             ! 4 d2u/dx2
-    !                 single_row_d2dy2_val(  k)                 !   d2u/dy2
-    !     if (tj == ti) Au = Au - basal_friction_coefficient / N ! - beta_b u / N
+        Av = 3._dp * single_row_d2dxdy_val( k)                 ! 3 d2v/dxdy
 
-    !     Av = 3._dp * single_row_d2dxdy_val( k)                 ! 3 d2v/dxdy
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !     ! Add coefficients to the stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tju, Au)
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjv, Av)
+      end do
 
-    !   end do
+      ! Load vector
+      bb_b_g( row_niuv) = -tau_dx / N
 
-    !   ! Load vector
-    !   bb( row_tiuv) = -tau_dx / N
+    elseif (uv == 2) then
+      ! y-component
 
-    ! elseif (uv == 2) then
-    !   ! y-component
+      do k = 1, single_row_nnz
 
-    !   do k = 1, single_row_nnz
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    !     ! Relevant indices for this neighbouring triangle
-    !     tj      = single_row_ind( k)
-    !     col_tju = mesh%tiuv2n( tj,1)
-    !     col_tjv = mesh%tiuv2n( tj,2)
+        !   4 d2v/dy2 + d2v/dx2 + 3 d2u/dxdy - beta_b v / N = -tau_dy / N
 
-    !     !   4 d2v/dy2 + d2v/dx2 + 3 d2u/dxdy - beta_b v / N = -tau_dy / N
+        ! Combine the mesh operators
+        Av = 4._dp * single_row_d2dy2_val(  k) + &             ! 4 d2v/dy2
+                     single_row_d2dx2_val(  k)                 !   d2v/dx2
+        if (nj == ni) Av = Av - basal_friction_coefficient / N ! - beta_b v / N
 
-    !     ! Combine the mesh operators
-    !     Av = 4._dp * single_row_d2dy2_val(  k) + &             ! 4 d2v/dy2
-    !                 single_row_d2dx2_val(  k)                 !   d2v/dx2
-    !     if (tj == ti) Av = Av - basal_friction_coefficient / N ! - beta_b v / N
+        Au = 3._dp * single_row_d2dxdy_val( k)                 ! 3 d2u/dxdy
 
-    !     Au = 3._dp * single_row_d2dxdy_val( k)                 ! 3 d2u/dxdy
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !     ! Add coefficients to the stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tju, Au)
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjv, Av)
+      end do
 
-    !   end do
+      ! Load vector
+      bb_b_g( row_niuv) = -tau_dy / N
 
-    !   ! Load vector
-    !   bb( row_tiuv) = -tau_dy / N
-
-    ! else
-    !   call crash('uv can only be 1 or 2!')
-    ! end if
+    else
+      call crash('uv can only be 1 or 2!')
+    end if
 
   end subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC( mesh, u_b_prev, v_b_prev, &
-    A_CSR, bb, row_tiuv, choice_BC_u, choice_BC_v)
-    !< Add coefficients to this matrix row to represent boundary conditions at the domain border.
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b_g, Hi_b_ggh, Ho_b_ggh, &
+    A_CSR, bb_b_g, row_niuv)
+    ! The ocean-pressure boundary condition to the SSA at the ice front reads;
+    !
+    !   2 N ( 2 du/dx + dv/dy ) n_x + N ( du/dy + dv/dx) n_y = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+    !
+    !   2 N ( 2 dv/dy + du/dx ) n_y + N ( dv/dx + du/dy) n_x = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
+    !
+    ! (See also Robinson et al., 2020, Eq. 19)
+    !
+    ! Rearranging to gather the terms involving u and v gives:
+    !
+    !   4 N n_x du/dx + N n_y du/dy + ...
+    !   2 N n_x dv/dy + N n_y dv/dx = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+    !
+    !   4 N n_y dv/dy + N n_x dv/dx + ...
+    !   2 N n_y du/dx + N n_x du/dy = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
+    !
+    ! The height of the water column in contact with the ice front is defined as:
+    !
+    !   Ho = min( max( SL - Hb, 0), rho_i / rho_sw H)
 
     ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    real(dp), dimension(mesh%nTri),         intent(in   ) :: u_b_prev, v_b_prev
-    type(type_sparse_matrix_CSR_dp),        intent(inout) :: A_CSR
-    real(dp), dimension(A_CSR%i1:A_CSR%i2), intent(inout) :: bb
-    integer,                                intent(in   ) :: row_tiuv
-    character(len=*),                       intent(in   ) :: choice_BC_u, choice_BC_v
+    type(type_graph_pair),                                                    intent(in   ) :: graphs
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, Hi_b_ggh, Ho_b_ggh
+    type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
+    real(dp), dimension(A_CSR%i1:A_CSR%i2),                                   intent(inout) :: bb_b_g
+    integer,                                                                  intent(in   ) :: row_niuv
 
-    ! ! Local variables:
-    ! integer                          :: ti,uv,row_ti
-    ! integer                          :: tj, col_tjuv
-    ! integer,  dimension(mesh%nC_mem) :: ti_copy
-    ! real(dp), dimension(mesh%nC_mem) :: wti_copy
-    ! real(dp)                         :: u_fixed, v_fixed
-    ! integer                          :: n, n_neighbours
+    ! Local variables:
+    integer                             :: ni, uv
+    real(dp)                            :: N, Hi, Ho, n_x, n_y
+    integer,  dimension(:), allocatable :: single_row_ind
+    real(dp), dimension(:), allocatable :: single_row_ddx_val
+    real(dp), dimension(:), allocatable :: single_row_ddy_val
+    integer                             :: single_row_nnz
+    real(dp)                            :: Au, Av
+    integer                             :: k, nj, col_nju, col_njv
 
-    call crash('fixme!')
+    ! Relevant indices for this graph node
+    ni = graphs%n2biuv( row_niuv,1)
+    uv = graphs%n2biuv( row_niuv,2)
 
-    ! ti = mesh%n2tiuv( row_tiuv,1)
-    ! uv = mesh%n2tiuv( row_tiuv,2)
-    ! row_ti = mesh%ti2n( ti)
+    ! N, Hi, Ho, and outward unit normal vector on this graph node
+    N   = N_b_g( ni)
+    Hi  = Hi_b_ggh( ni)
+    Ho  = Ho_b_ggh( ni)
+    n_x = graphs%graph_b%ghost_nhat( ni,1)
+    n_y = graphs%graph_b%ghost_nhat( ni,2)
 
-    ! select case (uv)
-    ! case default
-    !   call crash('uv can only be 1 or 2!')
-    ! case (1)
-    !   ! x-component
+    ! Allocate memory for single matrix rows
+    allocate( single_row_ind(     graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddx_val( graphs%graph_a%nC_mem*2))
+    allocate( single_row_ddy_val( graphs%graph_a%nC_mem*2))
 
-    !   select case (choice_BC_u)
-    !   case default
-    !     call crash('unknown choice_BC_u "' // trim( choice_BC_u) // '"!')
-    !   case('infinite')
-    !     ! du/dx = 0
-    !     !
-    !     ! NOTE: using the d/dx operator matrix doesn't always work well, not sure why...
+    ! Read coefficients of the operator matrices
+    call read_single_row_CSR_dist( graphs%M_ddx_ghost_b_b, ni, single_row_ind, single_row_ddx_val, single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M_ddy_ghost_b_b, ni, single_row_ind, single_row_ddy_val, single_row_nnz)
 
-    !     ! Set u on this triangle equal to the average value on its neighbours
-    !     n_neighbours = 0
-    !     do n = 1, 3
-    !       tj = mesh%TriC( ti,n)
-    !       if (tj == 0) cycle
-    !       n_neighbours = n_neighbours + 1
-    !       col_tjuv = mesh%tiuv2n( tj,uv)
-    !       call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjuv, 1._dp)
-    !     end do
-    !     if (n_neighbours == 0) call crash('whaa!')
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, -1._dp * real( n_neighbours,dp))
+    if (uv == 1) then
+      ! x-component
 
-    !     ! Load vector
-    !     bb( row_tiuv) = 0._dp
+      do k = 1, single_row_nnz
 
-    !   case ('zero')
-    !     ! u = 0
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    !     ! Stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, 1._dp)
+        !   4 N n_x du/dx + N n_y du/dy + ...
+        !   2 N n_x dv/dy + N n_y dv/dx = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
 
-    !     ! Load vector
-    !     bb( row_tiuv) = 0._dp
+        ! Combine the mesh operators
+        Au = 4._dp * N * n_x * single_row_ddx_val( k) + &  ! 4 N n_x du/dx
+                     N * n_y * single_row_ddy_val( k)      !   N n_y du/dy
 
-    !   case ('periodic_ISMIP-HOM')
-    !     ! u(x,y) = u(x+-L/2,y+-L/2)
+        Av = 2._dp * N * n_x * single_row_ddy_val( k) + &  ! 2 N n_x dv/dy
+                     N * n_y * single_row_ddx_val( k)      !   N n_y dv/dx
 
-    !     ! Find the triangle ti_copy that is displaced by [x+-L/2,y+-L/2] relative to ti
-    !     call find_ti_copy_ISMIP_HOM_periodic( mesh, C%refgeo_idealised_ISMIP_HOM_L, ti, ti_copy, wti_copy)
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !     ! Set value at ti equal to value at ti_copy
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv,  1._dp)
-    !     u_fixed = 0._dp
-    !     do n = 1, mesh%nC_mem
-    !       tj = ti_copy( n)
-    !       if (tj == 0) cycle
-    !       u_fixed = u_fixed + wti_copy( n) * u_b_prev( tj)
-    !     end do
-    !     ! Relax solution to improve stability
-    !     u_fixed = (C%visc_it_relax * u_fixed) + ((1._dp - C%visc_it_relax) * u_b_prev( ti))
-    !     ! Set load vector
-    !     bb( row_tiuv) = u_fixed
+      end do
 
-    !   case ('infinite_SSA_icestream')
-    !     ! du/dx = 0 everywhere
+      ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+      bb_b_g( row_niuv) = (&
+          0.5_dp * ice_density      * grav * Hi**2 &
+        - 0.5_dp * seawater_density * grav * Ho**2) * n_x
 
-    !     ! Find the triangle ti_copy that is displaced by [x+-L/2,y+-L/2] relative to ti
-    !     call find_ti_copy_SSA_icestream_infinite( mesh, ti, ti_copy, wti_copy)
+    elseif (uv == 2) then
+      ! y-component
 
-    !     ! Set value at ti equal to value at ti_copy
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv,  1._dp)
-    !     u_fixed = 0._dp
-    !     do n = 1, mesh%nC_mem
-    !       tj = ti_copy( n)
-    !       if (tj == 0) cycle
-    !       u_fixed = u_fixed + wti_copy( n) * u_b_prev( tj)
-    !     end do
-    !     ! Relax solution to improve stability
-    !     u_fixed = (C%visc_it_relax * u_fixed) + ((1._dp - C%visc_it_relax) * u_b_prev( ti))
-    !     ! Set load vector
-    !     bb( row_tiuv) = u_fixed
+      do k = 1, single_row_nnz
 
-    !   end select
+        ! Relevant indices for this neighbouring triangle
+        nj      = single_row_ind( k)
+        col_nju = graphs%biuv2n( nj,1)
+        col_njv = graphs%biuv2n( nj,2)
 
-    ! case (2)
-    !   ! y-component
+        !   4 N n_y dv/dy + N n_x dv/dx + ...
+        !   2 N n_y du/dx + N n_x du/dy = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
 
-    !   select case (choice_BC_v)
-    !   case default
-    !     call crash('unknown choice_BC_v "' // trim( choice_BC_v) // '"!')
-    !   case('infinite')
-    !     ! dv/dx = 0
-    !     !
-    !     ! NOTE: using the d/dx operator matrix doesn't always work well, not sure why...
+        ! Combine the mesh operators
+        Av = 4._dp * N * n_y * single_row_ddy_val( k) + &  ! 4 N n_y dv/dy
+                     N * n_x * single_row_ddx_val( k)      !   N n_x dv/dx
 
-    !     ! Set v on this triangle equal to the average value on its neighbours
-    !     n_neighbours = 0
-    !     do n = 1, 3
-    !       tj = mesh%TriC( ti,n)
-    !       if (tj == 0) cycle
-    !       n_neighbours = n_neighbours + 1
-    !       col_tjuv = mesh%tiuv2n( tj,uv)
-    !       call add_entry_CSR_dist( A_CSR, row_tiuv, col_tjuv, 1._dp)
-    !     end do
-    !     if (n_neighbours == 0) call crash('whaa!')
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, -1._dp * real( n_neighbours,dp))
+        Au = 2._dp * N * n_y * single_row_ddx_val( k) + &  ! 2 N n_y du/dx
+                     N * n_x * single_row_ddy_val( k)      !   N n_x du/dy
 
-    !     ! Load vector
-    !     bb( row_tiuv) = 0._dp
+        ! Add coefficients to the stiffness matrix
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_nju, Au)
+        call add_entry_CSR_dist( A_CSR, row_niuv, col_njv, Av)
 
-    !   case ('zero')
-    !     ! v = 0
+      end do
 
-    !     ! Stiffness matrix
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, 1._dp)
+      ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+      bb_b_g( row_niuv) = (&
+          0.5_dp * ice_density      * grav * Hi**2 &
+        - 0.5_dp * seawater_density * grav * Ho**2) * n_y
 
-    !     ! Load vector
-    !     bb( row_tiuv) = 0._dp
+    else
+      call crash('uv can only be 1 or 2!')
+    end if
 
-    !   case ('periodic_ISMIP-HOM')
-    !     ! v(x,y) = v(x+-L/2,y+-L/2)
-
-    !     ! Find the triangle ti_copy that is displaced by [x+-L/2,y+-L/2] relative to ti
-    !     call find_ti_copy_ISMIP_HOM_periodic( mesh, C%refgeo_idealised_ISMIP_HOM_L, ti, ti_copy, wti_copy)
-
-    !     ! Set value at ti equal to value at ti_copy
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv,  1._dp)
-    !     v_fixed = 0._dp
-    !     do n = 1, mesh%nC_mem
-    !       tj = ti_copy( n)
-    !       if (tj == 0) cycle
-    !       v_fixed = v_fixed + wti_copy( n) * v_b_prev( tj)
-    !     end do
-    !     ! Relax solution to improve stability
-    !     v_fixed = (C%visc_it_relax * v_fixed) + ((1._dp - C%visc_it_relax) * v_b_prev( ti))
-    !     ! Set load vector
-    !     bb( row_tiuv) = v_fixed
-
-    !   end select
-
-    ! end select
-
-  end subroutine calc_SSA_DIVA_stiffness_matrix_row_BC
+  end subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front
 
 end module solve_linearised_SSA_DIVA_ocean_pressure

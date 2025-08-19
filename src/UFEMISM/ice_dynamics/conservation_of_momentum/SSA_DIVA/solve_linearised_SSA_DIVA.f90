@@ -4,6 +4,7 @@ module solve_linearised_SSA_DIVA
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
+  use graph_types, only: type_graph_pair
   use solve_linearised_SSA_DIVA_infinite_slab, only: solve_SSA_DIVA_linearised_infinite_slab
   use solve_linearised_SSA_DIVA_ocean_pressure, only: solve_SSA_DIVA_linearised_ocean_pressure
 
@@ -15,14 +16,18 @@ module solve_linearised_SSA_DIVA
 
 contains
 
-  subroutine solve_SSA_DIVA_linearised( mesh, u_b, v_b, N_b, dN_dx_b, dN_dy_b, &
+  subroutine solve_SSA_DIVA_linearised( mesh, graphs, u_b, v_b, &
+    Hi_a, Hb_a, SL_a, &
+    N_b, dN_dx_b, dN_dy_b, &
     basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
     PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
     !< Solve the linearised SSA
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
+    type(type_graph_pair),                  intent(in   ) :: graphs
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(inout) :: u_b, v_b
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(inout) :: Hi_a, Hb_a, SL_a
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: N_b, dN_dx_b, dN_dy_b
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: basal_friction_coefficient_b
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: tau_dx_b, tau_dy_b
@@ -47,7 +52,9 @@ contains
         basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
         PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
     case ('ocean_pressure')
-      call solve_SSA_DIVA_linearised_ocean_pressure( mesh, u_b, v_b, N_b, dN_dx_b, dN_dy_b, &
+      call solve_SSA_DIVA_linearised_ocean_pressure( mesh, graphs, u_b, v_b, &
+        Hi_a, Hb_a, SL_a, &
+        N_b, dN_dx_b, dN_dy_b, &
         basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
         PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
     end select
