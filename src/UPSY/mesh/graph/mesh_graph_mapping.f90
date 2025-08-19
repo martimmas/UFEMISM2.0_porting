@@ -396,10 +396,10 @@ contains
     do ni = graph%pai%i1, graph%pai%i2
       if (.not. graph%is_ghost( ni)) then
         ti = graph%ni2mi( ni)
-        d_graph_nih( ni) = d_mesh_tot( ti)
       else
-        d_graph_nih( ni) = .false.
+        ti = graph%ni2mi( graph%C( ni,1))
       end if
+      d_graph_nih( ni) = d_mesh_tot( ti)
     end do
 
     ! Clean up after yourself
@@ -469,10 +469,10 @@ contains
     do ni = graph%pai%i1, graph%pai%i2
       if (.not. graph%is_ghost( ni)) then
         ti = graph%ni2mi( ni)
-        d_graph_nih( ni) = d_mesh_tot( ti)
       else
-        d_graph_nih( ni) = 0
+        ti = graph%ni2mi( graph%C( ni,1))
       end if
+      d_graph_nih( ni) = d_mesh_tot( ti)
     end do
 
     ! Clean up after yourself
@@ -542,10 +542,10 @@ contains
     do ni = graph%pai%i1, graph%pai%i2
       if (.not. graph%is_ghost( ni)) then
         ti = graph%ni2mi( ni)
-        d_graph_nih( ni) = d_mesh_tot( ti)
       else
-        d_graph_nih( ni) = 0._dp
+        ti = graph%ni2mi( graph%C( ni,1))
       end if
+      d_graph_nih( ni) = d_mesh_tot( ti)
     end do
 
     ! Clean up after yourself
