@@ -41,6 +41,10 @@ contains
 
     ! Set graph metadata
     graph%parent_mesh_name = trim( mesh%name) // '_vertices'
+    graph%xmin             = mesh%xmin
+    graph%xmax             = mesh%xmax
+    graph%ymin             = mesh%ymin
+    graph%ymax             = mesh%ymax
     graph%n                = count( mask_a_tot)
     graph%nn               = 0
     graph%ng               = 0
@@ -135,6 +139,10 @@ contains
 
     ! Set graph metadata
     graph%parent_mesh_name = trim( mesh%name) // '_triangles'
+    graph%xmin             = mesh%xmin
+    graph%xmax             = mesh%xmax
+    graph%ymin             = mesh%ymin
+    graph%ymax             = mesh%ymax
     graph%n                = n_mask_b + n_boundary_c
     graph%nn               = n_mask_b
     graph%ng               = n_boundary_c

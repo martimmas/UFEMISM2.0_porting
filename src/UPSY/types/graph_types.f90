@@ -14,11 +14,12 @@ module graph_types
   type type_graph
 
     ! Metadata
-    character(len=1024)                     :: parent_mesh_name              !< Name of this graph's parent mesh
-    integer                                 :: n                             !< Total number of nodes in the graph
-    integer                                 :: nn                            !< Number of non-ghost nodes in the graph
-    integer                                 :: ng                            !< Number of ghost nodes in the graph
-    integer                                 :: nC_mem                        !< Maximum allowed number of connections per node
+    character(len=1024)                     :: parent_mesh_name              !<     Name of this graph's parent mesh
+    real(dp)                                :: xmin, xmax, ymin, ymax        !< [m] Domain boundaries
+    integer                                 :: n                             !<     Total number of nodes in the graph
+    integer                                 :: nn                            !<     Number of non-ghost nodes in the graph
+    integer                                 :: ng                            !<     Number of ghost nodes in the graph
+    integer                                 :: nC_mem                        !<     Maximum allowed number of connections per node
 
     ! Mapping between parent mesh and graph
     integer,  dimension(:    ), allocatable :: ni2mi                         !<     Graph node (ni) to parent mesh node (mi) translation table
