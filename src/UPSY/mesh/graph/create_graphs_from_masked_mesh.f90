@@ -46,8 +46,6 @@ contains
     graph%ymin             = mesh%ymin
     graph%ymax             = mesh%ymax
     graph%n                = count( mask_a_tot)
-    graph%nn               = 0
-    graph%ng               = 0
     graph%nC_mem           = maxval( mesh%nC)
 
     ! Allocate memory
@@ -144,8 +142,6 @@ contains
     graph%ymin             = mesh%ymin
     graph%ymax             = mesh%ymax
     graph%n                = n_mask_b + n_boundary_c
-    graph%nn               = n_mask_b
-    graph%ng               = n_boundary_c
     graph%nC_mem           = 3
 
     ! Allocate memory
@@ -390,7 +386,7 @@ contains
     call init_routine( routine_name)
 
     isso = .true.
-    do ni = 1, graph%nn
+    do ni = 1, graph%n
       if (.not. graph%is_ghost( ni)) then
         vi = graph%ni2mi( ni)
         isso = isso .and. norm2( graph%V( ni,:) - mesh%V( vi,:)) < mesh%tol_dist
