@@ -215,13 +215,13 @@ contains
         hybrid%DIVA%du_dx_a, hybrid%DIVA%du_dy_a, hybrid%DIVA%dv_dx_a, hybrid%DIVA%dv_dy_a)
 
       ! Calculate the vertical shear strain rates
-      call calc_vertical_shear_strain_rates_DIVA( mesh, hybrid%DIVA)
+      call calc_vertical_shear_strain_rates_DIVA( mesh, graphs, hybrid%DIVA)
 
       ! Calculate the effective viscosity for the current velocity solution
       call calc_effective_viscosity_DIVA( mesh, graphs, ice, hybrid%DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
       ! Calculate the F-integrals
-      call calc_F_integrals_DIVA( mesh, ice, hybrid%DIVA)
+      call calc_F_integrals_DIVA( mesh, graphs, ice, hybrid%DIVA)
 
       ! Calculate the "effective" friction coefficient (turning the SSA into the DIVA)
       call calc_effective_basal_friction_coefficient_DIVA( mesh, ice, bed_roughness, hybrid%DIVA)

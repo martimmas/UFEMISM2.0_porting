@@ -30,7 +30,8 @@ module DIVA_main
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D, map_from_mesh_to_mesh_with_reallocation_3D
   use bed_roughness_model_types, only: type_bed_roughness_model
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
-  use mesh_graph_mapping, only: map_mesh_vertices_to_graph, map_graph_to_mesh_triangles
+  use mesh_graph_mapping, only: map_mesh_vertices_to_graph, map_mesh_triangles_to_graph, &
+    map_graph_to_mesh_triangles, map_graph_to_mesh_vertices
   use mpi_f08, only: MPI_WIN
   use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper, &
     multiply_CSR_matrix_with_vector_2D_wrapper
@@ -195,13 +196,13 @@ contains
         DIVA%du_dx_a, DIVA%du_dy_a, DIVA%dv_dx_a, DIVA%dv_dy_a)
 
       ! Calculate the vertical shear strain rates
-      call calc_vertical_shear_strain_rates( mesh, DIVA)
+      call calc_vertical_shear_strain_rates( mesh, graphs, DIVA)
 
       ! Calculate the effective viscosity for the current velocity solution
       call calc_effective_viscosity( mesh, graphs, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
       ! Calculate the F-integrals (Lipscomb et al. (2019), Eq. 30)
-      call calc_F_integrals( mesh, ice, DIVA)
+      call calc_F_integrals( mesh, graphs, ice, DIVA)
 
       ! Calculate the "effective" friction coefficient (turning the SSA into the DIVA)
       call calc_effective_basal_friction_coefficient( mesh, ice, bed_roughness, DIVA)
@@ -421,7 +422,35 @@ contains
 
   ! == Calculate several intermediate terms in the DIVA
 
-  subroutine calc_vertical_shear_strain_rates( mesh, DIVA)
+  subroutine calc_vertical_shear_strain_rates( mesh, graphs, DIVA)
+    ! Calculate the vertical shear strain rates
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_vertical_shear_strain_rates'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%BC_ice_front)
+    case default
+      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
+    case ('infinite_slab')
+      call calc_vertical_shear_strain_rates_infinite_slab( mesh, DIVA)
+    case ('ocean_pressure')
+      call calc_vertical_shear_strain_rates_ocean_pressure( mesh, graphs, DIVA)
+    end select
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_vertical_shear_strain_rates
+
+  subroutine calc_vertical_shear_strain_rates_infinite_slab( mesh, DIVA)
     ! Calculate the vertical shear strain rates
 
     ! In/output variables:
@@ -429,7 +458,7 @@ contains
     type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
 
     ! Local variables:
-    character(len=1024), parameter        :: routine_name = 'calc_vertical_shear_strain_rates'
+    character(len=1024), parameter        :: routine_name = 'calc_vertical_shear_strain_rates_infinite_slab'
     real(dp), dimension(:,:), allocatable :: du_dz_3D_b
     real(dp), dimension(:,:), allocatable :: dv_dz_3D_b
     integer                               :: ti,k
@@ -456,7 +485,74 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_vertical_shear_strain_rates
+  end subroutine calc_vertical_shear_strain_rates_infinite_slab
+
+  subroutine calc_vertical_shear_strain_rates_ocean_pressure( mesh, graphs, DIVA)
+    ! Calculate the vertical shear strain rates
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+
+    ! Local variables:
+    character(len=1024), parameter        :: routine_name = 'calc_vertical_shear_strain_rates_ocean_pressure'
+    real(dp), dimension(:,:), allocatable :: du_dz_3D_b
+    real(dp), dimension(:,:), allocatable :: dv_dz_3D_b
+    integer                               :: ti,k
+    real(dp), dimension(:,:), pointer     :: du_dz_3D_b_g => null()
+    real(dp), dimension(:,:), pointer     :: dv_dz_3D_b_g => null()
+    real(dp), dimension(:,:), pointer     :: du_dz_3D_a_g => null()
+    real(dp), dimension(:,:), pointer     :: dv_dz_3D_a_g => null()
+    type(MPI_WIN)                         :: wdu_dz_3D_b_g, wdv_dz_3D_b_g, wdu_dz_3D_a_g, wdv_dz_3D_a_g
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( du_dz_3D_b_g, wdu_dz_3D_b_g, graphs%graph_b%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( dv_dz_3D_b_g, wdv_dz_3D_b_g, graphs%graph_b%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( du_dz_3D_a_g, wdu_dz_3D_a_g, graphs%graph_a%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( dv_dz_3D_a_g, wdv_dz_3D_a_g, graphs%graph_a%pai%n_nih, mesh%nz)
+
+    ! allocate memory
+    allocate( du_dz_3D_b( mesh%ti1:mesh%ti2,mesh%nz))
+    allocate( dv_dz_3D_b( mesh%ti1:mesh%ti2,mesh%nz))
+
+    ! Calculate (parameterised) vertical shear strain rates on the b-grid (Lipscomb et al., 2019, Eq. 36)
+    do ti = mesh%ti1, mesh%ti2
+    do k = 1, mesh%nz
+      du_dz_3D_b( ti,k) = DIVA%tau_bx_b( ti) * mesh%zeta( k) / max( C%visc_eff_min, DIVA%eta_3D_b( ti,k))
+      dv_dz_3D_b( ti,k) = DIVA%tau_by_b( ti) * mesh%zeta( k) / max( C%visc_eff_min, DIVA%eta_3D_b( ti,k))
+    end do
+    end do
+
+    ! Map vertical shear strain rates from the b-grid to the a-grid
+    call map_mesh_triangles_to_graph( mesh, du_dz_3D_b, graphs%graph_b, du_dz_3D_b_g)
+    call map_mesh_triangles_to_graph( mesh, dv_dz_3D_b, graphs%graph_b, dv_dz_3D_b_g)
+
+    call multiply_CSR_matrix_with_vector_2D_wrapper( graphs%M_map_b_a, &
+      graphs%graph_b%pai, du_dz_3D_b_g, graphs%graph_a%pai, du_dz_3D_a_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_b%buffer1_gk_nih, buffer_yy_nih = graphs%graph_a%buffer2_gk_nih)
+    call multiply_CSR_matrix_with_vector_2D_wrapper( graphs%M_map_b_a, &
+      graphs%graph_b%pai, dv_dz_3D_b_g, graphs%graph_a%pai, dv_dz_3D_a_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_b%buffer1_gk_nih, buffer_yy_nih = graphs%graph_a%buffer2_gk_nih)
+
+    call map_graph_to_mesh_vertices( graphs%graph_a, du_dz_3D_a_g, mesh, DIVA%du_dz_3D_a)
+    call map_graph_to_mesh_vertices( graphs%graph_a, dv_dz_3D_a_g, mesh, DIVA%dv_dz_3D_a)
+
+    ! Allocate hybrid distributed/shared memory
+    call deallocate_dist_shared( du_dz_3D_b_g, wdu_dz_3D_b_g)
+    call deallocate_dist_shared( dv_dz_3D_b_g, wdv_dz_3D_b_g)
+    call deallocate_dist_shared( du_dz_3D_a_g, wdu_dz_3D_a_g)
+    call deallocate_dist_shared( dv_dz_3D_a_g, wdv_dz_3D_a_g)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_vertical_shear_strain_rates_ocean_pressure
 
   subroutine calc_effective_viscosity( mesh, graphs, ice, DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
@@ -675,7 +771,36 @@ contains
 
   end subroutine calc_effective_viscosity_ocean_pressure
 
-  subroutine calc_F_integrals( mesh, ice, DIVA)
+  subroutine calc_F_integrals( mesh, graphs, ice, DIVA)
+    !< Calculate the F-integrals on the a-grid (Lipscomb et al. (2019), Eq. 30)
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_model),                intent(in   ) :: ice
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_F_integrals'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%BC_ice_front)
+    case default
+      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
+    case ('infinite_slab')
+      call calc_F_integrals_infinite_slab( mesh, ice, DIVA)
+    case ('ocean_pressure')
+      call  calc_F_integrals_ocean_pressure( mesh, graphs, ice, DIVA)
+    end select
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_F_integrals
+
+  subroutine calc_F_integrals_infinite_slab( mesh, ice, DIVA)
     !< Calculate the F-integrals on the a-grid (Lipscomb et al. (2019), Eq. 30)
 
     ! In/output variables:
@@ -714,7 +839,78 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_F_integrals
+  end subroutine calc_F_integrals_infinite_slab
+
+  subroutine calc_F_integrals_ocean_pressure( mesh, graphs, ice, DIVA)
+    !< Calculate the F-integrals on the a-grid (Lipscomb et al. (2019), Eq. 30)
+
+    ! In/output variables:
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_graph_pair),               intent(in   ) :: graphs
+    type(type_ice_model),                intent(in   ) :: ice
+    type(type_ice_velocity_solver_DIVA), intent(inout) :: DIVA
+
+    ! Local variables:
+    character(len=1024), parameter    :: routine_name = 'calc_F_integrals_ocean_pressure'
+    integer                           :: vi,k
+    real(dp), dimension( mesh%nz)     :: prof
+    real(dp), dimension(:,:), pointer :: F1_3D_a_g => null()
+    real(dp), dimension(:,:), pointer :: F2_3D_a_g => null()
+    real(dp), dimension(:,:), pointer :: F1_3D_b_g => null()
+    real(dp), dimension(:,:), pointer :: F2_3D_b_g => null()
+    type(MPI_WIN)                     :: wF1_3D_a_g, wF2_3D_a_g, wF1_3D_b_g, wF2_3D_b_g
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( F1_3D_a_g, wF1_3D_a_g, graphs%graph_a%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( F2_3D_a_g, wF2_3D_a_g, graphs%graph_a%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( F1_3D_b_g, wF1_3D_b_g, graphs%graph_b%pai%n_nih, mesh%nz)
+    call allocate_dist_shared( F2_3D_b_g, wF2_3D_b_g, graphs%graph_b%pai%n_nih, mesh%nz)
+
+    do vi = mesh%vi1, mesh%vi2
+
+      ! F1
+      do k = 1, mesh%nz
+        prof( k) = (mesh%zeta( k)    / DIVA%eta_3D_a( vi,k))
+      end do
+      DIVA%F1_3D_a( vi,:) = -max( 0.1_dp, ice%Hi( vi)) * integrate_from_zeta_is_one_to_zeta_is_zetap( mesh%zeta, prof)
+
+      ! F2
+      do k = 1, mesh%nz
+        prof( k) = (mesh%zeta( k)**2 / DIVA%eta_3D_a( vi,k))
+      end do
+      DIVA%F2_3D_a( vi,:) = -max( 0.1_dp, ice%Hi( vi)) * integrate_from_zeta_is_one_to_zeta_is_zetap( mesh%zeta, prof)
+
+    end do
+
+    ! Map F-integrals from the a-grid to the b-grid
+    call map_mesh_vertices_to_graph( mesh, DIVA%F1_3D_a, graphs%graph_a, F1_3D_a_g)
+    call map_mesh_vertices_to_graph( mesh, DIVA%F2_3D_a, graphs%graph_a, F2_3D_a_g)
+
+    call multiply_CSR_matrix_with_vector_2D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, F1_3D_a_g, graphs%graph_b%pai, F1_3D_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_gk_nih, buffer_yy_nih = graphs%graph_b%buffer2_gk_nih)
+    call multiply_CSR_matrix_with_vector_2D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, F2_3D_a_g, graphs%graph_b%pai, F2_3D_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_gk_nih, buffer_yy_nih = graphs%graph_b%buffer2_gk_nih)
+
+    call map_graph_to_mesh_triangles( graphs%graph_b, F1_3D_b_g, mesh, DIVA%F1_3D_b)
+    call map_graph_to_mesh_triangles( graphs%graph_b, F2_3D_b_g, mesh, DIVA%F2_3D_b)
+
+    ! Allocate hybrid distributed/shared memory
+    call deallocate_dist_shared( F1_3D_a_g, wF1_3D_a_g)
+    call deallocate_dist_shared( F2_3D_a_g, wF2_3D_a_g)
+    call deallocate_dist_shared( F1_3D_b_g, wF1_3D_b_g)
+    call deallocate_dist_shared( F2_3D_b_g, wF2_3D_b_g)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_F_integrals_ocean_pressure
 
   subroutine calc_effective_basal_friction_coefficient( mesh, ice, bed_roughness, DIVA)
     !< Calculate the "effective" friction coefficient (turning the SSA into the DIVA)
