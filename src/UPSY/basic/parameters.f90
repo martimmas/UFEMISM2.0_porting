@@ -20,9 +20,9 @@ module parameters
   real(dp), parameter :: grav                             = 9.81_dp                   ! [m s^-2]            Acceleration of gravity
   real(dp), parameter :: earth_radius                     = 6.371221E6_dp             ! [m] Earth           Radius
   real(dp), parameter :: L_fusion                         = 3.335E+5_dp               ! [J kg-1]            Latent heat of fusion
-  real(dp), parameter :: ice_density                      =  910.0_dp                 ! [kg m^-3]           Ice density
+  real(dp), parameter :: ice_density                      =  917.0_dp                 ! [kg m^-3]           Ice density
   real(dp), parameter :: freshwater_density               = 1000.0_dp                 ! [kg m^-3]           Freshwater density
-  real(dp), parameter :: seawater_density                 = 1028.0_dp                 ! [kg m^-3]           Seawater density
+  real(dp), parameter :: seawater_density                 = 1027.0_dp                 ! [kg m^-3]           Seawater density
   real(dp), parameter :: earth_density                    = 5511.57_dp                ! [kg m^-3]           Total mean Earth density
   real(dp), parameter :: R_gas                            = 8.314_dp                  ! [J mol^-1 K^-1]     Gas constant
   real(dp), parameter :: cp_ocean                         = 3.974E3_dp                ! [J kg^-1 K^-1]      Specific heat capacity of ocean water
