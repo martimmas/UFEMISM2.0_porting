@@ -313,8 +313,9 @@ MODULE model_configuration
     REAL(dp)            :: stress_balance_PETSc_abstol_config           = 1E-5_dp                          ! PETSc solver - stop criterion, absolute difference
 
     ! Boundary conditions
-    CHARACTER(LEN=256)  :: BC_u_west_config                             = 'infinite'                       ! Boundary conditions for the ice velocity field at the domain border
-    CHARACTER(LEN=256)  :: BC_u_east_config                             = 'infinite'                       ! Allowed choices: "infinite", "zero", "periodic_ISMIP-HOM"
+    character(len=256)  :: BC_ice_front_config                          = 'infinite_slab'                  ! Boundary conditions to the momentum balance at the ice front: "infinite_slab", "ocean_pressure"
+    CHARACTER(LEN=256)  :: BC_u_west_config                             = 'infinite'                       ! Boundary conditions to the x-component of the momentum balance at the domain border: "infinite", "zero", "periodic_ISMIP-HOM"
+    CHARACTER(LEN=256)  :: BC_u_east_config                             = 'infinite'
     CHARACTER(LEN=256)  :: BC_u_south_config                            = 'infinite'
     CHARACTER(LEN=256)  :: BC_u_north_config                            = 'infinite'
     CHARACTER(LEN=256)  :: BC_v_west_config                             = 'infinite'
@@ -1440,6 +1441,7 @@ MODULE model_configuration
     REAL(dp)            :: stress_balance_PETSc_abstol
 
     ! Boundary conditions
+    CHARACTER(LEN=256)  :: BC_ice_front
     CHARACTER(LEN=256)  :: BC_u_west
     CHARACTER(LEN=256)  :: BC_u_east
     CHARACTER(LEN=256)  :: BC_u_south
@@ -2685,6 +2687,7 @@ CONTAINS
       vel_max_config                                              , &
       stress_balance_PETSc_rtol_config                            , &
       stress_balance_PETSc_abstol_config                          , &
+      BC_ice_front_config                                         , &
       BC_u_west_config                                            , &
       BC_u_east_config                                            , &
       BC_u_south_config                                           , &
@@ -3549,6 +3552,7 @@ CONTAINS
     C%stress_balance_PETSc_abstol                            = stress_balance_PETSc_abstol_config
 
     ! Boundary conditions
+    C%BC_ice_front                                           = BC_ice_front_config
     C%BC_u_west                                              = BC_u_west_config
     C%BC_u_east                                              = BC_u_east_config
     C%BC_u_south                                             = BC_u_south_config
@@ -4203,7 +4207,7 @@ CONTAINS
     C%choice_laddie_SGD_idealised                            = choice_laddie_SGD_idealised_config
     C%laddie_SGD_flux                                        = laddie_SGD_flux_config
     C%filename_laddie_mask_SGD                               = filename_laddie_mask_SGD_config
-    
+
   ! == Lateral mass balance
   ! =======================
 

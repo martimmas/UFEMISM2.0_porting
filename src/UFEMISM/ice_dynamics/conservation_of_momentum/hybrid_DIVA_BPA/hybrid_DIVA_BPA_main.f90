@@ -23,7 +23,7 @@ module hybrid_DIVA_BPA_main
     calc_basal_velocities_DIVA => calc_basal_velocities
   use SSA_DIVA_utilities, only: calc_driving_stress_DIVA => calc_driving_stress, &
     calc_horizontal_strain_rates_DIVA => calc_horizontal_strain_rates
-  use solve_linearised_SSA_DIVA, only: calc_SSA_DIVA_stiffness_matrix_row_free, &
+  use solve_linearised_SSA_DIVA_infinite_slab, only: calc_SSA_DIVA_stiffness_matrix_row_free, &
     calc_SSA_DIVA_sans_stiffness_matrix_row_free, calc_SSA_DIVA_stiffness_matrix_row_BC
   use BPA_main, only: allocate_BPA_solver , remap_BPA_solver, calc_BPA_stiffness_matrix_row_free, &
     calc_BPA_stiffness_matrix_row_BC_west, calc_BPA_stiffness_matrix_row_BC_east, &
