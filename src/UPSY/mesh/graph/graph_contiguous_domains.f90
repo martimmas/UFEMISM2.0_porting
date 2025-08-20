@@ -9,7 +9,7 @@ module graph_contiguous_domains
 
   private
 
-  public :: enforce_contiguous_process_domains_graph, test_graph_nodes_are_sorted
+  public :: enforce_contiguous_process_domains_graph
 
 contains
 
@@ -49,27 +49,31 @@ contains
     ! Shuffle node data: V, nC, C
     ! ===========================
 
+    ni_old2mi      = graph%ni2mi
     mi2ni_old      = graph%mi2ni
     V_old          = graph%V
     nC_old         = graph%nC
     C_old          = graph%C
-    ni_old2mi      = graph%ni2mi
-    mi2ni_old      = graph%mi2ni
     is_ghost_old   = graph%is_ghost
     ghost_nhat_old = graph%ghost_nhat
 
+    graph%ni2mi      = 0
+    graph%mi2ni      = 0
     graph%V          = 0._dp
     graph%nC         = 0
     graph%C          = 0
     graph%is_ghost   = .false.
     graph%ghost_nhat = 0._dp
-    graph%ni2mi      = 0
-    graph%mi2ni      = 0
 
     do ni_new = 1, graph%n
 
       ! This new node corresponds to this old node
       ni_old = ni_new2ni_old( ni_new)
+
+      ! ni2mi, mi2ni
+      mi = ni_old2mi( ni_old)
+      graph%ni2mi( ni_new) = mi
+      if (.not. is_ghost_old( ni_old)) graph%mi2ni( mi) = ni_new
 
       ! V
       graph%V( ni_new,:) = V_old( ni_old,:)
@@ -78,7 +82,7 @@ contains
       graph%nC( ni_new) = nC_old( ni_old)
 
       ! C
-      do ci = 1, graph%nC( ni_new)
+      do ci = 1, nC_old( ni_old)
         nj_old = C_old( ni_old, ci)
         nj_new = ni_old2ni_new( nj_old)
         graph%C( ni_new,ci) = nj_new
@@ -89,11 +93,6 @@ contains
 
       ! ghost_nhat
       graph%ghost_nhat( ni_new,:) = ghost_nhat_old( ni_old,:)
-
-      ! ni2mi, mi2ni
-      mi = ni_old2mi( ni_old)
-      graph%ni2mi( ni_new) = mi
-      if (.not. graph%is_ghost( ni_new)) graph%mi2ni( mi) = ni_new
 
     end do
 
