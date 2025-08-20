@@ -1023,7 +1023,8 @@ contains
     logical, dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     logical, dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                              :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d
+    integer                                    :: ti, ni, d, mi
+    logical                                    :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1045,9 +1046,14 @@ contains
 
     ! Fill in exact solutions
     do ti = mesh%ti1, mesh%ti2
-      d = ceiling( 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)))
-      d_mesh_loc_ex( ti) = modulo( d,2) == 0
-      d_mesh_nih_ex( ti) = modulo( d,2) == 0
+      if (graph%mi2ni( ti) > 0) then
+        d = ceiling( 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)))
+        d_mesh_loc_ex( ti) = modulo( d,2) == 0
+        d_mesh_nih_ex( ti) = modulo( d,2) == 0
+      else
+        d_mesh_loc_ex( ti) = .false.
+        d_mesh_nih_ex( ti) = .false.
+      end if
     end do
     do ni = graph%ni1, graph%ni2
       if (.not. graph%is_ghost( ni)) then
@@ -1058,12 +1064,27 @@ contains
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eqv( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) .eqv. d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eqv( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) .eqv. d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
@@ -1092,7 +1113,8 @@ contains
     logical, dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     logical, dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                      :: ti, ni, d, k
+    integer                                    :: ti, ni, d, k, mi
+    logical                                    :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1132,12 +1154,31 @@ contains
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eqv( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) .eqv. d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eqv( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) .eqv. d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
@@ -1165,7 +1206,8 @@ contains
     integer, dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     integer, dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                              :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d
+    integer                                    :: ti, ni, d, mi
+    logical                                    :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1174,7 +1216,7 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! Allocate memory
-    allocate( d_mesh_loc_ex     ( mesh%ti1 :mesh%ti2 ), source = 0)
+    allocate( d_mesh_loc_ex( mesh%ti1 :mesh%ti2), source = 0)
 
     ! Allocate hybrid distributed/shared memory
     call allocate_dist_shared( d_mesh_nih_ex, wd_mesh_nih_ex, mesh%pai_Tri%n_nih)
@@ -1187,9 +1229,14 @@ contains
 
     ! Fill in exact solutions
     do ti = mesh%ti1, mesh%ti2
-      d = ceiling( 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)))
-      d_mesh_loc_ex( ti) = d
-      d_mesh_nih_ex( ti) = d
+      if (graph%mi2ni( ti) > 0) then
+        d = ceiling( 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)))
+        d_mesh_loc_ex( ti) = d
+        d_mesh_nih_ex( ti) = d
+      else
+        d_mesh_loc_ex( ti) = 0
+        d_mesh_nih_ex( ti) = 0
+      end if
     end do
     do ni = graph%ni1, graph%ni2
       if (.not. graph%is_ghost( ni)) then
@@ -1200,12 +1247,27 @@ contains
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) == d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) == d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
@@ -1234,7 +1296,8 @@ contains
     integer, dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     integer, dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                      :: ti, ni, d, k
+    integer                                    :: ti, ni, d, k, mi
+    logical                                    :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1274,12 +1337,31 @@ contains
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) == d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) == d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
@@ -1307,8 +1389,9 @@ contains
     real(dp), dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     real(dp), dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                               :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                     :: ti, ni
+    integer                                     :: ti, ni, mi
     real(dp)                                    :: d
+    logical                                     :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1317,7 +1400,7 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! Allocate memory
-    allocate( d_mesh_loc_ex     ( mesh%ti1 :mesh%ti2 ), source = 0._dp)
+    allocate( d_mesh_loc_ex( mesh%ti1 :mesh%ti2), source = 0._dp)
 
     ! Allocate hybrid distributed/shared memory
     call allocate_dist_shared( d_mesh_nih_ex, wd_mesh_nih_ex, mesh%pai_Tri%n_nih)
@@ -1330,25 +1413,45 @@ contains
 
     ! Fill in exact solutions
     do ti = mesh%ti1, mesh%ti2
-      d = hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2))
-      d_mesh_loc_ex( ti) = d
-      d_mesh_nih_ex( ti) = d
+      if (graph%mi2ni( ti) > 0) then
+        d = 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2))
+        d_mesh_loc_ex( ti) = d
+        d_mesh_nih_ex( ti) = d
+      else
+        d_mesh_loc_ex( ti) = 0._dp
+        d_mesh_nih_ex( ti) = 0._dp
+      end if
     end do
     do ni = graph%ni1, graph%ni2
       if (.not. graph%is_ghost( ni)) then
-        d = hypot( graph%V( ni,1), graph%V( ni,2))
+        d = 1000._dp * hypot( graph%V( ni,1), graph%V( ni,2))
         d_graph_nih_ex( ni) = d
       else
         d_graph_nih_ex( ni) = 0._dp
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_tol( d_graph_nih_ex, d_graph_nih_mapped, 1e-12_dp), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) == d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_tol( d_graph_nih_ex, d_graph_nih_mapped, 1e-12_dp), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        test_result = test_result .and. d_graph_nih_mapped( ni) == d_graph_nih_ex( ni)
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
@@ -1377,8 +1480,9 @@ contains
     real(dp), dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     real(dp), dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                 :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                       :: ti, ni, k
+    integer                                       :: ti, ni, k, mi
     real(dp)                                      :: d
+    logical                                       :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1402,7 +1506,7 @@ contains
     ! Fill in exact solutions
     do ti = mesh%ti1, mesh%ti2
       do k = 1, nz
-        d = hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)) + real( k,dp)
+        d = 1000._dp * hypot( mesh%TriGC( ti,1), mesh%TriGC( ti,2)) + k
         d_mesh_loc_ex( ti,k) = d
         d_mesh_nih_ex( ti,k) = d
       end do
@@ -1410,7 +1514,7 @@ contains
     do ni = graph%ni1, graph%ni2
       if (.not. graph%is_ghost( ni)) then
         do k = 1, nz
-          d = hypot( graph%V( ni,1), graph%V( ni,2)) + real( k,dp)
+          d = 1000._dp * hypot( graph%V( ni,1), graph%V( ni,2)) + k
           d_graph_nih_ex( ni,k) = d
         end do
       else
@@ -1418,12 +1522,31 @@ contains
       end if
     end do
 
-    ! Map data from the mesh to the graph
+    ! Map (distributed) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_loc_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/dist_hybrid')
 
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) == d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/dist_hybrid')
+
+    ! Map (hybrid distributed/shared) data from the mesh to the graph
     call map_mesh_triangles_to_graph( mesh, d_mesh_nih_ex, graph, d_graph_nih_mapped)
-    call unit_test( test_eq( d_graph_nih_ex, d_graph_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ni = graph%ni1, graph%ni2
+      if (.not. graph%is_ghost( ni)) then
+        do k = 1, nz
+          test_result = test_result .and. d_graph_nih_mapped( ni,k) == d_graph_nih_ex( ni,k)
+        end do
+      end if
+    end do
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_mesh_nih_ex     , wd_mesh_nih_ex     )
