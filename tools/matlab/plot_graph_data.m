@@ -1,5 +1,9 @@
 function H = plot_graph_data( graph, d)
 
+if size(d,2) > 1
+  d = mean( d,2);
+end
+
 H = plot_graph( graph);
 
 pos = get( H.Ax,'position');
