@@ -5,7 +5,8 @@ module tests_graph
   use precisions, only: dp
   use mesh_types, only: type_mesh
   use graph_types, only: type_graph
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
+  use mpi_basic, only: par
 
   implicit none
 
@@ -32,7 +33,9 @@ contains
 
     isso = isso .and. test_graph_matches_mesh( mesh, graph)
     isso = isso .and. test_graph_connectivity_is_self_consistent( graph)
+    isso = isso .and. test_graph_to_mesh_connectivity_is_self_consistent( graph)
     isso = isso .and. test_graph_nodes_are_sorted( graph)
+    isso = isso .and. test_graph_ghost_nodes( mesh, graph)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -47,7 +50,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_graph_connectivity_is_self_consistent'
-    integer                        :: ni, ci, nj, cj, nk, mi
+    integer                        :: ni, ci, nj, cj, nk
     logical                        :: found_reverse
 
     ! Add routine to path
@@ -70,6 +73,29 @@ contains
       end do
     end do
 
+    if (par%primary .and. .not. isso) call warning('graph connectivity is not self-consistent')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_connectivity_is_self_consistent
+
+  function test_graph_to_mesh_connectivity_is_self_consistent( graph) result( isso)
+
+    ! In/output variables:
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_to_mesh_connectivity_is_self_consistent'
+    integer                        :: ni, ci, nj, cj, nk, mi
+    logical                        :: found_reverse
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+
     do mi = 1, size( graph%mi2ni)
       ni = graph%mi2ni( mi)
       if (ni > 0) isso = isso .and. graph%ni2mi( ni) == mi
@@ -82,10 +108,12 @@ contains
       end if
     end do
 
+    if (par%primary .and. .not. isso) call warning('graph-to-mesh connectivity is not self-consistent')
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end function test_graph_connectivity_is_self_consistent
+  end function test_graph_to_mesh_connectivity_is_self_consistent
 
   function test_graph_matches_mesh( mesh, graph) result( isso)
 
@@ -132,8 +160,13 @@ contains
       if (.not. graph%is_ghost( ni)) then
         vi = graph%ni2mi( ni)
         isso = isso .and. norm2( graph%V( ni,:) - mesh%V( vi,:)) < mesh%tol_dist
+      else
+        ! An a-graph should not have any ghost nodes at all
+        isso = .false.
       end if
     end do
+
+    if (par%primary .and. .not. isso) call warning('graph node coordinates do not match corresponding mesh vertices')
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -162,10 +195,91 @@ contains
       end if
     end do
 
+    if (par%primary .and. .not. isso) call warning('graph node coordinates do not match corresponding mesh triangles')
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end function test_graph_matches_mesh_triangles
+
+  function test_graph_ghost_nodes( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_ghost_nodes'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+    isso = isso .and. test_graph_ghost_nodes_connectivity( mesh, graph)
+    isso = isso .and. test_graph_ghost_nodes_match_mesh_edges( mesh, graph)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_ghost_nodes
+
+  function test_graph_ghost_nodes_connectivity( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_ghost_nodes_connectivity'
+    integer                        :: ni
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+    do ni = 1, graph%n
+      if (graph%is_ghost( ni)) then
+        isso = isso .and. graph%nC( ni) == 1
+      end if
+    end do
+
+    if (par%primary .and. .not. isso) call warning('graph ghost nodes do not all have only a single connection')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_ghost_nodes_connectivity
+
+  function test_graph_ghost_nodes_match_mesh_edges( mesh, graph) result( isso)
+
+    ! In/output variables:
+    type(type_mesh),  intent(in) :: mesh
+    type(type_graph), intent(in) :: graph
+    logical                      :: isso
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_graph_ghost_nodes_match_mesh_edges'
+    integer                        :: ni, ei
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    isso = .true.
+    do ni = 1, graph%n
+      if (graph%is_ghost( ni)) then
+        ei = graph%ni2mi( ni)
+        isso = isso .and. any( mesh%ETri( ei,:) == graph%ni2mi( graph%C( ni,1)))
+      end if
+    end do
+
+    if (par%primary .and. .not. isso) call warning('graph ghost nodes do not match corresponding mesh edges')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end function test_graph_ghost_nodes_match_mesh_edges
 
   function test_graph_nodes_are_sorted( graph) result( are_sorted)
 
