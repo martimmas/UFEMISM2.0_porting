@@ -49,6 +49,7 @@ contains
     ! Shuffle node data: V, nC, C
     ! ===========================
 
+    mi2ni_old      = graph%mi2ni
     V_old          = graph%V
     nC_old         = graph%nC
     C_old          = graph%C
@@ -100,28 +101,5 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine enforce_contiguous_process_domains_graph
-
-  function test_graph_nodes_are_sorted( graph) result( are_sorted)
-
-    ! In/output variables:
-    type(type_graph), intent(in) :: graph
-    logical                      :: are_sorted
-
-    ! Local variables:
-    character(len=256), parameter :: routine_name = 'test_graph_nodes_are_sorted'
-    integer                       :: ni
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    are_sorted = .true.
-    do ni = 2, graph%n
-      are_sorted = are_sorted .and. graph%V( ni,1) >= graph%V( ni-1,1)
-    end do
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end function test_graph_nodes_are_sorted
 
 end module graph_contiguous_domains

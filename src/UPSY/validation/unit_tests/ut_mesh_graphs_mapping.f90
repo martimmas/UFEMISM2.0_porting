@@ -15,9 +15,6 @@ module ut_mesh_graphs_mapping
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
   use mesh_graph_mapping, only: map_mesh_vertices_to_graph, map_graph_to_mesh_vertices, &
     map_mesh_triangles_to_graph, map_graph_to_mesh_triangles
-  use create_graphs_from_masked_mesh, only: test_graph_matches_mesh
-
-  use netcdf_io_main
 
   implicit none
 
