@@ -15,9 +15,10 @@ module solve_linearised_SSA_DIVA_ocean_pressure
     gather_dist_shared_to_all
   use mpi_f08, only: MPI_WIN
   use mesh_graph_mapping, only: map_mesh_triangles_to_graph, map_graph_to_mesh_triangles, &
-    map_mesh_vertices_to_graph_ghost_nodes
+    map_mesh_vertices_to_graph
   use ice_geometry_basics, only: height_of_water_column_at_ice_front
   use parameters, only: ice_density, seawater_density, grav
+  use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper
 
   use netcdf_io_main
 
@@ -57,11 +58,15 @@ contains
     real(dp), dimension(:), pointer     :: u_b_g     => null()
     real(dp), dimension(:), pointer     :: v_b_g     => null()
     type(MPI_WIN)                       :: wu_b_g, wv_b_g
-    real(dp), dimension(:), pointer     :: Hi_b_ggh  => null()
-    real(dp), dimension(:), pointer     :: Hb_b_ggh  => null()
-    real(dp), dimension(:), pointer     :: SL_b_ggh  => null()
-    real(dp), dimension(:), pointer     :: Ho_b_ggh  => null()
-    type(MPI_WIN)                       :: wHi_b_ggh, wHb_b_ggh, wSL_b_ggh, wHo_b_ggh
+    real(dp), dimension(:), pointer     :: Hi_a_g  => null()
+    real(dp), dimension(:), pointer     :: Hb_a_g  => null()
+    real(dp), dimension(:), pointer     :: SL_a_g  => null()
+    type(MPI_WIN)                       :: wHi_a_g, wHb_a_g, wSL_a_g
+    real(dp), dimension(:), pointer     :: Hi_b_g  => null()
+    real(dp), dimension(:), pointer     :: Hb_b_g  => null()
+    real(dp), dimension(:), pointer     :: SL_b_g  => null()
+    real(dp), dimension(:), pointer     :: Ho_b_g  => null()
+    type(MPI_WIN)                       :: wHi_b_g, wHb_b_g, wSL_b_g, wHo_b_g
     real(dp), dimension(:), pointer     :: N_b_g     => null()
     real(dp), dimension(:), pointer     :: dN_dx_b_g => null()
     real(dp), dimension(:), pointer     :: dN_dy_b_g => null()
@@ -87,10 +92,13 @@ contains
     ! Allocate hybrid distrobuted/shared memory
     call allocate_dist_shared( u_b_g                         , wu_b_g                         , graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( v_b_g                         , wv_b_g                         , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Hi_b_ggh                      , wHi_b_ggh                      , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Hb_b_ggh                      , wHb_b_ggh                      , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( SL_b_ggh                      , wSL_b_ggh                      , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Ho_b_ggh                      , wHo_b_ggh                      , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Hi_a_g                        , wHi_a_g                        , graphs%graph_a%pai%n_nih)
+    call allocate_dist_shared( Hb_a_g                        , wHb_a_g                        , graphs%graph_a%pai%n_nih)
+    call allocate_dist_shared( SL_a_g                        , wSL_a_g                        , graphs%graph_a%pai%n_nih)
+    call allocate_dist_shared( Hi_b_g                        , wHi_b_g                        , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Hb_b_g                        , wHb_b_g                        , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( SL_b_g                        , wSL_b_g                        , graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Ho_b_g                        , wHo_b_g                        , graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( N_b_g                         , wN_b_g                         , graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     , graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     , graphs%graph_b%pai%n_nih)
@@ -98,24 +106,36 @@ contains
     call allocate_dist_shared( tau_dx_b_g                    , wtau_dx_b_g                    , graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( tau_dy_b_g                    , wtau_dy_b_g                    , graphs%graph_b%pai%n_nih)
 
-    ! Map ice model data from the mesh triangles to the b-graph
-    call map_mesh_triangles_to_graph           ( mesh, u_b                         , graphs%graph_b, u_b_g                         )
-    call map_mesh_triangles_to_graph           ( mesh, v_b                         , graphs%graph_b, v_b_g                         )
-    call map_mesh_vertices_to_graph_ghost_nodes( mesh, Hi_a                        , graphs%graph_b, Hi_b_ggh                      )
-    call map_mesh_vertices_to_graph_ghost_nodes( mesh, Hb_a                        , graphs%graph_b, Hb_b_ggh                      )
-    call map_mesh_vertices_to_graph_ghost_nodes( mesh, SL_a                        , graphs%graph_b, SL_b_ggh                      )
-    call map_mesh_triangles_to_graph           ( mesh, N_b                         , graphs%graph_b, N_b_g                         )
-    call map_mesh_triangles_to_graph           ( mesh, dN_dx_b                     , graphs%graph_b, dN_dx_b_g                     )
-    call map_mesh_triangles_to_graph           ( mesh, dN_dy_b                     , graphs%graph_b, dN_dy_b_g                     )
-    call map_mesh_triangles_to_graph           ( mesh, basal_friction_coefficient_b, graphs%graph_b, basal_friction_coefficient_b_g)
-    call map_mesh_triangles_to_graph           ( mesh, tau_dx_b                    , graphs%graph_b, tau_dx_b_g                    )
-    call map_mesh_triangles_to_graph           ( mesh, tau_dy_b                    , graphs%graph_b, tau_dy_b_g                    )
+    ! Map ice model data from the mesh to the graph
+    call map_mesh_triangles_to_graph( mesh, u_b                         , graphs%graph_b, u_b_g                         )
+    call map_mesh_triangles_to_graph( mesh, v_b                         , graphs%graph_b, v_b_g                         )
+    call map_mesh_vertices_to_graph ( mesh, Hi_a                        , graphs%graph_a, Hi_a_g                        )
+    call map_mesh_vertices_to_graph ( mesh, Hb_a                        , graphs%graph_a, Hb_a_g                        )
+    call map_mesh_vertices_to_graph ( mesh, SL_a                        , graphs%graph_a, SL_a_g                        )
+    call map_mesh_triangles_to_graph( mesh, N_b                         , graphs%graph_b, N_b_g                         )
+    call map_mesh_triangles_to_graph( mesh, dN_dx_b                     , graphs%graph_b, dN_dx_b_g                     )
+    call map_mesh_triangles_to_graph( mesh, dN_dy_b                     , graphs%graph_b, dN_dy_b_g                     )
+    call map_mesh_triangles_to_graph( mesh, basal_friction_coefficient_b, graphs%graph_b, basal_friction_coefficient_b_g)
+    call map_mesh_triangles_to_graph( mesh, tau_dx_b                    , graphs%graph_b, tau_dx_b_g                    )
+    call map_mesh_triangles_to_graph( mesh, tau_dy_b                    , graphs%graph_b, tau_dy_b_g                    )
 
-    ! Calculate height of the water column in contact with the ice front
+    ! Calculate height of the water column in contact with the ice front on the b-graph
+
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, Hi_a_g, graphs%graph_b%pai, Hi_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, Hb_a_g, graphs%graph_b%pai, Hb_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
+      graphs%graph_a%pai, SL_a_g, graphs%graph_b%pai, SL_b_g, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
+
     do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
-      if (graphs%graph_b%is_ghost( ni)) then
-        Ho_b_ggh( ni) = height_of_water_column_at_ice_front( Hi_b_ggh( ni), Hb_b_ggh( ni), SL_b_ggh( ni))
-      end if
+      Ho_b_g( ni) = height_of_water_column_at_ice_front( Hi_b_g( ni), Hb_b_g( ni), SL_b_g( ni))
     end do
 
     ! == Initialise the stiffness matrix using the native UFEMISM CSR-matrix format
@@ -174,7 +194,7 @@ contains
         ! Ice margin: apply ocean pressure boundary condition
 
         call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, &
-          N_b_g, Hi_b_ggh, Ho_b_ggh, A_CSR, bb_b_g, row_niuv)
+          N_b_g, Hi_b_g, Ho_b_g, A_CSR, bb_b_g, row_niuv)
 
       else
         ! No boundary conditions apply; solve the SSA
@@ -222,10 +242,13 @@ contains
     ! Clean up after yourself
     call deallocate_dist_shared( u_b_g                         , wu_b_g                         )
     call deallocate_dist_shared( v_b_g                         , wv_b_g                         )
-    call deallocate_dist_shared( Hi_b_ggh                      , wHi_b_ggh                      )
-    call deallocate_dist_shared( Hb_b_ggh                      , wHb_b_ggh                      )
-    call deallocate_dist_shared( SL_b_ggh                      , wSL_b_ggh                      )
-    call deallocate_dist_shared( Ho_b_ggh                      , wHo_b_ggh                      )
+    call deallocate_dist_shared( Hi_a_g                        , wHi_a_g                        )
+    call deallocate_dist_shared( Hb_a_g                        , wHb_a_g                        )
+    call deallocate_dist_shared( SL_a_g                        , wSL_a_g                        )
+    call deallocate_dist_shared( Hi_b_g                        , wHi_b_g                        )
+    call deallocate_dist_shared( Hb_b_g                        , wHb_b_g                        )
+    call deallocate_dist_shared( SL_b_g                        , wSL_b_g                        )
+    call deallocate_dist_shared( Ho_b_g                        , wHo_b_g                        )
     call deallocate_dist_shared( N_b_g                         , wN_b_g                         )
     call deallocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     )
     call deallocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     )
@@ -531,7 +554,7 @@ contains
 
   end subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b_g, Hi_b_ggh, Ho_b_ggh, &
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b_g, Hi_b_g, Ho_b_g, &
     A_CSR, bb_b_g, row_niuv)
     ! The ocean-pressure boundary condition to the SSA at the ice front reads;
     !
@@ -555,7 +578,7 @@ contains
 
     ! In/output variables:
     type(type_graph_pair),                                                    intent(in   ) :: graphs
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, Hi_b_ggh, Ho_b_ggh
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, Hi_b_g, Ho_b_g
     type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
     real(dp), dimension(A_CSR%i1:A_CSR%i2),                                   intent(inout) :: bb_b_g
     integer,                                                                  intent(in   ) :: row_niuv
@@ -575,9 +598,9 @@ contains
     uv = graphs%n2biuv( row_niuv,2)
 
     ! N, Hi, Ho, and outward unit normal vector on this graph node
-    N   = N_b_g( ni)
-    Hi  = Hi_b_ggh( ni)
-    Ho  = Ho_b_ggh( ni)
+    N   = N_b_g ( ni)
+    Hi  = Hi_b_g( ni)
+    Ho  = Ho_b_g( ni)
     n_x = graphs%graph_b%ghost_nhat( ni,1)
     n_y = graphs%graph_b%ghost_nhat( ni,2)
 

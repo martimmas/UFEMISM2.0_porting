@@ -6,10 +6,11 @@ module graph_pair_creation
   use graph_types, only: type_graph_pair
   use ice_model_types, only: type_ice_model
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, &
-    create_graph_from_masked_mesh_b, deallocate_graph
+    create_graph_from_masked_mesh_b
   use graph_operators, only: calc_graph_matrix_operators_2nd_order, &
     calc_graph_matrix_operators_1st_order_margin, calc_graph_a_to_graph_b_matrix_operators, &
     calc_graph_b_to_graph_a_matrix_operators
+  use graph_memory, only: deallocate_graph
   use CSR_matrix_basics, only: deallocate_matrix_CSR_dist
 
   implicit none
