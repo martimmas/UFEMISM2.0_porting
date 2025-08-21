@@ -324,7 +324,7 @@ contains
     character(len=1024), parameter      :: routine_name = 'calc_graph_a_to_graph_b_matrix_operators'
     integer                             :: ncols, ncols_loc, nrows, nrows_loc
     integer                             :: nnz_per_row_est, nnz_est_proc
-    integer                             :: ni
+    integer                             :: ni, ni_reg
     integer                             :: ti, via, vib, vic, nja, njb, njc
     real(dp)                            :: x, y
     integer                             :: nj
@@ -376,58 +376,48 @@ contains
     do ni = graph_b%ni1, graph_b%ni2
 
       if (.not. graph_b%is_ghost( ni)) then
-
-        ! Calculate shape functions at this graph node
-        x = graph_b%V( ni,1)
-        y = graph_b%V( ni,2)
-
-        ! Set local neighbourhood to the vertices spanning triangle ti
-        ti = graph_b%ni2mi( ni)
-        via = mesh%Tri( ti,1)
-        vib = mesh%Tri( ti,2)
-        vic = mesh%Tri( ti,3)
-        nja = graph_a%mi2ni( via)
-        njb = graph_a%mi2ni( vib)
-        njc = graph_a%mi2ni( vic)
-
-        n_c = 3
-        i_c( 1:3) = [nja, njb, njc]
-
-        ! List coordinates of neighbourhood nodes
-        do i = 1, n_c
-          nj = i_c( i)
-          x_c( i) = graph_a%V( nj,1)
-          y_c( i) = graph_a%V( nj,2)
-        end do
-
-        ! Calculate shape functions
-        call calc_shape_functions_2D_stag_1st_order( x, y, n_neighbours_max, n_c, x_c, y_c, &
-          Nf_c, Nfx_c, Nfy_c, succeeded)
-
-        ! Fill them into the matrices
-
-        ! Off-diagonal elements: shape functions for the neighbours
-        do i = 1, n_c
-          nj = i_c( i)
-          call add_entry_CSR_dist( M_map_a_b, ni, nj, Nf_c ( i))
-          call add_entry_CSR_dist( M_ddx_a_b, ni, nj, Nfx_c( i))
-          call add_entry_CSR_dist( M_ddy_a_b, ni, nj, Nfy_c( i))
-        end do
-
+        ni_reg = ni
       else
-        ! Only define a mapping operator here, from the two margin vertices to the ghost node
-
-        ei = graph_b%ni2mi( ni)
-        vi = mesh%EV( ei,1)
-        vj = mesh%EV( ei,2)
-        call add_entry_CSR_dist( M_map_a_b, ni, graph_a%mi2ni( vi), 0.5_dp)
-        call add_entry_CSR_dist( M_map_a_b, ni, graph_a%mi2ni( vj), 0.5_dp)
-
-        ! Leave the gradient operators emptyhere
-        call add_empty_row_CSR_dist( M_ddx_a_b, ni)
-        call add_empty_row_CSR_dist( M_ddy_a_b, ni)
-
+        ! For ghost nodes, use the info from the adjacent regular node
+        ni_reg = graph_b%C( ni,1)
       end if
+
+      ! Calculate shape functions at this graph node
+      x = graph_b%V( ni_reg,1)
+      y = graph_b%V( ni_reg,2)
+
+      ! Set local neighbourhood to the vertices spanning triangle ti
+      ti = graph_b%ni2mi( ni_reg)
+      via = mesh%Tri( ti,1)
+      vib = mesh%Tri( ti,2)
+      vic = mesh%Tri( ti,3)
+      nja = graph_a%mi2ni( via)
+      njb = graph_a%mi2ni( vib)
+      njc = graph_a%mi2ni( vic)
+
+      n_c = 3
+      i_c( 1:3) = [nja, njb, njc]
+
+      ! List coordinates of neighbourhood nodes
+      do i = 1, n_c
+        nj = i_c( i)
+        x_c( i) = graph_a%V( nj,1)
+        y_c( i) = graph_a%V( nj,2)
+      end do
+
+      ! Calculate shape functions
+      call calc_shape_functions_2D_stag_1st_order( x, y, n_neighbours_max, n_c, x_c, y_c, &
+        Nf_c, Nfx_c, Nfy_c, succeeded)
+
+      ! Fill them into the matrices
+
+      ! Off-diagonal elements: shape functions for the neighbours
+      do i = 1, n_c
+        nj = i_c( i)
+        call add_entry_CSR_dist( M_map_a_b, ni, nj, Nf_c ( i))
+        call add_entry_CSR_dist( M_ddx_a_b, ni, nj, Nfx_c( i))
+        call add_entry_CSR_dist( M_ddy_a_b, ni, nj, Nfy_c( i))
+      end do
 
     end do
 
@@ -510,12 +500,9 @@ contains
 
     do ni = graph_a%ni1, graph_a%ni2
 
-      ! Skip ghost nodes
+      ! Safety
       if (graph_a%is_ghost( ni)) then
-        call add_empty_row_CSR_dist( M_map_b_a, ni)
-        call add_empty_row_CSR_dist( M_ddx_b_a, ni)
-        call add_empty_row_CSR_dist( M_ddy_b_a, ni)
-        cycle
+        call crash('vertex-based graph should not have ghost nodes')
       end if
 
       ! Calculate shape functions at this graph node
