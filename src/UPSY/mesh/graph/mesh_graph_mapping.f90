@@ -10,6 +10,7 @@ module mesh_graph_mapping
   use mpi_distributed_memory, only: gather_to_all
   use mpi_distributed_shared_memory, only: gather_dist_shared_to_all
   use mpi_basic, only: par, sync
+  use parameters, only: NaN
 
   implicit none
 
@@ -98,7 +99,7 @@ contains
         vi = graph%ni2mi( ni)
         d_graph_nih( ni) = d_mesh_tot( vi)
       else
-        d_graph_nih( ni) = .false.
+        call crash('a vertex-based graph should not have ghost nodes')
       end if
     end do
 
@@ -171,7 +172,7 @@ contains
         vi = graph%ni2mi( ni)
         d_graph_nih( ni) = d_mesh_tot( vi)
       else
-        d_graph_nih( ni) = 0
+        call crash('a vertex-based graph should not have ghost nodes')
       end if
     end do
 
@@ -244,7 +245,7 @@ contains
         vi = graph%ni2mi( ni)
         d_graph_nih( ni) = d_mesh_tot( vi)
       else
-        d_graph_nih( ni) = 0._dp
+        call crash('a vertex-based graph should not have ghost nodes')
       end if
     end do
 
@@ -293,7 +294,7 @@ contains
     type(type_mesh),                                        intent(in   ) :: mesh
     real(dp), dimension(:),                                 intent(in   ) :: d_mesh
     type(type_graph),                                       intent(in   ) :: graph
-    real(dp), dimension(graph%pai%i1_nih:graph%pai%i2_nih), intent(  out) :: d_graph_nih
+    real(dp), dimension(graph%pai%i1_nih:graph%pai%i2_nih), intent(inout) :: d_graph_nih
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'map_mesh_vertices_to_graph_ghost_nodes_dp_2D'
@@ -321,8 +322,6 @@ contains
         vi = mesh%EV( ei,1)
         vj = mesh%EV( ei,2)
         d_graph_nih( ni) = (d_mesh_tot( vi) + d_mesh_tot( vj)) / 2._dp
-      else
-        d_graph_nih( ni) = 0._dp
       end if
     end do
 
@@ -341,7 +340,7 @@ contains
     real(dp), dimension(:,:), target, intent(in   ) :: d_mesh
     type(type_graph),                 intent(in   ) :: graph
     real(dp), dimension(graph%pai%i1_nih:graph%pai%i2_nih, &
-      1:size(d_mesh,2)),      target, intent(  out) :: d_graph_nih
+      1:size(d_mesh,2)),      target, intent(inout) :: d_graph_nih
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'map_mesh_vertices_to_graph_ghost_nodes_dp_3D'
@@ -775,7 +774,7 @@ contains
       if (ni > 0) then
         d_mesh_loc( vi) = d_graph_tot( ni)
       else
-        d_mesh_loc( vi) = 0._dp
+        d_mesh_loc( vi) = NaN
       end if
     end do
 
@@ -1006,7 +1005,7 @@ contains
       if (ni > 0) then
         d_mesh_loc( ti) = d_graph_tot( ni)
       else
-        d_mesh_loc( ti) = 0._dp
+        d_mesh_loc( ti) = NaN
       end if
     end do
 

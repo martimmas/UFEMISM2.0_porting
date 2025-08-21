@@ -9,7 +9,7 @@ module ut_mesh_graphs_mapping
   use mesh_types, only: type_mesh
   use graph_types, only: type_graph
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b
-  use mpi_f08, only: MPI_WIN
+  use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD
   use mpi_distributed_memory, only: gather_to_all
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
@@ -848,6 +848,7 @@ contains
     type(MPI_WIN)                               :: wd_mesh_nih_ex, wd_mesh_nih_mapped
     integer                                     :: vi, ni
     real(dp)                                    :: d
+    logical                                     :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -881,12 +882,29 @@ contains
       d_graph_nih_ex( ni) = d
     end do
 
-    ! ! Map data from the mesh to the graph
+    ! Map graph data to distributed mesh data
     call map_graph_to_mesh_vertices( graph, d_graph_nih_ex, mesh, d_mesh_loc_mapped)
-    call unit_test( test_eq( d_mesh_loc_ex, d_mesh_loc_mapped), trim( test_name) // '/hybrid_dist')
 
+    test_result = .true.
+    do vi = mesh%vi1, mesh%vi2
+      if (mask_a_tot( vi)) then
+        test_result = test_result .and. d_mesh_loc_ex( vi) == d_mesh_loc_mapped( vi)
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_dist')
+
+    ! Map graph data to hybrid distributed/shared mesh data
     call map_graph_to_mesh_vertices( graph, d_graph_nih_ex, mesh, d_mesh_nih_mapped)
-    call unit_test( test_eq( d_mesh_nih_ex, d_mesh_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do vi = mesh%vi1, mesh%vi2
+      if (mask_a_tot( vi)) then
+        test_result = test_result .and. d_mesh_loc_ex( vi) == d_mesh_nih_mapped( vi)
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_graph_nih_ex   , wd_graph_nih_ex   )
@@ -919,6 +937,7 @@ contains
     type(MPI_WIN)                                 :: wd_mesh_nih_ex, wd_mesh_nih_mapped
     integer                                       :: vi, k, ni
     real(dp)                                      :: d
+    logical                                       :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -957,12 +976,33 @@ contains
       end do
     end do
 
-    ! ! Map data from the mesh to the graph
+    ! Map graph data to distributed mesh data
     call map_graph_to_mesh_vertices( graph, d_graph_nih_ex, mesh, d_mesh_loc_mapped)
-    call unit_test( test_eq( d_mesh_loc_ex, d_mesh_loc_mapped), trim( test_name) // '/hybrid_dist')
 
+    test_result = .true.
+    do vi = mesh%vi1, mesh%vi2
+      if (mask_a_tot( vi)) then
+        do k = 1, nz
+          test_result = test_result .and. d_mesh_loc_ex( vi,k) == d_mesh_loc_mapped( vi,k)
+        end do
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_dist')
+
+    ! Map graph data to hybrid distributed/shared mesh data
     call map_graph_to_mesh_vertices( graph, d_graph_nih_ex, mesh, d_mesh_nih_mapped)
-    call unit_test( test_eq( d_mesh_nih_ex, d_mesh_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do vi = mesh%vi1, mesh%vi2
+      if (mask_a_tot( vi)) then
+        do k = 1, nz
+          test_result = test_result .and. d_mesh_loc_ex( vi,k) == d_mesh_nih_mapped( vi,k)
+        end do
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_graph_nih_ex   , wd_graph_nih_ex   )
@@ -1023,7 +1063,7 @@ contains
     logical, dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     logical, dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                              :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d, mi
+    integer                                    :: ti, ni, d
     logical                                    :: test_result
 
     ! Add routine to call stack
@@ -1113,8 +1153,8 @@ contains
     logical, dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     logical, dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d, k, mi
-    logical                                    :: test_result
+    integer                                      :: ti, ni, d, k
+    logical                                      :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1206,7 +1246,7 @@ contains
     integer, dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     integer, dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                              :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d, mi
+    integer                                    :: ti, ni, d
     logical                                    :: test_result
 
     ! Add routine to call stack
@@ -1296,8 +1336,8 @@ contains
     integer, dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     integer, dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                    :: ti, ni, d, k, mi
-    logical                                    :: test_result
+    integer                                      :: ti, ni, d, k
+    logical                                      :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1389,7 +1429,7 @@ contains
     real(dp), dimension(:), contiguous, pointer :: d_graph_nih_ex     => null()
     real(dp), dimension(:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                               :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                     :: ti, ni, mi
+    integer                                     :: ti, ni
     real(dp)                                    :: d
     logical                                     :: test_result
 
@@ -1480,7 +1520,7 @@ contains
     real(dp), dimension(:,:), contiguous, pointer :: d_graph_nih_ex     => null()
     real(dp), dimension(:,:), contiguous, pointer :: d_graph_nih_mapped => null()
     type(MPI_WIN)                                 :: wd_mesh_nih_ex, wd_graph_nih_ex, wd_graph_nih_mapped
-    integer                                       :: ti, ni, k, mi
+    integer                                       :: ti, ni, k
     real(dp)                                      :: d
     logical                                       :: test_result
 
@@ -1944,7 +1984,9 @@ contains
     real(dp), dimension(:), contiguous, pointer :: d_mesh_nih_ex     => null()
     real(dp), dimension(:), contiguous, pointer :: d_mesh_nih_mapped => null()
     type(MPI_WIN)                               :: wd_mesh_nih_ex, wd_mesh_nih_mapped
-    integer                                     :: ti, ni, d
+    integer                                     :: ti, ni
+    real(dp)                                    :: d
+    logical                                     :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1992,12 +2034,31 @@ contains
       end if
     end do
 
-    ! ! Map data from the mesh to the graph
+    ! Map graph data to distributed mesh data
     call map_graph_to_mesh_triangles( graph, d_graph_nih_ex, mesh, d_mesh_loc_mapped)
-    call unit_test( test_eq( d_mesh_loc_ex, d_mesh_loc_mapped), trim( test_name) // '/hybrid_dist')
 
+    test_result = .true.
+    do ti = mesh%ti1, mesh%ti2
+      ni = graph%mi2ni( ti)
+      if (ni > 0) then
+        test_result = test_result .and. d_mesh_loc_ex( ti) == d_mesh_loc_mapped( ti)
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_dist')
+
+    ! Map graph data to hybrid distributed/shared mesh data
     call map_graph_to_mesh_triangles( graph, d_graph_nih_ex, mesh, d_mesh_nih_mapped)
-    call unit_test( test_eq( d_mesh_nih_ex, d_mesh_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ti = mesh%ti1, mesh%ti2
+      ni = graph%mi2ni( ti)
+      if (ni > 0) then
+        test_result = test_result .and. d_mesh_loc_ex( ti) == d_mesh_nih_mapped( ti)
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_graph_nih_ex   , wd_graph_nih_ex   )
@@ -2027,7 +2088,9 @@ contains
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_nih_ex     => null()
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_nih_mapped => null()
     type(MPI_WIN)                                 :: wd_mesh_nih_ex, wd_mesh_nih_mapped
-    integer                                       :: ti, ni, k, d
+    integer                                       :: ti, ni, k
+    real(dp)                                      :: d
+    logical                                       :: test_result
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2078,12 +2141,35 @@ contains
       end if
     end do
 
-    ! ! Map data from the mesh to the graph
+    ! Map graph data to distributed mesh data
     call map_graph_to_mesh_triangles( graph, d_graph_nih_ex, mesh, d_mesh_loc_mapped)
-    call unit_test( test_eq( d_mesh_loc_ex, d_mesh_loc_mapped), trim( test_name) // '/hybrid_dist')
 
+    test_result = .true.
+    do ti = mesh%ti1, mesh%ti2
+      ni = graph%mi2ni( ti)
+      if (ni > 0) then
+        do k = 1, nz
+          test_result = test_result .and. d_mesh_loc_ex( ti,k) == d_mesh_loc_mapped( ti,k)
+        end do
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_dist')
+
+    ! Map graph data to hybrid distributed/shared mesh data
     call map_graph_to_mesh_triangles( graph, d_graph_nih_ex, mesh, d_mesh_nih_mapped)
-    call unit_test( test_eq( d_mesh_nih_ex, d_mesh_nih_mapped), trim( test_name) // '/hybrid_hybrid')
+
+    test_result = .true.
+    do ti = mesh%ti1, mesh%ti2
+      ni = graph%mi2ni( ti)
+      if (ni > 0) then
+        do k = 1, nz
+          test_result = test_result .and. d_mesh_loc_ex( ti,k) == d_mesh_nih_mapped( ti,k)
+        end do
+      end if
+    end do
+    call MPI_ALLREDUCE( MPI_IN_PLACE, test_result, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD)
+    call unit_test( test_result, trim( test_name) // '/hybrid_hybrid')
 
     ! Clean up after yourself
     call deallocate_dist_shared( d_graph_nih_ex   , wd_graph_nih_ex   )
