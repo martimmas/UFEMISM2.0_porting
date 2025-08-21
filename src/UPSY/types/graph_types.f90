@@ -30,6 +30,7 @@ module graph_types
 
     ! Ghost nodes
     logical,  dimension(:    ), allocatable :: is_ghost                      !<     Whether or not a node is a ghost node
+    real(dp), dimension(:,:  ), allocatable :: V_ghost_BC                    !< [m] Coordinates of the point where boundary conditions should apply (i.e. the midpoint between the ghost node itself and its adjacent regular node)
     real(dp), dimension(:,:  ), allocatable :: ghost_nhat                    !<     Unit normal vector at each ghost node
 
     ! Parallelisation ranges

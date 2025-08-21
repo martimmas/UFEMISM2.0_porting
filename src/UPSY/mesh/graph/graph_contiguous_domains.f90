@@ -31,6 +31,7 @@ contains
     integer,  dimension(graph%n)               :: ni_old2mi
     integer,  dimension(size(graph%mi2ni))     :: mi2ni_old
     logical,  dimension(graph%n)               :: is_ghost_old
+    real(dp), dimension(graph%n,2)             :: V_ghost_BC_old
     real(dp), dimension(graph%n,2)             :: ghost_nhat_old
 
     ! Add routine to path
@@ -55,6 +56,7 @@ contains
     nC_old         = graph%nC
     C_old          = graph%C
     is_ghost_old   = graph%is_ghost
+    V_ghost_BC_old = graph%V_ghost_BC
     ghost_nhat_old = graph%ghost_nhat
 
     graph%ni2mi      = 0
@@ -63,6 +65,7 @@ contains
     graph%nC         = 0
     graph%C          = 0
     graph%is_ghost   = .false.
+    graph%V_ghost_BC = 0._dp
     graph%ghost_nhat = 0._dp
 
     do ni_new = 1, graph%n
@@ -90,6 +93,9 @@ contains
 
       ! is_ghost
       graph%is_ghost( ni_new) = is_ghost_old( ni_old)
+
+      ! V_ghost_BC
+      graph%V_ghost_BC( ni_new,:) = V_ghost_BC_old( ni_old,:)
 
       ! ghost_nhat
       graph%ghost_nhat( ni_new,:) = ghost_nhat_old( ni_old,:)

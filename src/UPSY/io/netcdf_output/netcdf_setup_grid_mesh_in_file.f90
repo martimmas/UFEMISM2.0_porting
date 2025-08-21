@@ -502,6 +502,7 @@ contains
     integer :: id_var_C
 
     integer :: id_var_is_ghost
+    integer :: id_var_V_ghost_BC
     integer :: id_var_ghost_nhat
 
     ! Add routine to path
@@ -555,6 +556,10 @@ contains
     call create_variable( filename, ncid, 'is_ghost', NF90_INT, (/ id_dim_vi /), id_var_is_ghost)
     call add_attribute_char( filename, ncid, id_var_is_ghost, 'long_name', 'Whether a node is a ghost node')
     call add_attribute_char( filename, ncid, id_var_is_ghost, 'units', '0 = false, 1 = true')
+    ! V_ghost_BC
+    call create_variable( filename, ncid, 'V_ghost_BC', NF90_DOUBLE, (/ id_dim_vi, id_dim_two   /), id_var_V_ghost_BC             )
+    call add_attribute_char( filename, ncid, id_var_V_ghost_BC, 'long_name'  , 'Ghost node boundary condition coordinates'         )
+    call add_attribute_char( filename, ncid, id_var_V_ghost_BC, 'units'      , 'm'                          )
     ! ghost_nhat
     call create_variable( filename, ncid, 'ghost_nhat', NF90_DOUBLE, (/ id_dim_vi, id_dim_two /), id_var_ghost_nhat)
     call add_attribute_char( filename, ncid, id_var_ghost_nhat, 'long_name', 'Ghost-node outward unit normal vector')
@@ -580,6 +585,7 @@ contains
     end where
 
     call write_var_primary( filename, ncid, id_var_is_ghost  , is_ghost_int)
+    call write_var_primary( filename, ncid, id_var_V_ghost_BC, graph%V_ghost_BC)
     call write_var_primary( filename, ncid, id_var_ghost_nhat, graph%ghost_nhat)
 
     ! Finalise routine path
