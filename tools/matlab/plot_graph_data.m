@@ -29,6 +29,7 @@ end
 
 for ni = 1: graph.n
   if ~graph.is_ghost( ni)
+    if isnan( d( ni)); continue; end
     ci = (d( ni) - clim(1)) / (clim(2) - clim(1));
     ci = max(1,min(ncols,1 + round(ci*(ncols-1))));
 
@@ -47,10 +48,6 @@ for ci = 1: ncols
   line('parent',H.Ax,'xdata',linedata( ci).x,'ydata',linedata( ci).y,'linestyle','none',...
     'marker','o','markerfacecolor',cmap( ci,:),'markeredgecolor','k','markersize',12);
 end
-
-% lastly NaN values
-line('parent',H.Ax,'xdata',graph.V( isnan(d),1),'ydata',graph.V( isnan(d),2),'linestyle','none',...
-    'marker','x','markerfacecolor','r','markeredgecolor','r','markersize',12);
 
 %% Ghost nodes
 
@@ -80,9 +77,5 @@ for ci = 1: ncols
   line('parent',H.Ax,'xdata',linedata( ci).x,'ydata',linedata( ci).y,'linestyle','none',...
     'marker','o','markerfacecolor',cmap( ci,:),'markeredgecolor',cmap( ci,:),'markersize',12);
 end
-
-% lastly NaN values
-line('parent',H.Ax,'xdata',graph.V( isnan(d),1),'ydata',graph.V( isnan(d),2),'linestyle','none',...
-    'marker','x','markerfacecolor','r','markeredgecolor','r','markersize',12);
 
 end

@@ -15,7 +15,8 @@ module hybrid_DIVA_BPA_main
   use ice_model_types, only: type_ice_model, type_ice_velocity_solver_DIVA, type_ice_velocity_solver_BPA, type_ice_velocity_solver_hybrid
   use reallocate_mod, only: reallocate_bounds
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D, map_from_mesh_to_mesh_with_reallocation_3D
-  use DIVA_main, only: allocate_DIVA_solver, remap_DIVA_solver, &
+  use DIVA_main, only: allocate_DIVA_solver, remap_DIVA_solver
+  use DIVA_solver_infinite_slab, only: &
     calc_vertical_shear_strain_rates_DIVA => calc_vertical_shear_strain_rates, &
     calc_effective_viscosity_DIVA => calc_effective_viscosity, &
     calc_F_integrals_DIVA => calc_F_integrals, &
@@ -132,7 +133,6 @@ contains
     integer,  dimension(:), allocatable :: BC_prescr_mask_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_u_b_applied
     real(dp), dimension(:), allocatable :: BC_prescr_v_b_applied
-    type(type_graph_pair)               :: graphs
     integer                             :: viscosity_iteration_i
     logical                             :: has_converged
     real(dp)                            :: resid_UV, resid_UV_prev
@@ -185,7 +185,7 @@ contains
       ice%d2zeta_dx2_bk, ice%d2zeta_dxdy_bk, ice%d2zeta_dy2_bk)
 
     ! Calculate the driving stress
-    call calc_driving_stress_DIVA( mesh, graphs, ice, hybrid%DIVA%tau_dx_b, hybrid%DIVA%tau_dy_b)
+    call calc_driving_stress_DIVA( mesh, ice, hybrid%DIVA%tau_dx_b, hybrid%DIVA%tau_dy_b)
     call calc_driving_stress_BPA ( mesh, ice, hybrid%BPA )
 
     ! Calculate the solving masks for the hybrid solver
@@ -211,17 +211,17 @@ contains
       ! ========================================
 
       ! Calculate the horizontal strain rates for the current velocity solution
-      call calc_horizontal_strain_rates_DIVA( mesh, graphs, hybrid%DIVA%u_vav_b, hybrid%DIVA%v_vav_b, &
+      call calc_horizontal_strain_rates_DIVA( mesh, hybrid%DIVA%u_vav_b, hybrid%DIVA%v_vav_b, &
         hybrid%DIVA%du_dx_a, hybrid%DIVA%du_dy_a, hybrid%DIVA%dv_dx_a, hybrid%DIVA%dv_dy_a)
 
       ! Calculate the vertical shear strain rates
-      call calc_vertical_shear_strain_rates_DIVA( mesh, graphs, hybrid%DIVA)
+      call calc_vertical_shear_strain_rates_DIVA( mesh, hybrid%DIVA)
 
       ! Calculate the effective viscosity for the current velocity solution
-      call calc_effective_viscosity_DIVA( mesh, graphs, ice, hybrid%DIVA, Glens_flow_law_epsilon_sq_0_applied)
+      call calc_effective_viscosity_DIVA( mesh, ice, hybrid%DIVA, Glens_flow_law_epsilon_sq_0_applied)
 
       ! Calculate the F-integrals
-      call calc_F_integrals_DIVA( mesh, graphs, ice, hybrid%DIVA)
+      call calc_F_integrals_DIVA( mesh, ice, hybrid%DIVA)
 
       ! Calculate the "effective" friction coefficient (turning the SSA into the DIVA)
       call calc_effective_basal_friction_coefficient_DIVA( mesh, ice, bed_roughness, hybrid%DIVA)

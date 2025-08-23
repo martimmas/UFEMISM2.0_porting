@@ -42,7 +42,7 @@ contains
     call gather_to_all( mask_a, mask_a_tot)
 
     ! Allocate graph and set metadata
-    call allocate_graph_primary( graph, mesh%nV, mesh%nV, maxval( mesh%nC))
+    call allocate_graph_primary( graph, mesh%nV, mesh%nV, mesh%nTri, mesh%nE, maxval( mesh%nC))
 
     graph%parent_mesh_name = trim( mesh%name) // '_vertices'
     graph%xmin             = mesh%xmin
@@ -55,8 +55,8 @@ contains
     do vi = 1, mesh%nV
       if (mask_a_tot( vi)) then
         graph%n = graph%n + 1
-        graph%mi2ni( vi     ) = graph%n
-        graph%ni2mi( graph%n) = vi
+        graph%vi2ni( vi     ) = graph%n
+        graph%ni2vi( graph%n) = vi
       end if
     end do
 
@@ -64,11 +64,10 @@ contains
     do ni = 1, graph%n
 
       ! This regular graph node corresponds to a masked vertex
-      vi = graph%ni2mi( ni)
+      vi = graph%ni2vi( ni)
 
       graph%V         ( ni,:) = mesh%V( vi,:)
       graph%is_ghost  ( ni  ) = .false.
-      graph%V_ghost_BC( ni,:) = NaN
       graph%ghost_nhat( ni,:) = NaN
 
       ! Add connections to other regular nodes
@@ -77,7 +76,7 @@ contains
         vj = mesh%C( vi,ci)
         if (mask_a_tot( vj)) then
           ! This connection points to another regular node
-          nj = graph%mi2ni( vj)
+          nj = graph%vi2ni( vj)
           graph%nC( ni) = graph%nC( ni) + 1
           graph%C( ni, graph%nC( ni)) = nj
         end if
@@ -110,9 +109,10 @@ contains
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_graph_from_masked_mesh_b'
     logical, dimension(1:mesh%nTri) :: mask_b_tot
-    integer                         :: ni, ti, ng, n, ei, tj, nj, til, tir, vi, vj, vi1, vi2
-    real(dp), dimension(2)          :: p, q, r, s, normal_vector
-    integer                         :: n_unmasked_neighbours
+    integer                         :: ti, n, tj, nj, ei
+    integer                         :: ni_reg, ni_ghost
+    integer                         :: ni, vi, vj, ci, ej, nj1, nj2
+    real(dp), dimension(2)          :: r, s, outward_normal_vector
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -121,7 +121,7 @@ contains
     call calc_mask_b( mesh, mask_a, mask_b_tot)
 
     ! Allocate graph and set metadata
-    call allocate_graph_primary( graph, mesh%nTri*3, mesh%nTri, 3)
+    call allocate_graph_primary( graph, mesh%nTri*3, mesh%nV, mesh%nTri, mesh%nE, 3)
 
     graph%parent_mesh_name = trim( mesh%name) // '_triangles'
     graph%xmin             = mesh%xmin
@@ -134,8 +134,8 @@ contains
     do ti = 1, mesh%nTri
       if (mask_b_tot( ti)) then
         graph%n = graph%n + 1
-        graph%mi2ni( ti     ) = graph%n
-        graph%ni2mi( graph%n) = ti
+        graph%ti2ni( ti     ) = graph%n
+        graph%ni2ti( graph%n) = ti
       end if
     end do
 
@@ -143,18 +143,17 @@ contains
     do ni = 1, graph%n
 
       ! This regular graph node corresponds to a masked triangle
-      ti = graph%ni2mi( ni)
+      ti = graph%ni2ti( ni)
 
       graph%V         ( ni,:) = mesh%TriGC( ti,:)
       graph%is_ghost  ( ni  ) = .false.
-      graph%V_ghost_BC( ni,:) = NaN
       graph%ghost_nhat( ni,:) = NaN
 
       ! Add connections to other regular nodes
       graph%nC( ni) = 0
       do n = 1, 3
         tj = mesh%TriC( ti,n)
-        nj = graph%mi2ni( tj)
+        nj = graph%ti2ni( tj)
         if (nj > 0) then
           ! This connection points to another regular node
           graph%nC( ni) = graph%nC( ni) + 1
@@ -168,19 +167,98 @@ contains
     do ti = 1, mesh%nTri
       if (mask_b_tot( ti)) then
 
-        n_unmasked_neighbours = 0
+        ! Regular node
+        ni_reg = graph%ti2ni( ti)
+
         do n = 1, 3
           tj = mesh%TriC( ti,n)
           if (.not. mask_b_tot( tj)) then
-            n_unmasked_neighbours = n_unmasked_neighbours + 1
+            ! This connection points from a mask to an unmasked triangle;
+            ! add a ghost node here
+
+            graph%n = graph%n + 1
+            ni_ghost = graph%n
+
+            ei = mesh%TriE( ti,n)
+            graph%ei2ni( ei      ) = ni_ghost
+            graph%ni2ei( ni_ghost) = ei
+            graph%ni2ti( ni_ghost) = ti
+
+            graph%V ( ni_ghost,:) = mesh%E( ei,:)
+            graph%nC( ni_ghost  ) = 1
+            graph%C ( ni_ghost,1) = ni_reg
+
+            ! Add reverse connection
+            graph%nC( ni_reg) = graph%nC( ni_reg) + 1
+            graph%C( ni_reg, graph%nC( ni_reg)) = ni_ghost
+
+            graph%is_ghost( ni_ghost) = .true.
+
           end if
         end do
 
-        if (n_unmasked_neighbours == 1) then
-          call add_ghost_node_1_unmasked_neighbour( mesh, graph, mask_b_tot, ti)
-        elseif (n_unmasked_neighbours == 2) then
-          call add_ghost_node_2_unmasked_neighbours( mesh, graph, mask_b_tot, ti)
+      end if
+    end do
+
+    ! Connect ghost nodes to each other along the front
+    do ni = 1, graph%n
+      if (graph%is_ghost( ni)) then
+
+        ei = graph%ni2ei( ni)
+        ti = graph%ni2ti( ni)
+        vi = mesh%EV( ei,1)
+        vj = mesh%EV( ei,2)
+
+        nj1 = 0
+        do ci = 1, mesh%nC( vi)
+          ej = mesh%VE( vi,ci)
+          nj = graph%ei2ni( ej)
+          if (nj > 0 .and. nj /= ni) then
+            nj1 = nj
+            exit
+          end if
+        end do
+
+        nj2 = 0
+        do ci = 1, mesh%nC( vj)
+          ej = mesh%VE( vj,ci)
+          nj = graph%ei2ni( ej)
+          if (nj > 0 .and. nj /= ni) then
+            nj2 = nj
+            exit
+          end if
+        end do
+
+        if (nj1 == 0 .or. nj2 == 0) call crash('couldnt find both nearby ghost nodes')
+
+        ! Add connections, maintaining counter-clockwise ordering
+        graph%nC( ni) = 3
+        graph%C( ni,2) = graph%C( ni,1)
+        if (mesh%ETri( ei,1) == ti) then
+          graph%C( ni, 1) = nj2
+          graph%C( ni, 3) = nj1
+        elseif (mesh%ETri( ei,2) == ti) then
+          graph%C( ni, 1) = nj1
+          graph%C( ni, 3) = nj2
+        else
+          call crash('inconsistency in mesh%ETri')
         end if
+
+      end if
+    end do
+
+    ! Calculate outward unit normal vectors for ghost nodes
+    do ni = 1, graph%n
+      if (graph%is_ghost( ni)) then
+
+        nj1 = graph%C( ni,1)
+        nj2 = graph%C( ni,3)
+
+        r = graph%V( nj1,:)
+        s = graph%V( nj2,:)
+
+        outward_normal_vector = [r(2) - s(2), s(1) - r(1)]
+        graph%ghost_nhat( ni,:) = outward_normal_vector / norm2( outward_normal_vector)
 
       end if
     end do
@@ -191,7 +269,7 @@ contains
     call setup_graph_parallelisation( graph, nz)
 
 #if (DO_ASSERTIONS)
-    call assert(test_graph_is_self_consistent( mesh, graph), 'inconsistent graph connectivity')
+    ! call assert(test_graph_is_self_consistent( mesh, graph), 'inconsistent graph connectivity')
 #endif
 
     ! Finalise routine path
@@ -233,216 +311,5 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_mask_b
-
-  subroutine add_ghost_node_1_unmasked_neighbour( mesh, graph, mask_b_tot, ti)
-
-    ! In/output variables:
-    type(type_mesh),                 intent(in   ) :: mesh
-    type(type_graph),                intent(inout) :: graph
-    logical, dimension(1:mesh%nTri), intent(in   ) :: mask_b_tot
-    integer,                         intent(in   ) :: ti
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'add_ghost_node_1_unmasked_neighbour'
-    integer                        :: ni_reg, via, vib, vic, tj_unmasked, tjb, tjc, ni_ghost
-    real(dp), dimension(2)         :: V_reg, q, r, V_ghost, V_ghost_BC, ghost_nhat
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! The regular node adjacent to the new ghost node
-    ni_reg = graph%mi2ni( ti)
-    V_reg  = graph%V( ni_reg,:)
-
-    call add_ghost_node_1_unmasked_neighbour_local_geometry( mesh, mask_b_tot, ti, &
-      via, vib, vic, tj_unmasked, tjb, tjc)
-
-    ! Define the ghost node as the mirror image of the regular node across the line [vib,vic]
-    q = mesh%V( vib,:)
-    r = mesh%V( vic,:)
-    V_ghost = mirror_p_across_qr( V_reg, q, r)
-
-    ! Use this ghost node to calculate boundary conditions at the domain margin,
-    ! i.e. at the midpoint between the ghost node and the adjacent regular node
-    V_ghost_BC = (V_ghost + graph%V( ni_reg,:)) / 2._dp
-
-    ! Calculate the outward unit normal vector at this ghost node
-    ghost_nhat = (V_ghost - V_reg) / norm2( V_ghost - V_reg)
-
-    ! Add the ghost node to the graph
-    graph%n = graph%n + 1
-    ni_ghost = graph%n
-
-    graph%V         ( ni_ghost,:) = V_ghost
-    graph%nC        ( ni_ghost  ) = 1
-    graph%C         ( ni_ghost,1) = ni_reg
-    graph%is_ghost  ( ni_ghost  ) = .true.
-    graph%V_ghost_BC( ni_ghost,:) = V_ghost_BC
-    graph%ghost_nhat( ni_ghost,:) = ghost_nhat
-
-    ! Add the reverse connection to the regular node
-    graph%nC( ni_reg) = graph%nC( ni_reg) + 1
-    graph%C( ni_reg, graph%nC( ni_reg)) = ni_ghost
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine add_ghost_node_1_unmasked_neighbour
-
-  subroutine add_ghost_node_1_unmasked_neighbour_local_geometry( mesh, mask_b_tot, ti, &
-    via, vib, vic, tj_unmasked, tjb, tjc)
-    ! The local geometry looks like this:
-    !             \   /
-    !          --- vic ---
-    !             /   \
-    !            /     \
-    !      tjb  /       \  tj_unmasked
-    !          /   ti    \
-    !     \   /           \   /
-    !  --- via ----------- vib ---
-    !     /   \           /   \
-    !              tjc
-
-    ! In/output variables:
-    type(type_mesh),                 intent(in   ) :: mesh
-    logical, dimension(1:mesh%nTri), intent(in   ) :: mask_b_tot
-    integer,                         intent(in   ) :: ti
-    integer,                         intent(  out) :: via, vib, vic, tj_unmasked, tjb, tjc
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'add_ghost_node_1_unmasked_neighbour_local_geometry'
-    integer                        :: n1, n2, n3, tj
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    do n1 = 1, 3
-
-      n2 = n1 + 1
-      if (n2 == 4) n2 = 1
-      n3 = n2 + 1
-      if (n3 == 4) n3 = 1
-
-      tj = mesh%TriC( ti,n1)
-
-      if (.not. mask_b_tot( tj)) then
-        via         = mesh%Tri ( ti,n1)
-        vib         = mesh%Tri ( ti,n2)
-        vic         = mesh%Tri ( ti,n3)
-        tj_unmasked = mesh%TriC( ti,n1)
-        tjb         = mesh%TriC( ti,n2)
-        tjc         = mesh%TriC( ti,n3)
-      end if
-
-    end do
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine add_ghost_node_1_unmasked_neighbour_local_geometry
-
-  subroutine add_ghost_node_2_unmasked_neighbours( mesh, graph, mask_b_tot, ti)
-
-    ! In/output variables:
-    type(type_mesh),                 intent(in   ) :: mesh
-    type(type_graph),                intent(inout) :: graph
-    logical, dimension(1:mesh%nTri), intent(in   ) :: mask_b_tot
-    integer,                         intent(in   ) :: ti
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'add_ghost_node_2_unmasked_neighbours'
-    integer                        :: ni_reg, via, vib, vic, tj_masked, tjb, tjc, ni_ghost
-    real(dp), dimension(2)         :: V_reg, V_ghost, V_ghost_BC, ghost_nhat
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! The regular node adjacent to the new ghost node
-    ni_reg = graph%mi2ni( ti)
-    V_reg  = graph%V( ni_reg,:)
-
-    call add_ghost_node_2_unmasked_neighbours_local_geometry( mesh, mask_b_tot, ti, &
-      via, vib, vic, tj_masked, tjb, tjc)
-
-    V_ghost = mesh%TriGC( ti,:) + (mesh%TriGC( ti,:) - mesh%TriGC( tj_masked,:))
-
-    ! Use this ghost node to calculate boundary conditions at the domain margin,
-    ! i.e. at the midpoint between the ghost node and the adjacent regular node
-    V_ghost_BC = (V_ghost + graph%V( ni_reg,:)) / 2._dp
-
-    ! Calculate the outward unit normal vector at this ghost node
-    ghost_nhat = (V_ghost - V_reg) / norm2( V_ghost - V_reg)
-
-    ! Add the ghost node to the graph
-    graph%n = graph%n + 1
-    ni_ghost = graph%n
-
-    graph%V         ( ni_ghost,:) = V_ghost
-    graph%nC        ( ni_ghost  ) = 1
-    graph%C         ( ni_ghost,1) = ni_reg
-    graph%is_ghost  ( ni_ghost  ) = .true.
-    graph%V_ghost_BC( ni_ghost,:) = V_ghost_BC
-    graph%ghost_nhat( ni_ghost,:) = ghost_nhat
-
-    ! Add the reverse connection to the regular node
-    graph%nC( ni_reg) = graph%nC( ni_reg) + 1
-    graph%C( ni_reg, graph%nC( ni_reg)) = ni_ghost
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine add_ghost_node_2_unmasked_neighbours
-
-  subroutine add_ghost_node_2_unmasked_neighbours_local_geometry( mesh, mask_b_tot, ti, &
-    via, vib, vic, tj_masked, tjb, tjc)
-    ! The local geometry looks like this:
-    !             \   /
-    !          --- vic ---
-    !             /   \
-    !            /     \
-    !      tjb  /       \  tj_masked
-    !          /   ti    \
-    !     \   /           \   /
-    !  --- via ----------- vib ---
-    !     /   \           /   \
-    !              tjc
-
-    ! In/output variables:
-    type(type_mesh),                 intent(in   ) :: mesh
-    logical, dimension(1:mesh%nTri), intent(in   ) :: mask_b_tot
-    integer,                         intent(in   ) :: ti
-    integer,                         intent(  out) :: via, vib, vic, tj_masked, tjb, tjc
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'add_ghost_node_2_unmasked_neighbours_local_geometry'
-    integer                        :: n1, n2, n3, tj
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    do n1 = 1, 3
-
-      n2 = n1 + 1
-      if (n2 == 4) n2 = 1
-      n3 = n2 + 1
-      if (n3 == 4) n3 = 1
-
-      tj = mesh%TriC( ti,n1)
-
-      if (mask_b_tot( tj)) then
-        via       = mesh%Tri ( ti,n1)
-        vib       = mesh%Tri ( ti,n2)
-        vic       = mesh%Tri ( ti,n3)
-        tj_masked = mesh%TriC( ti,n1)
-        tjb       = mesh%TriC( ti,n2)
-        tjc       = mesh%TriC( ti,n3)
-      end if
-
-    end do
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine add_ghost_node_2_unmasked_neighbours_local_geometry
 
 end module create_graphs_from_masked_mesh

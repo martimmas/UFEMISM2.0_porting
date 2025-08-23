@@ -8,8 +8,8 @@ module graph_pair_creation
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, &
     create_graph_from_masked_mesh_b
   use graph_operators, only: calc_graph_matrix_operators_2nd_order, &
-    calc_graph_matrix_operators_1st_order_margin, calc_graph_a_to_graph_b_matrix_operators, &
-    calc_graph_b_to_graph_a_matrix_operators
+    calc_graph_matrix_operators_1st_order, &
+    calc_graph_a_to_graph_b_matrix_operators, calc_graph_b_to_graph_a_matrix_operators
   use graph_memory, only: deallocate_graph
   use CSR_matrix_basics, only: deallocate_matrix_CSR_dist
 
@@ -53,8 +53,8 @@ contains
       graphs%M2_d2dxdy_b_b, &
       graphs%M2_d2dy2_b_b)
 
-    call calc_graph_matrix_operators_1st_order_margin( graphs%graph_b, &
-      graphs%M_map_ghost_b_b, graphs%M_ddx_ghost_b_b, graphs%M_ddy_ghost_b_b)
+    call calc_graph_matrix_operators_1st_order( graphs%graph_b, &
+      graphs%M_ddx_b_b, graphs%M_ddy_b_b)
 
     call calc_graph_a_to_graph_b_matrix_operators( mesh, graphs%graph_a, graphs%graph_b, &
       graphs%M_map_a_b, graphs%M_ddx_a_b, graphs%M_ddy_a_b)
@@ -103,9 +103,8 @@ contains
     call deallocate_matrix_CSR_dist( graphs%M2_d2dxdy_b_b)
     call deallocate_matrix_CSR_dist( graphs%M2_d2dy2_b_b )
 
-    call deallocate_matrix_CSR_dist( graphs%M_map_ghost_b_b)
-    call deallocate_matrix_CSR_dist( graphs%M_ddx_ghost_b_b)
-    call deallocate_matrix_CSR_dist( graphs%M_ddy_ghost_b_b)
+    call deallocate_matrix_CSR_dist( graphs%M_ddx_b_b)
+    call deallocate_matrix_CSR_dist( graphs%M_ddy_b_b)
 
     call deallocate_matrix_CSR_dist( graphs%M_map_a_b)
     call deallocate_matrix_CSR_dist( graphs%M_ddx_a_b)

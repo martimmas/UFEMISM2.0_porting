@@ -3,22 +3,14 @@ module solve_linearised_SSA_DIVA_ocean_pressure
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
-  use graph_types, only: type_graph_pair
+  use ice_model_types, only: type_ice_velocity_solver_DIVA_graphs
   use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
   use CSR_matrix_basics, only: allocate_matrix_CSR_dist, add_entry_CSR_dist, read_single_row_CSR_dist, &
     finalise_matrix_CSR_dist
-  use mesh_utilities, only: find_ti_copy_ISMIP_HOM_periodic, find_ti_copy_SSA_icestream_infinite
-  use mpi_distributed_memory, only: gather_to_all
+  use mpi_distributed_shared_memory, only: gather_dist_shared_to_all
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
-  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared, &
-    gather_dist_shared_to_all
-  use mpi_f08, only: MPI_WIN
-  use mesh_graph_mapping, only: map_mesh_triangles_to_graph, map_graph_to_mesh_triangles, &
-    map_mesh_vertices_to_graph
-  use ice_geometry_basics, only: height_of_water_column_at_ice_front
+  use graph_types, only: type_graph_pair
   use parameters, only: ice_density, seawater_density, grav
-  use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper
 
   use netcdf_io_main
 
@@ -30,140 +22,64 @@ module solve_linearised_SSA_DIVA_ocean_pressure
 
 contains
 
-  subroutine solve_SSA_DIVA_linearised_ocean_pressure( mesh, graphs, u_b, v_b, &
-    Hi_a, Hb_a, SL_a, &
-    N_b, dN_dx_b, dN_dy_b, &
-    basal_friction_coefficient_b, tau_dx_b, tau_dy_b, u_b_prev, v_b_prev, &
-    PETSc_rtol, PETSc_abstol, n_Axb_its, BC_prescr_mask_b, BC_prescr_u_b, BC_prescr_v_b)
+  subroutine solve_SSA_DIVA_linearised_ocean_pressure( DIVA, &
+    PETSc_rtol, PETSc_abstol, n_Axb_its)
     !< Solve the linearised SSA
 
     ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_graph_pair),                  intent(in   ) :: graphs
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(inout) :: u_b, v_b
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(inout) :: Hi_a, Hb_a, SL_a
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: N_b, dN_dx_b, dN_dy_b
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: basal_friction_coefficient_b
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: tau_dx_b, tau_dy_b
-    real(dp), dimension(mesh%nTri),         intent(inout) :: u_b_prev, v_b_prev
-    real(dp),                               intent(in   ) :: PETSc_rtol, PETSc_abstol
-    integer,                                intent(  out) :: n_Axb_its             ! Number of iterations used in the iterative solver
-    integer,  dimension(mesh%ti1:mesh%ti2), intent(in   ) :: BC_prescr_mask_b      ! Mask of triangles where velocity is prescribed
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: BC_prescr_u_b         ! Prescribed velocities in the x-direction
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: BC_prescr_v_b         ! Prescribed velocities in the y-direction
+    type(type_ice_velocity_solver_DIVA_graphs), intent(inout) :: DIVA
+    real(dp),                                   intent(in   ) :: PETSc_rtol, PETSc_abstol
+    integer,                                    intent(  out) :: n_Axb_its             ! Number of iterations used in the iterative solver
 
     ! Local variables:
     character(len=1024), parameter      :: routine_name = 'solve_SSA_DIVA_linearised_ocean_pressure'
-
-    real(dp), dimension(:), pointer     :: u_b_g     => null()
-    real(dp), dimension(:), pointer     :: v_b_g     => null()
-    type(MPI_WIN)                       :: wu_b_g, wv_b_g
-    real(dp), dimension(:), pointer     :: Hi_a_g  => null()
-    real(dp), dimension(:), pointer     :: Hb_a_g  => null()
-    real(dp), dimension(:), pointer     :: SL_a_g  => null()
-    type(MPI_WIN)                       :: wHi_a_g, wHb_a_g, wSL_a_g
-    real(dp), dimension(:), pointer     :: Hi_b_g  => null()
-    real(dp), dimension(:), pointer     :: Hb_b_g  => null()
-    real(dp), dimension(:), pointer     :: SL_b_g  => null()
-    real(dp), dimension(:), pointer     :: Ho_b_g  => null()
-    type(MPI_WIN)                       :: wHi_b_g, wHb_b_g, wSL_b_g, wHo_b_g
-    real(dp), dimension(:), pointer     :: N_b_g     => null()
-    real(dp), dimension(:), pointer     :: dN_dx_b_g => null()
-    real(dp), dimension(:), pointer     :: dN_dy_b_g => null()
-    type(MPI_WIN)                       :: wN_b_g, wdN_dx_b_g, wdN_dy_b_g
-    real(dp), dimension(:), pointer     :: basal_friction_coefficient_b_g => null()
-    real(dp), dimension(:), pointer     :: tau_dx_b_g => null()
-    real(dp), dimension(:), pointer     :: tau_dy_b_g => null()
-    type(MPI_WIN)                       :: wbasal_friction_coefficient_b_g, wtau_dx_b_g, wtau_dy_b_g
-
     integer                             :: ncols, ncols_loc, nrows, nrows_loc, nnz_est_proc
     type(type_sparse_matrix_CSR_dp)     :: A_CSR
-    real(dp), dimension(:), allocatable :: bb_b_g
-    real(dp), dimension(:), allocatable :: uv_buv_g
+    real(dp), dimension(:), allocatable :: bb_buv
+    real(dp), dimension(:), allocatable :: uv_buv
     integer                             :: row_niuv, ni, uv
+
+    real(dp), dimension(:), pointer :: d_loc
 
     ! Add routine to path
     call init_routine( routine_name)
 
+    ! DENK DROM
+    d_loc => DIVA%Hi_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
+    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'Hi_b')
+    d_loc => DIVA%Ho_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
+    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'Ho_b')
+
     ! Store the previous solution
-    call gather_to_all( u_b, u_b_prev)
-    call gather_to_all( v_b, v_b_prev)
-
-    ! Allocate hybrid distrobuted/shared memory
-    call allocate_dist_shared( u_b_g                         , wu_b_g                         , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( v_b_g                         , wv_b_g                         , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Hi_a_g                        , wHi_a_g                        , graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( Hb_a_g                        , wHb_a_g                        , graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( SL_a_g                        , wSL_a_g                        , graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( Hi_b_g                        , wHi_b_g                        , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Hb_b_g                        , wHb_b_g                        , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( SL_b_g                        , wSL_b_g                        , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( Ho_b_g                        , wHo_b_g                        , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( N_b_g                         , wN_b_g                         , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( basal_friction_coefficient_b_g, wbasal_friction_coefficient_b_g, graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( tau_dx_b_g                    , wtau_dx_b_g                    , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( tau_dy_b_g                    , wtau_dy_b_g                    , graphs%graph_b%pai%n_nih)
-
-    ! Map ice model data from the mesh to the graph
-    call map_mesh_triangles_to_graph( mesh, u_b                         , graphs%graph_b, u_b_g                         )
-    call map_mesh_triangles_to_graph( mesh, v_b                         , graphs%graph_b, v_b_g                         )
-    call map_mesh_vertices_to_graph ( mesh, Hi_a                        , graphs%graph_a, Hi_a_g                        )
-    call map_mesh_vertices_to_graph ( mesh, Hb_a                        , graphs%graph_a, Hb_a_g                        )
-    call map_mesh_vertices_to_graph ( mesh, SL_a                        , graphs%graph_a, SL_a_g                        )
-    call map_mesh_triangles_to_graph( mesh, N_b                         , graphs%graph_b, N_b_g                         )
-    call map_mesh_triangles_to_graph( mesh, dN_dx_b                     , graphs%graph_b, dN_dx_b_g                     )
-    call map_mesh_triangles_to_graph( mesh, dN_dy_b                     , graphs%graph_b, dN_dy_b_g                     )
-    call map_mesh_triangles_to_graph( mesh, basal_friction_coefficient_b, graphs%graph_b, basal_friction_coefficient_b_g)
-    call map_mesh_triangles_to_graph( mesh, tau_dx_b                    , graphs%graph_b, tau_dx_b_g                    )
-    call map_mesh_triangles_to_graph( mesh, tau_dy_b                    , graphs%graph_b, tau_dy_b_g                    )
-
-    ! Calculate height of the water column in contact with the ice front on the b-graph
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
-      graphs%graph_a%pai, Hi_a_g, graphs%graph_b%pai, Hi_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
-      graphs%graph_a%pai, Hb_a_g, graphs%graph_b%pai, Hb_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
-      graphs%graph_a%pai, SL_a_g, graphs%graph_b%pai, SL_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-
-    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
-      Ho_b_g( ni) = height_of_water_column_at_ice_front( Hi_b_g( ni), Hb_b_g( ni), SL_b_g( ni))
-    end do
+    call gather_dist_shared_to_all( DIVA%graphs%graph_b%pai, DIVA%u_vav_b, DIVA%u_b_prev)
+    call gather_dist_shared_to_all( DIVA%graphs%graph_b%pai, DIVA%v_vav_b, DIVA%v_b_prev)
 
     ! == Initialise the stiffness matrix using the native UFEMISM CSR-matrix format
     ! =============================================================================
 
     ! Matrix size
-    ncols           = graphs%graph_b%n     * 2      ! from
-    ncols_loc       = graphs%graph_b%n_loc * 2
-    nrows           = graphs%graph_b%n     * 2      ! to
-    nrows_loc       = graphs%graph_b%n_loc * 2
-    nnz_est_proc    = graphs%M2_ddx_b_b%nnz * 4
+    ncols           = DIVA%graphs%graph_b%n     * 2      ! from
+    ncols_loc       = DIVA%graphs%graph_b%n_loc * 2
+    nrows           = DIVA%graphs%graph_b%n     * 2      ! to
+    nrows_loc       = DIVA%graphs%graph_b%n_loc * 2
+    nnz_est_proc    = DIVA%graphs%M2_ddx_b_b%nnz * 4
 
     call allocate_matrix_CSR_dist( A_CSR, nrows, ncols, nrows_loc, ncols_loc, nnz_est_proc)
 
     ! Allocate memory for the load vector and the solution
-    allocate( bb_b_g(   graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2))
-    allocate( uv_buv_g( graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2))
+    allocate( bb_buv( DIVA%graphs%graph_b%ni1*2-1: DIVA%graphs%graph_b%ni2*2))
+    allocate( uv_buv( DIVA%graphs%graph_b%ni1*2-1: DIVA%graphs%graph_b%ni2*2))
 
     ! Fill in the current velocity solution
-    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
+    do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
 
       ! u
-      row_niuv = graphs%biuv2n( ni,1)
-      uv_buv_g( row_niuv) = u_b_g( ni)
+      row_niuv = DIVA%graphs%biuv2n( ni,1)
+      uv_buv( row_niuv) = DIVA%u_vav_b( ni)
 
       ! v
-      row_niuv = graphs%biuv2n( ni,2)
-      uv_buv_g( row_niuv) = v_b_g( ni)
+      row_niuv = DIVA%graphs%biuv2n( ni,2)
+      uv_buv( row_niuv) = DIVA%v_vav_b( ni)
 
     end do
 
@@ -172,41 +88,47 @@ contains
 
     do row_niuv = A_CSR%i1, A_CSR%i2
 
-      ni = graphs%n2biuv( row_niuv,1)
-      uv = graphs%n2biuv( row_niuv,2)
+      ni = DIVA%graphs%n2biuv( row_niuv,1)
+      uv = DIVA%graphs%n2biuv( row_niuv,2)
 
       ! if (BC_prescr_mask_b( ti) == 1) then
       !   ! Dirichlet boundary condition; velocities are prescribed for this triangle
 
-    !     ! Stiffness matrix: diagonal element set to 1
-    !     call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, 1._dp)
+      !   ! Stiffness matrix: diagonal element set to 1
+      !   call add_entry_CSR_dist( A_CSR, row_tiuv, row_tiuv, 1._dp)
 
-    !     ! Load vector: prescribed velocity
-    !     if     (uv == 1) then
-    !       bb( row_tiuv) = BC_prescr_u_b( ti)
-    !     elseif (uv == 2) then
-    !       bb( row_tiuv) = BC_prescr_v_b( ti)
-    !     else
-    !       call crash('uv can only be 1 or 2!')
-    !     end if
+      !   ! Load vector: prescribed velocity
+      !   if     (uv == 1) then
+      !     bb( row_tiuv) = BC_prescr_u_b( ti)
+      !   elseif (uv == 2) then
+      !     bb( row_tiuv) = BC_prescr_v_b( ti)
+      !   else
+      !     call crash('uv can only be 1 or 2!')
+      !   end if
 
-      if (graphs%graph_b%is_ghost( ni)) then
+      if (DIVA%graphs%graph_b%is_ghost( ni)) then
         ! Ice margin: apply ocean pressure boundary condition
 
-        call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, &
-          N_b_g, Hi_b_g, Ho_b_g, A_CSR, bb_b_g, row_niuv)
+        call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( DIVA%graphs, &
+          DIVA%N_b, DIVA%Hi_b, DIVA%Ho_b, A_CSR, bb_buv, row_niuv)
 
       else
         ! No boundary conditions apply; solve the SSA
 
         if (C%do_include_SSADIVA_crossterms) then
           ! Calculate matrix coefficients for the full SSA/DIVA
-          call calc_SSA_DIVA_stiffness_matrix_row_free( graphs, N_b_g, dN_dx_b_g, dN_dy_b_g, &
-            basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+          call calc_SSA_DIVA_stiffness_matrix_row_free( DIVA%graphs, &
+            DIVA%N_b, DIVA%dN_dx_b, DIVA%dN_dy_b, &
+            DIVA%beta_eff_b, &
+            DIVA%tau_dx_b, DIVA%tau_dy_b, &
+            A_CSR, bb_buv, row_niuv)
         else
           ! Calculate matrix coefficients for the SSA sans the gradients of the effective viscosity (the "cross-terms")
-          call calc_SSA_DIVA_sans_stiffness_matrix_row_free( graphs, N_b_g, &
-            basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+          call calc_SSA_DIVA_sans_stiffness_matrix_row_free( DIVA%graphs, &
+            DIVA%N_b, &
+            DIVA%beta_eff_b, &
+            DIVA%tau_dx_b, DIVA%tau_dy_b, &
+            A_CSR, bb_buv, row_niuv)
         end if
 
       end if
@@ -219,50 +141,29 @@ contains
     ! ! ============================
 
     ! Use PETSc to solve the matrix equation
-    call solve_matrix_equation_CSR_PETSc( A_CSR, bb_b_g, uv_buv_g, PETSc_rtol, PETSc_abstol, &
+    call solve_matrix_equation_CSR_PETSc( A_CSR, bb_buv, uv_buv, PETSc_rtol, PETSc_abstol, &
       n_Axb_its)
 
     ! Disentangle the u and v components of the velocity solution
-    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
+    do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
 
       ! u
-      row_niuv = graphs%biuv2n( ni,1)
-      u_b_g( ni) = uv_buv_g( row_niuv)
+      row_niuv = DIVA%graphs%biuv2n( ni,1)
+      DIVA%u_vav_b( ni) = uv_buv( row_niuv)
 
       ! v
-      row_niuv = graphs%biuv2n( ni,2)
-      v_b_g( ni) = uv_buv_g( row_niuv)
+      row_niuv = DIVA%graphs%biuv2n( ni,2)
+      DIVA%v_vav_b( ni) = uv_buv( row_niuv)
 
     end do
-
-    ! Map velocity solution from the b-graph to the mesh triangles
-    call map_graph_to_mesh_triangles( graphs%graph_b, u_b_g, mesh, u_b)
-    call map_graph_to_mesh_triangles( graphs%graph_b, v_b_g, mesh, v_b)
-
-    ! Clean up after yourself
-    call deallocate_dist_shared( u_b_g                         , wu_b_g                         )
-    call deallocate_dist_shared( v_b_g                         , wv_b_g                         )
-    call deallocate_dist_shared( Hi_a_g                        , wHi_a_g                        )
-    call deallocate_dist_shared( Hb_a_g                        , wHb_a_g                        )
-    call deallocate_dist_shared( SL_a_g                        , wSL_a_g                        )
-    call deallocate_dist_shared( Hi_b_g                        , wHi_b_g                        )
-    call deallocate_dist_shared( Hb_b_g                        , wHb_b_g                        )
-    call deallocate_dist_shared( SL_b_g                        , wSL_b_g                        )
-    call deallocate_dist_shared( Ho_b_g                        , wHo_b_g                        )
-    call deallocate_dist_shared( N_b_g                         , wN_b_g                         )
-    call deallocate_dist_shared( dN_dx_b_g                     , wdN_dx_b_g                     )
-    call deallocate_dist_shared( dN_dy_b_g                     , wdN_dy_b_g                     )
-    call deallocate_dist_shared( basal_friction_coefficient_b_g, wbasal_friction_coefficient_b_g)
-    call deallocate_dist_shared( tau_dx_b_g                    , wtau_dx_b_g                    )
-    call deallocate_dist_shared( tau_dy_b_g                    , wtau_dy_b_g                    )
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine solve_SSA_DIVA_linearised_ocean_pressure
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_free( graphs, N_b_g, dN_dx_b_g, dN_dy_b_g, &
-    basal_friction_coefficient_b_g, tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_free( graphs, N_b, dN_dx_b, dN_dy_b, &
+    basal_friction_coefficient_b, tau_dx_b, tau_dy_b, A_CSR, bb_b, row_niuv)
     !< Add coefficients to this matrix row to represent the linearised SSA
 
     ! The SSA reads;
@@ -289,11 +190,11 @@ contains
 
     ! In/output variables:
     type(type_graph_pair),                                                    intent(in   ) :: graphs
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, dN_dx_b_g, dN_dy_b_g
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b_g
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b_g, tau_dy_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b, dN_dx_b, dN_dy_b
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b, tau_dy_b
     type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
-    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b_g
+    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b
     integer,                                                                  intent(in   ) :: row_niuv
 
     ! Local variables:
@@ -314,12 +215,12 @@ contains
     uv = graphs%n2biuv( row_niuv,2)
 
     ! N, dN/dx, dN/dy, basal_friction_coefficient_b, tau_dx, and tau_dy on this graph node
-    N                          = N_b_g                         ( ni)
-    dN_dx                      = dN_dx_b_g                     ( ni)
-    dN_dy                      = dN_dy_b_g                     ( ni)
-    basal_friction_coefficient = basal_friction_coefficient_b_g( ni)
-    tau_dx                     = tau_dx_b_g                    ( ni)
-    tau_dy                     = tau_dy_b_g                    ( ni)
+    N                          = N_b                         ( ni)
+    dN_dx                      = dN_dx_b                     ( ni)
+    dN_dy                      = dN_dy_b                     ( ni)
+    basal_friction_coefficient = basal_friction_coefficient_b( ni)
+    tau_dx                     = tau_dx_b                    ( ni)
+    tau_dy                     = tau_dy_b                    ( ni)
 
     ! allocate memory for single matrix rows
     allocate( single_row_ind(        graphs%graph_a%nC_mem*2))
@@ -367,7 +268,7 @@ contains
       end do
 
       ! Load vector
-      bb_b_g( row_niuv) = -tau_dx
+      bb_b( row_niuv) = -tau_dx
 
     elseif (uv == 2) then
       ! y-component
@@ -400,7 +301,7 @@ contains
       end do
 
       ! Load vector
-      bb_b_g( row_niuv) = -tau_dy
+      bb_b( row_niuv) = -tau_dy
 
     else
       call crash('uv can only be 1 or 2!')
@@ -408,8 +309,8 @@ contains
 
   end subroutine calc_SSA_DIVA_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free( graphs, N_b_g, basal_friction_coefficient_b_g, &
-    tau_dx_b_g, tau_dy_b_g, A_CSR, bb_b_g, row_niuv)
+  subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free( graphs, N_b, basal_friction_coefficient_b, &
+    tau_dx_b, tau_dy_b, A_CSR, bb_b, row_niuv)
     !< Add coefficients to this matrix row to represent the linearised SSA
     !< sans the gradients of the effective viscosity (the "cross-terms")
 
@@ -447,11 +348,11 @@ contains
 
     ! In/output variables:
     type(type_graph_pair),                                                    intent(in   ) :: graphs
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b_g
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b_g, tau_dy_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: basal_friction_coefficient_b
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: tau_dx_b, tau_dy_b
     type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
-    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b_g
+    real(dp), dimension(graphs%graph_b%ni1*2-1: graphs%graph_b%ni2*2),        intent(inout) :: bb_b
     integer,                                                                  intent(in   ) :: row_niuv
 
     ! Local variables:
@@ -472,10 +373,10 @@ contains
     uv = graphs%n2biuv( row_niuv,2)
 
     ! N, beta_b, tau_dx, and tau_dy on this graph node
-    N                          = N_b_g                         ( ni)
-    basal_friction_coefficient = basal_friction_coefficient_b_g( ni)
-    tau_dx                     = tau_dx_b_g                    ( ni)
-    tau_dy                     = tau_dy_b_g                    ( ni)
+    N                          = N_b                         ( ni)
+    basal_friction_coefficient = basal_friction_coefficient_b( ni)
+    tau_dx                     = tau_dx_b                    ( ni)
+    tau_dy                     = tau_dy_b                    ( ni)
 
     ! allocate memory for single matrix rows
     allocate( single_row_ind(        graphs%graph_a%nC_mem*2))
@@ -518,7 +419,7 @@ contains
       end do
 
       ! Load vector
-      bb_b_g( row_niuv) = -tau_dx / N
+      bb_b( row_niuv) = -tau_dx / N
 
     elseif (uv == 2) then
       ! y-component
@@ -546,7 +447,7 @@ contains
       end do
 
       ! Load vector
-      bb_b_g( row_niuv) = -tau_dy / N
+      bb_b( row_niuv) = -tau_dy / N
 
     else
       call crash('uv can only be 1 or 2!')
@@ -554,8 +455,8 @@ contains
 
   end subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b_g, Hi_b_g, Ho_b_g, &
-    A_CSR, bb_b_g, row_niuv)
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b, Hi_b, Ho_b, &
+    A_CSR, bb_b, row_niuv)
     ! The ocean-pressure boundary condition to the SSA at the ice front reads;
     !
     !   2 N ( 2 du/dx + dv/dy ) n_x + N ( du/dy + dv/dx) n_y = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
@@ -578,9 +479,9 @@ contains
 
     ! In/output variables:
     type(type_graph_pair),                                                    intent(in   ) :: graphs
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b_g, Hi_b_g, Ho_b_g
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b, Hi_b, Ho_b
     type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
-    real(dp), dimension(A_CSR%i1:A_CSR%i2),                                   intent(inout) :: bb_b_g
+    real(dp), dimension(A_CSR%i1:A_CSR%i2),                                   intent(inout) :: bb_b
     integer,                                                                  intent(in   ) :: row_niuv
 
     ! Local variables:
@@ -598,9 +499,9 @@ contains
     uv = graphs%n2biuv( row_niuv,2)
 
     ! N, Hi, Ho, and outward unit normal vector on this graph node
-    N   = N_b_g ( ni)
-    Hi  = Hi_b_g( ni)
-    Ho  = Ho_b_g( ni)
+    N   = N_b ( ni)
+    Hi  = Hi_b( ni)
+    Ho  = Ho_b( ni)
     n_x = graphs%graph_b%ghost_nhat( ni,1)
     n_y = graphs%graph_b%ghost_nhat( ni,2)
 
@@ -610,8 +511,8 @@ contains
     allocate( single_row_ddy_val( graphs%graph_a%nC_mem*2))
 
     ! Read coefficients of the operator matrices
-    call read_single_row_CSR_dist( graphs%M_ddx_ghost_b_b, ni, single_row_ind, single_row_ddx_val, single_row_nnz)
-    call read_single_row_CSR_dist( graphs%M_ddy_ghost_b_b, ni, single_row_ind, single_row_ddy_val, single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M_ddx_b_b, ni, single_row_ind, single_row_ddx_val, single_row_nnz)
+    call read_single_row_CSR_dist( graphs%M_ddy_b_b, ni, single_row_ind, single_row_ddy_val, single_row_nnz)
 
     if (uv == 1) then
       ! x-component
@@ -640,7 +541,7 @@ contains
       end do
 
       ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
-      bb_b_g( row_niuv) = (&
+      bb_b( row_niuv) = (&
           0.5_dp * ice_density      * grav * Hi**2 &
         - 0.5_dp * seawater_density * grav * Ho**2) * n_x
 
@@ -671,7 +572,7 @@ contains
       end do
 
       ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
-      bb_b_g( row_niuv) = (&
+      bb_b( row_niuv) = (&
           0.5_dp * ice_density      * grav * Hi**2 &
         - 0.5_dp * seawater_density * grav * Ho**2) * n_y
 

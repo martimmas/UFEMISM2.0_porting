@@ -20,8 +20,12 @@ module graph_types
     integer                                 :: nC_mem                        !<     Maximum allowed number of connections per node
 
     ! Mapping between parent mesh and graph
-    integer,  dimension(:    ), allocatable :: ni2mi                         !<     Graph node (ni) to parent mesh node (mi) translation table
-    integer,  dimension(:    ), allocatable :: mi2ni                         !<     Parent mesh node (mi) to graph node (ni) translation table
+    integer,  dimension(:    ), allocatable :: ni2vi                         !<     Graph node (ni) to parent mesh vertex   (vi) translation table
+    integer,  dimension(:    ), allocatable :: ni2ti                         !<     Graph node (ni) to parent mesh triangle (ti) translation table
+    integer,  dimension(:    ), allocatable :: ni2ei                         !<     Graph node (ni) to parent mesh edge     (ei) translation table
+    integer,  dimension(:    ), allocatable :: vi2ni                         !<     Parent mesh vertex   (vi) to graph node (ni) translation table
+    integer,  dimension(:    ), allocatable :: ti2ni                         !<     Parent mesh triangle (ti) to graph node (ti) translation table
+    integer,  dimension(:    ), allocatable :: ei2ni                         !<     Parent mesh triangle (ei) to graph node (ti) translation table
 
     ! Node coordinates and connectivity
     real(dp), dimension(:,:  ), allocatable :: V                             !< [m] Node coordinates
@@ -30,7 +34,6 @@ module graph_types
 
     ! Ghost nodes
     logical,  dimension(:    ), allocatable :: is_ghost                      !<     Whether or not a node is a ghost node
-    real(dp), dimension(:,:  ), allocatable :: V_ghost_BC                    !< [m] Coordinates of the point where boundary conditions should apply (i.e. the midpoint between the ghost node itself and its adjacent regular node)
     real(dp), dimension(:,:  ), allocatable :: ghost_nhat                    !<     Unit normal vector at each ghost node
 
     ! Parallelisation ranges
@@ -54,15 +57,14 @@ module graph_types
 
     type(type_graph)                :: graph_a, graph_b
 
+    type(type_sparse_matrix_CSR_dp) :: M_ddx_b_b
+    type(type_sparse_matrix_CSR_dp) :: M_ddy_b_b
+
     type(type_sparse_matrix_CSR_dp) :: M2_ddx_b_b
     type(type_sparse_matrix_CSR_dp) :: M2_ddy_b_b
     type(type_sparse_matrix_CSR_dp) :: M2_d2dx2_b_b
     type(type_sparse_matrix_CSR_dp) :: M2_d2dxdy_b_b
     type(type_sparse_matrix_CSR_dp) :: M2_d2dy2_b_b
-
-    type(type_sparse_matrix_CSR_dp) :: M_map_ghost_b_b
-    type(type_sparse_matrix_CSR_dp) :: M_ddx_ghost_b_b
-    type(type_sparse_matrix_CSR_dp) :: M_ddy_ghost_b_b
 
     type(type_sparse_matrix_CSR_dp) :: M_map_a_b
     type(type_sparse_matrix_CSR_dp) :: M_ddx_a_b

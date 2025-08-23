@@ -6,14 +6,10 @@ module SSA_DIVA_utilities
   use model_configuration, only: C
   use parameters, only: ice_density, grav
   use mesh_types, only: type_mesh
-  use graph_types, only: type_graph_pair
   use ice_model_types, only: type_ice_model
   use mesh_disc_apply_operators, only: map_a_b_2D, ddx_a_b_2D, ddy_a_b_2D, ddx_b_a_2D, ddy_b_a_2D
-  use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
-  use mpi_f08, only: MPI_WIN
-  use mesh_graph_mapping, only: map_mesh_vertices_to_graph, map_graph_to_mesh_triangles, &
-    map_mesh_triangles_to_graph, map_graph_to_mesh_vertices
-  use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D_wrapper
+
+  use netcdf_io_main
 
   implicit none
 
@@ -24,43 +20,15 @@ module SSA_DIVA_utilities
 
 contains
 
-  subroutine calc_driving_stress( mesh, graphs, ice, tau_dx_b, tau_dy_b)
+  subroutine calc_driving_stress( mesh, ice, tau_dx_b, tau_dy_b)
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
-    type(type_graph_pair),                  intent(in   ) :: graphs
     type(type_ice_model),                   intent(in   ) :: ice
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(  out) :: tau_dx_b, tau_dy_b
 
     ! Local variables:
     character(len=1024), parameter      :: routine_name = 'calc_driving_stress'
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    select case (C%BC_ice_front)
-    case default
-      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
-    case ('infinite_slab')
-      call calc_driving_stress_infinite_slab( mesh, ice, tau_dx_b, tau_dy_b)
-    case ('ocean_pressure')
-      call calc_driving_stress_ocean_pressure( mesh, graphs, ice, tau_dx_b, tau_dy_b)
-    end select
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine calc_driving_stress
-
-  subroutine calc_driving_stress_infinite_slab( mesh, ice, tau_dx_b, tau_dy_b)
-
-    ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_ice_model),                   intent(in   ) :: ice
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(  out) :: tau_dx_b, tau_dy_b
-
-    ! Local variables:
-    character(len=1024), parameter      :: routine_name = 'calc_driving_stress_infinite_slab'
     real(dp), dimension(:), allocatable :: Hi_b
     real(dp), dimension(:), allocatable :: dHs_dx_b
     real(dp), dimension(:), allocatable :: dHs_dy_b
@@ -88,118 +56,9 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_driving_stress_infinite_slab
+  end subroutine calc_driving_stress
 
-  subroutine calc_driving_stress_ocean_pressure( mesh, graphs, ice, tau_dx_b, tau_dy_b)
-
-    ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_graph_pair),                  intent(in   ) :: graphs
-    type(type_ice_model),                   intent(in   ) :: ice
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(  out) :: tau_dx_b, tau_dy_b
-
-    ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'calc_driving_stress_ocean_pressure'
-    real(dp), dimension(:), pointer :: Hi_a_g => null()
-    real(dp), dimension(:), pointer :: Hs_a_g => null()
-    type(MPI_WIN)                   :: wHi_a_g, wHs_a_g
-    real(dp), dimension(:), pointer :: Hi_b_g => null()
-    real(dp), dimension(:), pointer :: dHs_dx_b_g => null()
-    real(dp), dimension(:), pointer :: dHs_dy_b_g => null()
-    type(MPI_WIN)                   :: wHi_b_g, wdHs_dx_b_g, wdHs_dy_b_g
-    real(dp), dimension(:), pointer :: tau_dx_b_g => null()
-    real(dp), dimension(:), pointer :: tau_dy_b_g => null()
-    type(MPI_WIN)                   :: wtau_dx_b_g, wtau_dy_b_g
-    integer                         :: ni
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! Allocate hybrid distributed/shared memory
-    call allocate_dist_shared( Hi_a_g    , wHi_a_g    , graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( Hs_a_g    , wHs_a_g    , graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( Hi_b_g    , wHi_b_g    , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( dHs_dx_b_g, wdHs_dx_b_g, graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( dHs_dy_b_g, wdHs_dy_b_g, graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( tau_dx_b_g, wtau_dx_b_g, graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( tau_dy_b_g, wtau_dy_b_g, graphs%graph_b%pai%n_nih)
-
-    ! Map ice model data from the mesh vertices to the a-graph
-    call map_mesh_vertices_to_graph( mesh, ice%Hi, graphs%graph_a, Hi_a_g)
-    call map_mesh_vertices_to_graph( mesh, ice%Hs, graphs%graph_a, Hs_a_g)
-
-    ! Calculate ice thickness and surface slopes on the b-graph
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_map_a_b, &
-      graphs%graph_a%pai, Hi_a_g, graphs%graph_b%pai, Hi_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddx_a_b, &
-      graphs%graph_a%pai, Hs_a_g, graphs%graph_b%pai, dHs_dx_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddy_a_b, &
-      graphs%graph_a%pai, Hs_a_g, graphs%graph_b%pai, dHs_dy_b_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_a%buffer1_g_nih, buffer_yy_nih = graphs%graph_b%buffer2_g_nih)
-
-    ! Calculate the driving stress
-    do ni = graphs%graph_b%ni1, graphs%graph_b%ni2
-      tau_dx_b_g( ni) = -ice_density * grav * Hi_b_g( ni) * dHs_dx_b_g( ni)
-      tau_dy_b_g( ni) = -ice_density * grav * Hi_b_g( ni) * dHs_dy_b_g( ni)
-    end do
-
-    ! Map driving stress from the b-graph to the mesh triangles
-    call map_graph_to_mesh_triangles( graphs%graph_b, tau_dx_b_g, mesh, tau_dx_b)
-    call map_graph_to_mesh_triangles( graphs%graph_b, tau_dy_b_g, mesh, tau_dy_b)
-
-    ! Clean up after yourself
-    call deallocate_dist_shared( Hi_a_g    , wHi_a_g    )
-    call deallocate_dist_shared( Hs_a_g    , wHs_a_g    )
-    call deallocate_dist_shared( Hi_b_g    , wHi_b_g    )
-    call deallocate_dist_shared( dHs_dx_b_g, wdHs_dx_b_g)
-    call deallocate_dist_shared( dHs_dy_b_g, wdHs_dy_b_g)
-    call deallocate_dist_shared( tau_dx_b_g, wtau_dx_b_g)
-    call deallocate_dist_shared( tau_dy_b_g, wtau_dy_b_g)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine calc_driving_stress_ocean_pressure
-
-  subroutine calc_horizontal_strain_rates( mesh, graphs, u_b, v_b, du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
-    !< Calculate the vertically averaged horizontal strain rates
-
-    ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_graph_pair),                  intent(in   ) :: graphs
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: u_b, v_b
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: du_dx_a, du_dy_a, dv_dx_a, dv_dy_a
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_horizontal_strain_rates'
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    select case (C%BC_ice_front)
-    case default
-      call crash('unknown BC_ice_front "' // trim( C%BC_ice_front) // '"')
-    case ('infinite_slab')
-      call calc_horizontal_strain_rates_infinite_slab( mesh, u_b, v_b, &
-        du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
-    case ('ocean_pressure')
-      call calc_horizontal_strain_rates_ocean_pressure( mesh, graphs, u_b, v_b, &
-        du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
-    end select
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine calc_horizontal_strain_rates
-
-  subroutine calc_horizontal_strain_rates_infinite_slab( mesh, u_b, v_b, &
+  subroutine calc_horizontal_strain_rates( mesh, u_b, v_b, &
     du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
     !< Calculate the vertically averaged horizontal strain rates
 
@@ -209,7 +68,7 @@ contains
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: du_dx_a, du_dy_a, dv_dx_a, dv_dy_a
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_horizontal_strain_rates_infinite_slab'
+    character(len=1024), parameter :: routine_name = 'calc_horizontal_strain_rates'
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -223,83 +82,7 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_horizontal_strain_rates_infinite_slab
-
-  subroutine calc_horizontal_strain_rates_ocean_pressure( mesh, graphs, u_b, v_b, &
-    du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
-    !< Calculate the vertically averaged horizontal strain rates
-
-    ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_graph_pair),                  intent(in   ) :: graphs
-    real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   ) :: u_b, v_b
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: du_dx_a, du_dy_a, dv_dx_a, dv_dy_a
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_horizontal_strain_rates_ocean_pressure'
-    real(dp), dimension(:), pointer :: u_b_g => null()
-    real(dp), dimension(:), pointer :: v_b_g => null()
-    type(MPI_WIN)                   :: wu_b_g, wv_b_g
-    real(dp), dimension(:), pointer :: du_dx_a_g => null()
-    real(dp), dimension(:), pointer :: du_dy_a_g => null()
-    real(dp), dimension(:), pointer :: dv_dx_a_g => null()
-    real(dp), dimension(:), pointer :: dv_dy_a_g => null()
-    type(MPI_WIN)                   :: wdu_dx_a_g, wdu_dy_a_g, wdv_dx_a_g, wdv_dy_a_g
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! Allocate hybrid distributed/shared memory
-    call allocate_dist_shared( u_b_g    , wu_b_g    , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( v_b_g    , wv_b_g    , graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( du_dx_a_g, wdu_dx_a_g, graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( du_dy_a_g, wdu_dy_a_g, graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( dv_dx_a_g, wdv_dx_a_g, graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( dv_dy_a_g, wdv_dy_a_g, graphs%graph_a%pai%n_nih)
-
-    ! Map ice model data from the mesh triangles to the b-graph
-    call map_mesh_triangles_to_graph( mesh, u_b, graphs%graph_b, u_b_g)
-    call map_mesh_triangles_to_graph( mesh, v_b, graphs%graph_b, v_b_g)
-
-    ! ! Calculate the strain rates
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddx_b_a, &
-      graphs%graph_b%pai, u_b_g, graphs%graph_a%pai, du_dx_a_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_b%buffer1_g_nih, buffer_yy_nih = graphs%graph_a%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddy_b_a, &
-      graphs%graph_b%pai, u_b_g, graphs%graph_a%pai, du_dy_a_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_b%buffer1_g_nih, buffer_yy_nih = graphs%graph_a%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddx_b_a, &
-      graphs%graph_b%pai, v_b_g, graphs%graph_a%pai, dv_dx_a_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_b%buffer1_g_nih, buffer_yy_nih = graphs%graph_a%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( graphs%M_ddy_b_a, &
-      graphs%graph_b%pai, v_b_g, graphs%graph_a%pai, dv_dy_a_g, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = graphs%graph_b%buffer1_g_nih, buffer_yy_nih = graphs%graph_a%buffer2_g_nih)
-
-    ! Map strain rates from the a-graph to the mesh vertices
-    call map_graph_to_mesh_vertices( graphs%graph_a, du_dx_a_g, mesh, du_dx_a)
-    call map_graph_to_mesh_vertices( graphs%graph_a, du_dy_a_g, mesh, du_dy_a)
-    call map_graph_to_mesh_vertices( graphs%graph_a, dv_dx_a_g, mesh, dv_dx_a)
-    call map_graph_to_mesh_vertices( graphs%graph_a, dv_dy_a_g, mesh, dv_dy_a)
-
-    ! Clean up after yourself
-    call deallocate_dist_shared( u_b_g    , wu_b_g    )
-    call deallocate_dist_shared( v_b_g    , wv_b_g    )
-    call deallocate_dist_shared( du_dx_a_g, wdu_dx_a_g)
-    call deallocate_dist_shared( du_dy_a_g, wdu_dy_a_g)
-    call deallocate_dist_shared( dv_dx_a_g, wdv_dx_a_g)
-    call deallocate_dist_shared( dv_dy_a_g, wdv_dy_a_g)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine calc_horizontal_strain_rates_ocean_pressure
+  end subroutine calc_horizontal_strain_rates
 
   subroutine relax_viscosity_iterations( mesh, u_b, v_b, u_b_prev, v_b_prev, visc_it_relax)
     !< Reduce the change between velocity solutions
@@ -383,11 +166,15 @@ contains
 
     do ti = mesh%ti1, mesh%ti2
 
-      res1 = res1 + (u_b( ti) - u_b_prev( ti))**2
-      res1 = res1 + (v_b( ti) - v_b_prev( ti))**2
+      if (.not. isnan( u_b( ti)) .and. .not. isnan( v_b( ti))) then
 
-      res2 = res2 + (u_b( ti) + u_b_prev( ti))**2
-      res2 = res2 + (v_b( ti) + v_b_prev( ti))**2
+        res1 = res1 + (u_b( ti) - u_b_prev( ti))**2
+        res1 = res1 + (v_b( ti) - v_b_prev( ti))**2
+
+        res2 = res2 + (u_b( ti) + u_b_prev( ti))**2
+        res2 = res2 + (v_b( ti) + v_b_prev( ti))**2
+
+      end if
 
     end do
 
