@@ -6,7 +6,7 @@ module DIVA_solver_ocean_pressure
     MPI_LOR, MPI_LOGICAL, MPI_MIN, MPI_MAX, MPI_SUM
   use mpi_basic, only: par
   use precisions, only: dp
-  use parameters, only: grav, ice_density
+  use parameters, only: grav, ice_density, seawater_density
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning, colour_string
   use model_configuration, only: C
   use mesh_types, only: type_mesh
@@ -120,8 +120,9 @@ contains
     call save_graph_as_netcdf( trim( C%output_dir)//'/graph_a.nc', DIVA%DIVA_graphs%graphs%graph_a)
     call save_graph_as_netcdf( trim( C%output_dir)//'/graph_b.nc', DIVA%DIVA_graphs%graphs%graph_b)
 
-    ! Calculate the driving stress
+    ! Calculate the driving stress and ocean back pressure
     call calc_driving_stress( DIVA%DIVA_graphs)
+    call calc_ocean_back_pressure( DIVA%DIVA_graphs)
 
     ! Adaptive relaxation parameter for the viscosity iteration
     L2_uv                               = 1E9_dp
@@ -308,13 +309,11 @@ contains
 
     ! Ice model forcing data
     call allocate_dist_shared( DIVA%Hi_a                        , DIVA%wHi_a                        , DIVA%graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( DIVA%Hi_b                        , DIVA%wHi_b                        , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( DIVA%Hs_a                        , DIVA%wHs_a                        , DIVA%graphs%graph_a%pai%n_nih)
+    call allocate_dist_shared( DIVA%Ho_a                        , DIVA%wHo_a                        , DIVA%graphs%graph_a%pai%n_nih)
     call allocate_dist_shared( DIVA%A_flow_3D_a                 , DIVA%wA_flow_3D_a                 , DIVA%graphs%graph_a%pai%n_nih, mesh%nz)
     call allocate_dist_shared( DIVA%basal_friction_coefficient_a, DIVA%wbasal_friction_coefficient_a, DIVA%graphs%graph_a%pai%n_nih)
     call allocate_dist_shared( DIVA%fraction_gr_b               , DIVA%wfraction_gr_b               , DIVA%graphs%graph_b%pai%n_nih)
-    call allocate_dist_shared( DIVA%Ho_a                        , DIVA%wHo_a                        , DIVA%graphs%graph_a%pai%n_nih)
-    call allocate_dist_shared( DIVA%Ho_b                        , DIVA%wHo_b                        , DIVA%graphs%graph_b%pai%n_nih)
 
     ! Solution
     call allocate_dist_shared( DIVA%u_vav_b                     , DIVA%wu_vav_b                     , DIVA%graphs%graph_b%pai%n_nih)
@@ -349,6 +348,8 @@ contains
     call allocate_dist_shared( DIVA%tau_by_b                    , DIVA%wtau_by_b                    , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( DIVA%tau_dx_b                    , DIVA%wtau_dx_b                    , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( DIVA%tau_dy_b                    , DIVA%wtau_dy_b                    , DIVA%graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( DIVA%tau_ox_b                    , DIVA%wtau_ox_b                    , DIVA%graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( DIVA%tau_oy_b                    , DIVA%wtau_oy_b                    , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( DIVA%u_b_prev                    , DIVA%wu_b_prev                    , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( DIVA%v_b_prev                    , DIVA%wv_b_prev                    , DIVA%graphs%graph_b%pai%n_nih)
 
@@ -370,13 +371,11 @@ contains
 
     ! Ice model forcing data
     call deallocate_dist_shared( DIVA%Hi_a                        , DIVA%wHi_a                        )
-    call deallocate_dist_shared( DIVA%Hi_b                        , DIVA%wHi_b                        )
     call deallocate_dist_shared( DIVA%Hs_a                        , DIVA%wHs_a                        )
+    call deallocate_dist_shared( DIVA%Ho_a                        , DIVA%wHo_a                        )
     call deallocate_dist_shared( DIVA%A_flow_3D_a                 , DIVA%wA_flow_3D_a                 )
     call deallocate_dist_shared( DIVA%basal_friction_coefficient_a, DIVA%wbasal_friction_coefficient_a)
     call deallocate_dist_shared( DIVA%fraction_gr_b               , DIVA%wfraction_gr_b               )
-    call deallocate_dist_shared( DIVA%Ho_a                        , DIVA%wHo_a                        )
-    call deallocate_dist_shared( DIVA%Ho_b                        , DIVA%wHo_b                        )
 
     ! Solution
     call deallocate_dist_shared( DIVA%u_vav_b                     , DIVA%wu_vav_b                     )
@@ -411,6 +410,8 @@ contains
     call deallocate_dist_shared( DIVA%tau_by_b                    , DIVA%wtau_by_b                    )
     call deallocate_dist_shared( DIVA%tau_dx_b                    , DIVA%wtau_dx_b                    )
     call deallocate_dist_shared( DIVA%tau_dy_b                    , DIVA%wtau_dy_b                    )
+    call deallocate_dist_shared( DIVA%tau_ox_b                    , DIVA%wtau_ox_b                    )
+    call deallocate_dist_shared( DIVA%tau_oy_b                    , DIVA%wtau_oy_b                    )
     call deallocate_dist_shared( DIVA%u_b_prev                    , DIVA%wu_b_prev                    )
     call deallocate_dist_shared( DIVA%v_b_prev                    , DIVA%wv_b_prev                    )
 
@@ -435,25 +436,8 @@ contains
     ! Ice model forcing data
     call map_mesh_vertices_to_graph ( mesh, ice%Hi                           , DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Hi_a                        )
     call map_mesh_vertices_to_graph ( mesh, ice%Hs                           , DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Hs_a                        )
-    call map_mesh_triangles_to_graph( mesh, ice%fraction_gr_b                , DIVA%DIVA_graphs%graphs%graph_b, DIVA%DIVA_graphs%fraction_gr_b               )
     call map_mesh_vertices_to_graph ( mesh, ice%Ho                           , DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Ho_a                        )
-
-    call exchange_halos( DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Hi_a)
-    call exchange_halos( DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Ho_a)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%DIVA_graphs%graphs%M_map_a_b, &
-      DIVA%DIVA_graphs%graphs%graph_a%pai, DIVA%DIVA_graphs%Hi_a, &
-      DIVA%DIVA_graphs%graphs%graph_b%pai, DIVA%DIVA_graphs%Hi_b, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = DIVA%DIVA_graphs%graphs%graph_a%buffer1_g_nih, &
-      buffer_yy_nih = DIVA%DIVA_graphs%graphs%graph_b%buffer2_g_nih)
-
-    call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%DIVA_graphs%graphs%M_map_a_b, &
-      DIVA%DIVA_graphs%graphs%graph_a%pai, DIVA%DIVA_graphs%Ho_a, &
-      DIVA%DIVA_graphs%graphs%graph_b%pai, DIVA%DIVA_graphs%Ho_b, &
-      xx_is_hybrid = .true., yy_is_hybrid = .true., &
-      buffer_xx_nih = DIVA%DIVA_graphs%graphs%graph_a%buffer1_g_nih, &
-      buffer_yy_nih = DIVA%DIVA_graphs%graphs%graph_b%buffer2_g_nih)
+    call map_mesh_triangles_to_graph( mesh, ice%fraction_gr_b                , DIVA%DIVA_graphs%graphs%graph_b, DIVA%DIVA_graphs%fraction_gr_b               )
 
     ! Solution
     call map_mesh_triangles_to_graph( mesh, DIVA%u_vav_b                     , DIVA%DIVA_graphs%graphs%graph_b, DIVA%DIVA_graphs%u_vav_b                     )
@@ -558,9 +542,10 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'calc_driving_stress'
+    real(dp), dimension(:), pointer :: Hi_b     => null()
     real(dp), dimension(:), pointer :: dHs_dx_b => null()
     real(dp), dimension(:), pointer :: dHs_dy_b => null()
-    type(MPI_WIN)                   :: wdHs_dx_b, wdHs_dy_b
+    type(MPI_WIN)                   :: wHi_b, wdHs_dx_b, wdHs_dy_b
     integer                         :: ni
 
     real(dp), dimension(:), pointer :: d_loc
@@ -569,12 +554,20 @@ contains
     call init_routine( routine_name)
 
     ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( Hi_b    , wHi_b    , DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( dHs_dx_b, wdHs_dx_b, DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( dHs_dy_b, wdHs_dy_b, DIVA%graphs%graph_b%pai%n_nih)
 
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%Hi_a)
     call exchange_halos( DIVA%graphs%graph_a, DIVA%Hs_a)
 
-    ! Calculate surface slopes on the b-graph
+    ! Calculate ice thickness and surface slopes on the b-graph
+    call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_a_b, &
+      DIVA%graphs%graph_a%pai, DIVA%Hi_a, DIVA%graphs%graph_b%pai, Hi_b, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = DIVA%graphs%graph_a%buffer1_g_nih, &
+      buffer_yy_nih = DIVA%graphs%graph_b%buffer2_g_nih)
+
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_ddx_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%Hs_a, DIVA%graphs%graph_b%pai, dHs_dx_b, &
       xx_is_hybrid = .true., yy_is_hybrid = .true., &
@@ -589,8 +582,8 @@ contains
 
     ! Calculate the driving stress
     do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
-      DIVA%tau_dx_b( ni) = -ice_density * grav * DIVA%Hi_b( ni) * dHs_dx_b( ni)
-      DIVA%tau_dy_b( ni) = -ice_density * grav * DIVA%Hi_b( ni) * dHs_dy_b( ni)
+      DIVA%tau_dx_b( ni) = -ice_density * grav * Hi_b( ni) * dHs_dx_b( ni)
+      DIVA%tau_dy_b( ni) = -ice_density * grav * Hi_b( ni) * dHs_dy_b( ni)
     end do
 
     ! DENK DROM
@@ -600,6 +593,7 @@ contains
     call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'tau_dy_b')
 
     ! Clean up after yourself
+    call deallocate_dist_shared( Hi_b    , wHi_b    )
     call deallocate_dist_shared( dHs_dx_b, wdHs_dx_b)
     call deallocate_dist_shared( dHs_dy_b, wdHs_dy_b)
 
@@ -607,6 +601,68 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_driving_stress
+
+  subroutine calc_ocean_back_pressure( DIVA)
+
+    ! In/output variables:
+    type(type_ice_velocity_solver_DIVA_graphs), intent(inout) :: DIVA
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'calc_ocean_back_pressure'
+    real(dp), dimension(:), pointer :: Hi_b => null()
+    real(dp), dimension(:), pointer :: Ho_b => null()
+    type(MPI_WIN)                   :: wHi_b, wHo_b
+    integer                         :: ni
+
+    real(dp), dimension(:), pointer :: d_loc
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Allocate hybrid distributed/shared memory
+    call allocate_dist_shared( Hi_b, wHi_b, DIVA%graphs%graph_b%pai%n_nih)
+    call allocate_dist_shared( Ho_b, wHo_b, DIVA%graphs%graph_b%pai%n_nih)
+
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%Hi_a)
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%Ho_a)
+
+    ! Calculate ice thickness and adjacent ocean column height on the b-graph
+    call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_a_b, &
+      DIVA%graphs%graph_a%pai, DIVA%Hi_a, DIVA%graphs%graph_b%pai, Hi_b, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = DIVA%graphs%graph_a%buffer1_g_nih, &
+      buffer_yy_nih = DIVA%graphs%graph_b%buffer2_g_nih)
+!
+    call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_a_b, &
+      DIVA%graphs%graph_a%pai, DIVA%Ho_a, DIVA%graphs%graph_b%pai, Ho_b, &
+      xx_is_hybrid = .true., yy_is_hybrid = .true., &
+      buffer_xx_nih = DIVA%graphs%graph_a%buffer1_g_nih, &
+      buffer_yy_nih = DIVA%graphs%graph_b%buffer2_g_nih)
+
+    ! Calculate the ocean back pressure
+    do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
+      DIVA%tau_ox_b( ni) = (&
+          0.5_dp * ice_density      * grav * Hi_b( ni)**2 &
+        - 0.5_dp * seawater_density * grav * Ho_b( ni)**2) * DIVA%graphs%graph_b%ghost_nhat( ni,1)
+      DIVA%tau_oy_b( ni) = (&
+          0.5_dp * ice_density      * grav * Hi_b( ni)**2 &
+        - 0.5_dp * seawater_density * grav * Ho_b( ni)**2) * DIVA%graphs%graph_b%ghost_nhat( ni,2)
+    end do
+
+    ! DENK DROM
+    d_loc => DIVA%tau_ox_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
+    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'tau_ox_b')
+    d_loc => DIVA%tau_oy_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
+    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'tau_oy_b')
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( Hi_b, wHi_b)
+    call deallocate_dist_shared( Ho_b, wHo_b)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_ocean_back_pressure
 
   subroutine calc_horizontal_strain_rates( DIVA)
     !< Calculate the vertically averaged horizontal strain rates

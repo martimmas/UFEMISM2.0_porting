@@ -10,7 +10,6 @@ module solve_linearised_SSA_DIVA_ocean_pressure
   use mpi_distributed_shared_memory, only: gather_dist_shared_to_all
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
   use graph_types, only: type_graph_pair
-  use parameters, only: ice_density, seawater_density, grav
 
   use netcdf_io_main
 
@@ -43,12 +42,6 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    ! DENK DROM
-    d_loc => DIVA%Hi_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
-    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'Hi_b')
-    d_loc => DIVA%Ho_b( DIVA%graphs%graph_b%ni1: DIVA%graphs%graph_b%ni2)
-    call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'Ho_b')
 
     ! Store the previous solution
     call gather_dist_shared_to_all( DIVA%graphs%graph_b%pai, DIVA%u_vav_b, DIVA%u_b_prev)
@@ -110,7 +103,7 @@ contains
         ! Ice margin: apply ocean pressure boundary condition
 
         call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( DIVA%graphs, &
-          DIVA%N_b, DIVA%Hi_b, DIVA%Ho_b, A_CSR, bb_buv, row_niuv)
+          DIVA%N_b, DIVA%tau_ox_b, DIVA%tau_oy_b, A_CSR, bb_buv, row_niuv)
 
       else
         ! No boundary conditions apply; solve the SSA
@@ -455,23 +448,26 @@ contains
 
   end subroutine calc_SSA_DIVA_sans_stiffness_matrix_row_free
 
-  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b, Hi_b, Ho_b, &
+  subroutine calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( graphs, N_b, tau_ox_b, tau_oy_b, &
     A_CSR, bb_b, row_niuv)
     ! The ocean-pressure boundary condition to the SSA at the ice front reads;
     !
-    !   2 N ( 2 du/dx + dv/dy ) n_x + N ( du/dy + dv/dx) n_y = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+    !   2 N ( 2 du/dx + dv/dy ) n_x + N ( du/dy + dv/dx) n_y = tau_ox
     !
-    !   2 N ( 2 dv/dy + du/dx ) n_y + N ( dv/dx + du/dy) n_x = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
+    !   2 N ( 2 dv/dy + du/dx ) n_y + N ( dv/dx + du/dy) n_x = tau_oy
     !
     ! (See also Robinson et al., 2020, Eq. 19)
     !
     ! Rearranging to gather the terms involving u and v gives:
     !
-    !   4 N n_x du/dx + N n_y du/dy + ...
-    !   2 N n_x dv/dy + N n_y dv/dx = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+    !   4 N n_x du/dx + N n_y du/dy + 2 N n_x dv/dy + N n_y dv/dx = tau_ox
     !
-    !   4 N n_y dv/dy + N n_x dv/dx + ...
-    !   2 N n_y du/dx + N n_x du/dy = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
+    !   4 N n_y dv/dy + N n_x dv/dx + 2 N n_y du/dx + N n_x du/dy = tau_oy
+    !
+    ! The ocean back pressure at the ice front is defined as:
+    !
+    !   tau_ox = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+    !   tau_oy = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
     !
     ! The height of the water column in contact with the ice front is defined as:
     !
@@ -479,14 +475,14 @@ contains
 
     ! In/output variables:
     type(type_graph_pair),                                                    intent(in   ) :: graphs
-    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b, Hi_b, Ho_b
+    real(dp), dimension(graphs%graph_b%pai%i1_nih:graphs%graph_b%pai%i2_nih), intent(in   ) :: N_b, tau_ox_b, tau_oy_b
     type(type_sparse_matrix_CSR_dp),                                          intent(inout) :: A_CSR
     real(dp), dimension(A_CSR%i1:A_CSR%i2),                                   intent(inout) :: bb_b
     integer,                                                                  intent(in   ) :: row_niuv
 
     ! Local variables:
     integer                             :: ni, uv
-    real(dp)                            :: N, Hi, Ho, n_x, n_y
+    real(dp)                            :: N, tau_ox, tau_oy, n_x, n_y
     integer,  dimension(:), allocatable :: single_row_ind
     real(dp), dimension(:), allocatable :: single_row_ddx_val
     real(dp), dimension(:), allocatable :: single_row_ddy_val
@@ -499,11 +495,11 @@ contains
     uv = graphs%n2biuv( row_niuv,2)
 
     ! N, Hi, Ho, and outward unit normal vector on this graph node
-    N   = N_b ( ni)
-    Hi  = Hi_b( ni)
-    Ho  = Ho_b( ni)
-    n_x = graphs%graph_b%ghost_nhat( ni,1)
-    n_y = graphs%graph_b%ghost_nhat( ni,2)
+    N       = N_b      ( ni)
+    tau_ox = tau_ox_b( ni)
+    tau_oy = tau_oy_b( ni)
+    n_x     = graphs%graph_b%ghost_nhat( ni,1)
+    n_y     = graphs%graph_b%ghost_nhat( ni,2)
 
     ! Allocate memory for single matrix rows
     allocate( single_row_ind(     graphs%graph_a%nC_mem*2))
@@ -524,8 +520,7 @@ contains
         col_nju = graphs%biuv2n( nj,1)
         col_njv = graphs%biuv2n( nj,2)
 
-        !   4 N n_x du/dx + N n_y du/dy + ...
-        !   2 N n_x dv/dy + N n_y dv/dx = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
+        !   4 N n_x du/dx + N n_y du/dy + 2 N n_x dv/dy + N n_y dv/dx = tau_ox
 
         ! Combine the mesh operators
         Au = 4._dp * N * n_x * single_row_ddx_val( k) + &  ! 4 N n_x du/dx
@@ -540,10 +535,8 @@ contains
 
       end do
 
-      ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
-      bb_b( row_niuv) = (&
-          0.5_dp * ice_density      * grav * Hi**2 &
-        - 0.5_dp * seawater_density * grav * Ho**2) * n_x
+      ! Load vector
+      bb_b( row_niuv) = tau_ox
 
     elseif (uv == 2) then
       ! y-component
@@ -555,8 +548,7 @@ contains
         col_nju = graphs%biuv2n( nj,1)
         col_njv = graphs%biuv2n( nj,2)
 
-        !   4 N n_y dv/dy + N n_x dv/dx + ...
-        !   2 N n_y du/dx + N n_x du/dy = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_y
+        !   4 N n_y dv/dy + N n_x dv/dx + 2 N n_y du/dx + N n_x du/dy = tau_oy
 
         ! Combine the mesh operators
         Av = 4._dp * N * n_y * single_row_ddy_val( k) + &  ! 4 N n_y dv/dy
@@ -571,10 +563,8 @@ contains
 
       end do
 
-      ! Load vector: b = (1/2 rho_i g H^2 - 1/2 rho_sw g Ho^2) n_x
-      bb_b( row_niuv) = (&
-          0.5_dp * ice_density      * grav * Hi**2 &
-        - 0.5_dp * seawater_density * grav * Ho**2) * n_y
+      ! Load vector
+      bb_b( row_niuv) = tau_oy
 
     else
       call crash('uv can only be 1 or 2!')

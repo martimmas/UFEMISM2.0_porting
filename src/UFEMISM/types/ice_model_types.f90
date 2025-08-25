@@ -70,15 +70,13 @@ MODULE ice_model_types
 
     ! Ice model forcing data
     real(dp), dimension(:    ), pointer :: Hi_a                         => null()
-    real(dp), dimension(:    ), pointer :: Hi_b                         => null()
     real(dp), dimension(:    ), pointer :: Hs_a                         => null()
+    real(dp), dimension(:    ), pointer :: Ho_a                         => null()
     real(dp), dimension(:,:  ), pointer :: A_flow_3D_a                  => null()
     real(dp), dimension(:    ), pointer :: basal_friction_coefficient_a => null()
     real(dp), dimension(:    ), pointer :: fraction_gr_b                => null()
-    real(dp), dimension(:    ), pointer :: Ho_a                         => null()
-    real(dp), dimension(:    ), pointer :: Ho_b                         => null()
-    type(MPI_WIN) :: wHi_a, wHi_b, wHs_a, wA_flow_3D_a
-    type(MPI_WIN) :: wbasal_friction_coefficient_a, wfraction_gr_b, wHo_a, wHo_b
+    type(MPI_WIN) :: wHi_a, wHs_a, wHo_a
+    type(MPI_WIN) :: wA_flow_3D_a, wbasal_friction_coefficient_a, wfraction_gr_b
 
     ! Solution
     real(dp), dimension(:    ), pointer :: u_vav_b  => null()                    ! [m yr^-1] 2-D horizontal ice velocity
@@ -122,7 +120,9 @@ MODULE ice_model_types
     real(dp), dimension(:    ), pointer :: tau_by_b => null()
     real(dp), dimension(:    ), pointer :: tau_dx_b => null()                    ! Driving stress
     real(dp), dimension(:    ), pointer :: tau_dy_b => null()
-    type(MPI_WIN) :: wtau_bx_b, wtau_by_b, wtau_dx_b, wtau_dy_b
+    real(dp), dimension(:    ), pointer :: tau_ox_b => null()                    ! Vertically integrated ocean back pressure
+    real(dp), dimension(:    ), pointer :: tau_oy_b => null()
+    type(MPI_WIN) :: wtau_bx_b, wtau_by_b, wtau_dx_b, wtau_dy_b, wtau_ox_b, wtau_oy_b
 
     real(dp), dimension(:    ), pointer :: u_b_prev => null()                    ! Velocity solution from previous viscosity iteration
     real(dp), dimension(:    ), pointer :: v_b_prev => null()
