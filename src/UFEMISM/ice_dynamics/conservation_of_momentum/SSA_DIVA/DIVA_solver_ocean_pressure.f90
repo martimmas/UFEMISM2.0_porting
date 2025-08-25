@@ -34,6 +34,7 @@ module DIVA_solver_ocean_pressure
     map_graph_to_mesh_triangles, map_graph_to_mesh_vertices
   use CSR_matrix_vector_multiplication, only: multiply_csr_matrix_with_vector_1D_wrapper, &
     multiply_csr_matrix_with_vector_2D_wrapper
+  use graph_halo_exchange, only: exchange_halos
 
   implicit none
 
@@ -215,7 +216,7 @@ contains
       end if
 
       ! DENK DROM
-      if (viscosity_iteration_i == 50) then
+      if (viscosity_iteration_i == 1) then
         d_loc => DIVA%DIVA_graphs%u_vav_b( DIVA%DIVA_graphs%graphs%graph_b%ni1: DIVA%DIVA_graphs%graphs%graph_b%ni2)
         call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'u_vav_b')
         d_loc => DIVA%DIVA_graphs%v_vav_b( DIVA%DIVA_graphs%graphs%graph_b%ni1: DIVA%DIVA_graphs%graphs%graph_b%ni2)
@@ -437,6 +438,9 @@ contains
     call map_mesh_triangles_to_graph( mesh, ice%fraction_gr_b                , DIVA%DIVA_graphs%graphs%graph_b, DIVA%DIVA_graphs%fraction_gr_b               )
     call map_mesh_vertices_to_graph ( mesh, ice%Ho                           , DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Ho_a                        )
 
+    call exchange_halos( DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Hi_a)
+    call exchange_halos( DIVA%DIVA_graphs%graphs%graph_a, DIVA%DIVA_graphs%Ho_a)
+
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%DIVA_graphs%graphs%M_map_a_b, &
       DIVA%DIVA_graphs%graphs%graph_a%pai, DIVA%DIVA_graphs%Hi_a, &
       DIVA%DIVA_graphs%graphs%graph_b%pai, DIVA%DIVA_graphs%Hi_b, &
@@ -568,6 +572,8 @@ contains
     call allocate_dist_shared( dHs_dx_b, wdHs_dx_b, DIVA%graphs%graph_b%pai%n_nih)
     call allocate_dist_shared( dHs_dy_b, wdHs_dy_b, DIVA%graphs%graph_b%pai%n_nih)
 
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%Hs_a)
+
     ! Calculate surface slopes on the b-graph
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_ddx_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%Hs_a, DIVA%graphs%graph_b%pai, dHs_dx_b, &
@@ -615,6 +621,9 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    call exchange_halos( DIVA%graphs%graph_b, DIVA%u_vav_b)
+    call exchange_halos( DIVA%graphs%graph_b, DIVA%v_vav_b)
 
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_ddx_b_a, &
       DIVA%graphs%graph_b%pai, DIVA%u_vav_b, DIVA%graphs%graph_a%pai, DIVA%du_dx_a, &
@@ -685,6 +694,9 @@ contains
       dv_dz_3D_b( ni,k) = DIVA%tau_by_b( ni) * mesh%zeta( k) / max( C%visc_eff_min, DIVA%eta_3D_b( ni,k))
     end do
     end do
+
+    call exchange_halos( DIVA%graphs%graph_b, du_dz_3D_b)
+    call exchange_halos( DIVA%graphs%graph_b, dv_dz_3D_b)
 
     call multiply_CSR_matrix_with_vector_2D_wrapper( DIVA%graphs%M_map_b_a, &
       DIVA%graphs%graph_b%pai, du_dz_3D_b, DIVA%graphs%graph_a%pai, DIVA%du_dz_3D_a, &
@@ -767,6 +779,8 @@ contains
     d_lock => DIVA%eta_3D_a( DIVA%graphs%graph_a%ni1: DIVA%graphs%graph_a%ni2, 1:mesh%nz)
     call save_variable_as_netcdf_dp_2D( trim( C%output_dir), d_lock, 'eta_3D_a')
 
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%eta_3D_a)
+
     ! Map effective viscosity to the b-grid
     call multiply_CSR_matrix_with_vector_2D_wrapper( DIVA%graphs%M_map_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%eta_3D_a, DIVA%graphs%graph_b%pai, DIVA%eta_3D_b, &
@@ -798,6 +812,8 @@ contains
     call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'N_a')
 
     ! Calculate the product term N and its gradients on the b-grid
+
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%N_a)
 
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%N_a, DIVA%graphs%graph_b%pai, DIVA%N_b, &
@@ -867,6 +883,9 @@ contains
 
     ! Map F-integrals from the a-grid to the b-grid
 
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%F1_3D_a)
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%F2_3D_a)
+
     call multiply_CSR_matrix_with_vector_2D_wrapper( DIVA%graphs%M_map_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%F1_3D_a, DIVA%graphs%graph_b%pai, DIVA%F1_3D_b, &
       xx_is_hybrid = .true., yy_is_hybrid = .true., &
@@ -922,6 +941,9 @@ contains
 
     ! Map basal velocity to the a-graph
 
+    call exchange_halos( DIVA%graphs%graph_b, DIVA%u_base_b)
+    call exchange_halos( DIVA%graphs%graph_b, DIVA%v_base_b)
+
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_b_a, &
       DIVA%graphs%graph_b%pai, DIVA%u_base_b, &
       DIVA%graphs%graph_a%pai, u_base_a, &
@@ -969,6 +991,9 @@ contains
     call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d_loc, 'beta_eff_a')
 
     ! Map basal friction coefficient beta_b and effective basal friction coefficient beta_eff to the b-grid
+
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%basal_friction_coefficient_a)
+    call exchange_halos( DIVA%graphs%graph_a, DIVA%beta_eff_a)
 
     call multiply_CSR_matrix_with_vector_1D_wrapper( DIVA%graphs%M_map_a_b, &
       DIVA%graphs%graph_a%pai, DIVA%basal_friction_coefficient_a, &
