@@ -15,6 +15,7 @@ program UPSY_component_test_program
   use ct_create_test_meshes, only: create_all_test_meshes_and_grids
   use ct_discretisation, only: run_all_discretisation_component_tests
   use ct_remapping, only: run_all_remapping_component_tests
+  use ct_mesh_focussing, only: run_all_mesh_focussing_component_tests
 
   implicit none
 
@@ -46,6 +47,7 @@ program UPSY_component_test_program
   output_dir = 'automated_testing/component_tests/results'
   call create_component_tests_output_folder  ( output_dir)
   call create_all_test_meshes_and_grids      ( output_dir, test_mesh_filenames, test_grid_filenames)
+  call run_all_mesh_focussing_component_tests( output_dir, test_mesh_filenames)
   call run_all_discretisation_component_tests( output_dir, test_mesh_filenames)
   call run_all_remapping_component_tests     ( output_dir, test_mesh_filenames, test_grid_filenames)
 
