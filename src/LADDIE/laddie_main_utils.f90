@@ -442,6 +442,16 @@ CONTAINS
         CALL remap_laddie_timestep( mesh_old, mesh_new, laddie, laddie%np1)
     END SELECT
 
+    select case (C%choice_laddie_remapping_option)
+      case default
+        call crash('unknown choice_remapping_option "' // trim( C%choice_laddie_gamma) // '"')
+      case ('full')
+        ! Do nothing
+      case ('no_vel')
+        ! Re-run initialisation
+        ! TODO add run
+    end select
+
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
@@ -465,6 +475,7 @@ CONTAINS
     CALL init_routine( routine_name)
 
     ! DENK DROM - this should be cleaned up once the remapping code is ported to hybrid memory
+
     allocate( d_loc( mesh_old%vi1:mesh_old%vi2), source = 0._dp)
     call hybrid_to_dist( mesh_old%pai_V, npx%H, d_loc)
     call map_from_mesh_to_mesh_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, d_loc, '2nd_order_conservative')
@@ -486,19 +497,28 @@ CONTAINS
     call dist_to_hybrid( mesh_new%pai_V, d_loc, npx%S)
     deallocate( d_loc)
 
-    allocate( d_loc( mesh_old%ti1:mesh_old%ti2), source = 0._dp)
-    call hybrid_to_dist( mesh_old%pai_Tri, npx%U, d_loc)
-    call map_from_mesh_tri_to_mesh_tri_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, d_loc, '2nd_order_conservative')
-    call reallocate_dist_shared( npx%U, npx%wU, mesh_new%pai_Tri%n_nih)
-    call dist_to_hybrid( mesh_new%pai_Tri, d_loc, npx%U)
-    deallocate( d_loc)
-
-    allocate( d_loc( mesh_old%ti1:mesh_old%ti2), source = 0._dp)
-    call hybrid_to_dist( mesh_old%pai_Tri, npx%V, d_loc)
-    call map_from_mesh_tri_to_mesh_tri_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, d_loc, '2nd_order_conservative')
-    call reallocate_dist_shared( npx%V, npx%wV, mesh_new%pai_Tri%n_nih)
-    call dist_to_hybrid( mesh_new%pai_Tri, d_loc, npx%V)
-    deallocate( d_loc)
+    select case (C%choice_laddie_remapping_option)
+      case default
+        call crash('unknown choice_remapping_option "' // trim( C%choice_laddie_gamma) // '"')
+      case ('full')
+        ! Do an actual remap of the velocities as well
+        allocate( d_loc( mesh_old%ti1:mesh_old%ti2), source = 0._dp)
+        call hybrid_to_dist( mesh_old%pai_Tri, npx%U, d_loc)
+        call map_from_mesh_tri_to_mesh_tri_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, d_loc, '2nd_order_conservative')
+        call reallocate_dist_shared( npx%U, npx%wU, mesh_new%pai_Tri%n_nih)
+        call dist_to_hybrid( mesh_new%pai_Tri, d_loc, npx%U)
+        deallocate( d_loc)
+    
+        allocate( d_loc( mesh_old%ti1:mesh_old%ti2), source = 0._dp)
+        call hybrid_to_dist( mesh_old%pai_Tri, npx%V, d_loc)
+        call map_from_mesh_tri_to_mesh_tri_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, d_loc, '2nd_order_conservative')
+        call reallocate_dist_shared( npx%V, npx%wV, mesh_new%pai_Tri%n_nih)
+        call dist_to_hybrid( mesh_new%pai_Tri, d_loc, npx%V)
+        deallocate( d_loc)
+      case ('no_vel')
+        call reallocate_dist_shared( npx%U, npx%wU, mesh_new%pai_Tri%n_nih)
+        call reallocate_dist_shared( npx%V, npx%wV, mesh_new%pai_Tri%n_nih)
+    end select
 
     call checksum( npx%H, 'npx%H', mesh_new%pai_V)
     call checksum( npx%T, 'npx%T', mesh_new%pai_V)
