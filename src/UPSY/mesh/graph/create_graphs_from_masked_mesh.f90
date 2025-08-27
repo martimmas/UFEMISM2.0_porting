@@ -182,7 +182,6 @@ contains
             ei = mesh%TriE( ti,n)
             graph%ei2ni( ei      ) = ni_ghost
             graph%ni2ei( ni_ghost) = ei
-            graph%ni2ti( ni_ghost) = ti
 
             p = mesh%Trigc( ti,:)
             q = mesh%V( mesh%EV( ei,1),:)
@@ -209,7 +208,13 @@ contains
       if (graph%is_ghost( ni)) then
 
         ei = graph%ni2ei( ni)
-        ti = graph%ni2ti( ni)
+        if (mask_b_tot( mesh%ETri( ei,1))) then
+          ti = mesh%ETri( ei,1)
+        elseif (mask_b_tot( mesh%ETri( ei,2))) then
+          ti = mesh%ETri( ei,2)
+        else
+          call crash('whaa')
+        end if
         vi = mesh%EV( ei,1)
         vj = mesh%EV( ei,2)
 

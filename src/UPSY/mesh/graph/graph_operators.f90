@@ -358,7 +358,9 @@ contains
       else
         ! For ghost nodes, use the local neighbourhood of the adjacent regular node
         ! (i.e. the three vertices spanning that triangle)
-        ni_reg = graph_b%C( ni,1)
+        ni_reg = graph_b%C( ni,2)
+        ! Safety
+        if (graph_b%is_ghost( ni_reg)) call crash('inconsistent graph connectivity')
       end if
 
       ! Calculate shape functions at this graph node
