@@ -97,12 +97,23 @@ contains
       x = graph%V( ni,1)
       y = graph%V( ni,2)
 
-      ! Initialise local neighbourhood with node ni
-      map    = 0
-      stackN = 1
-      stack( 1) = ni
-      map( ni) = 1
-      listN = 0
+      if (.not. graph%is_ghost( ni)) then
+        ! Initialise local neighbourhood with node ni
+        map    = 0
+        stackN = 1
+        stack( 1) = ni
+        map( ni) = 1
+        listN = 0
+      else
+        ! Initialise local neighbourhood with node ni and its regular neighbour
+        map    = 0
+        stackN = 2
+        stack( 1) = ni
+        stack( 2) = graph%C( ni,2)
+        map( ni) = 1
+        map( graph%C( ni,2)) = 1
+        listN = 0
+      end if
 
       ! Calculate shape functions; if this fails, add more neighbours until it succeeds
       succeeded = .false.
