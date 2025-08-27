@@ -1,4 +1,4 @@
-module ocean_deltaT
+module ocean_deltaT_transient
 
   ! deltaT ocean model (i.e., T = T0+dT)
 
@@ -129,4 +129,4 @@ subroutine initialise_ocean_model_transient_deltaT( mesh, ice, ocean, region_nam
 
 
 
-end module ocean_deltaT
+end module ocean_deltaT_transient
