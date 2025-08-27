@@ -7,7 +7,7 @@ module create_graphs_from_masked_mesh
   use graph_memory, only: allocate_graph_primary, crop_graph_primary
   use mpi_distributed_memory, only: gather_to_all
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
-  use plane_geometry, only: mirror_p_across_qr
+  use plane_geometry, only: projection_of_p_on_qr
   use assertions_basic, only: assert
   use graph_contiguous_domains, only: enforce_contiguous_process_domains_graph
   use graph_parallelisation, only: setup_graph_parallelisation
@@ -112,7 +112,7 @@ contains
     integer                         :: ti, n, tj, nj, ei
     integer                         :: ni_reg, ni_ghost
     integer                         :: ni, vi, vj, ci, ej, nj1, nj2
-    real(dp), dimension(2)          :: r, s, outward_normal_vector
+    real(dp), dimension(2)          :: p, q, r, s, outward_normal_vector
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -184,7 +184,11 @@ contains
             graph%ni2ei( ni_ghost) = ei
             graph%ni2ti( ni_ghost) = ti
 
-            graph%V ( ni_ghost,:) = mesh%E( ei,:)
+            p = mesh%Trigc( ti,:)
+            q = mesh%V( mesh%EV( ei,1),:)
+            r = mesh%V( mesh%EV( ei,2),:)
+            s = projection_of_p_on_qr( p, q, r)
+            graph%V ( ni_ghost,:) = s
             graph%nC( ni_ghost  ) = 1
             graph%C ( ni_ghost,1) = ni_reg
 
@@ -269,7 +273,7 @@ contains
     call setup_graph_parallelisation( graph, nz)
 
 #if (DO_ASSERTIONS)
-    ! call assert(test_graph_is_self_consistent( mesh, graph), 'inconsistent graph connectivity')
+    call assert(test_graph_is_self_consistent( mesh, graph), 'inconsistent graph connectivity')
 #endif
 
     ! Finalise routine path
