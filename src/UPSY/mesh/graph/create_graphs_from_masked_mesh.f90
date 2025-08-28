@@ -112,7 +112,7 @@ contains
     integer                         :: ti, n, tj, nj, ei
     integer                         :: ni_reg, ni_ghost
     integer                         :: ni, vi, vj, ci, ej, nj1, nj2
-    real(dp), dimension(2)          :: p, q, r, s, outward_normal_vector
+    real(dp), dimension(2)          :: r, s, outward_normal_vector
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -183,11 +183,7 @@ contains
             graph%ei2ni( ei      ) = ni_ghost
             graph%ni2ei( ni_ghost) = ei
 
-            p = mesh%Trigc( ti,:)
-            q = mesh%V( mesh%EV( ei,1),:)
-            r = mesh%V( mesh%EV( ei,2),:)
-            s = projection_of_p_on_qr( p, q, r)
-            graph%V ( ni_ghost,:) = s
+            graph%V ( ni_ghost,:) = mesh%E( ei,:)
             graph%nC( ni_ghost  ) = 1
             graph%C ( ni_ghost,1) = ni_reg
 
