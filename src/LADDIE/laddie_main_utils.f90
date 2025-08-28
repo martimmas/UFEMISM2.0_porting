@@ -58,9 +58,9 @@ CONTAINS
       IF (mesh%VBI( vi) > 0) THEN
         laddie%mask_a( vi)    = .false.
         laddie%mask_gr_a( vi) = .true.
-      ELSE IF (forcing%Hi( vi) < 1.0 .and. forcing%mask_floating_ice( vi)) THEN
-        laddie%mask_a( vi)    = .false.
-        laddie%mask_oc_a( vi) = .true.
+      !ELSE IF (forcing%Hi( vi) < 1.0 .and. forcing%mask_floating_ice( vi)) THEN
+      !  laddie%mask_a( vi)    = .false.
+      !  laddie%mask_oc_a( vi) = .true.
       ELSE
         ! Inherit regular masks
         laddie%mask_a( vi)    = forcing%mask_floating_ice( vi)
