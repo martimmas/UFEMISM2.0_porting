@@ -85,7 +85,8 @@ def get_cmap(varname):
         norm = mpl.colors.Normalize(vmin=-1000,vmax=1000,clip=True)
 
     elif varname == 'Hib':
-        cmap = copy(plt.get_cmap('cmo.deep'))
+        cmap = copy(plt.get_cmap('GnBu_r'))
+        cmap = copy(plt.get_cmap('cmo.rain_r'))
         norm = mpl.colors.Normalize(vmin=-500,vmax=0,clip=True)
 
     elif varname == 'Hb':
@@ -117,12 +118,13 @@ def get_cmap(varname):
         norm = mpl.colors.Normalize(vmin=-.5,vmax=.5,clip=True)
 
     elif varname in ['Uabs_lad']:
-        cmap = copy(plt.get_cmap('Greens'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=1.0,clip=True)
+        cmap = copy(plt.get_cmap('cmo.speed'))
+        norm = mpl.colors.Normalize(vmin=0,vmax=0.5,clip=True)
 
     elif varname in ['uabs_surf', 'uabs_vav', 'bed_roughness_nudge_H_u_target_velocity']:
         cmap = copy(plt.get_cmap('turbo'))
-        norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
+        norm = mpl.colors.Normalize(vmin=0,vmax=1000,clip=True)
+        #norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
 
     elif varname == 'mask_SGD':
         cmap = copy(plt.get_cmap('Greys'))
