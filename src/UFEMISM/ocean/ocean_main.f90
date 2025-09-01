@@ -411,19 +411,16 @@ CONTAINS
     CALL reallocate_bounds( ocean%T_freezing_point, mesh_new%vi1, mesh_new%vi2)
 
     ! Determine which ocean model to remap
-    IF     (choice_ocean_model == 'none') THEN
-      ! No need to do anything
-    ELSEIF (choice_ocean_model == 'idealised') THEN
-      CALL initialise_ocean_model_idealised( mesh_new, ocean)
-    ELSEIF (choice_ocean_model == 'realistic') THEN
-        IF     (C%choice_ocean_model_realistic == 'snapshot') THEN
+    select case (choice_ocean_model)
+        case ('none')
+          ! No need to do anything
+        case ('idealised')
+          CALL initialise_ocean_model_idealised( mesh_new, ocean)
+        case ('realistic')
           CALL initialise_ocean_model_realistic( mesh_new, ice, ocean, region_name, time)
-        ELSE
-          CALL crash('Remapping after mesh update for realistic ocean is only implemented for a snapshot!')
-        END IF
-    ELSE
-      CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
-    END IF
+        case default
+        CALL crash('Remapping after mesh update not implemented for "' // TRIM( choice_ocean_model) // '"')
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
