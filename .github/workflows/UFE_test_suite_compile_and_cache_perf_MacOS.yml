@@ -18,14 +18,14 @@ jobs:
           brew install netcdf
           brew install netcdf-fortran
           #brew install cmake                  # Not needed, already installed
-          brew install ninja
+          #brew install ninja
 
       - name: Set up Fortran compiler          # See: https://github.com/marketplace/actions/setup-fortran
         uses: fortran-lang/setup-fortran@v1
         id: setup-fortran
         with:
           compiler: gcc
-          version: 13
+          version: 15
 
       - name: Verify compiler setup
         run: gfortran --version
