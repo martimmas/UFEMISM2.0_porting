@@ -84,7 +84,7 @@ CONTAINS
 
         ! Favier et al. (2019), Eq. 4
         ! Altered to allow for negative basal melt (i.e. refreezing) when dT < 0
-        BMB%BMB_shelf( vi) =  -1._dp * sec_per_year * C%BMB_Favier2019_gamma * sign(dT,1._dp) * (seawater_density * cp_ocean * dT / (ice_density * L_fusion))**2._dp
+        BMB%BMB_shelf( vi) =  -1._dp * sec_per_year * C%BMB_Favier2019_gamma * sign(1._dp,dT) * (seawater_density * cp_ocean * dT / (ice_density * L_fusion))**2._dp
 
         ! Apply grounded fractions
         if (ice%mask_gl_gr( vi) .and. ice%Hib(vi) < ice%SL(vi)) then
