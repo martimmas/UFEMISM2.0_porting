@@ -151,6 +151,7 @@ CONTAINS
     ocean%T_draft          = 0._dp
     ocean%T_freezing_point = 0._dp
 
+
     ! Set time of next calculation to start time
     ocean%t_next = C%start_time_of_run
 
@@ -417,24 +418,7 @@ CONTAINS
       case ('idealised')  
         call initialise_ocean_model_idealised( mesh_new, ocean)
       case ('realistic')
-        select case (C%choice_ocean_model_realistic)
-          case ('snapshot')
-              ! no need to do anything(?)
-              !call initialise_ocean_model_snapshot(mesh, ice, ocean, region_name)
-          case ('snapshot_plus_uniform_deltaT')
-              ! no need to do anything(?)
-          case ('transient')
-              select case (C%choice_ocean_model_transient)
-                case ('deltaT')
-                  ! no need to do anything(?)
-                case ('GlacialIndex')
-                  ! no need to do anything(?)
-                case default
-                  call crash('unknown choice_ocean_model_transient "' // trim( C%choice_ocean_model_transient) // '"')
-              end select
-          case default
-            CALL crash('Remapping after mesh update for realistic ocean not implemented for "' // TRIM(C%choice_ocean_model_realistic) // '"')
-        end select
+        call remap_ocean_model_realistic( mesh_old, mesh_new, ice, ocean, region_name, time)
       case default
         CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
     end select
