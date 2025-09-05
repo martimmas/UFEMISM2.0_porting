@@ -62,6 +62,7 @@ contains
 
     ! Update insolation forcing at model time
     call get_insolation_at_time( mesh, time, climate%snapshot)
+    climate%Q_TOA = climate%snapshot%Q_TOA
 
     ! moved to global_forcings_main
     !CALL update_CO2_at_model_time( time, forcing)
@@ -159,7 +160,7 @@ contains
     do m = 1, 12
       ! Calculate modelled absorbed insolation. Berends et al., 2018 - Eq. 2
       climate%matrix%I_abs( vi) = climate%matrix%I_abs( vi) + & 
-                                  climate%snapshot%Q_TOA( vi,m) * (1._dp - SMB%IMAUITM%Albedo( vi, m))  
+                                  climate%Q_TOA( vi,m) * (1._dp - SMB%IMAUITM%Albedo( vi, m))  
     end do
     end do
     call sync
@@ -492,9 +493,6 @@ contains
     call initialise_matrix_calc_absorbed_insolation( mesh, climate%matrix%GCM_warm, region_name, forcing, ice)
     call initialise_matrix_calc_absorbed_insolation( mesh, climate%matrix%GCM_cold, region_name, forcing, ice)
 
-    ! initialise the insolation forcing
-    call initialise_insolation_forcing( climate%snapshot, mesh) ! this will initialise climate%snapshot%Q_TOA
-
     ! Initialise applied climate with present-day observations
 
     do vi = mesh%vi1, mesh%vi2
@@ -768,12 +766,14 @@ contains
     allocate( climate_dummy%T2m(    mesh%vi1:mesh%vi2, 12))
     allocate( climate_dummy%Precip( mesh%vi1:mesh%vi2, 12))
     allocate( climate_dummy%snapshot%Q_TOA(  mesh%vi1:mesh%vi2, 12))
+    allocate( climate_dummy%Q_TOA( mesh%vi1:mesh%vi2, 12))
 
     ! Copy climate fields
     climate_dummy%T2m(    mesh%vi1:mesh%vi2,:) = snapshot%T2m(    mesh%vi1:mesh%vi2,:)
     climate_dummy%Precip( mesh%vi1:mesh%vi2,:) = snapshot%Precip( mesh%vi1:mesh%vi2,:)
     ! is needed to allocate it as climate%snapshot because is used in that way later on SMB-ITM
     climate_dummy%snapshot%Q_TOA(  mesh%vi1:mesh%vi2,:) = snapshot%Q_TOA(  mesh%vi1:mesh%vi2,:)
+    climate_dummy%Q_TOA(  mesh%vi1:mesh%vi2,:)          = snapshot%Q_TOA(  mesh%vi1:mesh%vi2,:)
 
     ! Ice
     ! ===

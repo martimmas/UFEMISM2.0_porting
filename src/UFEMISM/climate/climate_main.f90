@@ -17,8 +17,8 @@ MODULE climate_main
   USE climate_model_types                                    , ONLY: type_climate_model
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE climate_idealised                                      , ONLY: initialise_climate_model_idealised, run_climate_model_idealised
-  USE climate_realistic                                      , ONLY: initialise_climate_model_realistic, run_climate_model_realistic
-  USE climate_snapshot_plus_uniform_deltaT                           , ONLY: initialise_climate_model_snapshot_plus_uniform_deltaT, run_climate_model_snapshot_plus_uniform_deltaT
+  USE climate_realistic                                      , ONLY: initialise_climate_model_realistic, run_climate_model_realistic, remap_climate_realistic, initialise_insolation_forcing
+  USE climate_snapshot_plus_uniform_deltaT                   , ONLY: initialise_climate_model_snapshot_plus_uniform_deltaT, run_climate_model_snapshot_plus_uniform_deltaT, remap_climate_snapshot_plus_uniform_deltaT
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use netcdf_io_main
   use climate_matrix                                         , only: run_climate_model_matrix, initialise_climate_matrix, remap_climate_matrix_model
@@ -137,12 +137,24 @@ CONTAINS
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
       choice_climate_model = C%choice_climate_model_NAM
+      IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
+        climate%snapshot%has_insolation = .TRUE.
+      END IF
     ELSEIF (region_name == 'EAS') THEN
       choice_climate_model = C%choice_climate_model_EAS
+      IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
+        climate%snapshot%has_insolation = .TRUE.
+      END IF
     ELSEIF (region_name == 'GRL') THEN
       choice_climate_model = C%choice_climate_model_GRL
+      IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
+        climate%snapshot%has_insolation = .TRUE.
+      END IF
     ELSEIF (region_name == 'ANT') THEN
       choice_climate_model = C%choice_climate_model_ANT
+      IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
+        climate%snapshot%has_insolation = .TRUE.
+      END IF
     ELSE
       CALL crash('unknown region_name "' // region_name // '"')
     END IF
@@ -160,6 +172,10 @@ CONTAINS
     climate%Precip = 0._dp
     climate%Wind_LR = 0._dp
     climate%Wind_DU = 0._dp
+
+    IF (climate%snapshot%has_insolation .eqv. .TRUE.) THEN
+      CALL initialise_insolation_forcing( climate%snapshot, mesh) ! this will initialise climate%snapshot%Q_TOA
+    END IF
 
     ! Set time of next calculation to start time
     climate%t_next = C%start_time_of_run
