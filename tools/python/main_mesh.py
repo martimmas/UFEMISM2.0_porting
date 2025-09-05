@@ -109,13 +109,17 @@ class Timeframe(object):
         """ Get a reduced mask separating grounded ice, ice shelf and ocean """
 
         mask = self.ds['mask']
-        mask = xr.where(mask==1,3,mask)
+        # Define as ocean ( = 2):
+
+        # Define as sheet ( = 3):
+        mask = xr.where(mask==1,3,mask) 
         mask = xr.where(mask==5,3,mask)
         mask = xr.where(mask==7,3,mask)
         mask = xr.where(mask==9,3,mask)
         mask = xr.where(mask==10,3,mask)
+        # Define as shelf ( = 4):
         mask = xr.where(mask==6,4,mask)
-        mask = xr.where(mask==8,2,mask)
+        mask = xr.where(mask==8,4,mask)
 
         self.mask = mask.values
         self.got_mask = True

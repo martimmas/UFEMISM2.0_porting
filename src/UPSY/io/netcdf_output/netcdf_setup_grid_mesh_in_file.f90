@@ -9,13 +9,14 @@ module netcdf_setup_grid_mesh_in_file
   use netcdf_basic
   use netcdf_add_field_mesh
   use netcdf, only: NF90_DOUBLE, NF90_INT, NF90_DEF_GRP
+  use graph_types, only: type_graph
 
   implicit none
 
   private
 
-  public :: setup_xy_grid_in_netcdf_file, setup_mesh_in_netcdf_file, write_matrix_operators_to_netcdf_file
-  public :: save_xy_grid_as_netcdf, save_mesh_as_netcdf
+  public :: setup_xy_grid_in_netcdf_file, setup_mesh_in_netcdf_file, setup_graph_in_netcdf_file, write_matrix_operators_to_netcdf_file
+  public :: save_xy_grid_as_netcdf, save_mesh_as_netcdf, save_graph_as_netcdf
 
 contains
 
@@ -62,6 +63,28 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine save_mesh_as_netcdf
+
+  subroutine save_graph_as_netcdf( filename, graph)
+
+    ! In/output variables:
+    character(len=*), intent(in   ) :: filename
+    type(type_graph), intent(in   ) :: graph
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'save_graph_as_netcdf'
+    integer                        :: ncid
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call create_new_netcdf_file_for_writing( filename, ncid)
+    call setup_graph_in_netcdf_file( filename, ncid, graph)
+    call close_netcdf_file( ncid)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine save_graph_as_netcdf
 
   subroutine setup_xy_grid_in_netcdf_file( filename, ncid, grid)
     !< Set up a regular x/y-grid in an existing NetCDF file
@@ -451,6 +474,118 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine setup_mesh_in_netcdf_file
+
+  subroutine setup_graph_in_netcdf_file( filename, ncid, graph)
+    !< Set up a graph in an existing NetCDF file
+
+    ! In/output variables:
+    character(len=*), intent(in   ) :: filename
+    integer,          intent(in   ) :: ncid
+    type(type_graph), intent(in   ) :: graph
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'setup_graph_in_netcdf_file'
+    integer, dimension(graph%n)    :: is_ghost_int
+
+    integer :: id_dim_vi
+    integer :: id_dim_ci
+    integer :: id_dim_two
+    integer :: id_dim_three
+
+    integer :: id_var_xmin
+    integer :: id_var_xmax
+    integer :: id_var_ymin
+    integer :: id_var_ymax
+
+    integer :: id_var_V
+    integer :: id_var_nC
+    integer :: id_var_C
+
+    integer :: id_var_is_ghost
+    integer :: id_var_ghost_nhat
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Create graph dimensions
+    call create_dimension( filename, ncid, get_first_option_from_list( field_name_options_dim_nV    ), graph%n     , id_dim_vi   )
+    call create_dimension( filename, ncid, get_first_option_from_list( field_name_options_dim_nC_mem), graph%nC_mem, id_dim_ci   )
+    call create_dimension( filename, ncid, get_first_option_from_list( field_name_options_dim_two   ), 2           , id_dim_two  )
+    call create_dimension( filename, ncid, get_first_option_from_list( field_name_options_dim_three ), 3           , id_dim_three)
+
+    ! == Create graph variables - metadata
+    ! ====================================
+
+    ! xmin
+    call create_scalar_variable( filename, ncid, 'xmin', NF90_DOUBLE, id_var_xmin)
+    call add_attribute_char( filename, ncid, id_var_xmin, 'long_name'  , 'Location of western domain border')
+    call add_attribute_char( filename, ncid, id_var_xmin, 'units', 'm')
+
+    ! xmax
+    call create_scalar_variable( filename, ncid, 'xmax', NF90_DOUBLE, id_var_xmax)
+    call add_attribute_char( filename, ncid, id_var_xmax, 'long_name'  , 'Location of eastern domain border')
+    call add_attribute_char( filename, ncid, id_var_xmax, 'units', 'm')
+
+    ! ymin
+    call create_scalar_variable( filename, ncid, 'ymin', NF90_DOUBLE, id_var_ymin)
+    call add_attribute_char( filename, ncid, id_var_ymin, 'long_name'  , 'Location of southern domain border')
+    call add_attribute_char( filename, ncid, id_var_ymin, 'units', 'm')
+
+    ! ymax
+    call create_scalar_variable( filename, ncid, 'ymax', NF90_DOUBLE, id_var_ymax)
+    call add_attribute_char( filename, ncid, id_var_ymax, 'long_name'  , 'Location of northern domain border')
+    call add_attribute_char( filename, ncid, id_var_ymax, 'units', 'm')
+
+    ! == Create graph variables - node data
+    ! =====================================
+
+    ! V
+    call create_variable( filename, ncid, get_first_option_from_list( field_name_options_V             ), NF90_DOUBLE, (/ id_dim_vi, id_dim_two   /), id_var_V             )
+    call add_attribute_char( filename, ncid, id_var_V, 'long_name'  , 'Node coordinates'         )
+    call add_attribute_char( filename, ncid, id_var_V, 'units'      , 'm'                          )
+    ! nC
+    call create_variable( filename, ncid, get_first_option_from_list( field_name_options_nC            ), NF90_INT   , (/ id_dim_vi               /), id_var_nC            )
+    call add_attribute_char( filename, ncid, id_var_nC, 'long_name'  , 'Number of connections')
+    ! C
+    call create_variable( filename, ncid, get_first_option_from_list( field_name_options_C             ), NF90_INT   , (/ id_dim_vi, id_dim_ci    /), id_var_C             )
+    call add_attribute_char( filename, ncid, id_var_C, 'long_name'  , 'Connections')
+    call add_attribute_char( filename, ncid, id_var_C, 'orientation', 'counter-clockwise'          )
+
+    ! is_ghost
+    call create_variable( filename, ncid, 'is_ghost', NF90_INT, (/ id_dim_vi /), id_var_is_ghost)
+    call add_attribute_char( filename, ncid, id_var_is_ghost, 'long_name', 'Whether a node is a ghost node')
+    call add_attribute_char( filename, ncid, id_var_is_ghost, 'units', '0 = false, 1 = true')
+    ! ghost_nhat
+    call create_variable( filename, ncid, 'ghost_nhat', NF90_DOUBLE, (/ id_dim_vi, id_dim_two /), id_var_ghost_nhat)
+    call add_attribute_char( filename, ncid, id_var_ghost_nhat, 'long_name', 'Ghost-node outward unit normal vector')
+
+    ! == Write graph data to file
+    ! ==========================
+
+    ! Metadata
+    call write_var_primary(  filename, ncid, id_var_xmin, graph%xmin)
+    call write_var_primary(  filename, ncid, id_var_xmax, graph%xmax)
+    call write_var_primary(  filename, ncid, id_var_ymin, graph%ymin)
+    call write_var_primary(  filename, ncid, id_var_ymax, graph%ymax)
+
+    ! Node data
+    call write_var_primary( filename, ncid, id_var_V , graph%V )
+    call write_var_primary( filename, ncid, id_var_nC, graph%nC)
+    call write_var_primary( filename, ncid, id_var_C , graph%C )
+
+    where (graph%is_ghost)
+      is_ghost_int = 1
+    elsewhere
+      is_ghost_int = 0
+    end where
+
+    call write_var_primary( filename, ncid, id_var_is_ghost  , is_ghost_int)
+    call write_var_primary( filename, ncid, id_var_ghost_nhat, graph%ghost_nhat)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine setup_graph_in_netcdf_file
 
   subroutine write_matrix_operators_to_netcdf_file( filename, ncid, mesh)
     !< Write all the matrix operators to the netcdf output file

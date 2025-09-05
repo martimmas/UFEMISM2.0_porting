@@ -47,6 +47,8 @@ CONTAINS
         ! No need to do anything
       CASE ('TANH')
         ! No need to do anything
+      CASE ('LINEAR')
+        ! No need to do anything
     END SELECT
 
     ! Finalise routine path
@@ -83,6 +85,8 @@ CONTAINS
         CALL initialise_ocean_model_idealised_ISOMIP( mesh, ocean)
       CASE ('TANH')
         CALL initialise_ocean_model_idealised_TANH( mesh, ocean)
+      CASE ('LINEAR')
+        CALL initialise_ocean_model_idealised_LINEAR( mesh, ocean)
     END SELECT
 
     ! Finalise routine path
@@ -179,5 +183,44 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE initialise_ocean_model_idealised_TANH
+
+  ! == LINEAR ==
+  ! ============
+
+  SUBROUTINE initialise_ocean_model_idealised_LINEAR( mesh, ocean)
+    ! Tangent hyperbolic function representing a two-layer ocean forcing separated by a smooth thermocline
+
+    IMPLICIT NONE
+
+    TYPE(type_mesh),                      INTENT(IN)    :: mesh
+    TYPE(type_ocean_model),               INTENT(INOUT) :: ocean
+
+    ! Local variables:
+    CHARACTER(LEN=256), PARAMETER                       :: routine_name = 'initialise_ocean_model_idealised_LINEAR'
+    INTEGER                                             :: vi
+    INTEGER                                             :: k
+    REAL(dp), PARAMETER                                 :: S0 = 34.5_dp    ! [PSU]  Surface salinity
+    REAL(dp)                                            :: Tsurf           ! [deg C]  Surface freezing temperature
+
+    ! Add routine to path
+    CALL init_routine( routine_name)
+
+    DO vi = mesh%vi1, mesh%vi2
+      ! Get surface freezing temperature
+      Tsurf = freezing_lambda_1*S0 + freezing_lambda_2
+
+      DO k = 1, C%nz_ocean
+        ! Get temperature value
+        ocean%T( vi, k) = Tsurf + (C%ocean_linear_deep_temperature-Tsurf) * C%z_ocean( k)/C%ocean_linear_reference_depth
+
+        ! Get salinity value
+        ocean%S( vi, k) = S0 + (C%ocean_linear_deep_salinity-S0) * C%z_ocean( k)/C%ocean_linear_reference_depth
+      END DO
+    END DO
+
+    ! Finalise routine path
+    CALL finalise_routine( routine_name)
+
+  END SUBROUTINE initialise_ocean_model_idealised_LINEAR
 
 END MODULE ocean_idealised

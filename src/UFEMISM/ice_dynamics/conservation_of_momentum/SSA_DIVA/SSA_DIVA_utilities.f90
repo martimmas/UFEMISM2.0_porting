@@ -2,12 +2,14 @@ module SSA_DIVA_utilities
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_SUM
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use parameters, only: ice_density, grav
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
   use mesh_disc_apply_operators, only: map_a_b_2D, ddx_a_b_2D, ddy_a_b_2D, ddx_b_a_2D, ddy_b_a_2D
+
+  use netcdf_io_main
 
   implicit none
 
@@ -56,7 +58,8 @@ contains
 
   end subroutine calc_driving_stress
 
-  subroutine calc_horizontal_strain_rates( mesh, u_b, v_b, du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
+  subroutine calc_horizontal_strain_rates( mesh, u_b, v_b, &
+    du_dx_a, du_dy_a, dv_dx_a, dv_dy_a)
     !< Calculate the vertically averaged horizontal strain rates
 
     ! In/output variables:
@@ -163,11 +166,15 @@ contains
 
     do ti = mesh%ti1, mesh%ti2
 
-      res1 = res1 + (u_b( ti) - u_b_prev( ti))**2
-      res1 = res1 + (v_b( ti) - v_b_prev( ti))**2
+      if (.not. isnan( u_b( ti)) .and. .not. isnan( v_b( ti))) then
 
-      res2 = res2 + (u_b( ti) + u_b_prev( ti))**2
-      res2 = res2 + (v_b( ti) + v_b_prev( ti))**2
+        res1 = res1 + (u_b( ti) - u_b_prev( ti))**2
+        res1 = res1 + (v_b( ti) - v_b_prev( ti))**2
+
+        res2 = res2 + (u_b( ti) + u_b_prev( ti))**2
+        res2 = res2 + (v_b( ti) + v_b_prev( ti))**2
+
+      end if
 
     end do
 

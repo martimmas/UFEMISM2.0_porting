@@ -7,6 +7,7 @@ MODULE laddie_model_types
 
   USE precisions                                             , ONLY: dp
   USE CSR_sparse_matrix_type                                 , ONLY: type_sparse_matrix_CSR_dp
+  use grid_types, only: type_grid
   use mpi_f08, only: MPI_WIN
 
   IMPLICIT NONE
@@ -75,9 +76,10 @@ MODULE laddie_model_types
     ! The laddie model structure
 
     ! Output
-    character(len=1024)                         :: output_fields_filename
+    character(len=1024)                         :: output_mesh_filename
+    character(len=1024)                         :: output_grid_filename
     character(len=1024)                         :: output_scalar_filename
-    logical                                     :: output_fields_file_matches_current_mesh
+    logical                                     :: mesh_output_file_matches_current_mesh
 
     ! Time domain
     real(dp)                                    :: dt                          ! [s]               Time step
@@ -85,24 +87,6 @@ MODULE laddie_model_types
 
     real(dp), dimension(:), contiguous, pointer :: dH_dt           => null()  ! [m s^-1]          Layer thickness change
     type(MPI_WIN) :: wdH_dt
-
-    ! Forcing
-    real(dp), dimension(:),   contiguous, pointer :: Hi                 => null()  ! [m]               Ice thickness
-    real(dp), dimension(:),   contiguous, pointer :: Hib                => null()  ! [m]               Ice base elevation (w.r.t. PD sea level)
-    real(dp), dimension(:),   contiguous, pointer :: dHib_dx_b          => null()  ! []                Horizontal derivative of ice draft on b-grid
-    real(dp), dimension(:),   contiguous, pointer :: dHib_dy_b          => null()  ! []                Horizontal derivative of ice draft on b-grid
-    logical,  dimension(:),   contiguous, pointer :: mask_icefree_land  => null()  ! []                T: ice-free land , F: otherwise
-    logical,  dimension(:),   contiguous, pointer :: mask_icefree_ocean => null()  ! []                T: ice-free ocean, F: otherwise
-    logical,  dimension(:),   contiguous, pointer :: mask_grounded_ice  => null()  ! []                T: grounded ice  , F: otherwise
-    logical,  dimension(:),   contiguous, pointer :: mask_floating_ice  => null()  ! []                T: floating ice  , F: otherwise
-    logical,  dimension(:),   contiguous, pointer :: mask_gl_fl         => null()  ! []                T: gl_fl ice     , F: otherwise
-    logical,  dimension(:),   contiguous, pointer :: mask_SGD           => null()  ! []                T: potential subglacial discharge areas, F: otherwise
-    real(dp), dimension(:,:), contiguous, pointer :: Ti                 => null()  ! [K]               Englacial temperature
-    real(dp), dimension(:,:), contiguous, pointer :: T_ocean            => null()  ! [degrees Celsius] 3-D ocean temperature
-    real(dp), dimension(:,:), contiguous, pointer :: S_ocean            => null()  ! [PSU]             3-D ocean salinity
-    type(MPI_WIN) :: wHi, wHib, wdHib_dx_b, wdHib_dy_b
-    type(MPI_WIN) :: wmask_icefree_land, wmask_icefree_ocean, wmask_grounded_ice, wmask_floating_ice, wmask_gl_fl, wmask_SGD
-    type(MPI_WIN) :: wTi, wT_ocean, wS_ocean
 
     ! Ambient fields
     real(dp), dimension(:), contiguous, pointer :: T_amb           => null()  ! [degrees Celsius] Ambient temperature at layer base
@@ -206,6 +190,9 @@ MODULE laddie_model_types
 
     ! Scalar output buffer
     type(type_scalar_output_buffer)         :: buffer
+
+    ! Output grid
+    type(type_grid)                         :: output_grid
 
   END TYPE type_laddie_model
 

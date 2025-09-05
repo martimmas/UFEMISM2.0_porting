@@ -1,0 +1,9 @@
+name: LADDIE Test Suite - run and analyse integrated tests
+run-name: ${{ github.actor }} - LADDIE Test Suite - run and analyse integrated tests
+on:
+  workflow_call:
+
+jobs:
+
+  integrated_tests_MISMIPplus:
+    uses: ./.github/workflows/zzl_integrated_tests_MISMIPplus.yml

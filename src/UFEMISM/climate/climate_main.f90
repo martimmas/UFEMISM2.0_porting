@@ -434,11 +434,10 @@ CONTAINS
       ! No need to do anything
     ELSEIF (choice_climate_model == 'idealised') THEN
       ! No need to remap anything here
-    ELSEIF (choice_climate_model == 'realistic' .OR. choice_climate_model == 'snapshot_plus_uniform_deltaT')  THEN
-      CALL reallocate_bounds( climate%snapshot%ins_Q_TOA0, mesh_new%vi1, mesh_new%vi2,12)
-      CALL reallocate_bounds( climate%snapshot%ins_Q_TOA1, mesh_new%vi1, mesh_new%vi2,12)
-      CALL reallocate_bounds( climate%snapshot%Q_TOA,      mesh_new%vi1, mesh_new%vi2,12)
-      CALL reallocate_bounds( climate%Q_TOA,               mesh_new%vi1, mesh_new%vi2,12)
+    ELSEIF (choice_climate_model == 'realistic') THEN
+      call remap_climate_realistic(mesh_old, mesh_new, climate, region_name)
+    ELSEIF (choice_climate_model == 'snapshot_plus_uniform_deltaT')  THEN
+      call remap_climate_snapshot_plus_uniform_deltaT(mesh_old, mesh_new, climate, region_name)
     ELSEIF (choice_climate_model == 'matrix') THEN
       call remap_climate_matrix_model( mesh_new, climate, region_name, grid, ice, forcing)
     ELSE

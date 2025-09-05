@@ -236,7 +236,7 @@ contains
     call calc_all_matrix_operators_mesh( mesh)
 
     ! Finalise routine path
-    call finalise_routine( routine_name)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 12)
 
   end subroutine setup_mesh_from_file
 

@@ -23,6 +23,9 @@ module scalar_types
     real(dp), dimension(:), allocatable :: ice_volume_PD
     real(dp), dimension(:), allocatable :: ice_volume_af_PD
 
+    real(dp), dimension(:), allocatable :: ice_shelf_area
+    real(dp), dimension(:), allocatable :: ice_shelf_volume
+
     real(dp), dimension(:), allocatable :: SMB_total
     real(dp), dimension(:), allocatable :: SMB_gr
     real(dp), dimension(:), allocatable :: SMB_fl
@@ -68,6 +71,10 @@ module scalar_types
     real(dp)   :: ice_volume_af            ! [m SLE]    Total ice sheet volume above floatation
     real(dp)   :: ice_volume_af_PD         ! [m SLE]    Total present-day ice sheet volume above floatation
     real(dp)   :: sea_level_contribution   ! [m SLE]    Total contribution to global mean sea level
+
+    ! Ice shelf geometry
+    real(dp)   :: ice_shelf_area           ! [km^2]     Total ice shelf area
+    real(dp)   :: ice_shelf_volume         ! [km^3]     Total ice shelf volume
 
     ! Integrated fluxes
     real(dp)   :: SMB_total                ! [Gt yr^-1] Area-integrated surface mass balance
