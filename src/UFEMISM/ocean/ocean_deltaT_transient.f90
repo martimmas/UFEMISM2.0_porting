@@ -63,16 +63,6 @@ subroutine initialise_ocean_model_transient_deltaT( mesh, ice, ocean, region_nam
                 call crash('unknown region_name "' // region_name // '"')
             end select
 
-            ! Allocating timeframe variables; the series itself is allocated in the read function below
-            allocate(ocean%deltaT_transient%dT_t0)
-            allocate(ocean%deltaT_transient%dT_t1)
-            allocate(ocean%deltaT_transient%dT_at_t0)
-            allocate(ocean%deltaT_transient%dT_at_t1)
-            allocate( ocean%deltaT_transient%T0( mesh%vi1:mesh%vi2,C%nz_ocean))
-            allocate( ocean%deltaT_transient%S0( mesh%vi1:mesh%vi2,C%nz_ocean))
-            ocean%deltaT_transient%T0 = 0._dp
-            ocean%deltaT_transient%S0 = 0._dp
-
             ! Fill in  main variables
             call read_field_from_file_3D_ocean( filename_ocean_snapshot, field_name_options_T_ocean,  mesh, C%output_dir, C%z_ocean, ocean%deltaT_transient%T0)
             call read_field_from_file_3D_ocean( filename_ocean_snapshot, field_name_options_S_ocean,  mesh, C%output_dir, C%z_ocean, ocean%deltaT_transient%S0)

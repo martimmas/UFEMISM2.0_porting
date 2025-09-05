@@ -135,9 +135,31 @@ contains
 
     select case (C%choice_ocean_model_transient)
       case ('deltaT')
+        ! Allocating timeframe variables
+        allocate(ocean%deltaT_transient%dT_t0)
+        allocate(ocean%deltaT_transient%dT_t1)
+        allocate(ocean%deltaT_transient%dT_at_t0)
+        allocate(ocean%deltaT_transient%dT_at_t1)
+        allocate( ocean%deltaT_transient%T0( mesh%vi1:mesh%vi2,C%nz_ocean))
+        allocate( ocean%deltaT_transient%S0( mesh%vi1:mesh%vi2,C%nz_ocean))
+        ocean%deltaT_transient%T0 = 0._dp
+        ocean%deltaT_transient%S0 = 0._dp
         call initialise_ocean_model_transient_deltaT( mesh, ice, ocean, region_name, start_time_of_run)
 
       case ('GlacialIndex')
+        ! Allocating timeframe variables
+        allocate(ocean%GI%GI_t0)
+        allocate(ocean%GI%GI_t1)
+        allocate(ocean%GI%GI_at_t0)
+        allocate(ocean%GI%GI_at_t1)
+        allocate( ocean%GI%T0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
+        allocate( ocean%GI%S0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
+        allocate( ocean%GI%T0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
+        allocate( ocean%GI%S0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
+        ocean%GI%T0_warm = 0._dp
+        ocean%GI%S0_warm = 0._dp
+        ocean%GI%T0_cold = 0._dp
+        ocean%GI%S0_cold = 0._dp
         call initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, start_time_of_run)
 
       case default
@@ -269,5 +291,42 @@ contains
     CALL finalise_routine( routine_name)
 
   end subroutine run_ocean_model_transient
+
+  subroutine remap_ocean_model_realistic( mesh_old, mesh_new, ice, ocean, region_name, time)
+    TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
+    TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
+    TYPE(type_ocean_model),                 INTENT(INOUT) :: ocean
+    character(len=3),                       intent(in)    :: region_name
+    real(dp),                               intent(in)    :: time
+
+    ! Local variables
+    CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'remap_ocean_model_realistic'
+
+    ! Add routine to path
+    CALL init_routine( routine_name)
+
+
+    select case (C%choice_ocean_model_realistic)
+      case ('snapshot')
+          call initialise_ocean_model_snapshot(mesh_new, ice, ocean, region_name)
+      case ('snapshot_plus_uniform_deltaT')
+          call initialise_ocean_model_snapshot_plus_unif_dT(mesh_new, ice, ocean, region_name)
+      case ('transient')
+          select case (C%choice_ocean_model_transient)
+            case ('deltaT')
+              call initialise_ocean_model_transient_deltaT( mesh_new, ice, ocean, region_name, time)
+            case ('GlacialIndex')
+              call initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, time)
+            case default
+              call crash('unknown choice_ocean_model_transient "' // trim( C%choice_ocean_model_transient) // '"')
+          end select
+      case default
+        CALL crash('Remapping after mesh update for realistic ocean not implemented for "' // TRIM(C%choice_ocean_model_realistic) // '"')
+      end select
+
+      ! Finalise routine path
+    CALL finalise_routine( routine_name)
+
+  end subroutine remap_ocean_model_realistic
 
 end module ocean_realistic
