@@ -30,7 +30,6 @@ MODULE climate_snapshot_plus_uniform_deltaT
   public :: initialise_climate_model_snapshot_plus_uniform_deltaT
   public :: remap_climate_snapshot_plus_uniform_deltat
 
-
 CONTAINS
 
 ! ===== Main routines =====
