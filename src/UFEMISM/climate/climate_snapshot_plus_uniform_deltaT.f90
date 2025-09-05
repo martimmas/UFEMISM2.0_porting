@@ -14,10 +14,11 @@ MODULE climate_snapshot_plus_uniform_deltaT
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model, type_climate_model_snapshot
   USE global_forcing_types                                   , ONLY: type_global_forcing
-  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing
+  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_snapshot
   USE global_forcings_main
   USE netcdf_io_main
   USE netcdf_basic
+  use reallocate_mod                                         , only: reallocate_bounds
   use mpi_distributed_memory, only: distribute_from_primary
   use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, get_insolation_at_time
 
@@ -312,7 +313,7 @@ CONTAINS
 
     call reallocate_bounds( climate%snapshot%Hs, mesh_new%vi1, mesh_new%vi2)
 
-    IF (climate%snapshot_unif_dT%snapshot%has_insolation == .TRUE.) THEN
+    IF (climate%snapshot_unif_dT%snapshot%has_insolation .eqv. .TRUE.) THEN
       call remap_snapshot( climate%snapshot, mesh_new)
     END IF
       
@@ -322,12 +323,11 @@ CONTAINS
     call read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh_new, C%output_dir, climate%Precip)
 
     ! Adding deltaT to the temperature field (uniform in space and time)
-    do vi = mesh%vi1, mesh%vi2
+    do vi = mesh_new%vi1, mesh_new%vi2
     do m = 1, 12
         climate%T2m( vi, m) = climate%T2m( vi, m) + climate%snapshot_unif_dT%deltaT
     end do
     end do
-
 
     ! Finalise routine path
     call finalise_routine( routine_name)

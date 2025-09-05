@@ -15,7 +15,7 @@ MODULE ocean_main
   USE ocean_model_types                                      , ONLY: type_ocean_model
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   USE ocean_utilities                                        , ONLY: initialise_ocean_vertical_grid, calc_ocean_temperature_at_shelf_base, calc_ocean_freezing_point_at_shelf_base
-  USE ocean_realistic                                        , ONLY: initialise_ocean_model_realistic, run_ocean_model_realistic
+  USE ocean_realistic                                        , ONLY: initialise_ocean_model_realistic, run_ocean_model_realistic, remap_ocean_model_realistic
   USE ocean_idealised                                        , ONLY: initialise_ocean_model_idealised, run_ocean_model_idealised
   use netcdf_io_main
 

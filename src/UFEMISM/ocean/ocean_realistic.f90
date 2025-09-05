@@ -18,6 +18,7 @@ module ocean_realistic
   use series_utilities
   use ocean_deltaT_transient
   use ocean_GlacialIndex
+  use reallocate_mod                                         , only: reallocate_bounds
 
   implicit none
 
@@ -295,6 +296,7 @@ contains
   subroutine remap_ocean_model_realistic( mesh_old, mesh_new, ice, ocean, region_name, time)
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
+    type(type_ice_model),                   intent(in)    :: ice
     TYPE(type_ocean_model),                 INTENT(INOUT) :: ocean
     character(len=3),                       intent(in)    :: region_name
     real(dp),                               intent(in)    :: time
@@ -316,7 +318,7 @@ contains
             case ('deltaT')
               call initialise_ocean_model_transient_deltaT( mesh_new, ice, ocean, region_name, time)
             case ('GlacialIndex')
-              call initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, time)
+              call initialise_ocean_model_GlacialIndex( mesh_new, ice, ocean, region_name, time)
             case default
               call crash('unknown choice_ocean_model_transient "' // trim( C%choice_ocean_model_transient) // '"')
           end select
