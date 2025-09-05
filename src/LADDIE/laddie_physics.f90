@@ -57,8 +57,12 @@ CONTAINS
       CASE DEFAULT
         CALL crash('unknown choice_laddie_gamma "' // TRIM( C%choice_laddie_gamma) // '"')
       CASE ('uniform')
-        laddie%gamma_T( mesh%vi1:mesh%vi2) = C%uniform_laddie_gamma_T
-        laddie%gamma_S( mesh%vi1:mesh%vi2) = C%uniform_laddie_gamma_T/35.0_dp
+        do vi = mesh%vi1, mesh%vi2
+          if (laddie%mask_a( vi)) then
+            laddie%gamma_T( vi) = laddie%u_star( vi) * C%uniform_laddie_gamma_T
+            laddie%gamma_S( vi) = laddie%u_star( vi) * C%uniform_laddie_gamma_T/35.0_dp
+          end if
+        end do
       CASE ('Jenkins1991')
         DO vi = mesh%vi1, mesh%vi2
            IF (laddie%mask_a( vi)) THEN

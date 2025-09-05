@@ -11,10 +11,11 @@ from main_figure import *
 class Movie(object):
     """ Movie of subplots of Ufe/Lad output """
 
-    def __init__(self, Run, variables):
+    def __init__(self, Run, variables, masks):
 
         self.Run = Run
         self.variables = variables
+        self.masks = masks
 
         self.directory = os.path.join(self.Run.directory,'movie')
 
@@ -55,8 +56,8 @@ class Movie(object):
                     fig.set_orientation(self.orientation)
 
                     # Add variable fields
-                    for var in self.variables:
-                        fig.add_field(tf, var, mask='shelf')
+                    for (var,mask) in zip(self.variables,self.masks):
+                        fig.add_field(tf, var, mask=mask)
 
                     # Make and save figure
                     fig.make(f'frame_{self.fp:03d}', dxmin=self.dxmin, dxmax=self.dxmax,
