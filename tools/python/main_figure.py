@@ -67,7 +67,7 @@ class Figure(object):
         print(self.fields.keys())
         return
 
-    def make(self,figname,dxmin=0,dxmax=0,dymin=0,dymax=0, add_gl=True, add_time=False):
+    def make(self,figname,dxmin=0,dxmax=0,dymin=0,dymax=0, add_gl=True, add_time=False, dpi=450):
 
         fig = plt.figure(figsize=self.figsize,constrained_layout=True)
 
@@ -111,7 +111,7 @@ class Figure(object):
             fig.suptitle(f'Year {field.Timeframe.time:.0f}')
 
         fullfigname = os.path.join(self.directory,f'{figname}.png')
-        plt.savefig(fullfigname, bbox_inches = 'tight', pad_inches = 0,dpi=450)
+        plt.savefig(fullfigname, bbox_inches = 'tight', pad_inches = 0,dpi=dpi)
         print(f'Created {figname}')
         plt.close()
 
@@ -154,7 +154,13 @@ class Field(object):
             vvar = self.Timeframe.ds['V_lad']
             self.data = (uvar**2+vvar**2)**.5
         elif self.varname[:3] == 'BMB':
-            self.data = -self.Timeframe.ds['BMB']
+            if 'BMB' in self.Timeframe.ds:
+                self.data = -self.Timeframe.ds['BMB']
+            elif 'melt' in self.Timeframe.ds:
+                self.data = self.Timeframe.ds['melt']*3600*24*365.25
+            else:
+                print(f"ERROR: no valid BMB or melt variable in Timeframe")
+                return
         else:
             try:
                 self.data = self.Timeframe.ds[self.varname]
@@ -168,7 +174,9 @@ class Field(object):
                     self.Timeframe.get_mask()
 
                 if self.mask == 'shelf':
-                    self.data = xr.where(self.Timeframe.mask == 4, self.data, np.nan)
+                    self.data = xr.where([x in [4] for x in self.Timeframe.mask], self.data, np.nan)
+                elif self.mask == 'sheet':
+                    self.data = xr.where([x in [3] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
@@ -218,7 +226,7 @@ class Field(object):
         """ Get mask collection """
 
         mcmap = 'ocean'
-        mnorm = mpl.colors.Normalize(vmin=1.6, vmax=3.1, clip=True)
+        mnorm = mpl.colors.Normalize(vmin=1.7, vmax=3.1, clip=True)
 
         if not self.Mesh.got_voronois:
             self.Mesh.get_voronois()
@@ -310,9 +318,9 @@ class DiffField(object):
                     self.Timeframe.get_mask()
 
                 if self.mask == 'shelf':
-                    self.data = xr.where(self.Timeframe.mask == 4, self.data, np.nan)
+                    self.data = xr.where([ x in [4] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'sheet':
-                    self.data = xr.where(self.Timeframe.mask == 3, self.data, np.nan)
+                    self.data = xr.where([ x in [3] for x in self.Timeframe.mask], self.data, np.nan)
                 elif self.mask == 'ice':
                     self.data = xr.where([x in [3,4] for x in self.Timeframe.mask], self.data, np.nan)
                 else:
@@ -353,7 +361,7 @@ class DiffField(object):
         """ Get mask collection """
 
         mcmap = 'ocean'
-        mnorm = mpl.colors.Normalize(vmin=1.6, vmax=3.1, clip=True)
+        mnorm = mpl.colors.Normalize(vmin=1.7, vmax=3.1, clip=True)
 
         if not self.Mesh.got_voronois:
             self.Mesh.get_voronois()

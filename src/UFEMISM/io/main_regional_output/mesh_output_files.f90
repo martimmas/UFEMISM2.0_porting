@@ -11,14 +11,14 @@ module mesh_output_files
   use netcdf_io_main
   use netcdf_bedrock_CDF
   use netcdf, only: NF90_DOUBLE
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
   use mesh_contour, only: calc_mesh_contour
+  use parameters, only: NaN
 
   implicit none
 
   private
 
-  public :: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh
+  public :: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh, write_contour_to_file
 
 contains
 
@@ -1427,15 +1427,12 @@ contains
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'write_grounding_line_to_file'
-    real(dp)                                :: NaN
     real(dp), dimension(mesh%vi1:mesh%vi2)  :: TAF_for_GL
     integer                                 :: vi
     real(dp), dimension(:,:  ), allocatable :: CC
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    NaN = ieee_value( NaN, ieee_signaling_nan)
 
     ! Replace thickness above floatation with NaN in ice-free vertices so GL wont be found there
     do vi = mesh%vi1, mesh%vi2
@@ -1468,15 +1465,12 @@ contains
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'write_calving_front_to_file'
-    real(dp)                                :: NaN
     real(dp), dimension(mesh%vi1:mesh%vi2)  :: Hi_for_GL
     integer                                 :: vi
     real(dp), dimension(:,:  ), allocatable :: CC
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    NaN = ieee_value( NaN, ieee_signaling_nan)
 
     ! Replace ice thickness with NaN in grounded vertices so CF wont be found there
     do vi = mesh%vi1, mesh%vi2
@@ -1543,8 +1537,6 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    NaN = ieee_value( NaN, ieee_signaling_nan)
 
     ! Replace water depth with NaN in ice-covered vertices so coastline wont be found there
     do vi = mesh%vi1, mesh%vi2

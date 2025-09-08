@@ -231,6 +231,8 @@ CONTAINS
     call exchange_halos( mesh, laddie%mask_oc_b)
     call exchange_halos( mesh, npxref%H_c)
 
+    call sync
+
     ! Loop over triangles
     DO ti = mesh%ti1, mesh%ti2
       IF (laddie%mask_b( ti)) THEN
@@ -306,6 +308,8 @@ CONTAINS
     ! Initialise with zeros
     laddie%divQU( mesh%ti1:mesh%ti2) = 0.0_dp
     laddie%divQV( mesh%ti1:mesh%ti2) = 0.0_dp
+
+    call sync
 
     ! == Loop over triangles ==
     ! =========================
@@ -394,6 +398,8 @@ CONTAINS
     laddie%divQU( mesh%ti1:mesh%ti2) = 0.0_dp
     laddie%divQV( mesh%ti1:mesh%ti2) = 0.0_dp
 
+    call sync
+
     ! == Loop over triangles ==
     ! =========================
 
@@ -465,6 +471,8 @@ CONTAINS
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    call sync
 
     call multiply_CSR_matrix_with_vector_1D( laddie%M_map_UV_b_c, &
       mesh%pai_Tri, U, mesh%pai_E, U_c)

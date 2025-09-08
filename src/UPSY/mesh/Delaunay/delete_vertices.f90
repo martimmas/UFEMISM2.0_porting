@@ -26,15 +26,13 @@ module delete_vertices
 
 contains
 
-  subroutine delete_vertex( mesh, vi_kill, &
-    vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+  subroutine delete_vertex( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     ! Delete vertex vi from the mesh
 
     ! In/output variables:
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: vi_kill
     integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
-    integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex'
@@ -47,11 +45,9 @@ contains
 
     if (mesh%nC( vi_kill) == 3) then
       call crash('delete_vertex_nCeq3 not implemented yet')
-      ! call delete_vertex_nCeq3( mesh, vi_kill, &
-      !   vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+      ! call delete_vertex_nCeq3( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     else
-      call delete_vertex_nCge4( mesh, vi_kill, &
-        vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+      call delete_vertex_nCge4( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     end if
 
     ! Finalise routine path
@@ -62,8 +58,7 @@ contains
   ! Delete a vertex which has 4 or more neighbours
   ! ==============================================
 
-  subroutine delete_vertex_nCge4( mesh, vi_kill, &
-    vi_new2vi_old, vi_old2vi_new, ti_new2ti_old, ti_old2ti_new)
+  subroutine delete_vertex_nCge4( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
     ! Before, local geometry looks like this:
     !
     !                tj_opp()
@@ -100,13 +95,13 @@ contains
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: vi_kill
     integer, dimension(:), allocatable, intent(  out) :: vi_new2vi_old, vi_old2vi_new
-    integer, dimension(:), allocatable, intent(  out) :: ti_new2ti_old, ti_old2ti_new
 
     ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'delete_vertex_nCge4'
-    integer                         :: vi, ti
-    type(type_local_geometry_nCge4) :: locgeom
-    integer                         :: vii, tii
+    character(len=1024), parameter     :: routine_name = 'delete_vertex_nCge4'
+    integer, dimension(:), allocatable :: ti_new2ti_old, ti_old2ti_new
+    integer                            :: vi, ti
+    type(type_local_geometry_nCge4)    :: locgeom
+    integer                            :: vii, tii
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -135,33 +130,18 @@ contains
     call delete_vertex_nCge4_TriC      ( mesh, locgeom)
 
     ! Delete the now disconnected vertex and triangles from the lists
-    call delete_vertex_V  ( mesh, locgeom%vi_kill, vi_new2vi_old, vi_old2vi_new)
-    call delete_vertex_Tri( mesh, locgeom%ti1    , ti_new2ti_old, ti_old2ti_new)
-    call delete_vertex_Tri( mesh, locgeom%ti4    , ti_new2ti_old, ti_old2ti_new)
+    call delete_vertex_V  ( mesh, locgeom%vi_kill, vi_new2vi_old, vi_old2vi_new, locgeom)
+    call delete_vertex_Tri( mesh, locgeom%ti1    , ti_new2ti_old, ti_old2ti_new, locgeom)
+    call delete_vertex_Tri( mesh, locgeom%ti4    , ti_new2ti_old, ti_old2ti_new, locgeom)
 
-    ! Update the local geometry
-    locgeom%vj_clock = vi_old2vi_new( locgeom%vj_clock)
-    locgeom%vj_focus = vi_old2vi_new( locgeom%vj_focus)
-    locgeom%vj_anti  = vi_old2vi_new( locgeom%vj_anti )
-    do vii = 1, locgeom%nvj_opp
-      locgeom%vj_opp( vii) = vi_old2vi_new( locgeom%vj_opp( vii))
-    end do
 #if (DO_ASSERTIONS)
-    call assert( test_ge_le( locgeom%vj_clock, 1, mesh%nV), 'invalid updated vj_clock')
-    call assert( test_ge_le( locgeom%vj_focus, 1, mesh%nV), 'invalid updated vj_focus')
-    call assert( test_ge_le( locgeom%vj_anti , 1, mesh%nV), 'invalid updated vj_anti')
-    call assert( test_ge_le( locgeom%vj_opp  , 1, mesh%nV), 'invalid updated vj_opp')
-#endif
-
-    locgeom%ti2 = ti_old2ti_new( locgeom%ti2)
-    locgeom%ti3 = ti_old2ti_new( locgeom%ti3)
-    do tii = 1, locgeom%nti_opp
-      locgeom%ti_opp( tii) = ti_old2ti_new( locgeom%ti_opp( tii))
-    end do
-#if (DO_ASSERTIONS)
-    call assert( test_ge_le( locgeom%ti2   , 1, mesh%nTri), 'invalid updated ti2')
-    call assert( test_ge_le( locgeom%ti3   , 1, mesh%nTri), 'invalid updated ti3')
-    call assert( test_ge_le( locgeom%ti_opp, 1, mesh%nTri), 'invalid updated ti_opp')
+    call assert( test_ge_le( locgeom%vj_clock, 1, mesh%nV  ), 'invalid updated vj_clock')
+    call assert( test_ge_le( locgeom%vj_focus, 1, mesh%nV  ), 'invalid updated vj_focus')
+    call assert( test_ge_le( locgeom%vj_anti , 1, mesh%nV  ), 'invalid updated vj_anti')
+    call assert( test_ge_le( locgeom%vj_opp  , 1, mesh%nV  ), 'invalid updated vj_opp')
+    call assert( test_ge_le( locgeom%ti2     , 1, mesh%nTri), 'invalid updated ti2')
+    call assert( test_ge_le( locgeom%ti3     , 1, mesh%nTri), 'invalid updated ti3')
+    call assert( test_ge_le( locgeom%ti_opp  , 1, mesh%nTri), 'invalid updated ti_opp')
 #endif
 
     ! Calculate circumcenters for the new triangles
@@ -301,7 +281,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! ti1: nothing changes (will be deleted)
+    ! ti1: set to -1 (will be deleted)
+    mesh%Tri( locgeom%ti1,:) = -1
 
     ! ti2: replace vi_kill with vj_opp( end)
     call replace_vi_in_Tri_ti_with_vj( mesh, locgeom%ti2, locgeom%vi_kill, locgeom%vj_opp( locgeom%nvj_opp))
@@ -317,7 +298,8 @@ contains
     call assert(       any( mesh%Tri( locgeom%ti3,:) == locgeom%vj_opp( 1)), 'vj_opp(1) is not listed in Tri( ti3,:)')
 #endif
 
-    ! ti4: nothing changes (will be deleted)
+    ! ti4: set to -1 (will be deleted)
+    mesh%Tri( locgeom%ti4,:) = -1
 
     ! ti_opp: replace vi_kill with vj_focus
     do tii = 1, locgeom%nti_opp
@@ -345,7 +327,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! ti1: nothing changes (will be deleted)
+    ! ti1: set to -1 (will be deleted)
+    mesh%TriC( locgeom%ti1,:) = -1
 
     ! ti2: replace ti1 in TriC with tj1, and ti3 with ti_opp( end) if the latter exists
     call replace_tj_in_TriC_ti_with_tk( mesh, locgeom%ti2, locgeom%ti1, locgeom%tj1)
@@ -375,7 +358,8 @@ contains
 #endif
     end if
 
-    ! ti4: nothing changes (will be deleted)
+    ! ti4: set to -1 (will be deleted)
+    mesh%TriC( locgeom%ti4,:) = -1
 
     ! if ti_opp( 1) exists: replace ti4 in TriC with ti3
     if (locgeom%nti_opp >= 1) then
@@ -419,16 +403,17 @@ contains
 
   end subroutine delete_vertex_nCge4_TriC
 
-  subroutine delete_vertex_V( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new)
+  subroutine delete_vertex_V( mesh, vi_kill, vi_new2vi_old, vi_old2vi_new, locgeom)
 
     ! In/output variables:
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: vi_kill
     integer, dimension(:), allocatable, intent(inout) :: vi_new2vi_old, vi_old2vi_new
+    type(type_local_geometry_nCge4),    intent(inout) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_V'
-    integer                        :: n
+    integer                        :: vii
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -448,22 +433,32 @@ contains
     mesh%iTri  = mesh%iTri(  1:mesh%nV,:)
     mesh%VBI   = mesh%VBI(   1:mesh%nV  )
 
+    ! Update the local geometry
+    locgeom%vi_kill  = -1
+    locgeom%vj_clock = vi_old2vi_new( locgeom%vj_clock)
+    locgeom%vj_focus = vi_old2vi_new( locgeom%vj_focus)
+    locgeom%vj_anti  = vi_old2vi_new( locgeom%vj_anti )
+    do vii = 1, locgeom%nvj_opp
+      locgeom%vj_opp( vii) = vi_old2vi_new( locgeom%vj_opp( vii))
+    end do
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine delete_vertex_V
 
-  subroutine delete_vertex_Tri( mesh, ti_kill, ti_new2ti_old, ti_old2ti_new)
+  subroutine delete_vertex_Tri( mesh, ti_kill, ti_new2ti_old, ti_old2ti_new, locgeom)
 
     ! In/output variables:
     type(type_mesh),                    intent(inout) :: mesh
     integer,                            intent(in   ) :: ti_kill
     integer, dimension(:), allocatable, intent(inout) :: ti_new2ti_old, ti_old2ti_new
+    type(type_local_geometry_nCge4),    intent(inout) :: locgeom
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex_Tri'
     logical                        :: found_it
-    integer                        :: n
+    integer                        :: tii
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -479,6 +474,22 @@ contains
     mesh%Tri   = mesh%Tri(   1:mesh%nTri,:)
     mesh%Tricc = mesh%Tricc( 1:mesh%nTri,:)
     mesh%TriC  = mesh%TriC(  1:mesh%nTri,:)
+
+    ! Update local geometry
+    if (locgeom%ti1 == ti_kill    ) locgeom%ti1 = -1
+    if (locgeom%ti1 == mesh%nTri+1) locgeom%ti1 = ti_kill
+    if (locgeom%ti2 == ti_kill    ) locgeom%ti2 = -1
+    if (locgeom%ti2 == mesh%nTri+1) locgeom%ti2 = ti_kill
+    if (locgeom%ti3 == ti_kill    ) locgeom%ti3 = -1
+    if (locgeom%ti3 == mesh%nTri+1) locgeom%ti3 = ti_kill
+    if (locgeom%ti4 == ti_kill    ) locgeom%ti4 = -1
+    if (locgeom%ti4 == mesh%nTri+1) locgeom%ti4 = ti_kill
+    do tii = 1, locgeom%nti_opp
+      if (locgeom%ti_opp( tii) == ti_kill    ) locgeom%ti_opp( tii) = -1
+      if (locgeom%ti_opp( tii) == mesh%nTri+1) locgeom%ti_opp( tii) = ti_kill
+      if (locgeom%tj_opp( tii) == ti_kill    ) locgeom%tj_opp( tii) = -1
+      if (locgeom%tj_opp( tii) == mesh%nTri+1) locgeom%tj_opp( tii) = ti_kill
+    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name)

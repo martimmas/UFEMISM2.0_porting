@@ -6,7 +6,7 @@ module ocean_extrapolation
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
   use mesh_utilities, only: extrapolate_Gaussian
-  use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
+  use parameters, only: NaN
 
   implicit none
 
@@ -59,19 +59,15 @@ contains
     ! Local variables
     character(len=1024), parameter        :: routine_name = 'extrapolate_ocean_forcing_preparation'
     integer                               :: vi, k
-    real(dp)                              :: NaN
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    ! Define NaN
-    NaN = ieee_value( NaN, ieee_signaling_nan)
 
     ! Set values below bedrock to NaN
     do vi = mesh%vi1, mesh%vi2
       do k = 1, C%nz_ocean
         if (C%z_ocean( k) > -ice%Hb( vi)) then
-          d( vi, k) = NaN 
+          d( vi, k) = NaN
         end if
       end do
     end do

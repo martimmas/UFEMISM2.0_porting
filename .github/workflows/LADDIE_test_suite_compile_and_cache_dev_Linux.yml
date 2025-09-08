@@ -47,3 +47,10 @@ jobs:
 
       - name: Compile LADDIE
         run: csh compile_LADDIE.csh  dev  clean
+
+      - name: Cache LADDIE unit test program
+        uses: actions/cache/save@v3
+        id: LADDIE_program_cache_save
+        with:
+          path: LADDIE_program
+          key: LADDIE_program_${{ github.ref_name }}_${{ github.run_id }}

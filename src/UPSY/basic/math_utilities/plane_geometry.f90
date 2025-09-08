@@ -16,7 +16,7 @@ module plane_geometry
     line_from_points, perpendicular_bisector_from_line, line_line_intersection, circumcenter, &
     geometric_center, triangle_area, is_in_triangle, longest_triangle_leg, smallest_triangle_angle, &
     largest_triangle_angle, equiangular_skewness, crop_line_to_domain, encroaches_upon, &
-    interpolate_inside_triangle
+    interpolate_inside_triangle, mirror_p_across_qr
 
   interface interpolate_inside_triangle
     procedure :: interpolate_inside_triangle_dp_2D
@@ -879,5 +879,28 @@ contains
     end if
 
   end subroutine interpolate_inside_triangle_dp_3D
+
+  pure function mirror_p_across_qr( p, q, r) result( s)
+    !< Define s as the mirror of p across the line qr
+
+    ! In/output variables:
+    real(dp), dimension(2), intent(in) :: p, q, r
+    real(dp), dimension(2)             :: s
+
+    ! Local variables:
+    real(dp), dimension(2) :: qr, qrn, qp, proj_qp_on_qr, m
+
+
+    qr = r - q
+    qrn = qr / norm2( qr)
+
+    qp = p - q
+
+    proj_qp_on_qr = qrn * (qp(1)*qrn(1) + qp(2)*qrn(2))
+    m = q + proj_qp_on_qr
+
+    s = m + (m - p)
+
+  end function mirror_p_across_qr
 
 end module plane_geometry
