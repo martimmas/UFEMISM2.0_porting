@@ -67,7 +67,7 @@ class Figure(object):
         print(self.fields.keys())
         return
 
-    def make(self,figname,dxmin=0,dxmax=0,dymin=0,dymax=0, add_gl=True, add_time=False):
+    def make(self,figname,dxmin=0,dxmax=0,dymin=0,dymax=0, add_gl=True, add_time=False, dpi=450):
 
         fig = plt.figure(figsize=self.figsize,constrained_layout=True)
 
@@ -111,7 +111,7 @@ class Figure(object):
             fig.suptitle(f'Year {field.Timeframe.time:.0f}')
 
         fullfigname = os.path.join(self.directory,f'{figname}.png')
-        plt.savefig(fullfigname, bbox_inches = 'tight', pad_inches = 0,dpi=450)
+        plt.savefig(fullfigname, bbox_inches = 'tight', pad_inches = 0,dpi=dpi)
         print(f'Created {figname}')
         plt.close()
 
