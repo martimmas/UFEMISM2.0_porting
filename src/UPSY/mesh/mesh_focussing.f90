@@ -55,7 +55,7 @@ contains
     deallocate( vi_new2vi_old_temp)
 
     ! Finalise routine path
-    call finalise_routine( routine_name)
+    call finalise_routine( routine_name, n_extra_MPI_windows_expected = 12)
 
   end subroutine focus_mesh_on_polyline
 
