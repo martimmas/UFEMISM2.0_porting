@@ -18,7 +18,7 @@ MODULE climate_main
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE climate_idealised                                      , ONLY: initialise_climate_model_idealised, run_climate_model_idealised
   USE climate_realistic                                      , ONLY: initialise_climate_model_realistic, run_climate_model_realistic, remap_climate_realistic
-  USE climate_snapshot_plus_uniform_deltaT                           , ONLY: initialise_climate_model_snapshot_plus_uniform_deltaT, run_climate_model_snapshot_plus_uniform_deltaT
+  USE climate_snapshot_plus_uniform_deltaT                   , ONLY: initialise_climate_model_snapshot_plus_uniform_deltaT, run_climate_model_snapshot_plus_uniform_deltaT, remap_climate_snapshot_plus_uniform_deltaT
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use netcdf_io_main
   use climate_matrix                                         , only: run_climate_model_matrix, initialise_climate_matrix, remap_climate_matrix_model
