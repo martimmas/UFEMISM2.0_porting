@@ -108,6 +108,8 @@ CONTAINS
         ! If necessary and allowed, perform a mesh update
         IF (mesh_fitness_coefficient < C%minimum_mesh_fitness_coefficient) THEN
           CALL update_mesh( region, regional_forcing)
+          IF (par%primary) WRITE(0,*) 'saving remeshed output before running the model...'
+          CALL write_to_regional_output_files( region)
         END IF
 
       END IF ! IF (C%allow_mesh_updates) THEN
