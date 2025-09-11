@@ -8,19 +8,11 @@ module climate_retreat_mask
   use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine, colour_string
   use model_configuration                                    , only: C
   use parameters
-  use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER
   use mesh_types                                             , only: type_mesh
   use ice_model_types                                        , only: type_ice_model
-  use grid_types                                             , only: type_grid
-  use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
-  use global_forcing_types                                   , only: type_global_forcing
-  use SMB_model_types, only: type_SMB_model
-  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_snapshot
+  use climate_model_types                                    , only: type_climate_model
   use reallocate_mod                                         , only: reallocate_bounds
   use netcdf_io_main
-  use mesh_data_smoothing, only: smooth_Gaussian
-  use SMB_IMAU_ITM, only: run_SMB_model_IMAUITM, initialise_SMB_model_IMAUITM
-  use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, adapt_precip_CC, adapt_precip_Roe, get_insolation_at_time
   use assertions_basic, only: assert
 
  implicit none
@@ -40,7 +32,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                    intent(in)    :: mesh
-    type(type_climate),                 intent(inout) :: climate
+    type(type_climate_model),           intent(inout) :: climate
     real(dp),                           intent(in)    :: time
     type(type_ice_model),               intent(in)    :: ice
 
@@ -84,7 +76,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                          intent(in   ) :: mesh
-    type(type_climate),                       intent(inout) :: climate
+    type(type_climate_model),                 intent(inout) :: climate
     real(dp),                                 intent(in)    :: time
 
     ! Local variables:
@@ -108,7 +100,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                    intent(in   ) :: mesh
-    type(type_climate_ISMIP_style),     intent(inout) :: climate
+    type(type_climate_model),           intent(inout) :: climate
 
     ! Local variables:
     character(len=256), parameter                           :: routine_name = 'initialise_climate_retreat_mask'
