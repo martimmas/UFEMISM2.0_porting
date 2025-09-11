@@ -27,232 +27,124 @@ module climate_retreat_mask
 
   private
 
-  public :: run_climate_model_matrix
-  public :: initialise_climate_matrix
-  public :: remap_climate_matrix_model
+  public :: run_climate_retreat_mask
+  public :: update_climate_retreat_mask
+  public :: initialise_climate_retreat_mask
 
 contains
 
-! == ISMIP-style Antarctica future phase (SMB + aSMB + ST + aST) forcing
+! == ISMIP-style Antarctica future retreat mask
 ! ======================================================================
 
-  SUBROUTINE run_climate_retreat_mask( mesh, climate_matrix, time, ice)
-    ! Run the regional climate model
-    !
-    ! Use the ISMIP-style (SMB + aSMB + ST + aST) yearly forcing
-
-    IMPLICIT NONE
+  subroutine run_climate_retreat_mask( mesh, climate, time, ice)
 
     ! In/output variables:
-    TYPE(type_mesh),                    INTENT(INOUT) :: mesh
-    TYPE(type_climate_matrix_regional), INTENT(INOUT) :: climate_matrix
-    REAL(dp),                           INTENT(IN)    :: time
-    TYPE(type_ice_model),               INTENT(IN)    :: ice
+    type(type_mesh),                    intent(in)    :: mesh
+    type(type_climate),                 intent(inout) :: climate
+    real(dp),                           intent(in)    :: time
+    type(type_ice_model),               intent(in)    :: ice
 
     ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                           :: routine_name = 'run_climate_model_ISMIP_style_future'
-    REAL(dp)                                                :: wt0, wt1
-    INTEGER                                                 :: vi
+    character(len=256), parameter                           :: routine_name = 'run_climate_retreat_mask'
+    integer                                                 :: vi
 
     ! Add routine to path
-    CALL init_routine( routine_name)
+    call init_routine( routine_name)
 
     ! Check if the requested time is enveloped by the two timeframes;
     ! if not, read the two relevant timeframes from the NetCDF file
-    IF (time < climate_matrix%ISMIP_style%t0 .OR. time > climate_matrix%ISMIP_style%t1) THEN
+    if (time < climate%ISMIP_style%shelf_collapse_mask_t0 .OR. time > climate%ISMIP_style%shelf_collapse_mask_t1) then
 
       ! Find and read the two global time frames
-      CALL sync
-      CALL update_ISMIP_style_future_timeframes( mesh, climate_matrix, time)
+      !call sync
+      ! this needs to be fixed
+      call update_ISMIP_style_future_timeframes( mesh, climate, time)
 
-    END IF ! IF (time >= climate_matrix%SMB_direct%t0 .AND. time <= climate_matrix%SMB_direct%t1) THEN
+    end if ! IF (time >= climate_matrix%SMB_direct%t0 .AND. time <= climate_matrix%SMB_direct%t1) THEN
 
     ! Interpolate the two timeframes in time
-    wt0 = (climate_matrix%ISMIP_style%t1 - time) / (climate_matrix%ISMIP_style%t1 - climate_matrix%ISMIP_style%t0)
+    wt0 = (climate%ISMIP_style%shelf_collapse_mask_t1 - time) / (climate%ISMIP_style%shelf_collapse_mask_t1 - climate%ISMIP_style%shelf_collapse_mask_t0)
     wt1 = 1._dp - wt0
 
-    DO vi = mesh%vi1, mesh%vi2
+    do vi = mesh%vi1, mesh%vi2
 
-      climate_matrix%ISMIP_style%aSMB(   vi) = (wt0 * climate_matrix%ISMIP_style%aSMB0(   vi)) + &
-                                               (wt1 * climate_matrix%ISMIP_style%aSMB1(   vi))
-      climate_matrix%ISMIP_style%aST(    vi) = (wt0 * climate_matrix%ISMIP_style%aST0(    vi)) + &
-                                               (wt1 * climate_matrix%ISMIP_style%aST1(    vi))
+      climate%ISMIP_style%shelf_collapse_mask( vi) = (wt0 * climate%ISMIP_style%shelf_collapse_mask0( vi)) + &
+                                                        (wt1 * climate%ISMIP_style%shelf_collapse_mask1( vi))
 
-    END DO
-    CALL sync
-
-    ! Apply the anomaly to calculate the applied SMB and temperature
-    DO vi = mesh%vi1, mesh%vi2
-
-      climate_matrix%ISMIP_style%SMB( vi) = climate_matrix%ISMIP_style%SMB_ref( vi) + &
-                                            climate_matrix%ISMIP_style%aSMB(    vi) * sec_per_year / ice_density
-
-      climate_matrix%ISMIP_style%ST(  vi) = climate_matrix%ISMIP_style%ST_ref(  vi) + &
-                                            climate_matrix%ISMIP_style%aST(     vi)
-
-    END DO
-    CALL sync
-
-    ! Set the final values in the "applied" climate snapshot
-    DO vi = mesh%vi1, mesh%vi2
-
-      climate_matrix%applied%T2m( vi,:) = climate_matrix%ISMIP_style%ST( vi)
-
-    END DO
-    CALL sync
-
-
-    ! == Shelf collapse forcing ==
-    ! ============================
-
-    IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
-
-      ! Interpolate the two timeframes in time
-      wt0 = (climate_matrix%ISMIP_style%shelf_collapse_mask_t1 - time) / (climate_matrix%ISMIP_style%shelf_collapse_mask_t1 - climate_matrix%ISMIP_style%shelf_collapse_mask_t0)
-      wt1 = 1._dp - wt0
-
-      DO vi = mesh%vi1, mesh%vi2
-
-        climate_matrix%ISMIP_style%shelf_collapse_mask( vi) = (wt0 * climate_matrix%ISMIP_style%shelf_collapse_mask0( vi)) + &
-                                                              (wt1 * climate_matrix%ISMIP_style%shelf_collapse_mask1( vi))
-
-      END DO
-      CALL sync
-
-    END IF ! IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
+    end do
+    call sync
 
     ! Finalise routine path
-    CALL finalise_routine( routine_name)
+    call finalise_routine( routine_name)
 
-  END SUBROUTINE run_climate_model_ISMIP_style_future
+  end subroutine run_climate_retreat_mask
 
-  SUBROUTINE update_climate_retreat_mask( mesh, climate_matrix, time)
-    ! Update the two timeframes of the ISMIP-style future yearly (SMB + aSMB + ST + aST) forcing data
-
-    USE netcdf_input_module, ONLY: read_field_from_file_2D
-
-    IMPLICIT NONE
+  subroutine update_ISMIP_style_future_timeframes( mesh, climate, time)
+    ! Update the two timeframes of the ISMIP-style forcing data
 
     ! In/output variables:
-    TYPE(type_mesh),                          INTENT(INOUT) :: mesh
-    TYPE(type_climate_matrix_regional),       INTENT(INOUT) :: climate_matrix
-    REAL(dp),                                 INTENT(IN)    :: time
+    type(type_mesh),                          intent(in   ) :: mesh
+    type(type_climate),                       intent(inout) :: climate
+    real(dp),                                 intent(in)    :: time
 
     ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                           :: routine_name = 'update_ISMIP_style_future_timeframes'
+    character(len=256), parameter                           :: routine_name = 'update_ISMIP_style_future_timeframes'
 
     ! Add routine to path
-    CALL init_routine( routine_name)
+    call init_routine( routine_name)
 
     ! Read timeframes from file
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_anomaly_filename, 'smb_anomaly', mesh, climate_matrix%ISMIP_style%aSMB0, 'ANT', time_to_read = REAL( FLOOR( time),dp)        )
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_anomaly_filename, 'smb_anomaly', mesh, climate_matrix%ISMIP_style%aSMB1, 'ANT', time_to_read = REAL( FLOOR( time),dp) + 1._dp)
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_anomaly_filename, 'ts_anomaly' , mesh, climate_matrix%ISMIP_style%aST0 , 'ANT', time_to_read = REAL( FLOOR( time),dp)        )
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_anomaly_filename, 'ts_anomaly' , mesh, climate_matrix%ISMIP_style%aST1 , 'ANT', time_to_read = REAL( FLOOR( time),dp) + 1._dp)
-
-
-    ! == Shelf collapse forcing ==
-    ! ============================
-
-    IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
-
-      ! Read timeframes from file
-      CALL read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask0, 'ANT', time_to_read = REAL( FLOOR( time),dp)        )
-      CALL read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask1, 'ANT', time_to_read = REAL( FLOOR( time),dp) + 1._dp)
-
-    END IF ! IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask0, 'ANT', time_to_read = REAL( FLOOR( time),dp)        )
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask1, 'ANT', time_to_read = REAL( FLOOR( time),dp) + 1._dp)
 
     ! Finalise routine path
-    CALL finalise_routine( routine_name, n_extra_windows_expected = 13)
+    call finalise_routine( routine_name)
 
-  END SUBROUTINE update_ISMIP_style_future_timeframes
+  end subroutine update_ISMIP_style_future_timeframes
 
-  SUBROUTINE initialise_climate_retreat_mask( mesh, climate_matrix)
-    ! Initialise the regional climate model
-    !
-    ! Use the ISMIP-style (SMB + aSMB + ST + aST) yearly forcing
-
-    USE netcdf_input_module, ONLY: read_field_from_file_2D
-
-    IMPLICIT NONE
+! start with the initialise subroutine to understand what I need to restructure
+  subroutine initialise_climate_retreat_mask( mesh, climate)
+    ! Use the ISMIP-style forcing
 
     ! In/output variables:
-    TYPE(type_mesh),                    INTENT(INOUT) :: mesh
-    TYPE(type_climate_matrix_regional), INTENT(INOUT) :: climate_matrix
+    type(type_mesh),                    intent(in   ) :: mesh
+    type(type_climate_ISMIP_style),     intent(inout) :: climate
 
     ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                           :: routine_name = 'initialise_climate_model_ISMIP_style_future'
+    character(len=256), parameter                           :: routine_name = 'initialise_climate_retreat_mask'
 
     ! Add routine to path
-    CALL init_routine( routine_name)
+    call init_routine( routine_name)
 
-    ! Allocate memory for baseline temperature and SMB
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%SMB_ref, climate_matrix%ISMIP_style%wSMB_ref)
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%ST_ref , climate_matrix%ISMIP_style%wST_ref )
-
-    ! Read baseline temperature and SMB
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_baseline_filename, 'SMB', mesh, climate_matrix%ISMIP_style%SMB_ref, 'ANT')
-    CALL read_field_from_file_2D( C%ISMIP_future_atmosphere_baseline_filename, 'ST' , mesh, climate_matrix%ISMIP_style%ST_ref , 'ANT')
-
-    ! Allocate memory for the timestamps of the two timeframes
-    CALL allocate_shared_dp_0D( climate_matrix%ISMIP_style%t0, climate_matrix%ISMIP_style%wt0)
-    CALL allocate_shared_dp_0D( climate_matrix%ISMIP_style%t1, climate_matrix%ISMIP_style%wt1)
-
-    IF (par%master) THEN
-      ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
-      ! is guaranteed to first read two new timeframes from the NetCDF file
-      climate_matrix%ISMIP_style%t0 = C%start_time_of_run - 100._dp
-      climate_matrix%ISMIP_style%t1 = C%start_time_of_run - 90._dp
-    END IF ! IF (par%master) THEN
-    CALL sync
-
-    ! Allocate memory for the two timeframes
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aSMB0  , climate_matrix%ISMIP_style%waSMB0  )
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aST0   , climate_matrix%ISMIP_style%waST0   )
-
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aSMB1  , climate_matrix%ISMIP_style%waSMB1  )
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aST1   , climate_matrix%ISMIP_style%waST1   )
-
-    ! Allocate memory for the time-interpolated values of aSMB, dSMBdz, ST, and dSTdz
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aSMB   , climate_matrix%ISMIP_style%waSMB   )
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%aST    , climate_matrix%ISMIP_style%waST    )
-
-    ! Allocate memory for the applied values of SMB and ST (i.e. after applying the anomaly and elevation correction)
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%SMB    , climate_matrix%ISMIP_style%wSMB    )
-    CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%ST     , climate_matrix%ISMIP_style%wST     )
-
-    ! Lastly, allocate memory for the "applied" snapshot
-    CALL allocate_climate_snapshot_regional( mesh, climate_matrix%applied, name = 'applied')
-
-
-    ! == Shelf collapse forcing ==
-    ! ============================
-
-    IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
-
+! I think all the code above is not needed... and even the IF is not needed anymore as I will call this part as something else from climate main...
       ! Allocate memory
-      CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask0, climate_matrix%ISMIP_style%wshelf_collapse_mask0)
-      CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask1, climate_matrix%ISMIP_style%wshelf_collapse_mask1)
-      CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask , climate_matrix%ISMIP_style%wshelf_collapse_mask )
+    allocate( climate%ISMIP_style%shelf_collapse_mask0( mesh%vi1:mesh%vi2))
+    allocate( climate%ISMIP_style%shelf_collapse_mask1( mesh%vi1:mesh%vi2))
+    allocate( climate%ISMIP_style%shelf_collapse_mask( mesh%vi1:mesh%vi2))
 
+      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask0, climate_matrix%ISMIP_style%wshelf_collapse_mask0)
+      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask1, climate_matrix%ISMIP_style%wshelf_collapse_mask1)
+      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask , climate_matrix%ISMIP_style%wshelf_collapse_mask )
+
+! what about this one? I think is not needed? as it is like a real value
       ! Allocate memory for the timestamps of the two timeframes
-      CALL allocate_shared_dp_0D( climate_matrix%ISMIP_style%shelf_collapse_mask_t0, climate_matrix%ISMIP_style%wshelf_collapse_mask_t0)
-      CALL allocate_shared_dp_0D( climate_matrix%ISMIP_style%shelf_collapse_mask_t1, climate_matrix%ISMIP_style%wshelf_collapse_mask_t1)
-
-      IF (par%master) THEN
+    allocate( climate%ISMIP_style%shelf_collapse_mask_t0)
+    allocate( climate%ISMIP_style%shelf_collapse_mask_t1)
+      !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t0, climate_matrix%ISMIP_style%wshelf_collapse_mask_t0)
+      !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t1, climate_matrix%ISMIP_style%wshelf_collapse_mask_t1)
+! I THINK NEXT LINE IS NOT NEEDED...
+      if (par%master) then
         ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
         ! is guaranteed to first read two new timeframes from the NetCDF file
-        climate_matrix%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
-        climate_matrix%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
-      END IF ! IF (par%master) THEN
-      CALL sync
-
-    END IF ! IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
+        climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
+        climate%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
+      end if ! IF (par%master) THEN
+      call sync
 
     ! Finalise routine path
-    CALL finalise_routine( routine_name, n_extra_windows_expected = 1)
+    call finalise_routine( routine_name)
 
-  END SUBROUTINE initialise_climate_model_ISMIP_style_future
+  end subroutine initialise_climate_retreat_mask
 
 
 
