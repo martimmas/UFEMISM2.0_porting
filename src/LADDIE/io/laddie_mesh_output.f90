@@ -187,6 +187,8 @@ contains
       case ('S_ocean')
         call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'S_ocean', forcing%S_ocean, d_is_hybrid = .true.)
 
+      case ('f_coriolis')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'f_coriolis', forcing%f_coriolis, d_is_hybrid = .true.)
 
     ! ===== Masks =====
     ! =================
@@ -444,6 +446,9 @@ contains
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'PSU')
+
+      case ('f_coriolis')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'f_coriolis', long_name = 'Coriolis parameter', units = 's^-1')
 
       case ('mask_SGD')
         call add_field_mesh_int_2d( filename, ncid, 'mask_SGD', long_name = 'Mask indicating potential subglacial discharge cells')

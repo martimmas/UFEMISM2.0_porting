@@ -5,6 +5,7 @@ module laddie_forcing_main
 ! ===== Preamble =====
 ! ====================
 
+  use parameters
   use precisions, only: dp
   use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string, warning
   use model_configuration, only: C
@@ -27,6 +28,7 @@ module laddie_forcing_main
   use subgrid_grounded_fractions_main, only: calc_grounded_fractions
   use ice_shelf_base_slopes_onesided, only: calc_ice_shelf_base_slopes_onesided
   use ocean_main, only: initialise_ocean_model
+  use projections, only: inverse_oblique_sg_projection
 
   implicit none
 
@@ -203,9 +205,48 @@ contains
     forcing%T_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%T               ( mesh%vi1:mesh%vi2,:)
     forcing%S_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%S               ( mesh%vi1:mesh%vi2,:)
 
+    ! Determine coriolis parameter
+    ! ============================
+
+    call calculate_coriolis_parameter( mesh, forcing, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT)
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine initialise_forcing
+
+  subroutine calculate_coriolis_parameter( mesh, forcing, lambda_M, phi_M, beta_stereo)
+    ! Set up all forcing
+
+    ! In/output variables
+    type(type_mesh)          , intent(in   ) :: mesh
+    type(type_laddie_forcing), intent(inout) :: forcing
+    real(dp)                 , intent(in   ) :: lambda_M, phi_M, beta_stereo
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calculate_coriolis_parameter'
+    real(dp)                       :: lon_b, lat_b
+    integer                        :: ti
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%choice_laddie_coriolis)
+      case default
+        call crash('unknown choice_laddie_coriolis "' // trim( C%choice_laddie_coriolis) // '"!')
+      case ('uniform')
+        forcing%f_coriolis( mesh%ti1:mesh%ti2) = C%uniform_laddie_coriolis_parameter
+      case ('realistic')
+        do ti = mesh%ti1, mesh%ti2
+          call inverse_oblique_sg_projection( mesh%Tricc( ti,1), mesh%Tricc( ti,2), lambda_M, phi_M, beta_stereo, lon_b, lat_b)
+          forcing%f_coriolis( ti) = 2.0_dp * earth_rotation_rate * sin(2.0_dp * pi * lat_b / 360.0_dp)
+        end do
+
+    end select
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calculate_coriolis_parameter
 
 end module laddie_forcing_main
