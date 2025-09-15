@@ -904,6 +904,9 @@ MODULE model_configuration
     ! Parallellisation
     LOGICAL             :: do_repartition_laddie_config                 = .FALSE.                          ! Whether or not to repartition laddie to its own mesh
 
+    ! Remapping
+    character(len=256)  :: choice_laddie_remapping_option_config        = 'no_vel'                         ! Remapping option to apply. Options: 'full', 'no_vel'
+
     ! Output
     LOGICAL             :: do_write_laddie_output_fields_config         = .FALSE.                          ! Whether or not to write output fields on laddie time
     LOGICAL             :: do_write_laddie_output_scalar_config         = .FALSE.                          ! Whether or not to write output scalars on laddie time
@@ -2033,6 +2036,9 @@ MODULE model_configuration
     ! Parallellisation
     LOGICAL             :: do_repartition_laddie
 
+    ! Remapping
+    character(len=256)  :: choice_laddie_remapping_option
+
     ! Output
     LOGICAL             :: do_write_laddie_output_fields
     LOGICAL             :: do_write_laddie_output_scalar
@@ -3054,6 +3060,7 @@ CONTAINS
       BMB_inversion_t_start_config                                , &
       BMB_inversion_t_end_config                                  , &
       do_repartition_laddie_config                                , &
+      choice_laddie_remapping_option_config                       , &
       do_write_laddie_output_fields_config                        , &
       do_write_laddie_output_scalar_config                        , &
       time_interval_scalar_output_config                          , &
@@ -4141,6 +4148,9 @@ CONTAINS
 
     ! Parallellisation
     C%do_repartition_laddie                                  = do_repartition_laddie_config
+
+    ! Remapping
+    C%choice_laddie_remapping_option                         = choice_laddie_remapping_option_config
 
     ! Output
     C%do_write_laddie_output_fields                          = do_write_laddie_output_fields_config
