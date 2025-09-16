@@ -208,7 +208,7 @@ contains
     call allocate_laddie_model( mesh, laddie)
     call allocate_laddie_forcing( mesh, forcing)
 
-    call update_laddie_forcing( mesh, ice, ocean, forcing)
+    call update_laddie_forcing( mesh, ice, ocean, forcing, 'ANT')
 
     ! Finalise routine path
     call finalise_routine( routine_name)

@@ -335,6 +335,7 @@ CONTAINS
     call allocate_dist_shared( forcing%Ti                , forcing%wTi                , mesh%pai_V%n_nih, mesh%nz)
     call allocate_dist_shared( forcing%T_ocean           , forcing%wT_ocean           , mesh%pai_V%n_nih, C%nz_ocean)
     call allocate_dist_shared( forcing%S_ocean           , forcing%wS_ocean           , mesh%pai_V%n_nih, C%nz_ocean)
+    call allocate_dist_shared( forcing%f_coriolis        , forcing%wf_coriolis        , mesh%pai_Tri%n_nih)
     forcing%Hi                ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih              ) => forcing%Hi
     forcing%Hib               ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih              ) => forcing%Hib
     forcing%TAF               ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih              ) => forcing%TAF
@@ -350,6 +351,7 @@ CONTAINS
     forcing%Ti                ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih, 1:mesh%nz   ) => forcing%Ti
     forcing%T_ocean           ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih, 1:C%nz_ocean) => forcing%T_ocean
     forcing%S_ocean           ( mesh%pai_V%i1_nih  :mesh%pai_V%i2_nih, 1:C%nz_ocean) => forcing%S_ocean
+    forcing%f_coriolis        ( mesh%pai_Tri%i1_nih:mesh%pai_Tri%i2_nih            ) => forcing%f_coriolis
 
     ! Finalise routine path
     call finalise_routine( routine_name)
