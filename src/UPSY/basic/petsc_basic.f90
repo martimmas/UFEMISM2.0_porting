@@ -29,7 +29,8 @@ MODULE petsc_basic
 CONTAINS
 
 ! == Solve a square CSR matrix equation with PETSc
-  SUBROUTINE solve_matrix_equation_CSR_PETSc( AA, bb, xx, rtol, abstol, n_Axb_its)
+  SUBROUTINE solve_matrix_equation_CSR_PETSc( AA, bb, xx, rtol, abstol, n_Axb_its, &
+    PETSc_KSPtype, PETSc_PCtype)
 
     IMPLICIT NONE
 
@@ -39,6 +40,8 @@ CONTAINS
     REAL(dp), DIMENSION(:    ),          INTENT(INOUT) :: xx
     REAL(dp),                            INTENT(IN)    :: rtol, abstol
     integer,                             intent(out)   :: n_Axb_its
+    character(len=*), optional,          intent(in   ) :: PETSc_KSPtype
+    character(len=*), optional,          intent(in   ) :: PETSc_PCtype
 
     ! Local variables
     CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'solve_matrix_equation_CSR_PETSc'
@@ -53,7 +56,7 @@ CONTAINS
     CALL mat_CSR2petsc( AA, A)
 
     ! Solve the PETSC matrix equation
-    CALL solve_matrix_equation_PETSc( A, bb, xx, rtol, abstol, n_Axb_its)
+    CALL solve_matrix_equation_PETSc( A, bb, xx, rtol, abstol, n_Axb_its, PETSc_KSPtype, PETSc_PCtype)
 
     ! Clean up after yourself
     CALL MatDestroy( A, perr)
@@ -92,13 +95,13 @@ CONTAINS
     if (present( PETSc_KSPtype)) then
       PETSc_KSPtype_ = PETSc_KSPtype
     else
-      PETSc_KSPtype_ = 'bicg'
+      PETSc_KSPtype_ = 'default'
     end if
 
     if (present( PETSc_PCtype)) then
       PETSc_PCtype_ = PETSc_PCtype
     else
-      PETSc_PCtype_ = 'bjacobi'
+      PETSc_PCtype_ = 'nothing'
     end if
 
     ! Safety
@@ -132,6 +135,8 @@ CONTAINS
     select case (PETSc_KSPtype_)
     case default
       call crash('unknown PETSc_KSPtype "' // trim( PETSc_KSPtype_) // '"')
+    case ('default')
+      ! Don't manually set anything, just use whatever type of solver PETSc uses by default
     case ('gmres')
       call KSPSetType( KSP_solver, KSPGMRES, perr)
     case ('pipegmres')
@@ -165,6 +170,8 @@ CONTAINS
     select case (PETSc_PCtype_)
     case default
       call crash('unknown PETSc_PCtype "' // trim( PETSc_PCtype_) // '"')
+    case ('nothing')
+      ! Don't use a preconditioner at all (is this the same as PCNONE?)
     case ('bjacobi') ! Works just as good as gasm
       call PCSetType( precond, PCBJACOBI, perr)
     case ('asm')
@@ -193,7 +200,6 @@ CONTAINS
 
     ! Find out how many iterations it took
     call KSPGetIterationNumber( KSP_solver, n_Axb_its, perr)
-    if (par%primary) call warning('n_Axb_its = {int_01}', int_01 = n_Axb_its)
 
     ! Get the solution back to the native UFEMISM storage structure
     call vec_petsc2double( x, xx)
