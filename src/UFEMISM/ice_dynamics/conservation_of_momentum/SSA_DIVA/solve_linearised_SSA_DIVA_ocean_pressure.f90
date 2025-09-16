@@ -135,7 +135,7 @@ contains
 
     ! Use PETSc to solve the matrix equation
     call solve_matrix_equation_CSR_PETSc( A_CSR, bb_buv, uv_buv, PETSc_rtol, PETSc_abstol, &
-      n_Axb_its)
+      n_Axb_its, PETSc_KSPtype = 'bicg', PETSc_PCtype = 'bjacobi')
 
     ! Disentangle the u and v components of the velocity solution
     do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
