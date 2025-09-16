@@ -25,7 +25,7 @@ jobs:
         id: LADDIE_program_cache_restore
         with:
           path: LADDIE_program
-          key: LADDIE_program_dev_linux_${{ github.ref_name }}_${{ github.run_id }}
+          key: LADDIE_program_dev_macos_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run unit tests
         run: mpirun  -n 2  LADDIE_program unit_tests
