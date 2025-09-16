@@ -123,7 +123,7 @@ def get_cmap(varname):
 
     elif varname in ['uabs_surf', 'uabs_vav', 'bed_roughness_nudge_H_u_target_velocity']:
         cmap = copy(plt.get_cmap('turbo'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=1000,clip=True)
+        norm = mpl.colors.Normalize(vmin=0,vmax=2000,clip=True)
         #norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
 
     elif varname == 'mask_SGD':

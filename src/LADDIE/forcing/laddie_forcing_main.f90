@@ -5,6 +5,8 @@ module laddie_forcing_main
 ! ===== Preamble =====
 ! ====================
 
+  use parameters
+  use mpi_basic, only: par
   use precisions, only: dp
   use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string, warning
   use model_configuration, only: C
@@ -27,6 +29,7 @@ module laddie_forcing_main
   use subgrid_grounded_fractions_main, only: calc_grounded_fractions
   use ice_shelf_base_slopes_onesided, only: calc_ice_shelf_base_slopes_onesided
   use ocean_main, only: initialise_ocean_model
+  use projections, only: inverse_oblique_sg_projection
 
   implicit none
 
@@ -67,45 +70,7 @@ contains
     ! Setup mesh
     ! ==========
 
-    ! Determine if the initial geometry is provided gridded or meshed
-    if (allocated( refgeo%grid_raw%x)) then 
-      ! Gridded
-
-      ! Safety
-      if (allocated( refgeo%mesh_raw%V)) call crash('found both grid and mesh in refgeo!')
-
-      ! Create mesh from gridded initial geometry data
-      call create_mesh_from_gridded_geometry( 'ANT', mesh_name, &
-        refgeo%grid_raw, &
-        refgeo%Hi_grid_raw, &
-        refgeo%Hb_grid_raw, &
-        refgeo%Hs_grid_raw, &
-        refgeo%SL_grid_raw, &
-        C%xmin_ANT, C%xmax_ANT, C%ymin_ANT, C%ymax_ANT, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT, &
-        mesh)
-
-    elseif (allocated( refgeo%mesh_raw%V)) then 
-      ! Meshed
-
-      ! Safety
-      if (allocated( refgeo%grid_raw%x)) call crash('found both grid and mesh in refgeo!')
-
-      ! Create mesh from meshed initial geometry data
-      call create_mesh_from_meshed_geometry( 'ANT', mesh_name, &
-        refgeo%mesh_raw, &
-        refgeo%Hi_mesh_raw, &
-        refgeo%Hb_mesh_raw, &
-        refgeo%Hs_mesh_raw, &
-        refgeo%SL_mesh_raw, &
-        C%xmin_ANT, C%xmax_ANT, C%ymin_ANT, C%ymax_ANT, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT, &
-        mesh)
-
-    else 
-      call crash('no grid or mesh is found in refgeo!')
-    end if
-
-    ! Write the mesh creation success message to the terminal
-    call write_mesh_success( mesh)
+    call setup_initial_mesh( mesh, refgeo, mesh_name)
 
     ! Geometry on mesh
     ! ================
@@ -203,9 +168,202 @@ contains
     forcing%T_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%T               ( mesh%vi1:mesh%vi2,:)
     forcing%S_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%S               ( mesh%vi1:mesh%vi2,:)
 
+    ! Determine coriolis parameter
+    ! ============================
+
+    call calculate_coriolis_parameter( mesh, forcing, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT)
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine initialise_forcing
+
+  subroutine calculate_coriolis_parameter( mesh, forcing, lambda_M, phi_M, beta_stereo)
+    ! Set up all forcing
+
+    ! In/output variables
+    type(type_mesh)          , intent(in   ) :: mesh
+    type(type_laddie_forcing), intent(inout) :: forcing
+    real(dp)                 , intent(in   ) :: lambda_M, phi_M, beta_stereo
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calculate_coriolis_parameter'
+    real(dp)                       :: lon_b, lat_b
+    integer                        :: ti
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%choice_laddie_coriolis)
+      case default
+        call crash('unknown choice_laddie_coriolis "' // trim( C%choice_laddie_coriolis) // '"!')
+      case ('uniform')
+        forcing%f_coriolis( mesh%ti1:mesh%ti2) = C%uniform_laddie_coriolis_parameter
+      case ('realistic')
+        do ti = mesh%ti1, mesh%ti2
+          call inverse_oblique_sg_projection( mesh%Tricc( ti,1), mesh%Tricc( ti,2), lambda_M, phi_M, beta_stereo, lon_b, lat_b)
+          forcing%f_coriolis( ti) = 2.0_dp * earth_rotation_rate * sin(2.0_dp * pi * lat_b / 360.0_dp)
+        end do
+
+    end select
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calculate_coriolis_parameter
+
+  subroutine setup_initial_mesh( mesh, refgeo, mesh_name)
+    ! Set up all forcing
+
+    ! In/output variables
+    type(type_mesh)               , intent(inout) :: mesh
+    type(type_reference_geometry) , intent(in   ) :: refgeo
+    character(len=256)                            :: mesh_name
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'setup_initial_mesh'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    select case (C%choice_initial_mesh_ANT)
+      case default
+        call crash('unkown choice_initial_mesh_ANT  "' // TRIM( C%choice_initial_mesh_ANT) // '"!')
+      case ('read_from_file')
+        call setup_initial_mesh_from_file( mesh, refgeo, mesh_name)
+      case ('calc_from_initial_geometry')
+        call setup_initial_mesh_from_geometry( mesh, refgeo, mesh_name)
+    end select
+
+    ! Write the mesh creation success message to the terminal
+    call write_mesh_success( mesh)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine setup_initial_mesh
+
+  subroutine setup_initial_mesh_from_file( mesh, refgeo, mesh_name)
+    ! Set up all forcing
+
+    ! In/output variables
+    type(type_mesh)               , intent(inout) :: mesh
+    type(type_reference_geometry) , intent(in   ) :: refgeo
+    character(len=256)                            :: mesh_name
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'setup_initial_mesh_from_file'
+    real(dp)                       :: xmin, xmax, ymin, ymax
+    real(dp)                       :: lambda_M, phi_M, beta_stereo
+    character(len=256)             :: filename_initial_mesh
+    integer                        :: ncid
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Determine model domain
+    xmin        = C%xmin_ANT
+    xmax        = C%xmax_ANT
+    ymin        = C%ymin_ANT
+    ymax        = C%ymax_ANT
+    lambda_M    = C%lambda_M_ANT
+    phi_M       = C%phi_M_ANT
+    beta_stereo = C%beta_stereo_ANT
+
+    ! Determine filename
+    filename_initial_mesh = C%filename_initial_mesh_ANT
+
+    ! Exception for when we want to flexible read the last output file of a previous UFEMISM simulation
+    if (index( filename_initial_mesh,'_LAST.nc') > 1) then 
+      call find_last_output_file( filename_initial_mesh)
+    end if
+
+    ! Print to screen
+    if (par%primary) write(0,'(A)') '   Reading mesh from file "' // colour_string( trim( filename_initial_mesh),'light blue') // '"...'
+
+    ! Set mesh configuration
+    mesh%resolution_tolerance = C%mesh_resolution_tolerance
+    mesh%choice_zeta_grid     = C%choice_zeta_grid
+    mesh%nz                   = C%nz
+    mesh%zeta_irregular_log_R = C%zeta_irregular_log_R
+
+    ! Read the mesh from the NetCDF file
+    call open_existing_netcdf_file_for_reading( filename_initial_mesh, ncid)
+    call setup_mesh_from_file( filename_initial_mesh, ncid, mesh)
+    call close_netcdf_file( ncid)
+
+    ! Give the mesh a nice name
+    mesh%name = mesh_name
+
+    ! Safety - check if the mesh we read from the file matches this region's domain and projection
+    if (mesh%xmin        /= xmin       ) CALL crash('expected xmin        = {dp_01}, found {dp_02}', dp_01 = xmin       , dp_02 = mesh%xmin       )
+    if (mesh%xmax        /= xmax       ) CALL crash('expected xmax        = {dp_01}, found {dp_02}', dp_01 = xmax       , dp_02 = mesh%xmax       )
+    if (mesh%ymin        /= ymin       ) CALL crash('expected ymin        = {dp_01}, found {dp_02}', dp_01 = ymin       , dp_02 = mesh%ymin       )
+    if (mesh%ymax        /= ymax       ) CALL crash('expected ymax        = {dp_01}, found {dp_02}', dp_01 = ymax       , dp_02 = mesh%ymax       )
+    if (mesh%lambda_M    /= lambda_M   ) CALL crash('expected lambda_M    = {dp_01}, found {dp_02}', dp_01 = lambda_M   , dp_02 = mesh%lambda_M   )
+    if (mesh%phi_M       /= phi_M      ) CALL crash('expected phi_M       = {dp_01}, found {dp_02}', dp_01 = phi_M      , dp_02 = mesh%phi_M      )
+    if (mesh%beta_stereo /= beta_stereo) CALL crash('expected beta_stereo = {dp_01}, found {dp_02}', dp_01 = beta_stereo, dp_02 = mesh%beta_stereo)
+
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine setup_initial_mesh_from_file
+
+  subroutine setup_initial_mesh_from_geometry( mesh, refgeo, mesh_name)
+    ! Set up all forcing
+
+    ! In/output variables
+    type(type_mesh)               , intent(inout) :: mesh
+    type(type_reference_geometry) , intent(in   ) :: refgeo
+    character(len=256)                            :: mesh_name
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'setup_initial_mesh_from_geometry'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Determine if the initial geometry is provided gridded or meshed
+    if (allocated( refgeo%grid_raw%x)) then 
+      ! Gridded
+
+      ! Safety
+      if (allocated( refgeo%mesh_raw%V)) call crash('found both grid and mesh in refgeo!')
+
+      ! Create mesh from gridded initial geometry data
+      call create_mesh_from_gridded_geometry( 'ANT', mesh_name, &
+        refgeo%grid_raw, &
+        refgeo%Hi_grid_raw, &
+        refgeo%Hb_grid_raw, &
+        refgeo%Hs_grid_raw, &
+        refgeo%SL_grid_raw, &
+        C%xmin_ANT, C%xmax_ANT, C%ymin_ANT, C%ymax_ANT, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT, &
+        mesh)
+
+    elseif (allocated( refgeo%mesh_raw%V)) then 
+      ! Meshed
+
+      ! Safety
+      if (allocated( refgeo%grid_raw%x)) call crash('found both grid and mesh in refgeo!')
+
+      ! Create mesh from meshed initial geometry data
+      call create_mesh_from_meshed_geometry( 'ANT', mesh_name, &
+        refgeo%mesh_raw, &
+        refgeo%Hi_mesh_raw, &
+        refgeo%Hb_mesh_raw, &
+        refgeo%Hs_mesh_raw, &
+        refgeo%SL_mesh_raw, &
+        C%xmin_ANT, C%xmax_ANT, C%ymin_ANT, C%ymax_ANT, C%lambda_M_ANT, C%phi_M_ANT, C%beta_stereo_ANT, &
+        mesh)
+
+    else 
+      call crash('no grid or mesh is found in refgeo!')
+    end if
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine setup_initial_mesh_from_geometry
 
 end module laddie_forcing_main

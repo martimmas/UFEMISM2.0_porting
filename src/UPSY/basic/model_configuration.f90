@@ -958,7 +958,7 @@ MODULE model_configuration
     REAL(dp)            :: uniform_laddie_eos_linear_beta_config        = 7.843E-4_dp                      ! [PSU ^-1] 'linear' eos: haline contraction coefficient
 
     ! Coriolis
-    CHARACTER(LEN=256)  :: choice_laddie_coriolis_config                = 'uniform'                        ! Choose option Coriolis parameter. Options: 'uniform'
+    CHARACTER(LEN=256)  :: choice_laddie_coriolis_config                = 'uniform'                        ! Choose option Coriolis parameter. Options: 'uniform', 'realistic'
     REAL(dp)            :: uniform_laddie_coriolis_parameter_config     = -1.37E-4_dp                      ! [s ^-1] 'linear' eos: thermal expansion coefficient
 
     ! Turbulent heat exchange
