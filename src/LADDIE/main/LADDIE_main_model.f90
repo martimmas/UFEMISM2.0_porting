@@ -125,8 +125,10 @@ contains
     real(dp), parameter            :: fac_dt_relax = 3.0_dp ! Reduction factor of time step
     real(dp)                       :: time_to_write    ! [days]
     real(dp)                       :: last_write_time  ! [days]
-    real(dp)                       :: time_to_write_fields    ! [days]
-    real(dp)                       :: last_write_time_fields  ! [days]
+    real(dp)                       :: time_to_write_mesh    ! [days]
+    real(dp)                       :: last_write_time_mesh  ! [days]
+    real(dp)                       :: time_to_write_grid    ! [days]
+    real(dp)                       :: last_write_time_grid  ! [days]
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -189,9 +191,11 @@ contains
 
     tl = 0.0_dp
     last_write_time = 0.0_dp
-    last_write_time_fields = 0.0_dp
+    last_write_time_mesh = 0.0_dp
+    last_write_time_grid = 0.0_dp
     time_to_write = C%time_interval_scalar_output
-    time_to_write_fields = C%time_interval_scalar_output
+    time_to_write_mesh = C%dt_output
+    time_to_write_grid = C%dt_output_grid
 
     ! Perform first integration with half the time step for LFRA scheme
     dt = C%dt_laddie / fac_dt_relax
@@ -233,23 +237,27 @@ contains
           time_to_write = time_to_write + C%time_interval_scalar_output
         end if
 
-        ! Write mesh and grid if required
-        if (tl > time_to_write_fields * sec_per_day) then
+        ! Write mesh if required
+        if (tl > time_to_write_mesh * sec_per_day) then
           call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
+          last_write_time_mesh = time_to_write_mesh
+          time_to_write_mesh = time_to_write_mesh + C%dt_output
+        end if
+
+        ! Write grid if required
+        if (tl > time_to_write_grid * sec_per_day) then
           call write_to_laddie_output_file_grid( mesh, laddie, forcing, ref_time + tl)
-          last_write_time_fields = time_to_write_fields
-          ! TODO use proper config param for frequency
-          time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+          last_write_time_grid = time_to_write_grid
+          time_to_write_grid = time_to_write_grid + C%dt_output_grid
         end if
 
       else
         if (C%do_write_laddie_output_fields) then
           ! Write if required
-          if (tl > time_to_write_fields * sec_per_day) then
+          if (tl > time_to_write_mesh * sec_per_day) then
             call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
-            last_write_time_fields = time_to_write_fields
-            ! TODO use proper frequency
-            time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+            last_write_time_mesh = time_to_write_mesh
+            time_to_write_mesh = time_to_write_mesh + C%dt_output
           end if
         end if
   
