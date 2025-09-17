@@ -102,8 +102,8 @@ CONTAINS
     END IF
     
     if (C%do_use_ISMIP_future_shelf_collapse_forcing) then
-      ! Initialise the ISMIP-style forcing
-      call run_climate_retreat_mask( mesh, climate)
+      ! Run the ISMIP-style forcing
+      call run_climate_retreat_mask( mesh, climate, time, ice)
     end if
 
     ! Finalise routine path

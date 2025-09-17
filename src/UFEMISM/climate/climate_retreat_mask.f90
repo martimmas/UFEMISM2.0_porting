@@ -20,7 +20,7 @@ module climate_retreat_mask
   private
 
   public :: run_climate_retreat_mask
-  public :: update_climate_retreat_mask
+  public :: update_ISMIP_style_future_timeframes
   public :: initialise_climate_retreat_mask
 
 contains
@@ -39,6 +39,7 @@ contains
     ! Local variables:
     character(len=256), parameter                           :: routine_name = 'run_climate_retreat_mask'
     integer                                                 :: vi
+    real(dp)                                                :: wt0, wt1
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -81,13 +82,17 @@ contains
 
     ! Local variables:
     character(len=256), parameter                           :: routine_name = 'update_ISMIP_style_future_timeframes'
+    real(dp)                                                :: time0, time1
 
     ! Add routine to path
     call init_routine( routine_name)
 
+    time0= real( floor( time, dp), dp)
+    time1= real( floor( time, dp), dp) + 1._dp
+
     ! Read timeframes from file
-    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask0, 'ANT', time_to_read = REAL( FLOOR( time),dp)        )
-    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, climate_matrix%ISMIP_style%shelf_collapse_mask1, 'ANT', time_to_read = REAL( FLOOR( time),dp) + 1._dp)
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0, time_to_read = time0)
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask1, time_to_read = time1)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -120,41 +125,19 @@ contains
 
 ! what about this one? I think is not needed? as it is like a real value
       ! Allocate memory for the timestamps of the two timeframes
-    allocate( climate%ISMIP_style%shelf_collapse_mask_t0)
-    allocate( climate%ISMIP_style%shelf_collapse_mask_t1)
+    !allocate( climate%ISMIP_style%shelf_collapse_mask_t0)
+    !allocate( climate%ISMIP_style%shelf_collapse_mask_t1)
       !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t0, climate_matrix%ISMIP_style%wshelf_collapse_mask_t0)
       !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t1, climate_matrix%ISMIP_style%wshelf_collapse_mask_t1)
 ! I THINK NEXT LINE IS NOT NEEDED...
-      if (par%master) then
         ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
         ! is guaranteed to first read two new timeframes from the NetCDF file
-        climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
-        climate%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
-      end if ! IF (par%master) THEN
-      call sync
+      climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
+      climate%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine initialise_climate_retreat_mask
-
-
-
-
-
-
-
-
-
-  ! NOTE: this bit was in the old BMB module
-
-    ! implement ISMIP6 shelf collapse forcing as a very high melt rate, just as in ABUMIP
-    IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
-      DO vi = mesh%vi1, mesh%vi2
-        IF (shelf_collapse_mask( vi) > 0.01_dp) THEN
-          BMB%BMB_shelf( vi) = -400._dp
-        END IF
-      END DO
-    END IF
 
 end module climate_retreat_mask

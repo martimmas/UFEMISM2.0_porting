@@ -41,7 +41,7 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, is_initial, climate)
+  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, climate, is_initial)
     ! Calculate the basal mass balance
 
     ! In/output variables:
@@ -53,8 +53,8 @@ CONTAINS
     TYPE(type_BMB_model),                   INTENT(INOUT) :: BMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
-    logical,                                intent(in)    :: is_initial
     type(type_climate_model),               intent(in)    :: climate
+    logical,                                intent(in)    :: is_initial
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_BMB_model'

@@ -430,6 +430,8 @@ MODULE model_configuration
     LOGICAL             :: remove_shelves_larger_than_PD_config         = .FALSE.                          ! If set to TRUE, all floating ice beyond the present-day calving front is removed (used for some Antarctic spin-ups)
     LOGICAL             :: continental_shelf_calving_config             = .FALSE.                          ! If set to TRUE, all ice beyond the continental shelf edge (set by a maximum depth) is removed
     REAL(dp)            :: continental_shelf_min_height_config          = -2000._dp                        ! Maximum depth of the continental shelf
+    logical             :: do_use_ISMIP_future_shelf_collapse_forcing_config   = .FALSE.                          ! If set to TRUE, the calving front is forced to retreat according to the ISMIP future calving front collapse scenario
+    character(len=256)  :: ISMIP_future_shelf_collapse_forcing_filename_config = 'external/data/ISMIP_future_collapse_scenarios/Antarctica_5km_ismip_future_collapse_scenario.nc'
 
   ! == Ice dynamics - stabilisation
   ! ===============================
@@ -1561,6 +1563,8 @@ MODULE model_configuration
     LOGICAL             :: remove_shelves_larger_than_PD
     LOGICAL             :: continental_shelf_calving
     REAL(dp)            :: continental_shelf_min_height
+    logical             :: do_use_ISMIP_future_shelf_collapse_forcing
+    character(len=256)  :: ISMIP_future_shelf_collapse_forcing_filename
 
   ! == Ice dynamics - stabilisation
   ! ===============================
@@ -2768,6 +2772,8 @@ CONTAINS
       remove_shelves_larger_than_PD_config                        , &
       continental_shelf_calving_config                            , &
       continental_shelf_min_height_config                         , &
+      do_use_ISMIP_future_shelf_collapse_forcing_config           , &
+      ISMIP_future_shelf_collapse_forcing_filename_config         , &
       choice_mask_noice_config                                    , &
       Hi_min_config                                               , &
       Hi_thin_config                                              , &
@@ -3676,6 +3682,8 @@ CONTAINS
     C%remove_shelves_larger_than_PD                          = remove_shelves_larger_than_PD_config
     C%continental_shelf_calving                              = continental_shelf_calving_config
     C%continental_shelf_min_height                           = continental_shelf_min_height_config
+    C%do_use_ISMIP_future_shelf_collapse_forcing             = do_use_ISMIP_future_shelf_collapse_forcing_config
+    C%ISMIP_future_shelf_collapse_forcing_filename           = ISMIP_future_shelf_collapse_forcing_filename_config
 
   ! == Ice dynamics - stabilisation
   ! ===============================
