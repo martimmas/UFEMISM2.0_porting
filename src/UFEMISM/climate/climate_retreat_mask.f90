@@ -49,8 +49,6 @@ contains
     if (time < climate%ISMIP_style%shelf_collapse_mask_t0 .OR. time > climate%ISMIP_style%shelf_collapse_mask_t1) then
 
       ! Find and read the two global time frames
-      !call sync
-      ! this needs to be fixed
       call update_ISMIP_style_future_timeframes( mesh, climate, time)
 
     end if ! IF (time >= climate_matrix%SMB_direct%t0 .AND. time <= climate_matrix%SMB_direct%t1) THEN
@@ -99,7 +97,6 @@ contains
 
   end subroutine update_ISMIP_style_future_timeframes
 
-! start with the initialise subroutine to understand what I need to restructure
   subroutine initialise_climate_retreat_mask( mesh, climate)
     ! Use the ISMIP-style forcing
 
@@ -113,15 +110,10 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-! I think all the code above is not needed... and even the IF is not needed anymore as I will call this part as something else from climate main...
-      ! Allocate memory
+    ! Allocate memory
     allocate( climate%ISMIP_style%shelf_collapse_mask0( mesh%vi1:mesh%vi2))
     allocate( climate%ISMIP_style%shelf_collapse_mask1( mesh%vi1:mesh%vi2))
     allocate( climate%ISMIP_style%shelf_collapse_mask( mesh%vi1:mesh%vi2))
-
-      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask0, climate_matrix%ISMIP_style%wshelf_collapse_mask0)
-      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask1, climate_matrix%ISMIP_style%wshelf_collapse_mask1)
-      !CALL allocate_shared_dp_1D( mesh%nV, climate_matrix%ISMIP_style%shelf_collapse_mask , climate_matrix%ISMIP_style%wshelf_collapse_mask )
 
 ! what about this one? I think is not needed? as it is like a real value
       ! Allocate memory for the timestamps of the two timeframes
@@ -129,7 +121,7 @@ contains
     !allocate( climate%ISMIP_style%shelf_collapse_mask_t1)
       !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t0, climate_matrix%ISMIP_style%wshelf_collapse_mask_t0)
       !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t1, climate_matrix%ISMIP_style%wshelf_collapse_mask_t1)
-! I THINK NEXT LINE IS NOT NEEDED...
+
         ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
         ! is guaranteed to first read two new timeframes from the NetCDF file
       climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
