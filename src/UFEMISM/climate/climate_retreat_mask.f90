@@ -86,7 +86,7 @@ contains
     call init_routine( routine_name)
 
     time0= real( floor( time, dp), dp)
-    time1= real( floor( time, dp), dp) + 1._dp
+    time1= real( floor( time, dp), dp) + 10._dp
 
     ! Read timeframes from file
     call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0, time_to_read = time0)
