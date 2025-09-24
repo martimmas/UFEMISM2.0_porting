@@ -118,7 +118,11 @@ contains
 
     ! Interpolate modelled ice thickness to desired time
     do vi = region%mesh%vi1, region%mesh%vi2
-      region%ice%Hi( vi) = wt_prev * region%ice%Hi_prev( vi) + wt_next * region%ice%Hi_next( vi)
+      if (region%ice%mask_ROI(vi)) then
+        region%ice%Hi( vi) = wt_prev * region%ice%Hi_prev( vi) + wt_next * region%ice%Hi_next( vi)
+      else
+        region%ice%Hi( vi) = region%ice%Hi_prev( vi)
+      end if
     end do
 
     ! Calculate all other ice geometry quantities
