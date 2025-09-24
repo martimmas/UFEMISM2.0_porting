@@ -224,39 +224,20 @@ subroutine calc_polygon_Riiser_Larsen_ice_shelf( poly)
   ! Add routine to path
   call init_routine( routine_name)
 
-  allocate( poly( 31,2))
+  allocate( poly( 12,2))
 
-  poly(  1,:) = [-0.6469e6_dp, 1.6448e6_dp]
-  poly(  2,:) = [-0.6507e6_dp, 1.7370e6_dp]
-  poly(  3,:) = [-0.6411e6_dp, 1.8005e6_dp]
-  poly(  4,:) = [-0.5989e6_dp, 1.8370e6_dp]
-  poly(  5,:) = [-0.5508e6_dp, 1.8639e6_dp]
-  poly(  6,:) = [-0.5104e6_dp, 1.9081e6_dp]
-  poly(  7,:) = [-0.4758e6_dp, 1.9331e6_dp]
-  poly(  8,:) = [-0.4451e6_dp, 1.9542e6_dp]
-  poly(  9,:) = [-0.4393e6_dp, 1.9946e6_dp]
-  poly( 10,:) = [-0.3336e6_dp, 1.9720e6_dp]
-  poly( 11,:) = [-0.3048e6_dp, 1.9292e6_dp]
-  poly( 12,:) = [-0.2644e6_dp, 1.9081e6_dp]
-  poly( 13,:) = [-0.2029e6_dp, 1.8927e6_dp]
-  poly( 14,:) = [-0.1741e6_dp, 1.8716e6_dp]
-  poly( 15,:) = [-0.1558e6_dp, 1.8351e6_dp]
-  poly( 16,:) = [-0.1414e6_dp, 1.8043e6_dp]
-  poly( 17,:) = [-0.1222e6_dp, 1.7659e6_dp]
-  poly( 18,:) = [-0.1057e6_dp, 1.7269e6_dp]
-  poly( 19,:) = [-0.1318e6_dp, 1.6928e6_dp]
-  poly( 20,:) = [-0.1644e6_dp, 1.6640e6_dp]
-  poly( 21,:) = [-0.2125e6_dp, 1.6275e6_dp]
-  poly( 22,:) = [-0.2394e6_dp, 1.5948e6_dp]
-  poly( 23,:) = [-0.2663e6_dp, 1.5833e6_dp]
-  poly( 24,:) = [-0.3259e6_dp, 1.5813e6_dp]
-  poly( 25,:) = [-0.3778e6_dp, 1.5717e6_dp]
-  poly( 26,:) = [-0.4201e6_dp, 1.5640e6_dp]
-  poly( 27,:) = [-0.4528e6_dp, 1.5640e6_dp]
-  poly( 28,:) = [-0.4931e6_dp, 1.5660e6_dp]
-  poly( 29,:) = [-0.5354e6_dp, 1.5698e6_dp]
-  poly( 30,:) = [-0.5758e6_dp, 1.5871e6_dp]
-  poly( 31,:) = [-0.6142e6_dp, 1.6102e6_dp]
+  poly(  1,:) = [-7.9593e+05_dp,1.2902e+06_dp]
+  poly(  2,:) = [-5.9424e+05_dp,1.2261e+06_dp]
+  poly(  3,:) = [-2.8995e+05_dp,1.2750e+06_dp]
+  poly(  4,:) = [1.7832e+04_dp,1.5921e+06_dp]
+  poly(  5,:) = [4.8144e+04_dp,1.6749e+06_dp]
+  poly(  6,:) = [-8.4763e+04_dp,1.8661e+06_dp]
+  poly(  7,:) = [-2.0251e+05_dp,1.9909e+06_dp]
+  poly(  8,:) = [-2.7013e+05_dp,2.0783e+06_dp]
+  poly(  9,:) = [-3.0511e+05_dp,2.1238e+06_dp]
+  poly( 10,:) = [-3.4358e+05_dp,2.1296e+06_dp]
+  poly( 11,:) = [-6.5137e+05_dp,1.8381e+06_dp]
+  poly( 12,:) = [-7.9477e+05_dp,1.5968e+06_dp]
 
   ! Finalise routine path
   call finalise_routine( routine_name)
