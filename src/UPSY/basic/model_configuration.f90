@@ -364,6 +364,8 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: BC_H_south_config                            = 'zero'
     CHARACTER(LEN=256)  :: BC_H_north_config                            = 'zero'
 
+    logical             :: do_allow_change_only_in_ROI_config           = .FALSE.                          ! If set to TRUE, ice thickness is only allowed to change in regions of interest (ROIs)
+
   ! == Ice dynamics - target quantities
   ! ===================================
 
@@ -1494,6 +1496,8 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: BC_H_east
     CHARACTER(LEN=256)  :: BC_H_south
     CHARACTER(LEN=256)  :: BC_H_north
+
+    logical             :: do_allow_change_only_in_ROI
 
   ! == Ice dynamics - target quantities
   ! ===================================
@@ -2725,6 +2729,7 @@ CONTAINS
       BC_H_east_config                                            , &
       BC_H_south_config                                           , &
       BC_H_north_config                                           , &
+      do_allow_change_only_in_ROI_config                          , &
       do_target_dHi_dt_config                                     , &
       do_limit_target_dHi_dt_to_SMB_config                        , &
       target_dHi_dt_t_end_config                                  , &
@@ -3609,6 +3614,8 @@ CONTAINS
     C%BC_H_east                                              = BC_H_east_config
     C%BC_H_south                                             = BC_H_south_config
     C%BC_H_north                                             = BC_H_north_config
+
+    C%do_allow_change_only_in_ROI                            = do_allow_change_only_in_ROI_config
 
   ! == Ice dynamics - target quantities
   ! ===================================
