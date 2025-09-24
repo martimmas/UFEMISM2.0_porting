@@ -108,9 +108,18 @@ contains
       ! We're within the current ice dynamics prediction window
     end if
 
+    ! Fix thickness outside the ROI if required
+    if (C%do_allow_change_only_in_ROI) then
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (.not. region%ice%mask_ROI(vi)) then
+          region%ice%Hi_next(vi) = region%ice%Hi_prev(vi)
+        end if
+      end do
+    end if
+
     ! Interpolate between previous and next modelled ice thickness
     ! to find the geometry at the desired time
-    ! ========================================
+    ! ========================================  
 
     ! Calculate time interpolation weights
     wt_prev = (region%ice%t_Hi_next - region%time) / (region%ice%t_Hi_next - region%ice%t_Hi_prev)
@@ -118,16 +127,7 @@ contains
 
     ! Interpolate modelled ice thickness to desired time
     do vi = region%mesh%vi1, region%mesh%vi2
-      if (C%do_allow_change_only_in_ROI) then
-        if (region%ice%mask_ROI(vi)) then
-          region%ice%Hi( vi) = wt_prev * region%ice%Hi_prev( vi) + wt_next * region%ice%Hi_next( vi)
-        else
-          region%ice%Hi_next(vi) = region%ice%Hi_prev(vi)
-          region%ice%Hi( vi) = region%ice%Hi_prev( vi)
-        end if
-      else
-        region%ice%Hi( vi) = wt_prev * region%ice%Hi_prev( vi) + wt_next * region%ice%Hi_next( vi)
-      end if
+      region%ice%Hi( vi) = wt_prev * region%ice%Hi_prev( vi) + wt_next * region%ice%Hi_next( vi)
     end do
 
     ! Calculate all other ice geometry quantities
