@@ -135,6 +135,8 @@ CONTAINS
     END IF
 
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%Hs)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%T2m)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%Precip)
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%T2m)
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%Precip)
 
@@ -229,7 +231,7 @@ CONTAINS
           deltaT  = (ice%Hs( vi) - climate%snapshot_unif_dT%snapshot%Hs( vi)) * (-1._dp * abs(climate%snapshot_unif_dT%snapshot%lapse_rate_temp))
           do m = 1, 12
             ! Do corrections - based on Eq. 11 of Albrecht et al. (2020; TC) for PISM
-            climate%T2m( vi, m)    = climate%T2m( vi, m)    + deltaT
+            climate%T2m( vi, m)    = climate%snapshot_unif_dT%snapshot%T2m( vi, m)  + climate%snapshot_unif_dT%deltaT  + deltaT
 
 
             ! Calculate inversion-layer temperatures
