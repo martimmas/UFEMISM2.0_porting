@@ -52,7 +52,6 @@ program LADDIE_program
 
   ! The LADDIE model
   type(type_laddie_model)                :: laddie
-  type(type_reference_geometry)          :: refgeo
   type(type_mesh)                        :: mesh
 
   ! Computation time tracking

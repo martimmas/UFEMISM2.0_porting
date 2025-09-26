@@ -202,6 +202,9 @@ contains
         call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%S_ocean, d_grid_vec_partial_3D_ocean, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_3D_ocean( grid, laddie%output_grid_filename, ncid, 'S_ocean', d_grid_vec_partial_3D_ocean)
 
+      case ('f_coriolis')
+        call map_from_mesh_triangles_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%f_coriolis, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'f_coriolis', d_grid_vec_partial_2D)
     ! ===== Masks =====
     ! =================
 
@@ -289,6 +292,9 @@ contains
       case ('T_amb')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%T_amb, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'T_amb', d_grid_vec_partial_2D)
+      case ('T_freeze')
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%T_freeze, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'T_freeze', d_grid_vec_partial_2D)
       case ('u_star')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%u_star, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'u_star', d_grid_vec_partial_2D)
@@ -463,6 +469,9 @@ contains
       case ('S_ocean')
         call add_field_grid_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'psu')
 
+      case ('f_coriolis')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'f_coriolis', long_name = 'Coriolis parameter', units = 's^-1')
+
     ! ===== Masks =====
     ! =================
 
@@ -532,6 +541,8 @@ contains
         call add_field_grid_dp_2D( filename, ncid, 'T_base', long_name = 'Temperature at ice/ocean interface', units = 'deg C')
       case ('T_amb')
         call add_field_grid_dp_2D( filename, ncid, 'T_amb', long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
+      case ('T_freeze')
+        call add_field_grid_dp_2D( filename, ncid, 'T_freeze', long_name = 'Freezing temperature', units = 'deg C')
       case ('u_star')
         call add_field_grid_dp_2D( filename, ncid, 'u_star', long_name = 'Friction velocity', units = 'm s^-1')
       case ('gamma_T')

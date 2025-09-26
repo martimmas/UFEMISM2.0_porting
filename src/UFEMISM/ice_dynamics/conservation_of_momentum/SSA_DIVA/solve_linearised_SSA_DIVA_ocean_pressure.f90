@@ -99,7 +99,7 @@ contains
       !     call crash('uv can only be 1 or 2!')
       !   end if
 
-      if (DIVA%graphs%graph_b%is_ghost( ni)) then
+      if (DIVA%graphs%graph_b%is_border( ni)) then
         ! Ice margin: apply ocean pressure boundary condition
 
         call calc_SSA_DIVA_stiffness_matrix_row_BC_ice_front( DIVA%graphs, &
@@ -135,7 +135,7 @@ contains
 
     ! Use PETSc to solve the matrix equation
     call solve_matrix_equation_CSR_PETSc( A_CSR, bb_buv, uv_buv, PETSc_rtol, PETSc_abstol, &
-      n_Axb_its)
+      n_Axb_its, PETSc_KSPtype = 'bicg', PETSc_PCtype = 'bjacobi')
 
     ! Disentangle the u and v components of the velocity solution
     do ni = DIVA%graphs%graph_b%ni1, DIVA%graphs%graph_b%ni2
@@ -352,8 +352,6 @@ contains
     integer                             :: ni, uv
     real(dp)                            :: N, basal_friction_coefficient, tau_dx, tau_dy
     integer,  dimension(:), allocatable :: single_row_ind
-    real(dp), dimension(:), allocatable :: single_row_ddx_val
-    real(dp), dimension(:), allocatable :: single_row_ddy_val
     real(dp), dimension(:), allocatable :: single_row_d2dx2_val
     real(dp), dimension(:), allocatable :: single_row_d2dxdy_val
     real(dp), dimension(:), allocatable :: single_row_d2dy2_val
@@ -373,15 +371,11 @@ contains
 
     ! allocate memory for single matrix rows
     allocate( single_row_ind(        graphs%graph_a%nC_mem*2))
-    allocate( single_row_ddx_val(    graphs%graph_a%nC_mem*2))
-    allocate( single_row_ddy_val(    graphs%graph_a%nC_mem*2))
     allocate( single_row_d2dx2_val(  graphs%graph_a%nC_mem*2))
     allocate( single_row_d2dxdy_val( graphs%graph_a%nC_mem*2))
     allocate( single_row_d2dy2_val(  graphs%graph_a%nC_mem*2))
 
     ! Read coefficients of the operator matrices
-    call read_single_row_CSR_dist( graphs%M2_ddx_b_b   , ni, single_row_ind, single_row_ddx_val   , single_row_nnz)
-    call read_single_row_CSR_dist( graphs%M2_ddy_b_b   , ni, single_row_ind, single_row_ddy_val   , single_row_nnz)
     call read_single_row_CSR_dist( graphs%M2_d2dx2_b_b , ni, single_row_ind, single_row_d2dx2_val , single_row_nnz)
     call read_single_row_CSR_dist( graphs%M2_d2dxdy_b_b, ni, single_row_ind, single_row_d2dxdy_val, single_row_nnz)
     call read_single_row_CSR_dist( graphs%M2_d2dy2_b_b , ni, single_row_ind, single_row_d2dy2_val , single_row_nnz)
@@ -498,8 +492,8 @@ contains
     N       = N_b      ( ni)
     tau_ox = tau_ox_b( ni)
     tau_oy = tau_oy_b( ni)
-    n_x     = graphs%graph_b%ghost_nhat( ni,1)
-    n_y     = graphs%graph_b%ghost_nhat( ni,2)
+    n_x     = graphs%graph_b%border_nhat( ni,1)
+    n_y     = graphs%graph_b%border_nhat( ni,2)
 
     ! Allocate memory for single matrix rows
     allocate( single_row_ind(     graphs%graph_a%nC_mem*2))
