@@ -93,7 +93,9 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    ALLOCATE( climate%snapshot_unif_dT%snapshot%Hs(    mesh%vi1:mesh%vi2))
+    ALLOCATE( climate%snapshot_unif_dT%snapshot%Hs(     mesh%vi1:mesh%vi2))
+    ALLOCATE( climate%snapshot_unif_dT%snapshot%T2m(    mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_unif_dT%snapshot%Precip( mesh%vi1:mesh%vi2,12))
 
     ! Run the chosen realistic climate model
     climate%snapshot_unif_dT%snapshot%has_insolation = .FALSE.
@@ -137,10 +139,10 @@ CONTAINS
     END IF
 
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%Hs)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%T2m)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_unif_dT%snapshot%Precip)
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%T2m)
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%Precip)
+    climate%snapshot_unif_dT%snapshot%T2m    = climate%T2m
+    climate%snapshot_unif_dT%snapshot%Precip = climate%Precip
 
 
     ! Adding deltaT to the temperature field (uniform in space and time)
