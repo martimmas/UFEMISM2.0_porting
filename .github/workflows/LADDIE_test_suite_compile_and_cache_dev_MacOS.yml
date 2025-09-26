@@ -17,15 +17,15 @@ jobs:
           brew unlink hdf5-mpi                 # To fix the following conflict: "hdf5-mpi: because hdf5-mpi is a variant of hdf5, one can only use one or the other"
           brew install netcdf
           brew install netcdf-fortran
-          brew install cmake
-          brew install ninja
+          #brew install cmake                  # Not needed, already installed
+          #brew install ninja
 
       - name: Set up Fortran compiler          # See: https://github.com/marketplace/actions/setup-fortran
         uses: fortran-lang/setup-fortran@v1
         id: setup-fortran
         with:
           compiler: gcc
-          version: 13
+          version: 15
 
       - name: Verify compiler setup
         run: gfortran --version
@@ -45,4 +45,4 @@ jobs:
         id: LADDIE_program_cache_save
         with:
           path: LADDIE_program
-          key: LADDIE_program_dev_${{ github.ref_name }}_${{ github.run_id }}
+          key: LADDIE_program_${{ github.ref_name }}_${{ github.run_id }}

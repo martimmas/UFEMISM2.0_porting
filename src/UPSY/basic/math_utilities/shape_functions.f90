@@ -246,7 +246,7 @@ subroutine calc_shape_functions_2D_reg_2nd_order( x, y, n_max, n_c, x_c, y_c, Nf
   real(dp), dimension(5,5) :: M
 
   ! Safety
-  if (n_c < 5) call crash('calc_shape_functions_2D_reg_2nd_order needs at least 2 neighbours!')
+  if (n_c < 5) call crash('calc_shape_functions_2D_reg_2nd_order needs at least 5 neighbours!')
 
   ! Calculate distances relative to [x,y]
   do ci = 1, n_c

@@ -66,6 +66,11 @@ contains
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'ice_volume_PD',     region%scalars%buffer%ice_volume_PD,     n, ti+1)
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'ice_volume_af_PD',  region%scalars%buffer%ice_volume_af_PD,  n, ti+1)
 
+    ! Integrated ice shelf geometry
+    call write_buffer_to_scalar_file_single_variable( filename, ncid, 'ice_shelf_area',    region%scalars%buffer%ice_shelf_area,    n, ti+1)
+    call write_buffer_to_scalar_file_single_variable( filename, ncid, 'ice_shelf_volume',  region%scalars%buffer%ice_shelf_volume,  n, ti+1)
+
+
     ! Integrated mass fluxes
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'SMB_total',         region%scalars%buffer%SMB_total,         n, ti+1)
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'SMB_gr',            region%scalars%buffer%SMB_gr,            n, ti+1)
@@ -154,6 +159,10 @@ contains
     call add_field_dp_0D( filename, ncid, 'ice_volume_PD',     long_name = 'Total ice volume for present-day', units = 'm s.l.e.')
     call add_field_dp_0D( filename, ncid, 'ice_volume_af_PD',  long_name = 'Total ice volume above floatation for present-day', units = 'm s.l.e.')
 
+    ! Integrated ice shelf geometry
+    call add_field_dp_0D( filename, ncid, 'ice_shelf_area',    long_name = 'Total ice shelf area', units = 'km^2')
+    call add_field_dp_0D( filename, ncid, 'ice_shelf_volume',  long_name = 'Total ice shelf volume', units = 'km^3')
+
     ! Integrated mass fluxes
     call add_field_dp_0D( filename, ncid, 'SMB_total',         long_name = 'Area-integrated total SMB', units = 'Gt yr^-1')
     call add_field_dp_0D( filename, ncid, 'SMB_gr',            long_name = 'Area-integrated ice sheet SMB', units = 'Gt yr^-1')
@@ -231,6 +240,9 @@ contains
       allocate( region%scalars%buffer%ice_volume_PD    ( n_mem), source = 0._dp)
       allocate( region%scalars%buffer%ice_volume_af_PD ( n_mem), source = 0._dp)
 
+      allocate( region%scalars%buffer%ice_shelf_area   ( n_mem), source = 0._dp)
+      allocate( region%scalars%buffer%ice_shelf_volume ( n_mem), source = 0._dp)
+
       allocate( region%scalars%buffer%SMB_total        ( n_mem), source = 0._dp)
       allocate( region%scalars%buffer%SMB_gr           ( n_mem), source = 0._dp)
       allocate( region%scalars%buffer%SMB_fl           ( n_mem), source = 0._dp)
@@ -303,6 +315,9 @@ contains
       region%scalars%buffer%ice_volume_PD    ( n) = region%scalars%ice_volume_PD
       region%scalars%buffer%ice_volume_af_PD ( n) = region%scalars%ice_volume_af_PD
 
+      region%scalars%buffer%ice_shelf_area   ( n) = region%scalars%ice_shelf_area
+      region%scalars%buffer%ice_shelf_volume ( n) = region%scalars%ice_shelf_volume
+
       region%scalars%buffer%SMB_total        ( n) = region%scalars%SMB_total
       region%scalars%buffer%SMB_gr           ( n) = region%scalars%SMB_gr
       region%scalars%buffer%SMB_fl           ( n) = region%scalars%SMB_fl
@@ -367,6 +382,9 @@ contains
     call reallocate( region%scalars%buffer%ice_area_PD      , n_mem, source = 0._dp)
     call reallocate( region%scalars%buffer%ice_volume_PD    , n_mem, source = 0._dp)
     call reallocate( region%scalars%buffer%ice_volume_af_PD , n_mem, source = 0._dp)
+
+    call reallocate( region%scalars%buffer%ice_shelf_area   , n_mem, source = 0._dp)
+    call reallocate( region%scalars%buffer%ice_shelf_volume , n_mem, source = 0._dp)
 
     call reallocate( region%scalars%buffer%SMB_total        , n_mem, source = 0._dp)
     call reallocate( region%scalars%buffer%SMB_gr           , n_mem, source = 0._dp)

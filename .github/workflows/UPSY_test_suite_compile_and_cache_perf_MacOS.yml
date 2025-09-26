@@ -17,15 +17,15 @@ jobs:
           brew unlink hdf5-mpi                 # To fix the following conflict: "hdf5-mpi: because hdf5-mpi is a variant of hdf5, one can only use one or the other"
           brew install netcdf
           brew install netcdf-fortran
-          brew install cmake
-          brew install ninja
+          #brew install cmake                  # Not needed, already installed
+          #brew install ninja
 
       - name: Set up Fortran compiler          # See: https://github.com/marketplace/actions/setup-fortran
         uses: fortran-lang/setup-fortran@v1
         id: setup-fortran
         with:
           compiler: gcc
-          version: 13
+          version: 15
 
       - name: Verify compiler setup
         run: gfortran --version
@@ -46,6 +46,13 @@ jobs:
         with:
           path: UPSY_unit_test_program
           key: UPSY_unit_test_program_perf_MacOS_${{ github.ref_name }}_${{ github.run_id }}
+
+      - name: Cache UPSY multi-node unit test program
+        uses: actions/cache/save@v3
+        id: UPSY_multinode_unit_test_program_cache_save
+        with:
+          path: UPSY_multinode_unit_test_program
+          key: UPSY_multinode_unit_test_program_perf_MacOS_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Cache UPSY component test program
         uses: actions/cache/save@v3

@@ -14,10 +14,11 @@ MODULE climate_snapshot_plus_uniform_deltaT
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model, type_climate_model_snapshot
   USE global_forcing_types                                   , ONLY: type_global_forcing
-  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing
+  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_snapshot
   USE global_forcings_main
   USE netcdf_io_main
   USE netcdf_basic
+  use reallocate_mod                                         , only: reallocate_bounds
   use mpi_distributed_memory, only: distribute_from_primary
   use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, get_insolation_at_time
 
@@ -256,6 +257,84 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE apply_geometry_downscaling_corrections
+
+  SUBROUTINE remap_climate_snapshot_plus_uniform_deltaT(mesh_old, mesh_new, climate, region_name)
+  ! In/out variables
+    type(type_mesh),                        intent(in)    :: mesh_old
+    type(type_mesh),                        intent(in)    :: mesh_new
+    type(type_climate_model),               intent(inout) :: climate
+    character(LEN=3),                       intent(in)    :: region_name
+
+    ! Local variables
+    character(LEN=256), parameter                         :: routine_name = 'remap_climate_snapshot_plus_uniform_deltaT' 
+    character(LEN=256)                                    :: choice_climate_model
+    character(LEN=256)                                    :: filename_climate_snapshot
+    character(LEN=256)                                    :: choice_SMB_model
+    INTEGER                                               :: vi, m
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Determine which climate model to initialise for this region
+    select case( region_name)
+    case ('NAM')
+      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_NAM
+      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_NAM
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
+      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_NAM
+      IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
+          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
+      END IF
+    case ('EAS') 
+      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_EAS
+      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_EAS
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
+      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_EAS
+      IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
+          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
+      END IF
+    case ('GRL')
+      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_GRL
+      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_GRL
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
+      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_GRL
+      IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
+          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
+      END IF
+    case ('ANT')
+      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_ANT
+      climate%snapshot_unif_dT%precip_CC_correction    = C%precip_CC_correction_ANT
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
+      climate%snapshot_unif_dT%deltaT                  = C%uniform_deltaT_ANT
+      IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
+          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
+      END IF
+    case default
+      call crash('unknown region_name "' // region_name // '"')
+    end select
+
+    call reallocate_bounds( climate%snapshot%Hs, mesh_new%vi1, mesh_new%vi2)
+
+    IF (climate%snapshot_unif_dT%snapshot%has_insolation .eqv. .TRUE.) THEN
+      call remap_snapshot( climate%snapshot, mesh_new)
+    END IF
+      
+    ! Read single-time data from external file
+    call read_field_from_file_2D( filename_climate_snapshot, 'Hs', mesh_new, C%output_dir, climate%snapshot%Hs)
+    call read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m', mesh_new, C%output_dir, climate%T2m)
+    call read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh_new, C%output_dir, climate%Precip)
+
+    ! Adding deltaT to the temperature field (uniform in space and time)
+    do vi = mesh_new%vi1, mesh_new%vi2
+    do m = 1, 12
+        climate%T2m( vi, m) = climate%T2m( vi, m) + climate%snapshot_unif_dT%deltaT
+    end do
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  END SUBROUTINE remap_climate_snapshot_plus_uniform_deltaT
 
 
 END MODULE climate_snapshot_plus_uniform_deltaT

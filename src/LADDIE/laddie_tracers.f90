@@ -60,16 +60,15 @@ CONTAINS
         ! Time-derivative heat equation
         dHTdt = -laddie%divQT( vi) &
                + laddie%melt( vi) * laddie%T_base( vi) &
-               + MAX(0.0_dp,laddie%entr( vi)) * laddie%T_amb( vi) &
+               - laddie%gamma_T( vi) * (npx_ref%T( vi) - laddie%T_base( vi)) &
+               + laddie%entr( vi) * laddie%T_amb( vi) &
                + laddie%entr_dmin( vi) * laddie%T_amb( vi) &
-               - laddie%detr( vi) * npx_ref%T( vi) &
                + laddie%SGD( vi) * (freezing_lambda_2 + freezing_lambda_3*forcing%Hib( vi))
 
         ! Time-derivative salt equation
         dHSdt = -laddie%divQS( vi) &
-               + MAX(0.0_dp,laddie%entr( vi)) * laddie%S_amb( vi) &
+               + laddie%entr( vi) * laddie%S_amb( vi) &
                + laddie%entr_dmin( vi) * laddie%S_amb( vi) &
-               - laddie%detr( vi) * npx_ref%S( vi) &
                + laddie%SGD( vi) * 0._dp
 
         ! Add diffusive terms if requested
@@ -121,6 +120,8 @@ CONTAINS
     ! Initialise at 0
     laddie%diffT( mesh%vi1:mesh%vi2) = 0.0_dp
     laddie%diffS( mesh%vi1:mesh%vi2) = 0.0_dp
+
+    call sync
 
     ! Loop over vertices
     DO vi = mesh%vi1, mesh%vi2
@@ -190,6 +191,8 @@ CONTAINS
     ! Initialise with zeros
     laddie%divQT( mesh%vi1:mesh%vi2) = 0.0_dp
     laddie%divQS( mesh%vi1:mesh%vi2) = 0.0_dp
+
+    call sync
 
     ! == Loop over vertices ==
     ! =========================

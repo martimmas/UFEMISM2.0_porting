@@ -24,7 +24,7 @@ module ice_dynamics_main
   use conservation_of_mass_main, only: calc_dHi_dt, apply_ice_thickness_BC_explicit, &
     apply_mask_noice_direct
   use ice_geometry_basics, only: ice_surface_elevation, thickness_above_floatation, &
-    Hi_from_Hb_Hs_and_SL
+    Hi_from_Hb_Hs_and_SL, height_of_water_column_at_ice_front
   use masks_mod, only: determine_masks, calc_mask_ROI, calc_mask_noice, calc_mask_SGD
   use subgrid_ice_margin, only: calc_effective_thickness
   use zeta_gradients, only: calc_zeta_gradients
@@ -129,6 +129,7 @@ contains
       region%ice%Hs ( vi) = ice_surface_elevation( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
       region%ice%Hib( vi) = region%ice%Hs( vi) - region%ice%Hi( vi)
       region%ice%TAF( vi) = thickness_above_floatation( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
+      region%ice%Ho ( vi) = height_of_water_column_at_ice_front( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
 
       ! Differences w.r.t. present-day
       region%ice%dHi ( vi)  = region%ice%Hi ( vi) - region%refgeo_PD%Hi ( vi)
@@ -266,6 +267,7 @@ contains
       ice%Hs ( vi) = ice_surface_elevation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
       ice%Hib( vi) = ice%Hs( vi) - ice%Hi( vi)
       ice%TAF( vi) = thickness_above_floatation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
+      ice%HO ( vi) = height_of_water_column_at_ice_front( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
 
       ! Differences w.r.t. present-day
       ice%dHi ( vi)  = ice%Hi ( vi) - refgeo_PD%Hi ( vi)
@@ -435,7 +437,7 @@ contains
 
   end subroutine create_restart_files_ice_model
 
-  subroutine remap_ice_dynamics_model( mesh_old, mesh_new, ice, bed_roughness, refgeo_PD, SMB, BMB, LMB, AMB, GIA, time, region_name)
+  subroutine remap_ice_dynamics_model( mesh_old, mesh_new, ice, bed_roughness, refgeo_PD, SMB, BMB, LMB, AMB, GIA, time, region_name, forcing)
     !< Remap/reallocate all the data of the ice dynamics model
 
     ! In/output variables:
@@ -451,6 +453,7 @@ contains
     type(type_GIA_model),           intent(in   ) :: GIA
     real(dp),                       intent(in   ) :: time
     character(len=3),               intent(in   ) :: region_name
+    type(type_global_forcing),      intent(in   ) :: forcing
 
     ! Local variables:
     character(len=1024), parameter                 :: routine_name = 'remap_ice_dynamics_model'
@@ -471,7 +474,7 @@ contains
     ! ==========================
 
     ! Remap basic ice geometry Hi,Hb,Hs,SL
-    call remap_basic_ice_geometry( mesh_old, mesh_new, refgeo_PD, GIA, ice)
+    call remap_basic_ice_geometry( mesh_old, mesh_new, refgeo_PD, GIA, ice, forcing, time)
 
     ! Remap dHi/dt to improve stability of the P/C scheme after mesh updates
     call map_from_mesh_to_mesh_with_reallocation_2D( mesh_old, mesh_new, C%output_dir, ice%dHi_dt, '2nd_order_conservative')
@@ -515,6 +518,7 @@ contains
     call reallocate_bounds( ice%TAF     , mesh_new%vi1, mesh_new%vi2)  ! [m] Thickness above flotation
     call reallocate_bounds( ice%Hi_eff  , mesh_new%vi1, mesh_new%vi2)  ! [m] Effective ice thickness
     call reallocate_bounds( ice%Hs_slope, mesh_new%vi1, mesh_new%vi2)  ! [-] Absolute surface gradients
+    call reallocate_bounds( ice%Ho      , mesh_new%vi1, mesh_new%vi2)  ! [m] Depth of ocean column adjacent to the ice front
 
     ! Geometry changes
     call reallocate_bounds( ice%dHi  , mesh_new%vi1, mesh_new%vi2)  ! [m] Ice thickness difference (w.r.t. reference)
@@ -715,6 +719,7 @@ contains
       ice%Hs ( vi) = ice_surface_elevation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
       ice%Hib( vi) = ice%Hs( vi) - ice%Hi( vi)
       ice%TAF( vi) = thickness_above_floatation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
+      ice%Ho ( vi) = height_of_water_column_at_ice_front( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
 
       ! Differences w.r.t. present-day
       ice%dHi ( vi)  = ice%Hi ( vi) - refgeo_PD%Hi ( vi)
@@ -837,7 +842,7 @@ contains
 
   end subroutine remap_ice_dynamics_model
 
-  subroutine remap_basic_ice_geometry( mesh_old, mesh_new, refgeo_PD, GIA, ice)
+  subroutine remap_basic_ice_geometry( mesh_old, mesh_new, refgeo_PD, GIA, ice, forcing, time)
     !< Remap the basic ice geometry Hi,Hb,Hs,SL.
 
     ! In/output variables:
@@ -846,6 +851,8 @@ contains
     type(type_reference_geometry), intent(in   ) :: refgeo_PD
     type(type_GIA_model),          intent(in   ) :: GIA
     type(type_ice_model),          intent(inout) :: ice
+    type(type_global_forcing),     intent(in   ) :: forcing
+    real(dp),                      intent(in   ) :: time
 
     ! Local variables:
     character(len=1024), parameter                  :: routine_name = 'remap_basic_ice_geometry'
@@ -885,6 +892,8 @@ contains
       call crash('unknown choice_sealevel_model "' // trim( C%choice_sealevel_model) // '"')
     case ('fixed')
       ice%SL = C%fixed_sealevel
+    case ('prescribed')
+      call update_sealevel_in_model(forcing, mesh_new, ice, time)
     end select
 
     ! Gather global ice thickness and masks
@@ -1263,6 +1272,7 @@ contains
         ice%Hs ( vi) = ice_surface_elevation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
         ice%Hib( vi) = ice%Hs( vi) - ice%Hi( vi)
         ice%TAF( vi) = thickness_above_floatation( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
+        ice%Ho ( vi) = height_of_water_column_at_ice_front( ice%Hi( vi), ice%Hb( vi), ice%SL( vi))
       end do
 
     end do pseudo_time ! do while (t_pseudo < dt_relax)
@@ -1404,6 +1414,7 @@ contains
         region%ice%Hs ( vi) = ice_surface_elevation( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
         region%ice%Hib( vi) = region%ice%Hs( vi) - region%ice%Hi( vi)
         region%ice%TAF( vi) = thickness_above_floatation( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
+        region%ice%Ho ( vi) = height_of_water_column_at_ice_front( region%ice%Hi( vi), region%ice%Hb( vi), region%ice%SL( vi))
 
         if (region%ice%TAF( vi) > 0._dp) then
           ! Grounded ice
