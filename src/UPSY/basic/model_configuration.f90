@@ -703,6 +703,7 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_ocean_isomip_scenario_config          = ''                               ! Scenario when using 'ISOMIP' forcing: 'WARM' or 'COLD'
     REAL(dp)            :: ocean_tanh_deep_temperature_config           = 1.0_dp                           ! [degC] Deep ocean temperature when using 'TANH' forcing
     REAL(dp)            :: ocean_tanh_thermocline_depth_config          = 100.0_dp                         ! [m]    Depth of thermocline when using 'TANH' forcing
+    REAL(dp)            :: ocean_tanh_thermocline_scale_depth_config    = 100.0_dp                         ! [m]    Scale depth for thermocline sharpness when using 'TANH' forcing
     real(dp)            :: ocean_linear_deep_temperature_config         = -2.3_dp                          ! [degC] Deep ocean temperature when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_deep_salinity_config            = 34.8_dp                          ! [psu] Deep ocean salinity when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_reference_depth_config          = 2000.0_dp                        ! [m] Depth where deep values are prescribed
@@ -1832,6 +1833,7 @@ MODULE model_configuration
     CHARACTER(LEN=256)  :: choice_ocean_isomip_scenario
     REAL(dp)            :: ocean_tanh_deep_temperature
     REAL(dp)            :: ocean_tanh_thermocline_depth
+    REAL(dp)            :: ocean_tanh_thermocline_scale_depth
     real(dp)            :: ocean_linear_deep_temperature
     real(dp)            :: ocean_linear_deep_salinity
     real(dp)            :: ocean_linear_reference_depth
@@ -2937,6 +2939,7 @@ CONTAINS
       choice_ocean_isomip_scenario_config                         , &
       ocean_tanh_deep_temperature_config                          , &
       ocean_tanh_thermocline_depth_config                         , &
+      ocean_tanh_thermocline_scale_depth_config                   , &
       ocean_linear_deep_temperature_config                        , &
       ocean_linear_deep_salinity_config                           , &
       ocean_linear_reference_depth_config                         , &
@@ -3946,6 +3949,7 @@ CONTAINS
     C%choice_ocean_isomip_scenario                           = choice_ocean_isomip_scenario_config
     C%ocean_tanh_deep_temperature                            = ocean_tanh_deep_temperature_config
     C%ocean_tanh_thermocline_depth                           = ocean_tanh_thermocline_depth_config
+    C%ocean_tanh_thermocline_scale_depth                     = ocean_tanh_thermocline_scale_depth_config
     C%ocean_linear_deep_temperature                          = ocean_linear_deep_temperature_config
     C%ocean_linear_deep_salinity                             = ocean_linear_deep_salinity_config
     C%ocean_linear_reference_depth                           = ocean_linear_reference_depth_config
