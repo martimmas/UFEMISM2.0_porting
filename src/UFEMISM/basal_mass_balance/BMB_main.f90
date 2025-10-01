@@ -18,6 +18,7 @@ MODULE BMB_main
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE laddie_model_types                                     , ONLY: type_laddie_model
   USE laddie_forcing_types                                   , ONLY: type_laddie_forcing
+  use climate_model_types                                    , only: type_climate_model
   USE BMB_idealised                                          , ONLY: initialise_BMB_model_idealised, run_BMB_model_idealised
   USE BMB_prescribed                                         , ONLY: initialise_BMB_model_prescribed, run_BMB_model_prescribed
   USE BMB_parameterised                                      , ONLY: initialise_BMB_model_parameterised, run_BMB_model_parameterised
@@ -40,7 +41,7 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, is_initial)
+  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, climate, is_initial)
     ! Calculate the basal mass balance
 
     ! In/output variables:
@@ -52,6 +53,7 @@ CONTAINS
     TYPE(type_BMB_model),                   INTENT(INOUT) :: BMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
+    type(type_climate_model),               intent(in)    :: climate
     logical,                                intent(in)    :: is_initial
 
     ! Local variables:
@@ -149,6 +151,14 @@ CONTAINS
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
     END SELECT
+
+    if (C%do_use_ISMIP_future_shelf_collapse_forcing) then
+      do vi = mesh%vi1, mesh%vi2
+        if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp) then
+          BMB%BMB_shelf( vi) = -400._dp
+        end if
+      end do
+    end if
 
     ! Check hybrid_ROI_BMB
     SELECT CASE (choice_BMB_model_ROI)
