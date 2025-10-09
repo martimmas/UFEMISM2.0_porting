@@ -1100,6 +1100,7 @@ MODULE model_configuration
     ! Basic settings
     LOGICAL             :: do_create_netcdf_output_config               = .TRUE.                          !     Whether or not NetCDF output files should be created at all
     CHARACTER(LEN=1024) :: output_precision_config                      = 'double'                        !     Precision of floating-point output fields ('single' [32-bit], 'double' [64-bit])
+    LOGICAL             :: do_compress_output_config                    = .FALSE.                         !     Whether or not to use the NetCDF 'shuffle' and 'deflate' options to (losslessly) compress output
     REAL(dp)            :: dt_output_config                             = 1000._dp                        !     Time step for writing output
     REAL(dp)            :: dt_output_restart_config                     = 1000._dp                        !     Time step for writing restart output
     REAL(dp)            :: dt_output_grid_config                        = 1000._dp                        !     Time step for writing gridded output
@@ -2250,6 +2251,7 @@ MODULE model_configuration
     ! Basic settings
     LOGICAL             :: do_create_netcdf_output
     CHARACTER(LEN=1024) :: output_precision
+    LOGICAL             :: do_compress_output
     REAL(dp)            :: dt_output
     REAL(dp)            :: dt_output_restart
     REAL(dp)            :: dt_output_grid
@@ -3221,6 +3223,7 @@ CONTAINS
       tractrackpart_dt_raw_output_config                          , &
       do_create_netcdf_output_config                              , &
       output_precision_config                                     , &
+      do_compress_output_config                                   , &
       dt_output_config                                            , &
       dt_output_restart_config                                    , &
       dt_output_grid_config                                       , &
@@ -4402,6 +4405,7 @@ CONTAINS
     ! Basic settings
     C%do_create_netcdf_output                                = do_create_netcdf_output_config
     C%output_precision                                       = output_precision_config
+    C%do_compress_output                                     = do_compress_output_config
     C%dt_output                                              = dt_output_config
     C%dt_output_restart                                      = dt_output_restart_config
     C%dt_output_grid                                         = dt_output_grid_config
