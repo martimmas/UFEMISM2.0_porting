@@ -746,7 +746,7 @@ MODULE model_configuration
     REAL(dp)            :: ocean_uniform_deltaT_EAS_config              = 0.0_dp
     REAL(dp)            :: ocean_uniform_deltaT_GRL_config              = 0.0_dp
     REAL(dp)            :: ocean_uniform_deltaT_ANT_config              = 0.0_dp
-    
+
     ! Choice of extrapolation method
     CHARACTER(LEN=256)  :: choice_ocean_extrapolation_method_config     = 'initialisation'                 ! Method to extrapolate ocean forcing into cavities: 'initialisation'
 
@@ -1099,6 +1099,7 @@ MODULE model_configuration
 
     ! Basic settings
     LOGICAL             :: do_create_netcdf_output_config               = .TRUE.                          !     Whether or not NetCDF output files should be created at all
+    CHARACTER(LEN=1024) :: output_precision_config                      = 'double'                        !     Precision of floating-point output fields ('single' [32-bit], 'double' [64-bit])
     REAL(dp)            :: dt_output_config                             = 1000._dp                        !     Time step for writing output
     REAL(dp)            :: dt_output_restart_config                     = 1000._dp                        !     Time step for writing restart output
     REAL(dp)            :: dt_output_grid_config                        = 1000._dp                        !     Time step for writing gridded output
@@ -1897,7 +1898,7 @@ MODULE model_configuration
     REAL(dp)            :: ocean_uniform_deltaT_EAS
     REAL(dp)            :: ocean_uniform_deltaT_GRL
     REAL(dp)            :: ocean_uniform_deltaT_ANT
-    
+
     ! Choice of extrapolation method
     CHARACTER(LEN=256)  :: choice_ocean_extrapolation_method
 
@@ -2248,6 +2249,7 @@ MODULE model_configuration
 
     ! Basic settings
     LOGICAL             :: do_create_netcdf_output
+    CHARACTER(LEN=1024) :: output_precision
     REAL(dp)            :: dt_output
     REAL(dp)            :: dt_output_restart
     REAL(dp)            :: dt_output_grid
@@ -3218,6 +3220,7 @@ CONTAINS
       tractrackpart_write_raw_output_config                       , &
       tractrackpart_dt_raw_output_config                          , &
       do_create_netcdf_output_config                              , &
+      output_precision_config                                     , &
       dt_output_config                                            , &
       dt_output_restart_config                                    , &
       dt_output_grid_config                                       , &
@@ -4049,7 +4052,7 @@ CONTAINS
     C%ocean_uniform_deltaT_EAS                               = ocean_uniform_deltaT_EAS_config
     C%ocean_uniform_deltaT_GRL                               = ocean_uniform_deltaT_GRL_config
     C%ocean_uniform_deltaT_ANT                               = ocean_uniform_deltaT_ANT_config
-    
+
     ! Choice of extrapolation method
     C%choice_ocean_extrapolation_method                      = choice_ocean_extrapolation_method_config
 
@@ -4398,6 +4401,7 @@ CONTAINS
 
     ! Basic settings
     C%do_create_netcdf_output                                = do_create_netcdf_output_config
+    C%output_precision                                       = output_precision_config
     C%dt_output                                              = dt_output_config
     C%dt_output_restart                                      = dt_output_restart_config
     C%dt_output_grid                                         = dt_output_grid_config
