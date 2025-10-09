@@ -10,7 +10,7 @@ module netcdf_basic_wrappers
   use netcdf, only: NF90_NOERR, NF90_STRERROR, NF90_INQ_DIMID, NF90_INQUIRE_DIMENSION, &
     NF90_INQ_VARID, NF90_INQUIRE_VARIABLE, NF90_CREATE, NF90_DEF_DIM, NF90_DEF_VAR, &
     NF90_MAX_VAR_DIMS, NF90_PUT_ATT, NF90_OPEN, NF90_NOWRITE, NF90_WRITE, NF90_SHARE, &
-    NF90_CLOSE, NF90_GLOBAL, NF90_NETCDF4, NF90_NOCLOBBER
+    NF90_CLOSE, NF90_GLOBAL, NF90_NETCDF4, NF90_NOCLOBBER, NF90_FLOAT, NF90_DOUBLE
 
   implicit none
 
@@ -20,7 +20,7 @@ module netcdf_basic_wrappers
     create_new_netcdf_file_for_writing, create_dimension, create_variable, &
     create_scalar_variable, add_attribute_int, add_attribute_dp, add_attribute_char, &
     open_existing_netcdf_file_for_reading, open_existing_netcdf_file_for_writing, &
-    close_netcdf_file, handle_netcdf_error
+    close_netcdf_file, handle_netcdf_error, parse_netcdf_precision
 
 contains
 
@@ -515,5 +515,27 @@ contains
     end if
 
   end subroutine handle_netcdf_error
+
+  function parse_netcdf_precision( precision) result( nc_prec)
+    character(len=*), optional, intent(in   ) :: precision
+    integer                                   :: nc_prec
+    character(len=1024)                       :: precision_
+
+    if (present( precision)) then
+      precision_ = precision
+    else
+      precision_ = 'double'
+    end if
+
+    select case (precision_)
+    case default
+      call crash('invalid precision "' // trim( precision_) // '"')
+    case ('single')
+      nc_prec = NF90_FLOAT
+    case ('double')
+      nc_prec = NF90_DOUBLE
+    end select
+
+  end function parse_netcdf_precision
 
 end module netcdf_basic_wrappers
