@@ -250,7 +250,7 @@ contains
 
   end subroutine create_dimension
 
-  subroutine create_variable( filename, ncid, var_name, var_type, dim_ids, id_var)
+  subroutine create_variable( filename, ncid, var_name, var_type, dim_ids, id_var, do_compress)
     !< Create a new variable in a NetCDF file.
 
     ! In/output variables:
@@ -260,13 +260,21 @@ contains
     integer,               intent(in   ) :: var_type
     integer, dimension(:), intent(in   ) :: dim_ids
     integer,               intent(  out) :: id_var
+    logical, optional,     intent(in   ) :: do_compress
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'create_variable'
     integer                        :: ierr
+    logical                        :: do_compress_
 
     ! Add routine to path
     call init_routine( routine_name, do_track_resource_use = .false.)
+
+    if (present( do_compress)) then
+      do_compress_ = do_compress
+    else
+      do_compress_ = .false.
+    end if
 
     ! Safety: check if a variable by this name is already present in this file
     call inquire_var( filename, ncid, var_name, id_var)
@@ -278,8 +286,14 @@ contains
 
     ! Add the variable
     if (par%primary) then
-      call handle_netcdf_error( NF90_DEF_VAR( ncid, name = var_name, xtype = var_type, &
-        dimids = dim_ids, varid = id_var), filename = filename, dimvarname = var_name)
+      if (.not. do_compress_) then
+        call handle_netcdf_error( NF90_DEF_VAR( ncid, name = var_name, xtype = var_type, &
+          dimids = dim_ids, varid = id_var), filename = filename, dimvarname = var_name)
+      else
+        call handle_netcdf_error( NF90_DEF_VAR( ncid, name = var_name, xtype = var_type, &
+          dimids = dim_ids, varid = id_var, shuffle = .true., deflate_level = 2), &
+          filename = filename, dimvarname = var_name)
+      end if
     end if
 
     call MPI_BCAST( id_var, 1, MPI_integer, 0, MPI_COMM_WORLD, ierr)
