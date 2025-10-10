@@ -153,11 +153,18 @@ CONTAINS
     END SELECT
 
     if (C%do_use_ISMIP_future_shelf_collapse_forcing) then
-      do vi = mesh%vi1, mesh%vi2
-        if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp) then
-          BMB%BMB_shelf( vi) = -400._dp
-        end if
-      end do
+      select case(C%shelf_collapse_type)
+      case('BMB')
+        do vi = mesh%vi1, mesh%vi2
+          if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp) then
+            BMB%BMB_shelf( vi) = -400._dp
+          end if
+        end do
+      case('calving')
+        ! do nothing, collapse will be applied in ice_thickness_safeties routine
+      case default
+        call crash('unknown shelf_collapse_type "' // trim( C%shelf_collapse_type) // '"')
+      end select
     end if
 
     ! Check hybrid_ROI_BMB
