@@ -850,6 +850,8 @@ MODULE model_configuration
     LOGICAL             :: do_asynchronous_BMB_config                   = .TRUE.                           ! Whether or not the BMB should be calculated asynchronously from the rest of the model; if so, use dt_climate; if not, calculate it in every time step
     REAL(dp)            :: dt_BMB_config                                = 10._dp                           ! [yr] Time step for calculating BMB
 
+    real(dp)            :: dt_BMB_reinit_config                         = 1000._dp                         ! [yr] Time interval when BMB should be reinitialised
+
     ! Hard limits on melt/refreezing rates
     REAL(dp)            :: BMB_maximum_allowed_melt_rate_config         = 100._dp                         ! [m/yr] Maximum allowed melt       rate   (note: positive value means melt!)
     REAL(dp)            :: BMB_maximum_allowed_refreezing_rate_config   = 10._dp                         ! [m/yr] Maximum allowed refreezing rate   (note: positive value means refreezing!)
@@ -2004,6 +2006,7 @@ MODULE model_configuration
     ! Time step
     LOGICAL             :: do_asynchronous_BMB
     REAL(dp)            :: dt_BMB
+    REAL(dp)            :: dt_BMB_reinit
 
     ! Hard limits on melt/refreezing rates
     REAL(dp)            :: BMB_maximum_allowed_melt_rate
@@ -3082,6 +3085,7 @@ CONTAINS
       SMB_IMAUITM_albedo_snow_config                              , &
       do_asynchronous_BMB_config                                  , &
       dt_BMB_config                                               , &
+      dt_BMB_reinit_config                                        , &
       BMB_maximum_allowed_melt_rate_config                        , &
       BMB_maximum_allowed_refreezing_rate_config                  , &
       do_BMB_transition_phase_config                              , &
@@ -4159,6 +4163,7 @@ CONTAINS
     ! Time step
     C%do_asynchronous_BMB                                    = do_asynchronous_BMB_config
     C%dt_BMB                                                 = dt_BMB_config
+    C%dt_BMB_reinit                                          = dt_BMB_reinit_config
 
     ! Hard limits on melt/refreezing rates
     C%BMB_maximum_allowed_melt_rate                          = BMB_maximum_allowed_melt_rate_config
