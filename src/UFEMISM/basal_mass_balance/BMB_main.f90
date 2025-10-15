@@ -124,7 +124,6 @@ CONTAINS
         case default
           !No need to do anything
         case ('laddie')
-          call allocate_laddie_forcing( mesh, BMB%forcing)
           call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
           call initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .false.)
           call run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, .true., .false.)
