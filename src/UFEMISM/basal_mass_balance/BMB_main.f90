@@ -128,7 +128,7 @@ CONTAINS
           call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
           call initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .false.)
           call run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, .true., .false.)
-          BMB%time_next_reinit = BMB%time_next_reinit + C%dt_BMB_reinit
+          BMB%t_next_reinit = BMB%t_next_reinit + C%dt_BMB_reinit
       end select
     end if
 
