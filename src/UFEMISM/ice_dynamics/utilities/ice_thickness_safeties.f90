@@ -92,11 +92,20 @@ contains
 
     ! if so specified, remove all floating ice
     if (C%do_remove_shelves) then
-      do vi = mesh%vi1, mesh%vi2
-        if (is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi))) then
-          Hi_new( vi) = 0._dp
-        end if
-      end do
+    ! if allow changes only in ROI, only remove floating ice there
+      if (C%do_allow_change_only_in_ROI) then
+        do vi = mesh%vi1, mesh%vi2
+          if (ice%mask_ROI( vi) .and. is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi))) then
+            Hi_new( vi) = 0._dp
+          end if
+        end do
+      else ! remove floating ice everywhere
+        do vi = mesh%vi1, mesh%vi2
+          if (is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi))) then
+            Hi_new( vi) = 0._dp
+          end if
+        end do
+      end if
     end if
 
     ! if so specified, remove all floating ice beyond the present-day calving front
