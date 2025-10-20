@@ -5,17 +5,21 @@ module model_configuration
   use precisions, only: dp
   use mpi_f08, only: MPI_BCAST, MPI_COMM_WORLD, MPI_CHAR, MPI_LOGICAL
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: warning, crash, init_routine, finalise_routine, &
-    colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
+    warning, crash, colour_string
   use basic_model_utilities, only: get_git_commit_hash, git_commit_hash, &
     check_for_uncommitted_changes, has_uncommitted_changes, generate_procedural_output_dir_name
-  use model_configuration_type_and_namelist, only: C, copy_config_variables_to_struct, read_config_file
+  use model_configuration_type_and_namelist, only: type_config, copy_config_variables_to_struct, &
+    read_config_file
 
   implicit none
 
   private
 
   public :: C, initialise_model_configuration, initialise_model_configuration_unit_tests
+
+  ! The main config structure
+  type(type_config) :: C
 
 contains
 
@@ -145,7 +149,7 @@ contains
     end if
 
     ! Copy values from the XXX_config variables to the config structure
-    call copy_config_variables_to_struct
+    call copy_config_variables_to_struct( C)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -174,7 +178,7 @@ contains
         call read_config_file( config_filename)
 
         ! Copy values from the XXX_config variables to the config structure
-        call copy_config_variables_to_struct
+        call copy_config_variables_to_struct( C)
 
       end if
 

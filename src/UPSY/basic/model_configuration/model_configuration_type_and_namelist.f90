@@ -24,12 +24,12 @@ module model_configuration_type_and_namelist
 
   private
 
-  public :: C, copy_config_variables_to_struct, read_config_file
+  public :: type_config, copy_config_variables_to_struct, read_config_file
 
-! ===== Configuration variables =====
-! ===================================
+  ! ===== Module variables =====
+  ! ============================
 
-  ! The "_config" variables, which will be collected into a namelist, and replaced
+  ! The module-local "XXX_config" variables, which will be collected into a namelist, and replaced
   ! by the values in the external config file. Remember the "_config" extension!
 
   ! General model instructions
@@ -2218,11 +2218,11 @@ module model_configuration_type_and_namelist
     character(len=1024) :: SELEN_LMJ_VALUES_filename
 
     integer                  :: SELEN_irreg_time_n
-    real(dp), DIMENSION(50)  :: SELEN_irreg_time_window
+    real(dp), dimension(50)  :: SELEN_irreg_time_window
 
     real(dp)            :: SELEN_lith_thickness
     integer             :: SELEN_visc_n
-    real(dp), DIMENSION(3) :: SELEN_visc_prof
+    real(dp), dimension(3) :: SELEN_visc_prof
 
     ! Settings for the TABOO Earth deformation model
     integer             :: SELEN_TABOO_CDE
@@ -2347,12 +2347,9 @@ module model_configuration_type_and_namelist
   ! =================================================================
 
     integer                             :: nz_ocean ! Number of ocean layers
-    real(dp), DIMENSION(:), ALLOCATABLE :: z_ocean  ! Depths of ocean layers
+    real(dp), dimension(:), allocatable :: z_ocean  ! Depths of ocean layers
 
   end type type_config
-
-  ! The main config structure
-  type(type_config)   :: C
 
 contains
 
@@ -3151,10 +3148,13 @@ contains
 
   end subroutine read_config_file
 
-  subroutine copy_config_variables_to_struct
+  subroutine copy_config_variables_to_struct( C)
     ! Overwrite the values in the fields of the config structure with the values
     ! of the "_config" variables, some which by now have had their default
     ! values overwritten by the values that were read from the config file.
+
+    ! In/output variables:
+    type(type_config), intent(out) :: C
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'copy_config_variables_to_struct'
