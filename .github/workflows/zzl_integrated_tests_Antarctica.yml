@@ -32,5 +32,5 @@ jobs:
           key: LADDIE_program_perf_macos_${{ github.ref_name }}_${{ github.run_id }}
 
       - name: Run integrated_tests/idealised/Antarctica
-        run: mpirun  -n 2  LADDIE_program  src/LADDIE/validation/integrated_tests/Antarctica/test_config.cfg
+        run: mpirun  -n 2  LADDIE_program  src/LADDIE/validation/integrated_tests/Antarctica/test_coarse.cfg
 
