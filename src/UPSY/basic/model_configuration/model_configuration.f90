@@ -28,15 +28,39 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_configuration'
     character(len=1024)            :: config_filename
-    character(len=1024)            :: output_dir_procedural
-    integer                        :: ierr
-    logical                        :: ex
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! == Figure out which git commit of the model we're running
-    ! =========================================================
+    ! Figure out which git commit of the model we're running
+    call initialise_model_configuration_git_commit
+
+    ! Initialise main config parameters
+    call initialise_model_configuration_config( config_filename)
+
+    ! Set up the output directory
+    call initialise_model_configuration_output_dir
+
+    ! Copy the config file to the output directory
+    if (par%primary) then
+      call system('cp ' // config_filename    // ' ' // trim( C%output_dir))
+    end if
+    call sync
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine initialise_model_configuration
+
+  subroutine initialise_model_configuration_git_commit
+    ! Figure out which git commit of the model we're running
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'initialise_model_configuration_git_commit'
+    integer                        :: ierr
+
+    ! Add routine to path
+    call init_routine( routine_name)
 
     if (par%primary) call get_git_commit_hash( git_commit_hash)
     call mpi_bcast( git_commit_hash, len( git_commit_hash), MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
@@ -51,21 +75,32 @@ contains
       write(0,'(A)') colour_string( ' WARNING: You have uncommitted changes; the current simulation might not be reproducible!', 'yellow')
     end if
 
-    ! == Initialise main config parameters
-    ! ====================================
+    ! Finalise routine path
+    call finalise_routine( routine_name)
 
-    ! The name of the config file is provided as an input argument when calling the UFEMISM_program
-    ! executable. After calling MPI_INIT, only the primary process "sees" this argument, so is must be
-    ! broadcast to the other processes.
+  end subroutine initialise_model_configuration_git_commit
 
-    if (par%primary) then
-      if     (iargc() == 1) then
-        call getarg( 1, config_filename)
-      else
-        call crash('run UFEMISM with the path the config file as an argument, e.g. "mpi_exec  -n 2  UFEMISM_program  config-files/config_test"')
-      end if
+  subroutine initialise_model_configuration_config( config_filename)
+    ! Initialise main config parameters
+
+    ! In/output variables:
+    character(len=*), intent(out) :: config_filename
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'initialise_model_configuration_config'
+    character(len=1024)            :: output_dir_procedural
+    integer                        :: ierr
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! The name of the config file is provided as an input argument
+    ! when calling the UFEMISM_program executable.
+    if (iargc() == 1) then
+      call getarg( 1, config_filename)
+    else
+      call crash('run UFEMISM with the path the config file as an argument, e.g. "mpi_exec  -n 2  UFEMISM_program  config-files/config_test"')
     end if
-    call MPI_BCAST( config_filename, len( config_filename), MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
 
     if (par%primary) write(0,'(A)') ''
     if (par%primary) write(0,'(A)') ' Running UFEMISM with settings from configuration file: ' // colour_string( TRIM( config_filename), 'light blue')
@@ -73,8 +108,22 @@ contains
     ! Initialise the main config structure from the config file
     call initialise_config_from_file( config_filename)
 
-    ! == Set up the output directory
-    ! ==============================
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine initialise_model_configuration_config
+
+  subroutine initialise_model_configuration_output_dir
+    ! Set up the output directory
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'initialise_model_configuration_output_dir'
+    character(len=1024)            :: output_dir_procedural
+    integer                        :: ierr
+    logical                        :: ex
+
+    ! Add routine to path
+    call init_routine( routine_name)
 
     ! First get the name of the output directory (either procedural, or provided in the config file)
     C%output_dir = ' '
@@ -114,16 +163,10 @@ contains
     end if
     call sync
 
-    ! Copy the config file to the output directory
-    if (par%primary) then
-      call system('cp ' // config_filename    // ' ' // trim( C%output_dir))
-    end if
-    call sync
-
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine initialise_model_configuration
+  end subroutine initialise_model_configuration_output_dir
 
   subroutine initialise_model_configuration_unit_tests
 
