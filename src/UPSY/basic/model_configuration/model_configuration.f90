@@ -23,11 +23,14 @@ module model_configuration
 
 contains
 
-  subroutine initialise_model_configuration
+  subroutine initialise_model_configuration( config_filenames)
+
+    ! In/ouput variables:
+    character(len=*), dimension(:), intent(in) :: config_filenames
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_configuration'
-    character(len=1024)            :: config_filename
+    integer                        :: i
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -36,14 +39,16 @@ contains
     call initialise_model_configuration_git_commit
 
     ! Initialise main config parameters
-    call initialise_model_configuration_config( config_filename)
+    call initialise_model_configuration_config( config_filenames)
 
     ! Set up the output directory
     call initialise_model_configuration_output_dir
 
     ! Copy the config file to the output directory
     if (par%primary) then
-      call system('cp ' // config_filename    // ' ' // trim( C%output_dir))
+      do i = 1, size( config_filenames)
+        call system('cp ' // config_filenames( i) // ' ' // trim( C%output_dir))
+      end do
     end if
     call sync
 
@@ -80,33 +85,27 @@ contains
 
   end subroutine initialise_model_configuration_git_commit
 
-  subroutine initialise_model_configuration_config( config_filename)
+  subroutine initialise_model_configuration_config( config_filenames)
     ! Initialise main config parameters
 
-    ! In/output variables:
-    character(len=*), intent(out) :: config_filename
+    ! In/ouput variables:
+    character(len=*), dimension(:), intent(in) :: config_filenames
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_configuration_config'
-    character(len=1024)            :: output_dir_procedural
-    integer                        :: ierr
+    integer                        :: i
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! The name of the config file is provided as an input argument
-    ! when calling the UFEMISM_program executable.
-    if (iargc() == 1) then
-      call getarg( 1, config_filename)
-    else
-      call crash('run UFEMISM with the path the config file as an argument, e.g. "mpi_exec  -n 2  UFEMISM_program  config-files/config_test"')
-    end if
-
     if (par%primary) write(0,'(A)') ''
-    if (par%primary) write(0,'(A)') ' Running UFEMISM with settings from configuration file: ' // colour_string( TRIM( config_filename), 'light blue')
 
-    ! Initialise the main config structure from the config file
-    call initialise_config_from_file( config_filename)
+    ! Initialise the config structure C from the config files
+    do i = 1, size( config_filenames)
+      if (par%primary) write(0,'(A)') ' Running UFEMISM with settings from configuration file: ' &
+        // colour_string( trim( config_filenames( i)), 'light blue')
+      call initialise_config_from_file( config_filenames( i))
+    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name)

@@ -33,7 +33,8 @@ program UFEMISM_program
 
   implicit none
 
-  character(len=1024)       :: input_argument
+  character(len=1024), dimension(:), allocatable :: input_arguments
+  integer                                        :: i
   type(type_model_region)   :: NAM, EAS, GRL, ANT          !< The four model regions
   type(type_global_forcing) :: forcing                     !< The global forcings
   real(dp)                  :: t_coupling, t_end_models    !< Coupling times
@@ -43,24 +44,19 @@ program UFEMISM_program
 
   program_name = 'UFEMISM'
 
-  ! Get the input argument (either the path to the config file,
+  ! Get the input arguments (either the paths to the config files,
   ! or an instruction to run unit/component tests)
-  if (iargc() == 1) then
-    call getarg( 1, input_argument)
-  else
-    stop 'UFEMISM requires a single argument, being the path to the config file, e.g. "mpi_exec  -n 2  UFEMISM_program  config-files/config_test"'
-  end if
+  allocate( input_arguments( iargc()))
+  do i = 1, iargc()
+    call getarg( i, input_arguments(i))
+  end do
 
   ! Initialise MPI parallelisation and PETSc
-  call initialise_parallelisation( input_argument)
+  call initialise_parallelisation
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   ! Initialise constants (pi, NaN, ...)
   call initialise_constants
-
-  ! Only the primary process "sees" the input argument; all the others are
-  ! initialised by MPI without it. Broadcast it so they know what to do.
-  call MPI_BCAST( input_argument, len(input_argument), MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
 
   ! Start the clock
   tstart = MPI_WTIME()
@@ -72,13 +68,12 @@ program UFEMISM_program
   call initialise_control_and_resource_tracker
 
   ! Special cases
-  if (input_argument == 'unit_tests') then
+  if (size( input_arguments) == 1.and. &
+    input_arguments( 1) == 'unit_tests') then
     call initialise_model_configuration_unit_tests
     call run_all_unit_tests
-  elseif (input_argument == 'unit_tests_multinode') then
-    call initialise_model_configuration_unit_tests
-    call run_all_multinode_unit_tests
-  elseif (input_argument == 'component_tests') then
+  elseif (size( input_arguments) == 1.and. &
+    input_arguments( 1) == 'component_tests') then
     call initialise_model_configuration_unit_tests
     call run_all_component_tests
   else ! An actual model simulation
@@ -87,7 +82,7 @@ program UFEMISM_program
     ! ====================
 
     ! Initialise the main model configuration
-    call initialise_model_configuration
+    call initialise_model_configuration( input_arguments)
 
     ! Create the resource tracking output file
     call create_resource_tracking_file( C%output_dir)
