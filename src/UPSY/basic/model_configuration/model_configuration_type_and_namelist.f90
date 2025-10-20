@@ -2369,8 +2369,7 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'read_config_file'
     character(len=1024)            :: namelist_filename
-    integer, parameter             :: config_unit    = 1337
-    integer, parameter             :: namelist_unit  = 1338
+    integer                        :: config_unit, namelist_unit
     integer                        :: ios
     integer                        :: i
 
@@ -3124,8 +3123,8 @@ contains
     end do
     namelist_filename = 'namelist_' // trim( namelist_filename)
 
-    ! Write the CONFIG namelist to a temporary file
-    open( unit = namelist_unit, file = trim( namelist_filename))
+    ! Write the config namelist to a temporary file
+    open( newunit = namelist_unit, file = trim( namelist_filename))
     write( unit = namelist_unit, nml = config)
     close( unit = namelist_unit)
 
@@ -3136,7 +3135,7 @@ contains
     call system('rm -f ' // trim( namelist_filename))
 
     ! Open the config file
-    open( unit = config_unit, file = trim( config_filename), &
+    open( newunit = config_unit, file = trim( config_filename), &
       status = 'old', action = 'read', iostat = ios)
     if (ios /= 0) call crash('couldnt open config file "' // trim( config_filename) // '"!')
 

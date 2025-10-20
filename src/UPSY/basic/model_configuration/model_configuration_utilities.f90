@@ -61,8 +61,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'check_if_all_config_variables_are_valid'
-    integer, parameter             :: config_unit   = 1337
-    integer, parameter             :: namelist_unit = 1338
+    integer                        :: config_unit, namelist_unit
     integer                        :: ios
     logical                        :: found_end_of_file_config, found_end_of_file_namelist
     character(len=1024)            :: single_line_config      , single_line_namelist
@@ -73,7 +72,7 @@ contains
     call init_routine( routine_name)
 
     ! Open the config file
-    open( unit = config_unit, file = config_filename, iostat = ios)
+    open( newunit = config_unit, file = config_filename, iostat = ios)
     if (ios /= 0) call crash('couldnt open config file "' // trim( config_filename) // '"!')
 
     ! Read one line at a time of the config file, determine the name of the variable
@@ -117,7 +116,7 @@ contains
       end if
 
       ! Open the namelist file
-      open( unit = namelist_unit, file = namelist_filename)
+      open( newunit = namelist_unit, file = namelist_filename)
       if (ios /= 0) call crash('couldnt open namelist file "' // trim( namelist_filename) // '"!')
 
       ! Read all variables from the namelist file and check
@@ -198,8 +197,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'check_if_all_expected_config_variables_are_present'
-    integer, parameter             :: config_unit   = 1337
-    integer, parameter             :: namelist_unit = 1338
+    integer                        :: config_unit, namelist_unit
     integer                        :: ios
     logical                        :: found_end_of_file_config, found_end_of_file_namelist
     character(len=1024)            :: single_line_config      , single_line_namelist
@@ -210,7 +208,7 @@ contains
     call init_routine( routine_name)
 
     ! Open the namelist file
-    open( unit = namelist_unit, file = namelist_filename, iostat = ios)
+    open( newunit = namelist_unit, file = namelist_filename, iostat = ios)
     if (ios /= 0) call crash('couldnt open namelist file "' // trim( namelist_filename) // '"!')
 
     ! Read one line at a time of the nanmelist file, determine the name of the variable
@@ -252,7 +250,7 @@ contains
       end if
 
       ! Open the config file
-      open( unit = config_unit, file = config_filename)
+      open( newunit = config_unit, file = config_filename)
       if (ios /= 0) call crash('couldnt open config file "' // trim( config_filename) // '"!')
 
       ! Read all variables from the config file and check if any of them match the current namelist variable
