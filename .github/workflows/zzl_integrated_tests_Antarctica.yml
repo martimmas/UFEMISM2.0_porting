@@ -1,10 +1,10 @@
-name: LADDIE Test Suite - run and analyse integrated_tests/idealised/MISMIPplus
-run-name: ${{ github.actor }} - LADDIE Test Suite - run and analyse integrated_tests/idealised/MISMIPplus
+name: LADDIE Test Suite - run and analyse integrated_tests/idealised/Antarctica
+run-name: ${{ github.actor }} - LADDIE Test Suite - run and analyse integrated_tests/idealised/Antarctica
 on:
   workflow_call:
 
 jobs:
-  MISMIPplus:
+  Antarctica:
     runs-on: macos-latest
     steps:
 
