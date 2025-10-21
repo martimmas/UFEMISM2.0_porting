@@ -33,8 +33,7 @@ program UFEMISM_program
 
   implicit none
 
-  character(len=1024), dimension(:), allocatable :: input_arguments
-  integer                                        :: i
+  character(len=1024)       :: input_argument
   type(type_model_region)   :: NAM, EAS, GRL, ANT          !< The four model regions
   type(type_global_forcing) :: forcing                     !< The global forcings
   real(dp)                  :: t_coupling, t_end_models    !< Coupling times
@@ -44,12 +43,13 @@ program UFEMISM_program
 
   program_name = 'UFEMISM'
 
-  ! Get the input arguments (either the paths to the config files,
+  ! Get the input argument (either the path to the config file,
   ! or an instruction to run unit/component tests)
-  allocate( input_arguments( iargc()))
-  do i = 1, iargc()
-    call getarg( i, input_arguments(i))
-  end do
+  if (iargc() == 1) then
+    call getarg( 1, input_argument)
+  else
+    stop 'UFEMISM requires a single argument, being the path to the config file, e.g. "mpi_exec  -n 2  UFEMISM_program  config-files/config_test"'
+  end if
 
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation
@@ -68,12 +68,10 @@ program UFEMISM_program
   call initialise_control_and_resource_tracker
 
   ! Special cases
-  if (size( input_arguments) == 1.and. &
-    input_arguments( 1) == 'unit_tests') then
+  if (input_argument == 'unit_tests') then
     call initialise_model_configuration_unit_tests
     call run_all_unit_tests
-  elseif (size( input_arguments) == 1.and. &
-    input_arguments( 1) == 'component_tests') then
+  elseif (input_argument == 'component_tests') then
     call initialise_model_configuration_unit_tests
     call run_all_component_tests
   else ! An actual model simulation
@@ -82,7 +80,7 @@ program UFEMISM_program
     ! ====================
 
     ! Initialise the main model configuration
-    call initialise_model_configuration( input_arguments)
+    call initialise_model_configuration( input_argument)
 
     ! Create the resource tracking output file
     call create_resource_tracking_file( C%output_dir)

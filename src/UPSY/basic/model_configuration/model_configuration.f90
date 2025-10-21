@@ -23,14 +23,13 @@ module model_configuration
 
 contains
 
-  subroutine initialise_model_configuration( config_filenames)
+  subroutine initialise_model_configuration( config_filename)
 
-    ! In/ouput variables:
-    character(len=*), dimension(:), intent(in) :: config_filenames
+    ! In/output variables:
+    character(len=*), intent(in) :: config_filename
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_configuration'
-    integer                        :: i
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -39,16 +38,14 @@ contains
     call initialise_model_configuration_git_commit
 
     ! Initialise main config parameters
-    call initialise_model_configuration_config( config_filenames)
+    call initialise_model_configuration_config( config_filename)
 
     ! Set up the output directory
     call initialise_model_configuration_output_dir
 
     ! Copy the config file to the output directory
     if (par%primary) then
-      do i = 1, size( config_filenames)
-        call system('cp ' // config_filenames( i) // ' ' // trim( C%output_dir))
-      end do
+      call system('cp ' // config_filename    // ' ' // trim( C%output_dir))
     end if
     call sync
 
@@ -85,27 +82,25 @@ contains
 
   end subroutine initialise_model_configuration_git_commit
 
-  subroutine initialise_model_configuration_config( config_filenames)
+  subroutine initialise_model_configuration_config( config_filename)
     ! Initialise main config parameters
 
-    ! In/ouput variables:
-    character(len=*), dimension(:), intent(in) :: config_filenames
+    ! In/output variables:
+    character(len=*), intent(in) :: config_filename
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_configuration_config'
-    integer                        :: i
+    character(len=1024)            :: output_dir_procedural
+    integer                        :: ierr
 
     ! Add routine to path
     call init_routine( routine_name)
 
     if (par%primary) write(0,'(A)') ''
+    if (par%primary) write(0,'(A)') ' Running UFEMISM with settings from configuration file: ' // colour_string( TRIM( config_filename), 'light blue')
 
-    ! Initialise the config structure C from the config files
-    do i = 1, size( config_filenames)
-      if (par%primary) write(0,'(A)') ' Running UFEMISM with settings from configuration file: ' &
-        // colour_string( trim( config_filenames( i)), 'light blue')
-      call initialise_config_from_file( config_filenames( i))
-    end do
+    ! Initialise the main config structure from the config file
+    call initialise_config_from_file( config_filename)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
