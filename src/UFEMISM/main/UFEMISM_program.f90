@@ -28,7 +28,6 @@ program UFEMISM_program
   use inversion_utilities, only: MISMIPplus_adapt_flow_factor
   use unit_tests, only: run_all_unit_tests
   use component_tests, only: run_all_component_tests
-  use unit_tests_multinode, only: run_all_multinode_unit_tests
   use checksum_mod, only: create_checksum_logfile
 
   implicit none
