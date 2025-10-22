@@ -101,7 +101,7 @@ program LADDIE_program
   else ! An actual model simulation
 
     ! Initialise the main model configuration
-    call initialise_model_configuration
+    call initialise_model_configuration( input_argument)
 
     ! Create the resource tracking output file
     call create_resource_tracking_file( C%output_dir)
