@@ -4,9 +4,10 @@ module basal_hydrology_main
 
   use mpi_basic, only: par
   use precisions, only: dp
+  use erf_mod, only: error_function
   use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
   use model_configuration, only: C
-  use parameters, only: grav, ice_density
+  use parameters, only: grav, ice_density, pi, seawater_density
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
 
@@ -35,17 +36,21 @@ contains
       call crash('unknown choice_basal_hydrology_model "' // trim( C%choice_basal_hydrology_model) // '"')
     case ('none')
       call calc_pore_water_pressure_none( mesh, ice)
+      ! Calculate overburden and effective pressure
+      do vi = mesh%vi1, mesh%vi2
+        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+        ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
+      end do
     case ('Martin2011')
       call calc_pore_water_pressure_Martin2011( mesh, ice)
+      ! Calculate overburden and effective pressure
+      do vi = mesh%vi1, mesh%vi2
+        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+        ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
+      end do
+    case ('error_function')  
+      call calc_effective_pressure_error_function(mesh, ice)
     end select
-
-    ! Calculate overburden and effective pressure
-    ! ===========================================
-
-    do vi = mesh%vi1, mesh%vi2
-      ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-      ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
-    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -106,5 +111,29 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_pore_water_pressure_Martin2011
+
+  subroutine calc_effective_pressure_error_function( mesh, ice)
+    ! Calculate pore water pressure as an error function
+
+    ! In/output variables:
+    type(type_mesh),      intent(in   ) :: mesh
+    type(type_ice_model), intent(inout) :: ice
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_effective_pressure_error_function'
+    integer                        :: vi
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    do vi = mesh%vi1, mesh%vi2
+      ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2/C%error_function_max_effective_pressure)*C%error_function_max_effective_pressure
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_effective_pressure_error_function
 
 end module basal_hydrology_main
