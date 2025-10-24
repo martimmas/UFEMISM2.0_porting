@@ -128,7 +128,7 @@ contains
 
     do vi = mesh%vi1, mesh%vi2
       ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2/C%error_function_max_effective_pressure)*C%error_function_max_effective_pressure
+      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/C%error_function_max_effective_pressure)*C%error_function_max_effective_pressure
     end do
 
     ! Finalise routine path
