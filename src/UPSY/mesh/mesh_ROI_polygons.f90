@@ -35,6 +35,7 @@ module mesh_ROI_polygons
   public :: calc_polygon_Scott_glacier
   public :: calc_polygon_Mercer_glacier
   public :: calc_polygon_Wilkes_basins
+  public :: calc_polygon_Institute_basin
 
 contains
 
