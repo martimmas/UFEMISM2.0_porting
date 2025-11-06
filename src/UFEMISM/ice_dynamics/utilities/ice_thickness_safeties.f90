@@ -75,7 +75,7 @@ contains
     ! if so specified, remove thin floating ice
     if (C%choice_calving_law == 'threshold_thickness') then
       do vi = mesh%vi1, mesh%vi2
-        if (is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi)) .and. Hi_eff_new( vi) < C%calving_threshold_thickness_shelf .and. (ice%mask_cf_fl( vi) .eqv. .TRUE.)) then
+        if ((is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi)) .and. Hi_eff_new( vi) < C%calving_threshold_thickness_shelf) .and. (ice%mask_cf_fl( vi) .eqv. .TRUE.)) then
           Hi_new( vi) = 0._dp
         end if
       end do
