@@ -44,6 +44,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    if (.not. C%retreat_mask_without_time) then
+
     ! Check if the requested time is enveloped by the two timeframes;
     ! if not, read the two relevant timeframes from the NetCDF file
     if (time < climate%ISMIP_style%shelf_collapse_mask_t0 .OR. time > climate%ISMIP_style%shelf_collapse_mask_t1) then
@@ -63,6 +65,12 @@ contains
                                                         (wt1 * climate%ISMIP_style%shelf_collapse_mask1( vi))
 
     end do
+
+    else ! if (C%retreat_mask_without_time)
+      ! If the retreat mask is time-independent, just read it once and keep it constant
+      call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask)
+    end if
+    
     call sync
 
     ! Finalise routine path
@@ -90,8 +98,8 @@ contains
     
     if (C%retreat_mask_without_time) then
       ! Read timeframes from file
-      call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0)
-      climate%ISMIP_style%shelf_collapse_mask1 = climate%ISMIP_style%shelf_collapse_mask0
+    !  call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0)
+    !  climate%ISMIP_style%shelf_collapse_mask1 = climate%ISMIP_style%shelf_collapse_mask0
     else
       ! Read timeframes from file
       call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0, time_to_read = time0)
