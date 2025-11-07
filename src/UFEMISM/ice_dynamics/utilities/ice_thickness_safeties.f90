@@ -133,7 +133,7 @@ contains
         ! do nothing, collapse will be applied in BMB routine
       case('calving')
         do vi = mesh%vi1, mesh%vi2
-          if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp) then
+          if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp .and. refgeo%Hb( vi) < 0._dp) then
             Hi_new( vi) = 0._dp
           end if
         end do
