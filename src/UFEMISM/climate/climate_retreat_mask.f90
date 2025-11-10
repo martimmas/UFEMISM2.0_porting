@@ -67,8 +67,12 @@ contains
     end do
 
     else ! if (C%retreat_mask_without_time)
-      ! If the retreat mask is time-independent, just read it once and keep it constant
-      call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask)
+      if (time == C%start_time_of_run) then
+        ! If the retreat mask is time-independent, just read it once and keep it constant
+        call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask)
+      else
+        ! do nothing, keep the same mask as initialised
+      end if
     end if
     
     call sync
@@ -96,15 +100,9 @@ contains
     time0= real( floor( time, dp), dp)
     time1= real( floor( time, dp), dp) + 10._dp
     
-    if (C%retreat_mask_without_time) then
-      ! Read timeframes from file
-    !  call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0)
-    !  climate%ISMIP_style%shelf_collapse_mask1 = climate%ISMIP_style%shelf_collapse_mask0
-    else
-      ! Read timeframes from file
-      call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0, time_to_read = time0)
-      call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask1, time_to_read = time1)
-    end if
+    ! Read timeframes from file
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask0, time_to_read = time0)
+    call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask1, time_to_read = time1)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
