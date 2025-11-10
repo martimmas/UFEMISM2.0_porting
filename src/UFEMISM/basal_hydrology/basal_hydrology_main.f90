@@ -49,6 +49,7 @@ contains
         ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
       end do
     case ('error_function')  
+      call calc_pore_water_pressure_Martin2011( mesh, ice)   ! we need that for the maximum inland effective pressure
       call calc_effective_pressure_error_function(mesh, ice)
     end select
 
@@ -122,13 +123,15 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'calc_effective_pressure_error_function'
     integer                        :: vi
+    real(dp)                       :: effective_pressure_max
 
     ! Add routine to path
     call init_routine( routine_name)
 
     do vi = mesh%vi1, mesh%vi2
       ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/C%error_function_max_effective_pressure)*C%error_function_max_effective_pressure
+      effective_pressure_max = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
+      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/effective_pressure_max)*effective_pressure_max
     end do
 
     ! Finalise routine path
