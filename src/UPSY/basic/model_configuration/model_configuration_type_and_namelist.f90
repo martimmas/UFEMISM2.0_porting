@@ -474,6 +474,7 @@ module model_configuration_type_and_namelist
     real(dp)            :: Martin2011_hydro_Hb_min_config               = 0._dp                            ! Martin et al. (2011) basal hydrology model: low-end  Hb  value of bedrock-dependent pore-water pressure
     real(dp)            :: Martin2011_hydro_Hb_max_config               = 1000._dp                         ! Martin et al. (2011) basal hydrology model: high-end Hb  value of bedrock-dependent pore-water pressure
     real(dp)            :: error_function_max_effective_pressure_config = 5E6_dp                           ! Maximum effective pressure inland for the error-function model
+    real(dp)            :: Leguy2014_hydro_connect_exponent_config      = 1._dp                            ! Leguy et al. (2014) hydrological connectivity of the subglacial hydrology drainage system
 
   ! == Bed roughness
   ! ==================
@@ -1632,6 +1633,7 @@ module model_configuration_type_and_namelist
     real(dp)            :: Martin2011_hydro_Hb_min
     real(dp)            :: Martin2011_hydro_Hb_max
     real(dp)            :: error_function_max_effective_pressure
+    real(dp)            :: Leguy2014_hydro_connect_exponent
 
   ! == Bed roughness
   ! ==================
@@ -2661,6 +2663,7 @@ contains
       Martin2011_hydro_Hb_min_config                              , &
       Martin2011_hydro_Hb_max_config                              , &
       error_function_max_effective_pressure_config                , &
+      Leguy2014_hydro_connect_exponent_config                     , &
       choice_bed_roughness_config                                 , &
       choice_bed_roughness_parameterised_config                   , &
       filename_bed_roughness_NAM_config                           , &
@@ -3607,6 +3610,7 @@ contains
     C%Martin2011_hydro_Hb_min                                = Martin2011_hydro_Hb_min_config
     C%Martin2011_hydro_Hb_max                                = Martin2011_hydro_Hb_max_config
     C%error_function_max_effective_pressure                  = error_function_max_effective_pressure_config
+    C%Leguy2014_hydro_connect_exponent                       = Leguy2014_hydro_connect_exponent_config
 
     ! == Bed roughness
     ! ==================

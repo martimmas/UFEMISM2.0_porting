@@ -48,6 +48,8 @@ contains
         ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
         ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
       end do
+    case ('Leguy2014')  
+      call calc_effective_pressure_Leguy2014(mesh, ice)
     case ('error_function')  
       call calc_pore_water_pressure_Martin2011( mesh, ice)   ! we need that for the maximum inland effective pressure
       call calc_effective_pressure_error_function(mesh, ice)
@@ -138,5 +140,29 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_effective_pressure_error_function
+    
+
+  subroutine calc_effective_pressure_Leguy2014(mesh, ice)
+    ! Calculate effective pressure based on Leguy et al. (2014)
+
+    ! In/output variables:
+    type(type_mesh),      intent(in   ) :: mesh
+    type(type_ice_model), intent(inout) :: ice
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_effective_pressure_Leguy2014'
+    integer                        :: vi
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    do vi = mesh%vi1, mesh%vi2
+      Hi_f = max(0, - seawater_density/ice_density * ice%Hb( vi))
+      ice%effective_pressure( vi) = ice_density * grav * ice%Hi_eff( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+  end subroutine calc_effective_pressure_Leguy2014
 
 end module basal_hydrology_main
