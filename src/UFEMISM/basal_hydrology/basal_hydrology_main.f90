@@ -152,13 +152,15 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'calc_effective_pressure_Leguy2014'
     integer                        :: vi
+    real(dp)                       :: Hi_f
 
     ! Add routine to path
     call init_routine( routine_name)
 
     do vi = mesh%vi1, mesh%vi2
-      Hi_f = max(0, - seawater_density/ice_density * ice%Hb( vi))
-      ice%effective_pressure( vi) = ice_density * grav * ice%Hi_eff( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
+      ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+      Hi_f = max(0._dp, - seawater_density/ice_density * ice%Hb( vi))
+      ice%effective_pressure( vi) = ice%overburden_pressure( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
     end do
 
     ! Finalise routine path
