@@ -14,6 +14,7 @@ module bed_roughness_nudging_main
   use bed_roughness_nudging_H_dHdt_flowline, only: initialise_bed_roughness_nudging_H_dHdt_flowline, run_bed_roughness_nudging_H_dHdt_flowline
   use bed_roughness_nudging_H_dHdt_local, only: initialise_bed_roughness_nudging_H_dHdt_local, run_bed_roughness_nudging_H_dHdt_local
   use bed_roughness_nudging_H_u_flowline, only: initialise_bed_roughness_nudging_H_u_flowline, run_bed_roughness_nudging_H_u_flowline
+  use bed_roughness_nudging_H_dHdt_Akker, only: initialise_bed_roughness_nudging_H_dHdt_Akker, run_bed_roughness_nudging_H_dHdt_Akker
 
   implicit none
 
@@ -113,6 +114,20 @@ contains
           call run_bed_roughness_nudging_H_u_flowline( region%mesh, region%ice, region%refgeo_init, region%bed_roughness)
         case ('PD')
           call run_bed_roughness_nudging_H_u_flowline( region%mesh, region%ice, region%refgeo_PD, region%bed_roughness)
+        end select
+        case ('H_dHdt_Akker')
+        ! Run with the specified target geometry
+        select case (C%choice_inversion_target_geometry)
+        case default
+          call crash('unknown choice_inversion_target_geometry "' // trim( C%choice_inversion_target_geometry) // '"')
+        case ('init')
+          call run_bed_roughness_nudging_H_dHdt_Akker( region%mesh, region%grid_smooth, &
+            region%ice, region%refgeo_init, region%bed_roughness%generic_bed_roughness_prev, &
+            region%bed_roughness%generic_bed_roughness_next, region%bed_roughness%nudging_H_dHdt_Akker)
+        case ('PD')
+          call run_bed_roughness_nudging_H_dHdt_Akker( region%mesh, region%grid_smooth, &
+            region%ice, region%refgeo_PD  , region%bed_roughness%generic_bed_roughness_prev, &
+            region%bed_roughness%generic_bed_roughness_next, region%bed_roughness%nudging_H_dHdt_Akker)
         end select
       end select
 
@@ -244,6 +259,8 @@ contains
       call initialise_bed_roughness_nudging_H_dHdt_local( mesh, bed_roughness%nudging_H_dHdt_local)
     case ('H_u_flowline')
       call initialise_bed_roughness_nudging_H_u_flowline( mesh, bed_roughness%nudging_H_u_flowline)
+    case ('H_dHdt_Akker')
+      call initialise_bed_roughness_nudging_H_dHdt_Akker( mesh, bed_roughness%nudging_H_dHdt_Akker)
     end select
 
     ! Finalise routine path

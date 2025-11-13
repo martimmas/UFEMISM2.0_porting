@@ -550,6 +550,15 @@ MODULE model_configuration
     REAL(dp)            :: bednudge_H_u_flowline_tau_config             = 50._dp                           ! [yr]      Time scale
     REAL(dp)            :: bednudge_H_u_flowline_L_config               = 2000._dp                         ! [m]       Length scale for the Laplacian regularisation term
 
+    ! Bed roughness nudging model based on local values of H and dH/dt (Akker et al. 2025 method)
+    REAL(dp)            :: bednudge_H_dHdt_Akker_H0_config              = 100._dp                          ! [m]       Ice thickness error scale
+    REAL(dp)            :: bednudge_H_dHdt_Akker_tau_config             = 100._dp                          ! [yr]      Time scale
+    REAL(dp)            :: bednudge_H_dHdt_Akker_lowerHb_config         = -700._dp                         ! [m]       Lower Hb limit for relaxation target
+    REAL(dp)            :: bednudge_H_dHdt_Akker_upperHb_config         = 700._dp                          ! [m]       Upper Hb limit for relaxation target
+    REAL(dp)            :: bednudge_H_dHdt_Akker_minCr_config           = 0.1_dp                           ! [?]       Smallest allowed relaxation target
+    REAL(dp)            :: bednudge_H_dHdt_Akker_maxCr_config           = 0.4_dp                           ! [?]       Largest  allowed relaxation target
+    REAL(dp)            :: bednudge_H_dHdt_Akker_r_config               = 0.05_dp                          ! [?]       Strength of inversion relaxation
+
   ! == Geothermal heat flux
   ! =======================
 
@@ -1686,6 +1695,15 @@ MODULE model_configuration
     REAL(dp)            :: bednudge_H_u_flowline_u_scale
     REAL(dp)            :: bednudge_H_u_flowline_tau
     REAL(dp)            :: bednudge_H_u_flowline_L
+
+    ! Bed roughness nudging model based on local values of H and dH/dt (Akker et al. 2025 method)
+    REAL(dp)            :: bednudge_H_dHdt_Akker_H0
+    REAL(dp)            :: bednudge_H_dHdt_Akker_tau
+    REAL(dp)            :: bednudge_H_dHdt_Akker_lowerHb
+    REAL(dp)            :: bednudge_H_dHdt_Akker_upperHb
+    REAL(dp)            :: bednudge_H_dHdt_Akker_minCr
+    REAL(dp)            :: bednudge_H_dHdt_Akker_maxCr
+    REAL(dp)            :: bednudge_H_dHdt_Akker_r
 
   ! == Geothermal heat flux
   ! =======================
@@ -2861,6 +2879,13 @@ CONTAINS
       bednudge_H_u_flowline_u_scale_config                        , &
       bednudge_H_u_flowline_tau_config                            , &
       bednudge_H_u_flowline_L_config                              , &
+      bednudge_H_dHdt_Akker_H0_config                             , &
+      bednudge_H_dHdt_Akker_tau_config                            , &
+      bednudge_H_dHdt_Akker_lowerHb_config                        , &
+      bednudge_H_dHdt_Akker_upperHb_config                        , &
+      bednudge_H_dHdt_Akker_minCr_config                          , &
+      bednudge_H_dHdt_Akker_maxCr_config                          , &
+      bednudge_H_dHdt_Akker_r_config                              , &
       choice_geothermal_heat_flux_config                          , &
       uniform_geothermal_heat_flux_config                         , &
       filename_geothermal_heat_flux_config                        , &
@@ -3812,6 +3837,15 @@ CONTAINS
     C%bednudge_H_u_flowline_u_scale                          = bednudge_H_u_flowline_u_scale_config
     C%bednudge_H_u_flowline_tau                              = bednudge_H_u_flowline_tau_config
     C%bednudge_H_u_flowline_L                                = bednudge_H_u_flowline_L_config
+
+    ! Bed roughness nudging model based on local values of H and dH/dt (i.e. Akker et al. method)
+    C%bednudge_H_dHdt_Akker_H0                              = bednudge_H_dHdt_Akker_H0_config
+    C%bednudge_H_dHdt_Akker_tau                             = bednudge_H_dHdt_Akker_tau_config
+    C%bednudge_H_dHdt_Akker_lowerHb                         = bednudge_H_dHdt_Akker_lowerHb_config
+    C%bednudge_H_dHdt_Akker_upperHb                         = bednudge_H_dHdt_Akker_upperHb_config
+    C%bednudge_H_dHdt_Akker_minCr                           = bednudge_H_dHdt_Akker_minCr_config
+    C%bednudge_H_dHdt_Akker_maxCr                           = bednudge_H_dHdt_Akker_maxCr_config
+    C%bednudge_H_dHdt_Akker_r                               = bednudge_H_dHdt_Akker_r_config
 
   ! == Geothermal heat flux
   ! =======================
