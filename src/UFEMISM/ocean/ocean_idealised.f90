@@ -49,6 +49,8 @@ CONTAINS
         ! No need to do anything
       CASE ('LINEAR')
         ! No need to do anything
+      CASE ('AMUNDSEN_SEA')
+        ! No need to do anything
     END SELECT
 
     ! Finalise routine path
@@ -87,6 +89,8 @@ CONTAINS
         CALL initialise_ocean_model_idealised_TANH( mesh, ocean)
       CASE ('LINEAR')
         CALL initialise_ocean_model_idealised_LINEAR( mesh, ocean)
+      CASE ('AMUNDSEN_SEA')
+        CALL initialise_ocean_model_idealised_AMUNDSEN_SEA( mesh, ocean)
     END SELECT
 
     ! Finalise routine path
@@ -221,5 +225,59 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE initialise_ocean_model_idealised_LINEAR
+
+  ! == IDEALISED AMUNDSEN SEA ==
+  ! ============
+
+  SUBROUTINE initialise_ocean_model_idealised_AMUNDSEN_SEA( mesh, ocean)
+    ! Same profile as Paul used for his runs
+    ! From 0 - 300 m depth: 34 PSU, -1.0 degC
+    ! From 700 - deep: 34.7 PSU, 1.2 degC
+    ! In between these layers: a linear increase in temperature and salinity
+
+    IMPLICIT NONE
+
+    TYPE(type_mesh),                      INTENT(IN)    :: mesh
+    TYPE(type_ocean_model),               INTENT(INOUT) :: ocean
+
+    ! Local variables:
+    CHARACTER(LEN=256), PARAMETER                       :: routine_name = 'initialise_ocean_model_idealised_AMUNDSEN_SEA'
+    INTEGER                                             :: vi
+    INTEGER                                             :: k
+    REAL(dp), PARAMETER                                 :: S0 = 34.0_dp    ! [PSU]  Surface salinity
+    REAL(dp), PARAMETER                                 :: T0 = -1.0_dp    ! [deg C]  Surface temperature
+    REAL(dp), PARAMETER                                 :: S1 = 34.7_dp    ! [PSU]  Surface salinity
+    REAL(dp), PARAMETER                                 :: T1 = 1.2_dp    ! [deg C]  Surface temperature
+
+    ! Add routine to path
+    CALL init_routine( routine_name)
+
+    DO vi = mesh%vi1, mesh%vi2
+      DO k = 1, C%nz_ocean
+
+        ! Surface layer
+        IF (C%z_ocean( k) <= 300.0_dp ) THEN 
+          ocean%T( vi, k) = T0
+          ocean%S( vi, k) = S0
+
+        ! Intermediate layer (thermocline), linearly increase temperature and salinity
+        ELSEIF (C%z_ocean( k) > 300.0_dp  .AND. C%z_ocean( k) < 700.0_dp) THEN 
+          ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-300._dp)/400._dp
+          ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-300._dp)/400._dp
+
+        ! Deep layer
+        ELSEIF (C%z_ocean( k) >= 700.0_dp) THEN 
+          ocean%T( vi, k) = T1
+          ocean%S( vi, k) = S1
+
+        END IF
+
+      END DO
+    END DO
+
+    ! Finalise routine path
+    CALL finalise_routine( routine_name)
+
+  END SUBROUTINE initialise_ocean_model_idealised_AMUNDSEN_SEA
 
 END MODULE ocean_idealised
