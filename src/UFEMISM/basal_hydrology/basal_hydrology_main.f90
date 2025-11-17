@@ -132,9 +132,15 @@ contains
     call init_routine( routine_name)
 
     do vi = mesh%vi1, mesh%vi2
-      ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-      effective_pressure_max = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
-      ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/effective_pressure_max)*effective_pressure_max
+        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+        effective_pressure_max = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
+        
+        if (effective_pressure_max == 0._dp) then
+          ice%effective_pressure( vi)  = 0.0_dp
+        else
+          ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/effective_pressure_max)*effective_pressure_max
+        end if
+
     end do
 
     ! Finalise routine path
