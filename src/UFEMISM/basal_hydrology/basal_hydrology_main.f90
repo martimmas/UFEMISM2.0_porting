@@ -49,6 +49,7 @@ contains
         ice%effective_pressure(  vi) = max( 0._dp, ice%overburden_pressure( vi) - ice%pore_water_pressure( vi))
       end do
     case ('Leguy2014')  
+      call calc_pore_water_pressure_none( mesh, ice)
       call calc_effective_pressure_Leguy2014(mesh, ice)
     case ('error_function')  
       call calc_pore_water_pressure_Martin2011( mesh, ice)   ! we need that for the maximum inland effective pressure
@@ -158,9 +159,13 @@ contains
     call init_routine( routine_name)
 
     do vi = mesh%vi1, mesh%vi2
-      ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-      Hi_f = max(0._dp, - seawater_density/ice_density * ice%Hb( vi))
-      ice%effective_pressure( vi) = ice%overburden_pressure( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
+      if (ice%Hi_eff( vi) == 0._dp) then ! prevent division by zero
+        ice%effective_pressure( vi) = 0.0_dp
+      else
+        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+        Hi_f = max(0._dp, - seawater_density/ice_density * ice%Hb( vi))
+        ice%effective_pressure( vi) = ice%overburden_pressure( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
+      end if
     end do
 
     ! Finalise routine path
