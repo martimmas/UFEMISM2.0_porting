@@ -74,6 +74,15 @@ contains
         ! do nothing, keep the same mask as initialised
       end if
     end if
+
+    ! if retreat mask wants to be applied only to previous open ocean masks
+    if (C%retreat_mask_applied_only_to_open_ocean) then
+      do vi = mesh%vi1, mesh%vi2
+        if (.not. ice%mask_icefree_ocean(vi)) then
+          climate%ISMIP_style%shelf_collapse_mask( vi) = 0.0_dp
+        end if
+      end do
+    end if
     
     call sync
 
