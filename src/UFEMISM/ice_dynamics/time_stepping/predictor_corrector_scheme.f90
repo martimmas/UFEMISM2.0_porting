@@ -41,7 +41,7 @@ contains
     real(dp)                                             :: dt_crit_adv
     integer                                              :: pc_it
     real(dp), dimension(region%mesh%vi1:region%mesh%vi2) :: Hi_dummy
-    integer                                              :: vi, n_guilty, n_tot, fi
+    integer                                              :: vi, n_guilty, n_tot
     integer                                              :: n_visc_its
     integer                                              :: n_Axb_its
     integer                                              :: ierr
@@ -77,30 +77,6 @@ contains
 
     region%ice%pc%dt_np1 = MIN( region%ice%pc%dt_np1, dt_crit_adv)
 
-    ! == Ice masks for domain or for calving thresholds ==
-    ! ====================================================
-
-    ! Apply no ice mask and assure ice thinning rate is zero where Hi_prev = 0
-    do vi = region%mesh%vi1, region%mesh%vi2
-      if (region%ice%mask_noice( vi)) then
-        region%ice%Hi_prev( vi) = 0._dp
-        region%ice%dHi_dt(vi)  = 0._dp
-      end if
-        !region%ice%dHi_dt( vi)  = 0._dp
-      !if (region%ice%Hi_prev(vi) < 1e-10_dp) then
-      !   region%ice%dHi_dt(vi)  = 0._dp
-      !end if
-    end do
-
-    ! Update masks
-    call determine_masks( region%mesh, region%ice)
-
-      ! Update sub-grid grounded fractions
-    call calc_grounded_fractions( region%mesh, region%ice)
-
-      ! Update effective ice thickness
-    call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
-
     ! == Time step iteration: if, at the end of the PC timestep, the truncation error
     !    turns out to be too large, run it again with a smaller dt, until the truncation
     !    decreases to below the specified tolerance
@@ -125,25 +101,14 @@ contains
 
       ! Calculate thinning rates for current geometry and velocity
       call calc_dHi_dt( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%u_vav_b, region%ice%v_vav_b, region%SMB%SMB, region%BMB%BMB, region%LMB%LMB, region%AMB%AMB, region%ice%fraction_margin, &
-                       region%ice%mask_noice, region%ice%pc%dt_np1, region%ice%pc%dHi_dt_Hi_n_u_n, Hi_dummy, region%ice%divQ, region%ice%dHi_dt_target)
+                        region%ice%mask_noice, region%ice%pc%dt_np1, region%ice%pc%dHi_dt_Hi_n_u_n, Hi_dummy, region%ice%divQ, region%ice%dHi_dt_target)
 
-      ! Making sure no ice vertices have non-zero thinning rates
-      !do vi = region%mesh%vi1, region%mesh%vi2
-      !  if (region%ice%Hi_prev(vi) < 1e-10_dp) region%ice%pc%dHi_dt_Hi_n_u_n( vi) = 0._dp
-      !end do
-
-      do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_noice( vi)) then
-          region%ice%pc%dHi_dt_Hi_n_u_n(vi)  = 0._dp
-        end if
-      end do
-      
       ! Calculate predicted ice thickness (Robinson et al., 2020, Eq. 30)
       region%ice%pc%Hi_star_np1 = region%ice%Hi_prev + region%ice%pc%dt_np1 * ((1._dp + region%ice%pc%zeta_t / 2._dp) * &
         region%ice%pc%dHi_dt_Hi_n_u_n - (region%ice%pc%zeta_t / 2._dp) * region%ice%pc%dHi_dt_Hi_nm1_u_nm1)
 
       ! if so desired, modify the predicted ice thickness field based on user-defined settings
-      !call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_star_np1, region%refgeo_PD, region%time)
+      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_star_np1, region%refgeo_PD, region%time)
 
       ! Adjust the predicted dHi_dt to compensate for thickness modifications
       ! This is just Robinson et al., 2020, Eq 30 above rearranged to retrieve
@@ -213,13 +178,6 @@ contains
       call calc_dHi_dt( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%u_vav_b, region%ice%v_vav_b, region%SMB%SMB, region%BMB%BMB, region%LMB%LMB, region%AMB%AMB, region%ice%fraction_margin, &
                         region%ice%mask_noice, region%ice%pc%dt_np1, region%ice%pc%dHi_dt_Hi_star_np1_u_np1, Hi_dummy, region%ice%divQ, region%ice%dHi_dt_target)
 
-      ! Making sure no ice vertices have non-zero thinning rates
-      do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_noice( vi)) then
-          region%ice%pc%dHi_dt_Hi_star_np1_u_np1(vi)  = 0._dp
-        end if
-      end do
-
       ! Calculate corrected ice thickness (Robinson et al. (2020), Eq. 31)
       region%ice%pc%Hi_np1 = region%ice%Hi_prev + (region%ice%pc%dt_np1 / 2._dp) * (region%ice%pc%dHi_dt_Hi_n_u_n + region%ice%pc%dHi_dt_Hi_star_np1_u_np1)
 
@@ -227,8 +185,8 @@ contains
       region%ice%dHi_dt_raw = (region%ice%pc%Hi_np1 - region%ice%Hi_prev) / region%ice%pc%dt_np1
 
       ! if so desired, modify the corrected ice thickness field based on user-defined settings
-     ! call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_np1, region%refgeo_PD, region%time)
-      
+      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_np1, region%refgeo_PD, region%time)
+
       ! Adjust the predicted dHi_dt to compensate for thickness modifications
       ! This is just Robinson et al., 2020, Eq 31 above rearranged to retrieve
       ! an updated dHi_dt_Hi_star_np1_u_np1 from the modified Hi_np1. if no ice
@@ -301,26 +259,10 @@ contains
     ! == Final quantities
     ! ===================
 
-    call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_np1, region%refgeo_PD, region%time)
-    
     ! Set next modelled ice thickness
     region%ice%t_Hi_next = region%ice%t_Hi_prev + region%ice%pc%dt_np1
     region%ice%Hi_next   = region%ice%pc%Hi_np1
-    
-    do vi = region%mesh%vi1, region%mesh%vi2
-      if (region%ice%Hi_next(vi) < 0._dp) then
-        call crash( '142 Negative ice thickness detected in PC scheme initialisation at vertex {int_01}: Hi_prev = {dp_01}', int_01 = vi, dp_01 = region%ice%Hi_prev( vi))
-      end if
-    end do
 
-    #if (DO_ASSERTIONS)
-      ! Safety
-      do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%Hi_next(vi) < 0._dp) then
-          call crash('Hi became negatif in the PC scheme with a value of', region%ice%Hi_next(vi), 'at vertex', vi)
-        end if
-    #endif
-    
     ! Finalise routine path
     call finalise_routine( routine_name)
 
