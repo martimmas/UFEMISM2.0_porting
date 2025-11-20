@@ -165,16 +165,22 @@ contains
     call init_routine( routine_name)
 
     do vi = mesh%vi1, mesh%vi2
-      if (ice%Hi_eff( vi) == 0._dp) then ! prevent division by zero
-        ice%effective_pressure( vi) = 0.0_dp
-      else
-        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
-        Hi_f = max(0._dp, - seawater_density/ice_density * ice%Hb( vi))
-        if (Hi_f == 0._dp) then
+      ! check if ice is grounded first
+      if (ice%mask_grounded_ice( vi) .eqv. .TRUE.) then
+         ! prevent division by zero
+        if (ice%Hi_eff( vi) == 0._dp) then
           ice%effective_pressure( vi) = 0.0_dp
         else
-          ice%effective_pressure( vi) = ice%overburden_pressure( vi) * (1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent
+          ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+          Hi_f = max(0._dp, - seawater_density/ice_density * ice%Hb( vi))
+          ! if (Hi_f == 0._dp) then
+          !   ice%effective_pressure( vi) = 0.0_dp
+          ! else
+          ice%effective_pressure( vi) = ice%overburden_pressure( vi) * ((1 - Hi_f/ice%Hi_eff( vi)) ** C%Leguy2014_hydro_connect_exponent)
+          ! end if
         end if
+      else
+        ice%effective_pressure( vi) = 0.0_dp
       end if
     end do
 
