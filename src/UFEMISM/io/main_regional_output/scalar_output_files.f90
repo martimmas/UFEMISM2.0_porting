@@ -151,11 +151,11 @@ contains
     call add_time_dimension_to_file( filename, ncid)
 
     ! Integrated ice geometry
-    call add_field_dp_0D( filename, ncid, 'ice_area',          long_name = 'Total ice area', units = 'm^2')
+    call add_field_dp_0D( filename, ncid, 'ice_area',          long_name = 'Total ice area', units = 'km^2')
     call add_field_dp_0D( filename, ncid, 'ice_volume',        long_name = 'Total ice volume', units = 'm s.l.e.')
     call add_field_dp_0D( filename, ncid, 'ice_volume_af',     long_name = 'Total ice volume above floatation', units = 'm s.l.e.')
 
-    call add_field_dp_0D( filename, ncid, 'ice_area_PD',       long_name = 'Total ice area for present-day', units = 'm^2')
+    call add_field_dp_0D( filename, ncid, 'ice_area_PD',       long_name = 'Total ice area for present-day', units = 'km^2')
     call add_field_dp_0D( filename, ncid, 'ice_volume_PD',     long_name = 'Total ice volume for present-day', units = 'm s.l.e.')
     call add_field_dp_0D( filename, ncid, 'ice_volume_af_PD',  long_name = 'Total ice volume above floatation for present-day', units = 'm s.l.e.')
 
