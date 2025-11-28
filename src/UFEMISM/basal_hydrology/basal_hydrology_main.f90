@@ -51,9 +51,11 @@ contains
     case ('Leguy2014')  
       call calc_pore_water_pressure_none( mesh, ice)
       call calc_effective_pressure_Leguy2014(mesh, ice)
-    case ('error_function')  
+    case ('error_function_Martin2011')
       call calc_pore_water_pressure_Martin2011( mesh, ice)   ! we need that for the maximum inland effective pressure
-      call calc_effective_pressure_error_function(mesh, ice)
+      call calc_effective_pressure_error_function_M11(mesh, ice)
+    case ('error_function_constant')
+      call calc_effective_pressure_error_function_constant(mesh, ice)  
     end select
 
     ! Finalise routine path
@@ -116,7 +118,7 @@ contains
 
   end subroutine calc_pore_water_pressure_Martin2011
 
-  subroutine calc_effective_pressure_error_function( mesh, ice)
+  subroutine calc_effective_pressure_error_function_M11( mesh, ice)
     ! Calculate pore water pressure as an error function
 
     ! In/output variables:
@@ -124,7 +126,7 @@ contains
     type(type_ice_model), intent(inout) :: ice
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_effective_pressure_error_function'
+    character(len=1024), parameter :: routine_name = 'calc_effective_pressure_error_function_M11'
     integer                        :: vi
     real(dp)                       :: effective_pressure_max
 
@@ -146,7 +148,7 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_effective_pressure_error_function
+  end subroutine calc_effective_pressure_error_function_M11
     
 
   subroutine calc_effective_pressure_Leguy2014(mesh, ice)
@@ -187,5 +189,29 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
   end subroutine calc_effective_pressure_Leguy2014
+
+  subroutine calc_effective_pressure_error_function_constant( mesh, ice)
+    ! Calculate pore water pressure as an error function
+
+    ! In/output variables:
+    type(type_mesh),      intent(in   ) :: mesh
+    type(type_ice_model), intent(inout) :: ice
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'calc_effective_pressure_error_function_constant'
+    integer                        :: vi
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    do vi = mesh%vi1, mesh%vi2
+        ice%overburden_pressure( vi) = ice_density * grav * ice%Hi_eff( vi)
+        ice%effective_pressure(  vi) = error_function(ice%overburden_pressure( vi)*sqrt(pi)/2._dp/C%error_function_max_effective_pressure)*C%error_function_max_effective_pressure
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine calc_effective_pressure_error_function_constant
 
 end module basal_hydrology_main
