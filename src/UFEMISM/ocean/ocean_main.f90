@@ -18,6 +18,7 @@ MODULE ocean_main
   USE ocean_realistic                                        , ONLY: initialise_ocean_model_realistic, run_ocean_model_realistic, remap_ocean_model_realistic
   USE ocean_idealised                                        , ONLY: initialise_ocean_model_idealised, run_ocean_model_idealised
   use netcdf_io_main
+  use ocean_snapshot_nudge2D, only: initialise_ocean_model_snapshot_nudge2D, run_ocean_model_snapshot_nudge2D
 
   IMPLICIT NONE
 
@@ -82,15 +83,18 @@ CONTAINS
     END IF
 
     ! Run the chosen ocean model
-    IF (choice_ocean_model == 'none') THEN
+    select case( choice_ocean_model)
+    case default
+      call crash('unknown choice_ocean_model "' // trim( choice_ocean_model) // '"')
+    case( 'none')
       ! No need to do anything
-    ELSEIF (choice_ocean_model == 'idealised') THEN
-      CALL run_ocean_model_idealised( mesh, ice, ocean)
-    ELSEIF (choice_ocean_model == 'realistic') THEN
-      CALL run_ocean_model_realistic( mesh, ice, ocean, time)
-    ELSE
-      CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
-    END IF
+    case( 'idealised')
+      call run_ocean_model_idealised( mesh, ice, ocean)
+    case( 'realistic')
+      call run_ocean_model_realistic( mesh, ice, ocean, time)
+    case( 'snapshot+nudge2D')
+      call run_ocean_model_snapshot_nudge2D( mesh, ice, ocean%snapshot_nudge2D, region_name)
+    end select
 
     ! Compute secondary variables
     CALL calc_ocean_temperature_at_shelf_base(    mesh, ice, ocean)
@@ -151,20 +155,21 @@ CONTAINS
     ocean%T_draft          = 0._dp
     ocean%T_freezing_point = 0._dp
 
-
     ! Set time of next calculation to start time
     ocean%t_next = C%start_time_of_run
 
     ! Determine which ocean model to initialise
-    IF     (choice_ocean_model == 'none') THEN
-      ! No need to do anything
-    ELSEIF (choice_ocean_model == 'idealised') THEN
-      CALL initialise_ocean_model_idealised( mesh, ocean)
-    ELSEIF (choice_ocean_model == 'realistic') THEN
-      CALL initialise_ocean_model_realistic( mesh, ice, ocean, region_name, start_time_of_run)
-    ELSE
-      CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
-    END IF
+    select case( choice_ocean_model)
+    case default
+      call crash('unknown choice_ocean_model "' // trim( choice_ocean_model) // '"')
+    case( 'none')
+    case( 'idealised')
+      call initialise_ocean_model_idealised( mesh, ocean)
+    case( 'realistic')
+      call initialise_ocean_model_realistic( mesh, ice, ocean, region_name, start_time_of_run)
+    case( 'snapshot+nudge2D')
+      call initialise_ocean_model_snapshot_nudge2D( mesh, ocean%snapshot_nudge2D, region_name)
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -415,7 +420,7 @@ CONTAINS
     select case (choice_ocean_model)
       case ('none')
         ! No need to do anything
-      case ('idealised')  
+      case ('idealised')
         call initialise_ocean_model_idealised( mesh_new, ocean)
       case ('realistic')
         call remap_ocean_model_realistic( mesh_old, mesh_new, ice, ocean, region_name, time)
