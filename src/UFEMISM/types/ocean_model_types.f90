@@ -58,6 +58,7 @@ MODULE ocean_model_types
     real(dp), dimension(:,:  ), allocatable :: T_ref, S_ref               ! Reference 3-D ocean snapshot on the model mesh
     real(dp), dimension(:    ), allocatable :: deltaT_nudge               ! 2-D temperature nudging term on the model mesh
     real(dp), dimension(:,:  ), allocatable :: T, S                       ! Applied 3-D ocean snapshot on the model mesh
+    real(dp), dimension(:    ), allocatable :: deltaT_nudge_grid          ! 2-D temperature nudging term on the original grid (in vectorised form)
     real(dp), dimension(:,:  ), allocatable :: T_grid, S_grid             ! Applied 3-D ocean snapshot on the original grid (in vectorised form)
     character(len=1024)                     :: output_filename            ! Filename for output file with nudged snapshot on the original grid
 

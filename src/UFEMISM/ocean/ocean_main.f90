@@ -93,7 +93,7 @@ CONTAINS
     case( 'realistic')
       call run_ocean_model_realistic( mesh, ice, ocean, time)
     case( 'snapshot+nudge2D')
-      call run_ocean_model_snapshot_nudge2D( mesh, ice, ocean%snapshot_nudge2D, region_name)
+      call run_ocean_model_snapshot_nudge2D( mesh, ice, ocean)
     end select
 
     ! Compute secondary variables
