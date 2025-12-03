@@ -78,7 +78,6 @@ CONTAINS
         CALL read_field_from_file_2D( filename_BMB_laddie_output, 'BMBext', mesh, C%output_dir, temporary_BMB)
 
         DO vi = mesh%vi1, mesh%vi2
-          do i_ROI = 1, ice%nROI
             IF (ice%mask_ROI(vi) > 0) THEN
               ! Initialise all values in ROI at zero
               BMB%BMB( vi) = 0._dp
@@ -90,7 +89,6 @@ CONTAINS
               END IF
 
             END IF
-          end do
         END DO
 
       ELSE
@@ -107,7 +105,6 @@ CONTAINS
         CALL read_field_from_file_2D( C%filename_BMB_laddie_initial_output, 'BMBext', mesh, C%output_dir, temporary_BMB)
 
         DO vi = mesh%vi1, mesh%vi2
-          do i_ROI = 1, ice%nROI
             IF (ice%mask_ROI(vi) > 0) THEN
               ! Initialise all values in ROI at zero
               BMB%BMB( vi) = 0._dp
@@ -119,7 +116,6 @@ CONTAINS
               END IF
 
             END IF
-          end do
         END DO
 
       ELSE
