@@ -7,6 +7,7 @@ MODULE ocean_model_types
 
   USE precisions                                             , ONLY: dp
   use grid_types, only: type_grid
+  use reference_geometry_types, only: type_reference_geometry
 
   IMPLICIT NONE
 
@@ -51,16 +52,19 @@ MODULE ocean_model_types
 
   type type_ocean_model_snapshot_nudge2D
 
+    type(type_reference_geometry)           :: target_geometry            !< The geometry that the BMB inversion should aim to reproduce
+    logical,  dimension(:    ), allocatable :: target_mask_shelf          !< Shelf mask of the target geometry
+
     type(type_grid)                         :: grid_ref
     integer                                 :: ndepth_ref
     real(dp), dimension(:    ), allocatable :: depth_ref
-    real(dp), dimension(:,:  ), allocatable :: T_ref_grid, S_ref_grid     ! Reference 3-D ocean snapshot on its original grid (in vectorised form)
-    real(dp), dimension(:,:  ), allocatable :: T_ref, S_ref               ! Reference 3-D ocean snapshot on the model mesh
-    real(dp), dimension(:    ), allocatable :: deltaT_nudge               ! 2-D temperature nudging term on the model mesh
-    real(dp), dimension(:,:  ), allocatable :: T, S                       ! Applied 3-D ocean snapshot on the model mesh
-    real(dp), dimension(:    ), allocatable :: deltaT_nudge_grid          ! 2-D temperature nudging term on the original grid (in vectorised form)
-    real(dp), dimension(:,:  ), allocatable :: T_grid, S_grid             ! Applied 3-D ocean snapshot on the original grid (in vectorised form)
-    character(len=1024)                     :: output_filename            ! Filename for output file with nudged snapshot on the original grid
+    real(dp), dimension(:,:  ), allocatable :: T_ref_grid, S_ref_grid     !< Reference 3-D ocean snapshot on its original grid (in vectorised form)
+    real(dp), dimension(:,:  ), allocatable :: T_ref, S_ref               !< Reference 3-D ocean snapshot on the model mesh
+    real(dp), dimension(:    ), allocatable :: deltaT_nudge               !< 2-D temperature nudging term on the model mesh
+    real(dp), dimension(:,:  ), allocatable :: T, S                       !< Applied 3-D ocean snapshot on the model mesh
+    real(dp), dimension(:    ), allocatable :: deltaT_nudge_grid          !< 2-D temperature nudging term on the original grid (in vectorised form)
+    real(dp), dimension(:,:  ), allocatable :: T_grid, S_grid             !< Applied 3-D ocean snapshot on the original grid (in vectorised form)
+    character(len=1024)                     :: output_filename            !< Filename for output file with nudged snapshot on the original grid
 
   end type type_ocean_model_snapshot_nudge2D
 

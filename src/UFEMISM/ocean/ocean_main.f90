@@ -11,6 +11,7 @@ MODULE ocean_main
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
+  use grid_types, only: type_grid
   USE ice_model_types                                        , ONLY: type_ice_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
   USE reallocate_mod                                         , ONLY: reallocate_bounds
@@ -19,6 +20,7 @@ MODULE ocean_main
   USE ocean_idealised                                        , ONLY: initialise_ocean_model_idealised, run_ocean_model_idealised
   use netcdf_io_main
   use ocean_snapshot_nudge2D, only: initialise_ocean_model_snapshot_nudge2D, run_ocean_model_snapshot_nudge2D
+  use reference_geometry_types, only: type_reference_geometry
 
   IMPLICIT NONE
 
@@ -27,13 +29,14 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  SUBROUTINE run_ocean_model( mesh, ice, ocean, region_name, time)
+  SUBROUTINE run_ocean_model( mesh, grid_smooth, ice, ocean, region_name, time)
     ! Calculate the ocean
 
     IMPLICIT NONE
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
+    type(type_grid),                        intent(in   ) :: grid_smooth
     TYPE(type_ice_model),                   INTENT(IN)    :: ice
     TYPE(type_ocean_model),                 INTENT(INOUT) :: ocean
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
@@ -93,7 +96,7 @@ CONTAINS
     case( 'realistic')
       call run_ocean_model_realistic( mesh, ice, ocean, time)
     case( 'snapshot+nudge2D')
-      call run_ocean_model_snapshot_nudge2D( mesh, ice, ocean)
+      call run_ocean_model_snapshot_nudge2D( mesh, grid_smooth, ice, ocean, time)
     end select
 
     ! Compute secondary variables
@@ -105,7 +108,7 @@ CONTAINS
 
   END SUBROUTINE run_ocean_model
 
-  SUBROUTINE initialise_ocean_model( mesh, ice, ocean, region_name, start_time_of_run)
+  SUBROUTINE initialise_ocean_model( mesh, ice, ocean, region_name, start_time_of_run, refgeo_PD, refgeo_init)
     ! Initialise the ocean model
 
     IMPLICIT NONE
@@ -116,6 +119,7 @@ CONTAINS
     TYPE(type_ocean_model),                 INTENT(OUT)   :: ocean
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: start_time_of_run
+    type(type_reference_geometry),          intent(in   ) :: refgeo_PD, refgeo_init
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_ocean_model'
@@ -168,7 +172,7 @@ CONTAINS
     case( 'realistic')
       call initialise_ocean_model_realistic( mesh, ice, ocean, region_name, start_time_of_run)
     case( 'snapshot+nudge2D')
-      call initialise_ocean_model_snapshot_nudge2D( mesh, ocean%snapshot_nudge2D, region_name)
+      call initialise_ocean_model_snapshot_nudge2D( mesh, ocean%snapshot_nudge2D, region_name, refgeo_PD, refgeo_init)
     end select
 
     ! Finalise routine path
@@ -208,15 +212,14 @@ CONTAINS
     END IF
 
     ! Write to the restart file of the chosen ocean model
-    IF     (choice_ocean_model == 'none') THEN
+    select case(choice_ocean_model)
+    case default
+      call crash('unknown choice_ocean_model "' // trim( choice_ocean_model) // '"')
+    case( 'none', 'idealised', 'snapshot+nudge2D')
       ! No need to do anything
-    ELSEIF (choice_ocean_model == 'idealised') THEN
-      ! No need to do anything
-    ELSEIF (choice_ocean_model == 'realistic') THEN
+    case( 'realistic')
       CALL write_to_restart_file_ocean_model_region( mesh, ocean, region_name, time)
-    ELSE
-      CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
-    END IF
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -300,15 +303,14 @@ CONTAINS
     END IF
 
     ! Create the restart file of the chosen ocean model
-    IF     (choice_ocean_model == 'none') THEN
+    select case(choice_ocean_model)
+    case default
+      call crash('unknown choice_ocean_model "' // trim( choice_ocean_model) // '"')
+    case( 'none', 'idealised', 'snapshot+nudge2D')
       ! No need to do anything
-    ELSEIF (choice_ocean_model == 'idealised') THEN
-      ! No need to do anything
-    ELSEIF (choice_ocean_model == 'realistic') THEN
-      CALL create_restart_file_ocean_model_region( mesh, ocean, region_name)
-    ELSE
-      CALL crash('unknown choice_ocean_model "' // TRIM( choice_ocean_model) // '"')
-    END IF
+    case( 'realistic')
+      call create_restart_file_ocean_model_region( mesh, ocean, region_name)
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
