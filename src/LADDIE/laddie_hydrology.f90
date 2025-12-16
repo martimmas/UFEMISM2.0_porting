@@ -125,9 +125,10 @@ CONTAINS
        print*, 'p_tran=', p
        call find_containing_vertex( mesh, p, index_point)
        print*, 'p_mesh=', mesh%V(index_point, :)
+       print*, 'index_point=', index_point
        
        ! Save index_points of mesh to transect type
-       ! transect%index_point(vi) = index_point
+       transect%index_point( vi) = index_point
        
     end do
 

@@ -56,7 +56,7 @@ module transect_types
     character(len=1024)                   :: name
     real(dp)                              :: dx
     real(dp)                              :: flux_strength
-    integer, dimension(: ), allocatable   :: index_point
+    integer, dimension(1000 )  :: index_point
 
     integer                               :: nV, vi1, vi2, nV_loc
     real(dp), dimension(:,:), allocatable :: V

@@ -15,7 +15,7 @@ MODULE laddie_physics
   use laddie_forcing_types, only: type_laddie_forcing
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use checksum_mod, only: checksum
-
+  use transect_types  
   IMPLICIT NONE
 
 CONTAINS
@@ -178,49 +178,78 @@ CONTAINS
 
   END SUBROUTINE compute_entrainment
 
-  ! SUBROUTINE compute_SGD_at_transects( mesh, laddie, forcing)
-  ! ! Compute subglacial discharge (SGD)
-  ! ! TODO clean up routine; avoid so many if statements
-  ! ! TODO allow option to read in SGD mask from file
+  SUBROUTINE compute_SGD_at_transects( mesh, laddie, forcing)
+  ! Compute subglacial discharge (SGD)
+  ! TODO clean up routine; avoid so many if statements
+  ! TODO allow option to read in SGD mask from file
 
-  !   ! In- and output variables
+    ! In- and output variables
 
-  !   TYPE(type_mesh),                        INTENT(IN)    :: mesh
-  !   TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
-  !   type(type_laddie_forcing),              intent(in)    :: forcing
+    TYPE(type_mesh),                        INTENT(IN)    :: mesh
+    TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
+    type(type_laddie_forcing),              intent(in)    :: forcing
 
-  !   ! Local variables:
-  !   CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
-  !   INTEGER                                               :: vi, ierr
-  !   REAL(dp)                                              :: total_area 
+    ! Local variables:
+    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
+    INTEGER                                               :: vi, ierr, it, vi_trans
+    REAL(dp)                                              :: total_area 
+    type(type_transect) :: transect
 
-  !   ! Add routine to path
-  !   CALL init_routine( routine_name)
+    ! Add routine to path
+    CALL init_routine( routine_name)
     
-  !   ! Initialise total_area (the area over which the SGD will be distributed) at zero
-  !   total_area = 0._dp
+    ! Initialise total_area (the area over which the SGD will be distributed) at zero
+    total_area = 0._dp
 
-  !   ! Initialise SGD at zero
-  !   laddie%SGD = 0._dp
+    ! Initialise SGD at zero
+    laddie%SGD = 0._dp
 
-  !   trans_vi1 = forcing%transects%index_point(1)
-  !   trans_vi2 = forcing%transects%index_point(-1)
+    ! Loop over number of channels
+    DO it = 1, size(forcing%transects)
+      transect = forcing%transects(it)
+      print*, 'STARTING WITH TRANSECT', it, 'with name =', transect%name
+      ! Loop over vertices within that channel
+      DO vi_trans = transect%vi1, transect%vi2
+        vi = transect%index_point( vi_trans)
+        print*, 'vi=', vi
+        print*, 'mesh%V( vi,:)=', mesh%V( vi,:)
 
-  !   ! Determine total_area by looping over the vertices
-  !   DO vi_trans = forcing%transects%vi1, forcing%transects%vi2
-  !     vi = forcing%transects%index_point( vi_trans)
-  !     IF (laddie%mask_a( vi)) THEN
-  !       IF (forcing%mask_gl_fl( vi)) THEN
-  !         laddie%SGD( vi) = forcing%transects%flux_strength( vi_trans)
-  !         print*, 'SET SGD ON IN 1 CEL'
-  !       END IF
-  !     END IF 
-  !   END DO    
+        IF (forcing%mask_gl_fl( vi)) THEN
+          print*, 'flux_strength applied =', transect%flux_strength
 
-  !   ! Finalise routine path
-  !   CALL finalise_routine( routine_name)
+          laddie%SGD( vi) = transect%flux_strength
 
-  ! END SUBROUTINE compute_SGD_at_transects
+          print*, 'SET SGD ON IN 1 CEL'
+        END IF
+      END DO
+    END DO
+    ! index_point = 1
+    ! ! Find vertex in mesh that contains vertex in transect
+    ! do vi = transect%vi1, transect%vi2
+    !    p = transect%V(vi,:)
+    !    print*, 'p_tran=', p
+    !    call find_containing_vertex( mesh, p, index_point)
+    !    print*, 'p_mesh=', mesh%V(index_point, :)
+       
+    ! trans_vi1 = forcing%transects%index_point(1)
+    ! trans_vi2 = forcing%transects%index_point(-1)
+
+
+    ! ! Determine total_area by looping over the vertices
+    ! DO vi_trans = forcing%transects%vi1, forcing%transects%vi2
+    !   vi = forcing%transects%index_point( vi_trans)
+    !   IF (laddie%mask_a( vi)) THEN
+    !     IF (forcing%mask_gl_fl( vi)) THEN
+    !       laddie%SGD( vi) = forcing%transects%flux_strength( vi_trans)
+    !       print*, 'SET SGD ON IN 1 CEL'
+    !     END IF
+    !   END IF 
+    ! END DO    
+
+    ! Finalise routine path
+    CALL finalise_routine( routine_name)
+
+  END SUBROUTINE compute_SGD_at_transects
   
   SUBROUTINE compute_subglacial_discharge( mesh, laddie, forcing)
   ! Compute subglacial discharge (SGD)
