@@ -8,6 +8,7 @@ module laddie_forcing_types
   use precisions                                             , only: dp
   use CSR_sparse_matrix_type                                 , only: type_sparse_matrix_CSR_dp
   use mpi_f08, only: MPI_WIN
+  use transect_types, only: type_transect
 
   implicit none
 
@@ -40,6 +41,9 @@ module laddie_forcing_types
     type(MPI_WIN) :: wmask_icefree_land, wmask_icefree_ocean, wmask_grounded_ice, wmask_floating_ice, wmask_gl_fl, wmask_SGD, wmask
     type(MPI_WIN) :: wTi, wT_ocean, wS_ocean
     type(MPI_WIN) :: wf_coriolis
+
+    type(type_transect), dimension(:), allocatable :: transects
+    type(type_transect), dimension(:), allocatable :: SGD_transects
 
   end type type_laddie_forcing
 

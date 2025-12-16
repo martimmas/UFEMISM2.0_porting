@@ -40,7 +40,9 @@ module LADDIE_main_model
   use mesh_halo_exchange, only: exchange_halos
   use mesh_repartitioning, only: repartition_mesh
   use checksum_mod, only: checksum
-
+  use transects_main, only: initialise_transects, write_to_transect_netcdf_output_files
+  use laddie_hydrology
+  
   implicit none
 
 contains
@@ -145,6 +147,9 @@ contains
           ! Set SGD to zero
           laddie%SGD = 0._dp
         end if
+      case ('read_transects')
+        ! Compute SGD from transects
+        ! call compute_SGD_at_transects(mesh, laddie, forcing)
     end select
 
     ! Set values to zero if outside laddie mask

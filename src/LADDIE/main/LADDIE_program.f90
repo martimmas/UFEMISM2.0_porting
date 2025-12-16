@@ -41,6 +41,7 @@ program LADDIE_program
   use laddie_forcing_main, only: initialise_forcing
   use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
   use laddie_unit_tests, only: run_laddie_unit_tests
+  use laddie_hydrology
 
   implicit none
 
@@ -110,6 +111,12 @@ program LADDIE_program
     ! ==================================
 
     call initialise_forcing( mesh, forcing)
+
+    ! ==== !
+    ! FJFJ !
+    ! ==== !
+    ! Load waypoints into forcing%SGD_transects
+    call initialise_transects_SGD(mesh, forcing)
 
     ! == Initialise the model ==
     ! ==========================

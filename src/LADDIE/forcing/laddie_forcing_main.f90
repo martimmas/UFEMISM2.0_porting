@@ -119,7 +119,7 @@ contains
     call calc_mask_ROI( mesh, ice, 'ANT')
 
     ! Compute mask_SGD only at initialisation
-    call calc_mask_SGD( mesh, ice)
+    call calc_mask_SGD( mesh, ice) ! FJFJ
 
     ! Effective ice thickness
     ! =======================

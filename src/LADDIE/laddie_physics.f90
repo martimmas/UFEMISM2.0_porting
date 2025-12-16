@@ -178,6 +178,50 @@ CONTAINS
 
   END SUBROUTINE compute_entrainment
 
+  ! SUBROUTINE compute_SGD_at_transects( mesh, laddie, forcing)
+  ! ! Compute subglacial discharge (SGD)
+  ! ! TODO clean up routine; avoid so many if statements
+  ! ! TODO allow option to read in SGD mask from file
+
+  !   ! In- and output variables
+
+  !   TYPE(type_mesh),                        INTENT(IN)    :: mesh
+  !   TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
+  !   type(type_laddie_forcing),              intent(in)    :: forcing
+
+  !   ! Local variables:
+  !   CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
+  !   INTEGER                                               :: vi, ierr
+  !   REAL(dp)                                              :: total_area 
+
+  !   ! Add routine to path
+  !   CALL init_routine( routine_name)
+    
+  !   ! Initialise total_area (the area over which the SGD will be distributed) at zero
+  !   total_area = 0._dp
+
+  !   ! Initialise SGD at zero
+  !   laddie%SGD = 0._dp
+
+  !   trans_vi1 = forcing%transects%index_point(1)
+  !   trans_vi2 = forcing%transects%index_point(-1)
+
+  !   ! Determine total_area by looping over the vertices
+  !   DO vi_trans = forcing%transects%vi1, forcing%transects%vi2
+  !     vi = forcing%transects%index_point( vi_trans)
+  !     IF (laddie%mask_a( vi)) THEN
+  !       IF (forcing%mask_gl_fl( vi)) THEN
+  !         laddie%SGD( vi) = forcing%transects%flux_strength( vi_trans)
+  !         print*, 'SET SGD ON IN 1 CEL'
+  !       END IF
+  !     END IF 
+  !   END DO    
+
+  !   ! Finalise routine path
+  !   CALL finalise_routine( routine_name)
+
+  ! END SUBROUTINE compute_SGD_at_transects
+  
   SUBROUTINE compute_subglacial_discharge( mesh, laddie, forcing)
   ! Compute subglacial discharge (SGD)
   ! TODO clean up routine; avoid so many if statements
