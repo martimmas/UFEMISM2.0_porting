@@ -41,7 +41,7 @@ program LADDIE_program
   use laddie_forcing_main, only: initialise_forcing
   use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
   use laddie_unit_tests, only: run_laddie_unit_tests
-  use laddie_hydrology
+  use laddie_hydrology, only: initialise_transects_SGD
 
   implicit none
 
