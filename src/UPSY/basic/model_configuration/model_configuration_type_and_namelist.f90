@@ -842,7 +842,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_snow_config               = 0.85_dp
 
     ! Settings for the snapshot_plus_anomalies SMB model
-    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_config      = ''                               ! File containing the SMB+T2m snapshot (e.g. from a RACMO historical simulation)
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m_config  = ''                               ! File containing the T2m snapshot (e.g. from a RACMO historical simulation)
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB_config  = ''                               ! File containing the SMB snapshot (e.g. from a RACMO historical simulation)
     character(len=1024) :: SMB_snp_p_anml_filename_anomalies_config     = ''                               ! File containing the SMB+T2m anomalies (e.g. from a GCM projection)
 
   ! == Basal mass balance
@@ -2004,7 +2005,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_snow
 
     ! Settings for the snapshot_plus_anomalies SMB model
-    character(len=1024) :: SMB_snp_p_anml_filename_snapshot
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB
     character(len=1024) :: SMB_snp_p_anml_filename_anomalies
 
   ! == Basal mass balance
@@ -2906,7 +2908,8 @@ contains
       SMB_IMAUITM_albedo_soil_config                              , &
       SMB_IMAUITM_albedo_ice_config                               , &
       SMB_IMAUITM_albedo_snow_config                              , &
-      SMB_snp_p_anml_filename_snapshot_config                     , &
+      SMB_snp_p_anml_filename_snapshot_T2m_config                 , &
+      SMB_snp_p_anml_filename_snapshot_SMB_config                 , &
       SMB_snp_p_anml_filename_anomalies_config                    , &
       do_asynchronous_BMB_config                                  , &
       dt_BMB_config                                               , &
@@ -3982,7 +3985,8 @@ contains
     c%SMB_IMAUITM_albedo_snow                                = SMB_IMAUITM_albedo_snow_config
 
     ! Settings for the snapshot_plus_anomalies SMB model
-    C%SMB_snp_p_anml_filename_snapshot                       = SMB_snp_p_anml_filename_snapshot_config
+    C%SMB_snp_p_anml_filename_snapshot_T2m                   = SMB_snp_p_anml_filename_snapshot_T2m_config
+    C%SMB_snp_p_anml_filename_snapshot_SMB                   = SMB_snp_p_anml_filename_snapshot_SMB_config
     C%SMB_snp_p_anml_filename_anomalies                      = SMB_snp_p_anml_filename_anomalies_config
 
     ! == Basal mass balance
