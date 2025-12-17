@@ -179,72 +179,37 @@ CONTAINS
   END SUBROUTINE compute_entrainment
 
   SUBROUTINE compute_SGD_at_transects( mesh, laddie, forcing)
-  ! Compute subglacial discharge (SGD)
-  ! TODO clean up routine; avoid so many if statements
-  ! TODO allow option to read in SGD mask from file
+  ! Compute subglacial discharge (SGD) at intersect between SGD_transect and grounding line
 
     ! In- and output variables
-
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
     TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
-    type(type_laddie_forcing),              intent(in)    :: forcing
+    TYPE(type_laddie_forcing),              intent(IN)    :: forcing
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
-    INTEGER                                               :: vi, ierr, it, vi_trans
-    REAL(dp)                                              :: total_area 
-    type(type_transect) :: transect
+    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last
+    TYPE(type_transect)                                   :: transect
 
     ! Add routine to path
     CALL init_routine( routine_name)
-    
-    ! Initialise total_area (the area over which the SGD will be distributed) at zero
-    total_area = 0._dp
 
     ! Initialise SGD at zero
     laddie%SGD = 0._dp
 
-    ! Loop over number of channels
+    ! Loop over the different transects
     DO it = 1, size(forcing%transects)
       transect = forcing%transects(it)
-      print*, 'STARTING WITH TRANSECT', it, 'with name =', transect%name
-      ! Loop over vertices within that channel
+      ! Find the first vertice in that transect that matches a mask_gl_fl cell
       DO vi_trans = transect%vi1, transect%vi2
         vi = transect%index_point( vi_trans)
-        print*, 'vi=', vi
-        print*, 'mesh%V( vi,:)=', mesh%V( vi,:)
-
-        IF (forcing%mask_gl_fl( vi)) THEN
-          print*, 'flux_strength applied =', transect%flux_strength
-
-          laddie%SGD( vi) = transect%flux_strength
-
-          print*, 'SET SGD ON IN 1 CEL'
+        ! Make sure that you only add SGD to that vertex once per transect
+        IF (forcing%mask_gl_fl( vi) .and. vi_last .NE. vi ) THEN
+          laddie%SGD( vi) = transect%flux_strength / mesh%A( vi) + laddie%SGD( vi)
+          vi_last = vi
         END IF
       END DO
-    END DO
-    ! index_point = 1
-    ! ! Find vertex in mesh that contains vertex in transect
-    ! do vi = transect%vi1, transect%vi2
-    !    p = transect%V(vi,:)
-    !    print*, 'p_tran=', p
-    !    call find_containing_vertex( mesh, p, index_point)
-    !    print*, 'p_mesh=', mesh%V(index_point, :)
-       
-    ! trans_vi1 = forcing%transects%index_point(1)
-    ! trans_vi2 = forcing%transects%index_point(-1)
-
-
-    ! ! Determine total_area by looping over the vertices
-    ! DO vi_trans = forcing%transects%vi1, forcing%transects%vi2
-    !   vi = forcing%transects%index_point( vi_trans)
-    !   IF (laddie%mask_a( vi)) THEN
-    !     IF (forcing%mask_gl_fl( vi)) THEN
-    !       laddie%SGD( vi) = forcing%transects%flux_strength( vi_trans)
-    !       print*, 'SET SGD ON IN 1 CEL'
-    !     END IF
-    !   END IF 
-    ! END DO    
+    END DO 
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)

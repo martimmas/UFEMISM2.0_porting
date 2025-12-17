@@ -493,8 +493,6 @@ contains
         call calc_mask_SGD_idealised(mesh, ice)
       case ('read_from_file')
         call calc_mask_SGD_from_file(mesh, ice)
-      ! case ('read_from_file_transect')
-      !   call calc_mask_SGD_from_file(mesh, ice)
       case default
         ! Choice not found
         call crash('unknown choice_laddie_SGD "' // TRIM( C%choice_laddie_SGD) // '"!')

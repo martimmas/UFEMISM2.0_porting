@@ -55,8 +55,6 @@ module transect_types
     ! Transect geometry
     character(len=1024)                   :: name
     real(dp)                              :: dx
-    real(dp)                              :: flux_strength
-    integer, dimension(1000 )  :: index_point
 
     integer                               :: nV, vi1, vi2, nV_loc
     real(dp), dimension(:,:), allocatable :: V
@@ -69,6 +67,10 @@ module transect_types
 
     ! NetCDF output file
     type(type_transect_netcdf)            :: nc
+
+    ! For transect_SGD
+    real(dp)                              :: flux_strength
+    integer, dimension(10000)             :: index_point
 
   end type type_transect
 

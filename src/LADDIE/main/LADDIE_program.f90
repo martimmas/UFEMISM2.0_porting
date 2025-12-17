@@ -112,10 +112,9 @@ program LADDIE_program
 
     call initialise_forcing( mesh, forcing)
 
-    ! ==== !
-    ! FJFJ !
-    ! ==== !
-    ! Load waypoints into forcing%SGD_transects
+    ! == Initialise subglacial discharge ==
+    ! =====================================
+
     call initialise_transects_SGD(mesh, forcing)
 
     ! == Initialise the model ==
