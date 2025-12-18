@@ -102,18 +102,19 @@ contains
     case ('read_from_file')
       call initialise_transect_waypoints_from_file( filename, waypoints)
     end select
-    
+
     ! Create transect vertices on 500m resolution to ensure the transect is fully connected
     call calc_transect_vertices_from_waypoints( transect, waypoints, 500._dp)
 
     index_point = 1
     ! Find vertex in mesh that contains vertex in transect
-    do vi = transect%vi1, transect%vi2
+    do vi = 1, transect%nV
        p = transect%V(vi,:)
        call find_containing_vertex( mesh, p, index_point)
-
+       
        ! Save index_points of mesh to transect type
        transect%index_point( vi) = index_point    
+
     end do
 
     ! Finalise routine path

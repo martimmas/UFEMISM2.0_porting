@@ -198,19 +198,25 @@ CONTAINS
     ! Initialise SGD at zero
     laddie%SGD = 0._dp
 
-    ! Loop over the different transects
-    DO it = 1, size(forcing%transects)
+    transect_loop: DO it = 1, size(forcing%transects)
       transect = forcing%transects(it)
-      ! Find the first vertice in that transect that matches a mask_gl_fl cell
-      DO vi_trans = transect%vi1, transect%vi2
-        vi = transect%index_point( vi_trans)
-        ! Make sure that you only add SGD to that vertex once per transect
-        IF (forcing%mask_gl_fl( vi) .and. vi_last .NE. vi ) THEN
-          laddie%SGD( vi) = transect%flux_strength / mesh%A( vi) + laddie%SGD( vi)
-          vi_last = vi
+
+      vertex_loop: DO vi_trans = 1, transect%nV
+        vi = transect%index_point(vi_trans)
+
+        IF (vi > mesh%vi1 .and. vi < mesh%vi2) THEN
+          IF (forcing%mask_gl_fl(vi)) THEN
+
+            laddie%SGD(vi) = laddie%SGD(vi) + transect%flux_strength / mesh%A(vi) ! Could multiply by a time dependence, or make flux strength depend on time
+
+            print*, 'applied forcing at vi=', vi
+
+            EXIT vertex_loop  ! guarantees “only once per transect”
+          END IF
         END IF
-      END DO
-    END DO 
+
+      END DO vertex_loop
+    END DO transect_loop
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
