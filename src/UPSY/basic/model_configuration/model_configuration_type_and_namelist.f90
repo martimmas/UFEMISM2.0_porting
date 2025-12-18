@@ -764,6 +764,10 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_ocean_GI_GRL_config                 = ''
     character(len=1024) :: filename_ocean_GI_ANT_config                 = ''
 
+    ! Settings for the snapshot_plus_anomalies ocean model
+    character(len=1024) :: ocean_snp_p_anml_filename_snapshot_config    = ''                               ! File containing the ocean snapshot (e.g. World Ocean Atlas)
+    character(len=1024) :: ocean_snp_p_anml_filename_anomalies_config   = ''                               ! File containing the ocean anomalies (e.g. from a GCM projection)
+
   ! == Surface mass balance
   ! =======================
 
@@ -1926,6 +1930,10 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_ocean_GI_GRL
     character(len=1024) :: filename_ocean_GI_ANT
 
+    ! Settings for the snapshot_plus_anomalies ocean model
+    character(len=1024) :: ocean_snp_p_anml_filename_snapshot
+    character(len=1024) :: ocean_snp_p_anml_filename_anomalies
+
   ! == Surface mass balance
   ! =======================
 
@@ -2855,6 +2863,8 @@ contains
       filename_ocean_GI_EAS_config                                , &
       filename_ocean_GI_GRL_config                                , &
       filename_ocean_GI_ANT_config                                , &
+      ocean_snp_p_anml_filename_snapshot_config                   , &
+      ocean_snp_p_anml_filename_anomalies_config                  , &
       do_asynchronous_SMB_config                                  , &
       dt_SMB_config                                               , &
       choice_SMB_model_NAM_config                                 , &
@@ -3905,6 +3915,10 @@ contains
     C%filename_ocean_GI_EAS                                  = filename_ocean_GI_EAS_config
     C%filename_ocean_GI_GRL                                  = filename_ocean_GI_GRL_config
     C%filename_ocean_GI_ANT                                  = filename_ocean_GI_ANT_config
+
+    ! Settings for the snapshot_plus_anomalies ocean model
+    C%ocean_snp_p_anml_filename_snapshot                     = ocean_snp_p_anml_filename_snapshot_config
+    C%ocean_snp_p_anml_filename_anomalies                    = ocean_snp_p_anml_filename_anomalies_config
 
     ! == Surface mass balance
     ! =======================

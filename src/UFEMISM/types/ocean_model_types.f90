@@ -68,6 +68,31 @@ MODULE ocean_model_types
 
   end type type_ocean_model_snapshot_nudge2D
 
+  type type_ocean_model_snapshot_plus_anomalies
+
+    ! Baseline ocean
+    real(dp), dimension(:,:), allocatable :: T_baseline
+    real(dp), dimension(:,:), allocatable :: S_baseline
+
+    ! Two anomaly timeframes enveloping the current model time
+    real(dp)                              :: anomaly_t0
+    real(dp), dimension(:,:), allocatable :: T_anomaly_0
+    real(dp), dimension(:,:), allocatable :: S_anomaly_0
+
+    real(dp)                              :: anomaly_t1
+    real(dp), dimension(:,:), allocatable :: T_anomaly_1
+    real(dp), dimension(:,:), allocatable :: S_anomaly_1
+
+    ! Time-weighted anomaly
+    real(dp), dimension(:,:), allocatable :: T_anomaly
+    real(dp), dimension(:,:), allocatable :: S_anomaly
+
+    ! Applied ocean
+    real(dp), dimension(:,:), allocatable :: T    ! = baseline + anomaly
+    real(dp), dimension(:,:), allocatable :: S
+
+  end type type_ocean_model_snapshot_plus_anomalies
+
   TYPE type_ocean_model
     ! The ocean model data structure.
 
@@ -80,10 +105,11 @@ MODULE ocean_model_types
     REAL(dp), DIMENSION(:    ), ALLOCATABLE :: T_freezing_point            ! [degrees Celsius] Pressure freezing point of water
 
     ! Sub-models
-    TYPE(type_ocean_model_transient_deltaT) :: deltaT_transient
-    TYPE(type_ocean_model_GlacialIndex)     :: GI
-    TYPE(type_ocean_model_deltaT)           :: deltaT
-    type(type_ocean_model_snapshot_nudge2D) :: snapshot_nudge2D
+    TYPE(type_ocean_model_transient_deltaT)        :: deltaT_transient
+    TYPE(type_ocean_model_GlacialIndex)            :: GI
+    TYPE(type_ocean_model_deltaT)                  :: deltaT
+    type(type_ocean_model_snapshot_nudge2D)        :: snapshot_nudge2D
+    type(type_ocean_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
     ! Metadata
     CHARACTER(LEN=256)                      :: restart_filename            ! Name for generated restart file
