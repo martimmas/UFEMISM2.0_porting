@@ -196,7 +196,9 @@ CONTAINS
     CALL init_routine( routine_name)
 
     ! Initialise SGD at zero
-    laddie%SGD = 0._dp
+    DO vi = mesh%vi1, mesh%vi2
+      laddie%SGD(vi) = 0._dp
+    END DO
 
     transect_loop: DO it = 1, size(forcing%transects)
       transect = forcing%transects(it)
@@ -204,11 +206,15 @@ CONTAINS
       vertex_loop: DO vi_trans = 1, transect%nV
         vi = transect%index_point(vi_trans)
 
-        IF (vi > mesh%vi1 .and. vi < mesh%vi2) THEN
+        IF (vi >= mesh%vi1 .and. vi <= mesh%vi2) THEN
           IF (forcing%mask_gl_fl(vi)) THEN
 
             laddie%SGD(vi) = laddie%SGD(vi) + transect%flux_strength / mesh%A(vi) ! Could multiply by a time dependence, or make flux strength depend on time
-
+            
+            print*, 'Transect name ='
+            print*, transect%name
+            print*, 'SGD flux strength applied ='
+            print*, laddie%SGD(vi)
             print*, 'applied forcing at vi=', vi
 
             EXIT vertex_loop  ! guarantees “only once per transect”
