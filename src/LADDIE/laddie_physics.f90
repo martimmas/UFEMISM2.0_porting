@@ -208,15 +208,7 @@ CONTAINS
 
         IF (vi >= mesh%vi1 .and. vi <= mesh%vi2) THEN
           IF (forcing%mask_gl_fl(vi)) THEN
-
             laddie%SGD(vi) = laddie%SGD(vi) + transect%flux_strength / mesh%A(vi) ! Could multiply by a time dependence, or make flux strength depend on time
-            
-            print*, 'Transect name ='
-            print*, transect%name
-            print*, 'SGD flux strength applied ='
-            print*, laddie%SGD(vi)
-            print*, 'applied forcing at vi=', vi
-
             EXIT vertex_loop  ! guarantees “only once per transect”
           END IF
         END IF
