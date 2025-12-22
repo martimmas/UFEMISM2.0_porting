@@ -104,7 +104,7 @@ contains
     end select
 
     ! Create transect vertices on 500m resolution to ensure the transect is fully connected
-    call calc_transect_vertices_from_waypoints( transect, waypoints, 500._dp)
+    call calc_transect_vertices_from_waypoints( transect, waypoints, 100._dp)
 
     index_point = 1
     ! Find vertex in mesh that contains vertex in transect
