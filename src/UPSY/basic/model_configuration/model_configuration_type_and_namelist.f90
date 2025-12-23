@@ -1005,6 +1005,7 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_laddie_mask_SGD_config              = ''                               ! Gridded file containing the subglacial discharge mask
     real(dp)            :: start_time_of_applying_SGD_config            = -9E9_dp                          ! [yr] Start time of applying SGD when choice_laddie_SGD_config is 'idealised' or 'read_from_file'
     character(len=1024) :: transects_SGD_config                         = ''                               ! List of transects to use for applying SGD. Format: [file:file_path1,F=10 || file:file_path2,F=20]
+    character(len=1024) :: distribute_SGD_config                        = 'single_cell'                    ! How to apply SGD from transect; single cell ('single_cell'), or distribute over 2 neighbours ('distribute_2neighbours')
 
   ! == Lateral mass balance
   ! =======================
@@ -2173,6 +2174,7 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_laddie_mask_SGD
     real(dp)            :: start_time_of_applying_SGD
     character(len=1024) :: transects_SGD
+    character(len=1024) :: distribute_SGD
 
   ! == Lateral mass balance
   ! =======================
@@ -3008,6 +3010,7 @@ contains
       filename_laddie_mask_SGD_config                             , &
       start_time_of_applying_SGD_config                           , &
       transects_SGD_config                                        , &
+      distribute_SGD_config                                       , &
       choice_laddie_tides_config                                  , &
       uniform_laddie_tidal_velocity_config                        , &
       dt_LMB_config                                               , &
@@ -4159,7 +4162,7 @@ contains
     C%filename_laddie_mask_SGD                               = filename_laddie_mask_SGD_config
     C%start_time_of_applying_SGD                             = start_time_of_applying_SGD_config
     C%transects_SGD                                          = transects_SGD_config
-
+    C%distribute_SGD                                         = distribute_SGD_config
     ! == Lateral mass balance
     ! =======================
 

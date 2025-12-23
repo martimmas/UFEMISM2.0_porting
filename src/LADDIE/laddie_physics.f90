@@ -191,13 +191,12 @@ CONTAINS
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
-    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis
+    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis, neighbour_count
     TYPE(type_transect)                                   :: transect
-    LOGICAL                                               :: single_cell_SGD, multiple_cell_SGD, multiple_cell_SGD_Gaussian
+    ! LOGICAL                                               :: single_cell_SGD, multiple_cell_SGD, multiple_cell_SGD_Gaussian
     REAL(dp)                                              :: total_area 
     REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot, SGD_temp_transect_GAUS
-    ! INTEGER,  DIMENSION(mesh%nV) :: mask_SGD_extrapolation
-    INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
+    ! INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -206,8 +205,8 @@ CONTAINS
     laddie%SGD    = 0._dp
     SGD_temp_tot  = 0._dp
 
-    single_cell_SGD = .FALSE.
-    multiple_cell_SGD = .TRUE.
+    ! single_cell_SGD = .FALSE.
+    ! multiple_cell_SGD = .TRUE.
     ! multiple_cell_SGD_Gaussian = .FALSE.
 
     ! Compute SGD on the primary
@@ -225,7 +224,7 @@ CONTAINS
           IF (forcing%mask_gl_fl( vi)) THEN
 
             ! IF apply SGD to this single vertex only, divide the flux strength by the vertex area
-            IF (single_cell_SGD .eqv. .TRUE.) THEN
+            IF (C%distribute_SGD == 'single_cell') THEN
               
               SGD_temp_tot( vi) = SGD_temp_tot( vi) + transect%flux_strength / mesh%A(vi) 
               
@@ -233,7 +232,7 @@ CONTAINS
 
 
             ! IF distribute SGD over multiple vertices, keep count of area and later on divide by the total area
-            ELSEIF (multiple_cell_SGD .eqv. .TRUE.) THEN
+            ELSEIF (C%distribute_SGD == 'distribute_2neighbours') THEN
               
               ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
               total_area = 0._dp
@@ -242,15 +241,20 @@ CONTAINS
               ! Save initial cell
               SGD_temp_transect( vi) = transect%flux_strength 
               total_area = total_area + mesh%A( vi)
-
+              
+              neighbour_count = 0
               ! Loop over its neighbours 
               DO nr = 1, mesh%nC( vi)
+
+                ! DO WHILE (neighbour_count < 2)
                 vi_neighbour = mesh%C( vi, nr)
 
                 ! Only apply SGD to cells that are in mask_gl_fl
-                IF (forcing%mask_gl_fl(vi_neighbour)) THEN
+                IF (forcing%mask_gl_fl(vi_neighbour) .AND. neighbour_count<2) THEN
                   SGD_temp_transect( vi_neighbour) = transect%flux_strength
                   total_area = total_area + mesh%A( vi_neighbour)
+
+                  neighbour_count = neighbour_count + 1
                 END IF
 
               END DO
