@@ -97,10 +97,8 @@ contains
         call crash('unknown method for grid_to_mesh remapping "' // trim( map%method) // '"')
       case ('1st_order_conservative')
         map%M = M_cons_1st_order
-        if (par%primary) write(0,'(A)') '   Using 1st order "' // trim( map%method) // '"'
       case ('2nd_order_conservative')
         map%M = M_cons_2nd_order
-        if (par%primary) write(0,'(A)') '   Using 2nd order "' // trim( map%method) // '"'
     end select
 
     call delete_grid_and_mesh_netcdf_dump_files( filename_grid, filename_mesh)
