@@ -121,8 +121,7 @@ MODULE laddie_model_types
     real(dp), dimension(:), contiguous, pointer :: detr            => null()  ! [m s^-1]          Detrainment rate into ambient water
     real(dp), dimension(:), contiguous, pointer :: entr_tot        => null()  ! [m s^-1]          Total (net) entrainment = entr+entr_dmin-detr
     real(dp), dimension(:), contiguous, pointer :: SGD             => null()  ! [m s^-1]          Subglacial discharge rate
-    real(dp), dimension(:), contiguous, pointer :: SGD_temp        => null()  ! [m s^-1]          Subglacial discharge rate
-    type(MPI_WIN) :: wmelt, wentr, wentr_dmin, wdetr, wentr_tot, wSGD, wSGD_temp
+    type(MPI_WIN) :: wmelt, wentr, wentr_dmin, wdetr, wentr_tot, wSGD
 
     ! Horizontal fluxes
     real(dp), dimension(:), contiguous, pointer :: divQH           => null()  ! [m^3 s^-1]        Divergence of layer thickness

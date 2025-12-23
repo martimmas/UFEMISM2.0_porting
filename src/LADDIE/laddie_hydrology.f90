@@ -6,20 +6,11 @@ MODULE laddie_hydrology
   use model_configuration, only: C
   use parameters
   use mesh_types, only: type_mesh
-  use laddie_model_types, only: type_laddie_model, type_laddie_timestep
+  use mesh_utilities, only: find_containing_vertex
   use laddie_forcing_types, only: type_laddie_forcing
-  use reallocate_mod, only: reallocate_bounds
-  use mpi_distributed_memory, only: gather_to_all
-  use mesh_disc_apply_operators, only: ddx_a_b_2D, ddy_a_b_2D, map_a_b_2D, map_b_a_2D
-  use laddie_utilities, only: compute_ambient_TS, map_H_a_b, map_H_a_c
-  use laddie_physics, only: compute_buoyancy
-  use CSR_matrix_vector_multiplication, only: multiply_CSR_matrix_with_vector_1D
-  use mesh_halo_exchange, only: exchange_halos
-  use checksum_mod, only: checksum
   use transects_main                                         
   use string_module 
   use transect_types
-  use mesh_utilities, only: find_containing_vertex
 
   implicit none
 
@@ -129,7 +120,7 @@ contains
     !
     !   file:transect_channel1.txt,SF=10
     !
-    ! !! NOTE: right now it only works for files
+    ! NOTE: This currently only works with file input (did not test it for hardcoded transects).
 
     ! In/output variables:
     character(len=*), intent(in   ) :: transect_str

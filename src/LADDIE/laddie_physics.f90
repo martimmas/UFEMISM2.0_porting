@@ -16,8 +16,7 @@ MODULE laddie_physics
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use checksum_mod, only: checksum
   use transect_types  
-  USE mpi_distributed_memory                                 , ONLY: gather_to_all
-  USE mesh_utilities, ONLY: extrapolate_Gaussian
+  use mesh_utilities, only: extrapolate_Gaussian
 
   IMPLICIT NONE
 
@@ -193,7 +192,6 @@ CONTAINS
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
     INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis, neighbour_count
     TYPE(type_transect)                                   :: transect
-    ! LOGICAL                                               :: single_cell_SGD, multiple_cell_SGD, multiple_cell_SGD_Gaussian
     REAL(dp)                                              :: total_area 
     REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot, SGD_temp_transect_GAUS
     ! INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
@@ -204,10 +202,6 @@ CONTAINS
     ! Initialise SGD at zero
     laddie%SGD    = 0._dp
     SGD_temp_tot  = 0._dp
-
-    ! single_cell_SGD = .FALSE.
-    ! multiple_cell_SGD = .TRUE.
-    ! multiple_cell_SGD_Gaussian = .FALSE.
 
     ! Compute SGD on the primary
     IF (par%primary) THEN
@@ -264,8 +258,7 @@ CONTAINS
 
               EXIT vertex_loop  ! guarantees “only once per transect”
 
-            
-            ! ELSEIF (multiple_cell_SGD_Gaussian .eqv. .TRUE.) THEN
+            ! ELSEIF (C%distribute_SGD == 'distribute_Gaussian') THEN
               
             !   ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
             !   total_area = 0._dp
@@ -300,11 +293,9 @@ CONTAINS
             !   ! Save SGD_temp_transect to SGD_temp_tot
             !   SGD_temp_tot = SGD_temp_tot + ( SGD_temp_transect / total_area ) 
 
-
             !   EXIT vertex_loop  ! guarantees “only once per transect”
 
             END IF
-
 
           END IF
 
@@ -315,26 +306,6 @@ CONTAINS
       laddie%SGD = SGD_temp_tot ! Could multiply by a time dependence, or make flux strength depend on time
 
     END IF ! par%primary
-
-
-
-              ! DO vis = mesh%vi1, mesh%vi2
-              !   IF (forcing%mask_gl_fl(vis)) THEN
-              !   mask_SGD_extrapolation( vis) = 1
-              !   END IF
-              ! END DO
-
-              ! mask_SGD_extrapolation( vi) = 2
-
-              ! CALL extrapolate_Gaussian(mesh, mask_SGD_extrapolation, SGD_temp_transect, 5000._dp)
-
-              ! DO vis = mesh%vi1, mesh%vi2
-              !   IF (SGD_temp_transect( vis) > 0.1) THEN
-              !     SGD_temp_transect( vis) = transect%flux_strength
-              !     total_area = total_area + mesh%A( vis)
-              !   END IF
-              ! END DO
-
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)

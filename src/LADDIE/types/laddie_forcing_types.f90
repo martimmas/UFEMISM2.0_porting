@@ -7,8 +7,8 @@ module laddie_forcing_types
 
   use precisions                                             , only: dp
   use CSR_sparse_matrix_type                                 , only: type_sparse_matrix_CSR_dp
-  use mpi_f08, only: MPI_WIN
-  use transect_types, only: type_transect
+  use mpi_f08                                                , only: MPI_WIN
+  use transect_types                                         , only: type_transect
 
   implicit none
 

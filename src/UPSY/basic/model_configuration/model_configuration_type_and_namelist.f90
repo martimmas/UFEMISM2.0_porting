@@ -4163,6 +4163,7 @@ contains
     C%start_time_of_applying_SGD                             = start_time_of_applying_SGD_config
     C%transects_SGD                                          = transects_SGD_config
     C%distribute_SGD                                         = distribute_SGD_config
+
     ! == Lateral mass balance
     ! =======================
 

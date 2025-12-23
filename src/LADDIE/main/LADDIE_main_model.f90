@@ -40,8 +40,6 @@ module LADDIE_main_model
   use mesh_halo_exchange, only: exchange_halos
   use mesh_repartitioning, only: repartition_mesh
   use checksum_mod, only: checksum
-  use transects_main, only: initialise_transects, write_to_transect_netcdf_output_files
-  use laddie_hydrology
 
   implicit none
 
