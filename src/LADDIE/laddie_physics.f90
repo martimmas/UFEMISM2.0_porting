@@ -191,12 +191,13 @@ CONTAINS
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
-    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour
+    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis
     TYPE(type_transect)                                   :: transect
     LOGICAL                                               :: single_cell_SGD, multiple_cell_SGD, multiple_cell_SGD_Gaussian
     REAL(dp)                                              :: total_area 
-    REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot
-    INTEGER, DIMENSION(mesh%nV) :: mask_SGD_extrapolation
+    REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot, SGD_temp_transect_GAUS
+    ! INTEGER,  DIMENSION(mesh%nV) :: mask_SGD_extrapolation
+    INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -262,19 +263,38 @@ CONTAINS
             
             ! ELSEIF (multiple_cell_SGD_Gaussian .eqv. .TRUE.) THEN
               
-            !   SGD_temp_transect( vi) = 1
+            !   ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
+            !   total_area = 0._dp
+            !   SGD_temp_transect = 0._dp
+            !   SGD_temp_transect( vi) = 500._dp
 
+            !   SGD_temp_transect_GAUS = 0._dp
             !   mask_SGD_extrapolation = 0
 
             !   DO vis = 1, mesh%nV
-            !     IF (forcing%mask_gl_fl(vis)) THEN
+            !     IF (forcing%mask_floating_ice(vis)) THEN
             !     mask_SGD_extrapolation( vis) = 1
             !     END IF
             !   END DO
 
             !   mask_SGD_extrapolation( vi) = 2
 
-            !   CALL extrapolate_Gaussian(mesh, mask_SGD_extrapolation, SGD_temp_transect, 5000._dp)
+            !   CALL extrapolate_Gaussian(mesh, mask_SGD_extrapolation, SGD_temp_transect, 500._dp)
+
+            !   DO vis = 1, mesh%nV
+            !     IF (SGD_temp_transect( vis) > 0) THEN
+            !       print*, 'applying SGD'
+            !       SGD_temp_transect_GAUS( vis) = transect%flux_strength
+            !       total_area = total_area + mesh%A( vis)
+            !       print*, SGD_temp_transect_GAUS( vis)
+            !     END IF
+            !   END DO
+
+            !   print*, 'total_area = ', total_area
+            !   ! print*, 'SGD_temp_transect = ', SGD_temp_transect_GAUS
+
+            !   ! Save SGD_temp_transect to SGD_temp_tot
+            !   SGD_temp_tot = SGD_temp_tot + ( SGD_temp_transect / total_area ) 
 
 
             !   EXIT vertex_loop  ! guarantees “only once per transect”
@@ -291,6 +311,26 @@ CONTAINS
       laddie%SGD = SGD_temp_tot ! Could multiply by a time dependence, or make flux strength depend on time
 
     END IF ! par%primary
+
+
+
+              ! DO vis = mesh%vi1, mesh%vi2
+              !   IF (forcing%mask_gl_fl(vis)) THEN
+              !   mask_SGD_extrapolation( vis) = 1
+              !   END IF
+              ! END DO
+
+              ! mask_SGD_extrapolation( vi) = 2
+
+              ! CALL extrapolate_Gaussian(mesh, mask_SGD_extrapolation, SGD_temp_transect, 5000._dp)
+
+              ! DO vis = mesh%vi1, mesh%vi2
+              !   IF (SGD_temp_transect( vis) > 0.1) THEN
+              !     SGD_temp_transect( vis) = transect%flux_strength
+              !     total_area = total_area + mesh%A( vis)
+              !   END IF
+              ! END DO
+
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
