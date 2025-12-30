@@ -40,6 +40,7 @@ contains
     real(dp), parameter            :: ymin = -1._dp
     real(dp), parameter            :: ymax =  1._dp
     type(type_mesh)                :: mesh
+    type(type_field_collection)    :: bof
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -57,28 +58,29 @@ contains
     call crop_mesh_primary( mesh)
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
-    call test_create_field_grid_logical  ( test_name)
-    call test_create_field_grid_int      ( test_name)
-    call test_create_field_grid_dp       ( test_name)
-    call test_create_field_mesh_logical_a( test_name, mesh)
-    call test_create_field_mesh_logical_b( test_name, mesh)
-    call test_create_field_mesh_logical_c( test_name, mesh)
-    call test_create_field_mesh_int_a    ( test_name, mesh)
-    call test_create_field_mesh_int_b    ( test_name, mesh)
-    call test_create_field_mesh_int_c    ( test_name, mesh)
-    call test_create_field_mesh_dp_a     ( test_name, mesh)
-    call test_create_field_mesh_dp_b     ( test_name, mesh)
-    call test_create_field_mesh_dp_c     ( test_name, mesh)
+    call test_create_field_grid_logical  ( test_name, bof)
+    call test_create_field_grid_int      ( test_name, bof)
+    call test_create_field_grid_dp       ( test_name, bof)
+    call test_create_field_mesh_logical_a( test_name, bof, mesh)
+    call test_create_field_mesh_logical_b( test_name, bof, mesh)
+    call test_create_field_mesh_logical_c( test_name, bof, mesh)
+    call test_create_field_mesh_int_a    ( test_name, bof, mesh)
+    call test_create_field_mesh_int_b    ( test_name, bof, mesh)
+    call test_create_field_mesh_int_c    ( test_name, bof, mesh)
+    call test_create_field_mesh_dp_a     ( test_name, bof, mesh)
+    call test_create_field_mesh_dp_b     ( test_name, bof, mesh)
+    call test_create_field_mesh_dp_c     ( test_name, bof, mesh)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine test_create_field
 
-  subroutine test_create_field_grid_logical( test_name_parent)
+  subroutine test_create_field_grid_logical( test_name_parent, bof)
 
     ! In/output variables:
-    character(len=*), intent(in) :: test_name_parent
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_grid_logical'
@@ -87,7 +89,6 @@ contains
     type(type_grid), target                      :: grid
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     logical, dimension(:  ), contiguous, pointer :: d_grid_2D
     logical, dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
     logical, dimension(:,:), contiguous, pointer :: d_grid_3D_month
@@ -111,9 +112,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_grid_2D'
-    long_name = 'd_grid_2D_long_name'
-    units     = 'd_grid_2D_units'
+    name      = 'd_grid_logical_2D'
+    long_name = 'd_grid_logical_2D_long_name'
+    units     = 'd_grid_logical_2D_units'
 
     call create_field( bof, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
@@ -150,9 +151,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_grid_3D_zeta'
-    long_name = 'd_grid_3D_zeta_long_name'
-    units     = 'd_grid_3D_zeta_units'
+    name      = 'd_grid_logical_3D_zeta'
+    long_name = 'd_grid_logical_3D_zeta_long_name'
+    units     = 'd_grid_logical_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
@@ -200,9 +201,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_grid_3D_month'
-    long_name = 'd_grid_3D_month_long_name'
-    units     = 'd_grid_3D_month_units'
+    name      = 'd_grid_logical_3D_month'
+    long_name = 'd_grid_logical_3D_month_long_name'
+    units     = 'd_grid_logical_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
@@ -250,9 +251,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_grid_3D_ocean'
-    long_name = 'd_grid_3D_ocean_long_name'
-    units     = 'd_grid_3D_ocean_units'
+    name      = 'd_grid_logical_3D_ocean'
+    long_name = 'd_grid_logical_3D_ocean_long_name'
+    units     = 'd_grid_logical_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
@@ -303,10 +304,11 @@ contains
 
   end subroutine test_create_field_grid_logical
 
-  subroutine test_create_field_grid_int( test_name_parent)
+  subroutine test_create_field_grid_int( test_name_parent, bof)
 
     ! In/output variables:
-    character(len=*), intent(in) :: test_name_parent
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_grid_int'
@@ -315,7 +317,6 @@ contains
     type(type_grid), target                      :: grid
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     integer, dimension(:  ), contiguous, pointer :: d_grid_2D
     integer, dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_grid_3D_month
@@ -339,9 +340,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_grid_2D'
-    long_name = 'd_grid_2D_long_name'
-    units     = 'd_grid_2D_units'
+    name      = 'd_grid_int_2D'
+    long_name = 'd_grid_int_2D_long_name'
+    units     = 'd_grid_int_2D_units'
 
     call create_field( bof, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
@@ -378,9 +379,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_grid_3D_zeta'
-    long_name = 'd_grid_3D_zeta_long_name'
-    units     = 'd_grid_3D_zeta_units'
+    name      = 'd_grid_int_3D_zeta'
+    long_name = 'd_grid_int_3D_zeta_long_name'
+    units     = 'd_grid_int_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
@@ -428,9 +429,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_grid_3D_month'
-    long_name = 'd_grid_3D_month_long_name'
-    units     = 'd_grid_3D_month_units'
+    name      = 'd_grid_int_3D_month'
+    long_name = 'd_grid_int_3D_month_long_name'
+    units     = 'd_grid_int_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
@@ -478,9 +479,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_grid_3D_ocean'
-    long_name = 'd_grid_3D_ocean_long_name'
-    units     = 'd_grid_3D_ocean_units'
+    name      = 'd_grid_int_3D_ocean'
+    long_name = 'd_grid_int_3D_ocean_long_name'
+    units     = 'd_grid_int_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
@@ -531,10 +532,11 @@ contains
 
   end subroutine test_create_field_grid_int
 
-  subroutine test_create_field_grid_dp( test_name_parent)
+  subroutine test_create_field_grid_dp( test_name_parent, bof)
 
     ! In/output variables:
-    character(len=*), intent(in) :: test_name_parent
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_create_field_grid_dp'
@@ -543,7 +545,6 @@ contains
     type(type_grid), target                       :: grid
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_collection)                   :: bof
     real(dp), dimension(:  ), contiguous, pointer :: d_grid_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_grid_3D_month
@@ -567,9 +568,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_grid_2D'
-    long_name = 'd_grid_2D_long_name'
-    units     = 'd_grid_2D_units'
+    name      = 'd_grid_dp_2D'
+    long_name = 'd_grid_dp_2D_long_name'
+    units     = 'd_grid_dp_2D_units'
 
     call create_field( bof, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
@@ -606,9 +607,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_grid_3D_zeta'
-    long_name = 'd_grid_3D_zeta_long_name'
-    units     = 'd_grid_3D_zeta_units'
+    name      = 'd_grid_dp_3D_zeta'
+    long_name = 'd_grid_dp_3D_zeta_long_name'
+    units     = 'd_grid_dp_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
@@ -656,9 +657,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_grid_3D_month'
-    long_name = 'd_grid_3D_month_long_name'
-    units     = 'd_grid_3D_month_units'
+    name      = 'd_grid_dp_3D_month'
+    long_name = 'd_grid_dp_3D_month_long_name'
+    units     = 'd_grid_dp_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
@@ -706,9 +707,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_grid_3D_ocean'
-    long_name = 'd_grid_3D_ocean_long_name'
-    units     = 'd_grid_3D_ocean_units'
+    name      = 'd_grid_dp_3D_ocean'
+    long_name = 'd_grid_dp_3D_ocean_long_name'
+    units     = 'd_grid_dp_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
@@ -759,11 +760,12 @@ contains
 
   end subroutine test_create_field_grid_dp
 
-  subroutine test_create_field_mesh_logical_a( test_name_parent, mesh)
+  subroutine test_create_field_mesh_logical_a( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_a'
@@ -771,7 +773,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -793,9 +794,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_a_logical_2D'
+    long_name = 'd_mesh_a_logical_2D_long_name'
+    units     = 'd_mesh_a_logical_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
@@ -832,9 +833,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_a_logical_3D_zeta'
+    long_name = 'd_mesh_a_logical_3D_zeta_long_name'
+    units     = 'd_mesh_a_logical_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -882,9 +883,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_a_logical_3D_month'
+    long_name = 'd_mesh_a_logical_3D_month_long_name'
+    units     = 'd_mesh_a_logical_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -932,9 +933,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_a_logical_3D_ocean'
+    long_name = 'd_mesh_a_logical_3D_ocean_long_name'
+    units     = 'd_mesh_a_logical_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -985,11 +986,12 @@ contains
 
   end subroutine test_create_field_mesh_logical_a
 
-  subroutine test_create_field_mesh_logical_b( test_name_parent, mesh)
+  subroutine test_create_field_mesh_logical_b( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_b'
@@ -997,7 +999,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1019,9 +1020,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_b_logical_2D'
+    long_name = 'd_mesh_b_logical_2D_long_name'
+    units     = 'd_mesh_b_logical_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
@@ -1058,9 +1059,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_b_logical_3D_zeta'
+    long_name = 'd_mesh_b_logical_3D_zeta_long_name'
+    units     = 'd_mesh_b_logical_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -1108,9 +1109,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_b_logical_3D_month'
+    long_name = 'd_mesh_b_logical_3D_month_long_name'
+    units     = 'd_mesh_b_logical_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -1158,9 +1159,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_b_logical_3D_ocean'
+    long_name = 'd_mesh_b_logical_3D_ocean_long_name'
+    units     = 'd_mesh_b_logical_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -1211,11 +1212,12 @@ contains
 
   end subroutine test_create_field_mesh_logical_b
 
-  subroutine test_create_field_mesh_logical_c( test_name_parent, mesh)
+  subroutine test_create_field_mesh_logical_c( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_c'
@@ -1223,7 +1225,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1437,11 +1438,12 @@ contains
 
   end subroutine test_create_field_mesh_logical_c
 
-  subroutine test_create_field_mesh_int_a( test_name_parent, mesh)
+  subroutine test_create_field_mesh_int_a( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_a'
@@ -1449,7 +1451,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1471,9 +1472,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_a_int_2D'
+    long_name = 'd_mesh_a_int_2D_long_name'
+    units     = 'd_mesh_a_int_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
@@ -1510,9 +1511,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_a_int_3D_zeta'
+    long_name = 'd_mesh_a_int_3D_zeta_long_name'
+    units     = 'd_mesh_a_int_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -1560,9 +1561,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_a_int_3D_month'
+    long_name = 'd_mesh_a_int_3D_month_long_name'
+    units     = 'd_mesh_a_int_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -1610,9 +1611,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_a_int_3D_ocean'
+    long_name = 'd_mesh_a_int_3D_ocean_long_name'
+    units     = 'd_mesh_a_int_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -1663,11 +1664,12 @@ contains
 
   end subroutine test_create_field_mesh_int_a
 
-  subroutine test_create_field_mesh_int_b( test_name_parent, mesh)
+  subroutine test_create_field_mesh_int_b( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_b'
@@ -1675,7 +1677,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1697,9 +1698,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_b_int_2D'
+    long_name = 'd_mesh_b_int_2D_long_name'
+    units     = 'd_mesh_b_int_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
@@ -1736,9 +1737,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_b_int_3D_zeta'
+    long_name = 'd_mesh_b_int_3D_zeta_long_name'
+    units     = 'd_mesh_b_int_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -1786,9 +1787,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_b_int_3D_month'
+    long_name = 'd_mesh_b_int_3D_month_long_name'
+    units     = 'd_mesh_b_int_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -1836,9 +1837,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_b_int_3D_ocean'
+    long_name = 'd_mesh_b_int_3D_ocean_long_name'
+    units     = 'd_mesh_b_int_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -1889,11 +1890,12 @@ contains
 
   end subroutine test_create_field_mesh_int_b
 
-  subroutine test_create_field_mesh_int_c( test_name_parent, mesh)
+  subroutine test_create_field_mesh_int_c( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_c'
@@ -1901,7 +1903,6 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_collection)                  :: bof
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1923,9 +1924,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_c_int_2D'
+    long_name = 'd_mesh_c_int_2D_long_name'
+    units     = 'd_mesh_c_int_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%c(), &
@@ -1962,9 +1963,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_c_int_3D_zeta'
+    long_name = 'd_mesh_c_int_3D_zeta_long_name'
+    units     = 'd_mesh_c_int_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -2012,9 +2013,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_c_int_3D_month'
+    long_name = 'd_mesh_c_int_3D_month_long_name'
+    units     = 'd_mesh_c_int_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -2062,9 +2063,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_c_int_3D_ocean'
+    long_name = 'd_mesh_c_int_3D_ocean_long_name'
+    units     = 'd_mesh_c_int_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -2115,11 +2116,12 @@ contains
 
   end subroutine test_create_field_mesh_int_c
 
-  subroutine test_create_field_mesh_dp_a( test_name_parent, mesh)
+  subroutine test_create_field_mesh_dp_a( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_a'
@@ -2127,7 +2129,6 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_collection)                   :: bof
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -2149,9 +2150,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_a_dp_2D'
+    long_name = 'd_mesh_a_dp_2D_long_name'
+    units     = 'd_mesh_a_dp_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
@@ -2188,9 +2189,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_a_dp_3D_zeta'
+    long_name = 'd_mesh_a_dp_3D_zeta_long_name'
+    units     = 'd_mesh_a_dp_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -2238,9 +2239,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_a_dp_3D_month'
+    long_name = 'd_mesh_a_dp_3D_month_long_name'
+    units     = 'd_mesh_a_dp_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -2288,9 +2289,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_a_dp_3D_ocean'
+    long_name = 'd_mesh_a_dp_3D_ocean_long_name'
+    units     = 'd_mesh_a_dp_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -2341,11 +2342,12 @@ contains
 
   end subroutine test_create_field_mesh_dp_a
 
-  subroutine test_create_field_mesh_dp_b( test_name_parent, mesh)
+  subroutine test_create_field_mesh_dp_b( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_b'
@@ -2353,7 +2355,6 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_collection)                   :: bof
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -2375,9 +2376,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_b_dp_2D'
+    long_name = 'd_mesh_b_dp_2D_long_name'
+    units     = 'd_mesh_b_dp_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
@@ -2414,9 +2415,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_b_dp_3D_zeta'
+    long_name = 'd_mesh_b_dp_3D_zeta_long_name'
+    units     = 'd_mesh_b_dp_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -2464,9 +2465,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_b_dp_3D_month'
+    long_name = 'd_mesh_b_dp_3D_month_long_name'
+    units     = 'd_mesh_b_dp_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -2514,9 +2515,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_b_dp_3D_ocean'
+    long_name = 'd_mesh_b_dp_3D_ocean_long_name'
+    units     = 'd_mesh_b_dp_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
@@ -2567,11 +2568,12 @@ contains
 
   end subroutine test_create_field_mesh_dp_b
 
-  subroutine test_create_field_mesh_dp_c( test_name_parent, mesh)
+  subroutine test_create_field_mesh_dp_c( test_name_parent, bof, mesh)
 
     ! In/output variables:
-    character(len=*),        intent(in) :: test_name_parent
-    type(type_mesh), target, intent(in) :: mesh
+    character(len=*),            intent(in   ) :: test_name_parent
+    type(type_field_collection), intent(inout) :: bof
+    type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_c'
@@ -2579,7 +2581,6 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_collection)                   :: bof
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -2601,9 +2602,9 @@ contains
 
     ! 2-D
 
-    name      = 'd_mesh_2D'
-    long_name = 'd_mesh_2D_long_name'
-    units     = 'd_mesh_2D_units'
+    name      = 'd_mesh_c_dp_2D'
+    long_name = 'd_mesh_c_dp_2D_long_name'
+    units     = 'd_mesh_c_dp_2D_units'
 
     call create_field( bof, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%c(), &
@@ -2640,9 +2641,9 @@ contains
 
     ! 3-D (ice zeta)
 
-    name      = 'd_mesh_3D_zeta'
-    long_name = 'd_mesh_3D_zeta_long_name'
-    units     = 'd_mesh_3D_zeta_units'
+    name      = 'd_mesh_c_dp_3D_zeta'
+    long_name = 'd_mesh_c_dp_3D_zeta_long_name'
+    units     = 'd_mesh_c_dp_3D_zeta_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
@@ -2690,9 +2691,9 @@ contains
 
     ! 3-D (ice month)
 
-    name      = 'd_mesh_3D_month'
-    long_name = 'd_mesh_3D_month_long_name'
-    units     = 'd_mesh_3D_month_units'
+    name      = 'd_mesh_c_dp_3D_month'
+    long_name = 'd_mesh_c_dp_3D_month_long_name'
+    units     = 'd_mesh_c_dp_3D_month_units'
     nz        = 10
 
     call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
@@ -2740,9 +2741,9 @@ contains
 
     ! 3-D (ice ocean)
 
-    name      = 'd_mesh_3D_ocean'
-    long_name = 'd_mesh_3D_ocean_long_name'
-    units     = 'd_mesh_3D_ocean_units'
+    name      = 'd_mesh_c_dp_3D_ocean'
+    long_name = 'd_mesh_c_dp_3D_ocean_long_name'
+    units     = 'd_mesh_c_dp_3D_ocean_units'
     nz        = 20
 
     call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
