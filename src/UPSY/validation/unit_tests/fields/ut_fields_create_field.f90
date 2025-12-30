@@ -41,7 +41,7 @@ contains
     real(dp), parameter            :: ymin = -1._dp
     real(dp), parameter            :: ymax =  1._dp
     type(type_mesh)                :: mesh
-    type(type_field_collection)    :: bof
+    type(type_field_collection)    :: coll
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -61,33 +61,33 @@ contains
     call crop_mesh_primary( mesh)
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
-    call test_create_field_grid_logical  ( test_name, bof, grid)
-    call test_create_field_grid_int      ( test_name, bof, grid)
-    call test_create_field_grid_dp       ( test_name, bof, grid)
-    call test_create_field_mesh_logical_a( test_name, bof, mesh)
-    call test_create_field_mesh_logical_b( test_name, bof, mesh)
-    call test_create_field_mesh_logical_c( test_name, bof, mesh)
-    call test_create_field_mesh_int_a    ( test_name, bof, mesh)
-    call test_create_field_mesh_int_b    ( test_name, bof, mesh)
-    call test_create_field_mesh_int_c    ( test_name, bof, mesh)
-    call test_create_field_mesh_dp_a     ( test_name, bof, mesh)
-    call test_create_field_mesh_dp_b     ( test_name, bof, mesh)
-    call test_create_field_mesh_dp_c     ( test_name, bof, mesh)
+    call test_create_field_grid_logical  ( test_name, coll, grid)
+    call test_create_field_grid_int      ( test_name, coll, grid)
+    call test_create_field_grid_dp       ( test_name, coll, grid)
+    call test_create_field_mesh_logical_a( test_name, coll, mesh)
+    call test_create_field_mesh_logical_b( test_name, coll, mesh)
+    call test_create_field_mesh_logical_c( test_name, coll, mesh)
+    call test_create_field_mesh_int_a    ( test_name, coll, mesh)
+    call test_create_field_mesh_int_b    ( test_name, coll, mesh)
+    call test_create_field_mesh_int_c    ( test_name, coll, mesh)
+    call test_create_field_mesh_dp_a     ( test_name, coll, mesh)
+    call test_create_field_mesh_dp_b     ( test_name, coll, mesh)
+    call test_create_field_mesh_dp_c     ( test_name, coll, mesh)
 
-    ! DENK DROM
-    call bof%print_fields_info
+    ! ! DENK DROM
+    ! call coll%print_fields_info
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine test_create_field
 
-  subroutine test_create_field_grid_logical( test_name_parent, bof, grid)
+  subroutine test_create_field_grid_logical( test_name_parent, coll, grid)
 
     ! In/output variables:
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
@@ -121,18 +121,18 @@ contains
     long_name = 'd_grid_logical_2D_long_name'
     units     = 'd_grid_logical_2D_units'
 
-    call create_field( bof, d_grid_2D, wd_grid_2D, &
+    call create_field( coll, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_2D,1)
     ub1_a = ubound( d_grid_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_logical_2D)
@@ -142,11 +142,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -161,13 +161,13 @@ contains
     units     = 'd_grid_logical_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
+    call create_field( coll, d_grid_3D_zeta, wd_grid_3D_zeta, &
       grid, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_zeta,1)
     ub1_a = ubound( d_grid_3D_zeta,1)
@@ -175,7 +175,7 @@ contains
     lb2_a = lbound( d_grid_3D_zeta,2)
     ub2_a = ubound( d_grid_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_logical_3D)
@@ -187,12 +187,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -211,13 +211,13 @@ contains
     units     = 'd_grid_logical_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
+    call create_field( coll, d_grid_3D_month, wd_grid_3D_month, &
       grid, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_month,1)
     ub1_a = ubound( d_grid_3D_month,1)
@@ -225,7 +225,7 @@ contains
     lb2_a = lbound( d_grid_3D_month,2)
     ub2_a = ubound( d_grid_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_logical_3D)
@@ -237,12 +237,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -261,13 +261,13 @@ contains
     units     = 'd_grid_logical_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
+    call create_field( coll, d_grid_3D_ocean, wd_grid_3D_ocean, &
       grid, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_ocean,1)
     ub1_a = ubound( d_grid_3D_ocean,1)
@@ -275,7 +275,7 @@ contains
     lb2_a = lbound( d_grid_3D_ocean,2)
     ub2_a = ubound( d_grid_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_logical_3D)
@@ -287,12 +287,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -309,11 +309,11 @@ contains
 
   end subroutine test_create_field_grid_logical
 
-  subroutine test_create_field_grid_int( test_name_parent, bof, grid)
+  subroutine test_create_field_grid_int( test_name_parent, coll, grid)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
@@ -347,18 +347,18 @@ contains
     long_name = 'd_grid_int_2D_long_name'
     units     = 'd_grid_int_2D_units'
 
-    call create_field( bof, d_grid_2D, wd_grid_2D, &
+    call create_field( coll, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_2D,1)
     ub1_a = ubound( d_grid_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_int_2D)
@@ -368,11 +368,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -387,13 +387,13 @@ contains
     units     = 'd_grid_int_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
+    call create_field( coll, d_grid_3D_zeta, wd_grid_3D_zeta, &
       grid, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_zeta,1)
     ub1_a = ubound( d_grid_3D_zeta,1)
@@ -401,7 +401,7 @@ contains
     lb2_a = lbound( d_grid_3D_zeta,2)
     ub2_a = ubound( d_grid_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_int_3D)
@@ -413,12 +413,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -437,13 +437,13 @@ contains
     units     = 'd_grid_int_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
+    call create_field( coll, d_grid_3D_month, wd_grid_3D_month, &
       grid, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_month,1)
     ub1_a = ubound( d_grid_3D_month,1)
@@ -451,7 +451,7 @@ contains
     lb2_a = lbound( d_grid_3D_month,2)
     ub2_a = ubound( d_grid_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_int_3D)
@@ -463,12 +463,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -487,13 +487,13 @@ contains
     units     = 'd_grid_int_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
+    call create_field( coll, d_grid_3D_ocean, wd_grid_3D_ocean, &
       grid, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_ocean,1)
     ub1_a = ubound( d_grid_3D_ocean,1)
@@ -501,7 +501,7 @@ contains
     lb2_a = lbound( d_grid_3D_ocean,2)
     ub2_a = ubound( d_grid_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_int_3D)
@@ -513,12 +513,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -535,11 +535,11 @@ contains
 
   end subroutine test_create_field_grid_int
 
-  subroutine test_create_field_grid_dp( test_name_parent, bof, grid)
+  subroutine test_create_field_grid_dp( test_name_parent, coll, grid)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
@@ -573,18 +573,18 @@ contains
     long_name = 'd_grid_dp_2D_long_name'
     units     = 'd_grid_dp_2D_units'
 
-    call create_field( bof, d_grid_2D, wd_grid_2D, &
+    call create_field( coll, d_grid_2D, wd_grid_2D, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_2D,1)
     ub1_a = ubound( d_grid_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_dp_2D)
@@ -594,11 +594,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -613,13 +613,13 @@ contains
     units     = 'd_grid_dp_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_zeta, wd_grid_3D_zeta, &
+    call create_field( coll, d_grid_3D_zeta, wd_grid_3D_zeta, &
       grid, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_zeta,1)
     ub1_a = ubound( d_grid_3D_zeta,1)
@@ -627,7 +627,7 @@ contains
     lb2_a = lbound( d_grid_3D_zeta,2)
     ub2_a = ubound( d_grid_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_dp_3D)
@@ -639,12 +639,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -663,13 +663,13 @@ contains
     units     = 'd_grid_dp_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_grid_3D_month, wd_grid_3D_month, &
+    call create_field( coll, d_grid_3D_month, wd_grid_3D_month, &
       grid, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_month,1)
     ub1_a = ubound( d_grid_3D_month,1)
@@ -677,7 +677,7 @@ contains
     lb2_a = lbound( d_grid_3D_month,2)
     ub2_a = ubound( d_grid_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_dp_3D)
@@ -689,12 +689,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -713,13 +713,13 @@ contains
     units     = 'd_grid_dp_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_grid_3D_ocean, wd_grid_3D_ocean, &
+    call create_field( coll, d_grid_3D_ocean, wd_grid_3D_ocean, &
       grid, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_grid_3D_ocean,1)
     ub1_a = ubound( d_grid_3D_ocean,1)
@@ -727,7 +727,7 @@ contains
     lb2_a = lbound( d_grid_3D_ocean,2)
     ub2_a = ubound( d_grid_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_grid_dp_3D)
@@ -739,12 +739,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( grid) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( grid) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -761,11 +761,11 @@ contains
 
   end subroutine test_create_field_grid_dp
 
-  subroutine test_create_field_mesh_logical_a( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_logical_a( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -799,18 +799,18 @@ contains
     long_name = 'd_mesh_a_logical_2D_long_name'
     units     = 'd_mesh_a_logical_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_2D)
@@ -820,11 +820,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -839,13 +839,13 @@ contains
     units     = 'd_mesh_a_logical_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -853,7 +853,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -865,12 +865,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -889,13 +889,13 @@ contains
     units     = 'd_mesh_a_logical_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -903,7 +903,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -915,12 +915,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -939,13 +939,13 @@ contains
     units     = 'd_mesh_a_logical_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -953,7 +953,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -965,12 +965,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -987,11 +987,11 @@ contains
 
   end subroutine test_create_field_mesh_logical_a
 
-  subroutine test_create_field_mesh_logical_b( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_logical_b( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -1025,18 +1025,18 @@ contains
     long_name = 'd_mesh_b_logical_2D_long_name'
     units     = 'd_mesh_b_logical_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_2D)
@@ -1046,11 +1046,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1065,13 +1065,13 @@ contains
     units     = 'd_mesh_b_logical_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -1079,7 +1079,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1091,12 +1091,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1115,13 +1115,13 @@ contains
     units     = 'd_mesh_b_logical_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -1129,7 +1129,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1141,12 +1141,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1165,13 +1165,13 @@ contains
     units     = 'd_mesh_b_logical_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -1179,7 +1179,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1191,12 +1191,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1213,11 +1213,11 @@ contains
 
   end subroutine test_create_field_mesh_logical_b
 
-  subroutine test_create_field_mesh_logical_c( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_logical_c( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -1251,18 +1251,18 @@ contains
     long_name = 'd_mesh_2D_long_name'
     units     = 'd_mesh_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_2D)
@@ -1272,11 +1272,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1291,13 +1291,13 @@ contains
     units     = 'd_mesh_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -1305,7 +1305,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1317,12 +1317,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1341,13 +1341,13 @@ contains
     units     = 'd_mesh_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -1355,7 +1355,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1367,12 +1367,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1391,13 +1391,13 @@ contains
     units     = 'd_mesh_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -1405,7 +1405,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_logical_3D)
@@ -1417,12 +1417,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1439,11 +1439,11 @@ contains
 
   end subroutine test_create_field_mesh_logical_c
 
-  subroutine test_create_field_mesh_int_a( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_int_a( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -1477,18 +1477,18 @@ contains
     long_name = 'd_mesh_a_int_2D_long_name'
     units     = 'd_mesh_a_int_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_2D)
@@ -1498,11 +1498,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1517,13 +1517,13 @@ contains
     units     = 'd_mesh_a_int_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -1531,7 +1531,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1543,12 +1543,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1567,13 +1567,13 @@ contains
     units     = 'd_mesh_a_int_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -1581,7 +1581,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1593,12 +1593,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1617,13 +1617,13 @@ contains
     units     = 'd_mesh_a_int_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -1631,7 +1631,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1643,12 +1643,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1665,11 +1665,11 @@ contains
 
   end subroutine test_create_field_mesh_int_a
 
-  subroutine test_create_field_mesh_int_b( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_int_b( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -1703,18 +1703,18 @@ contains
     long_name = 'd_mesh_b_int_2D_long_name'
     units     = 'd_mesh_b_int_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_2D)
@@ -1724,11 +1724,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1743,13 +1743,13 @@ contains
     units     = 'd_mesh_b_int_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -1757,7 +1757,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1769,12 +1769,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1793,13 +1793,13 @@ contains
     units     = 'd_mesh_b_int_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -1807,7 +1807,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1819,12 +1819,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1843,13 +1843,13 @@ contains
     units     = 'd_mesh_b_int_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -1857,7 +1857,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1869,12 +1869,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1891,11 +1891,11 @@ contains
 
   end subroutine test_create_field_mesh_int_b
 
-  subroutine test_create_field_mesh_int_c( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_int_c( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -1929,18 +1929,18 @@ contains
     long_name = 'd_mesh_c_int_2D_long_name'
     units     = 'd_mesh_c_int_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_2D)
@@ -1950,11 +1950,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1969,13 +1969,13 @@ contains
     units     = 'd_mesh_c_int_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -1983,7 +1983,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -1995,12 +1995,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2019,13 +2019,13 @@ contains
     units     = 'd_mesh_c_int_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -2033,7 +2033,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -2045,12 +2045,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2069,13 +2069,13 @@ contains
     units     = 'd_mesh_c_int_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -2083,7 +2083,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_int_3D)
@@ -2095,12 +2095,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2117,11 +2117,11 @@ contains
 
   end subroutine test_create_field_mesh_int_c
 
-  subroutine test_create_field_mesh_dp_a( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_dp_a( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -2155,18 +2155,18 @@ contains
     long_name = 'd_mesh_a_dp_2D_long_name'
     units     = 'd_mesh_a_dp_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_2D)
@@ -2176,11 +2176,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2195,13 +2195,13 @@ contains
     units     = 'd_mesh_a_dp_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -2209,7 +2209,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2221,12 +2221,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2245,13 +2245,13 @@ contains
     units     = 'd_mesh_a_dp_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -2259,7 +2259,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2271,12 +2271,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2295,13 +2295,13 @@ contains
     units     = 'd_mesh_a_dp_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -2309,7 +2309,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2321,12 +2321,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2343,11 +2343,11 @@ contains
 
   end subroutine test_create_field_mesh_dp_a
 
-  subroutine test_create_field_mesh_dp_b( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_dp_b( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -2381,18 +2381,18 @@ contains
     long_name = 'd_mesh_b_dp_2D_long_name'
     units     = 'd_mesh_b_dp_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_2D)
@@ -2402,11 +2402,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2421,13 +2421,13 @@ contains
     units     = 'd_mesh_b_dp_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -2435,7 +2435,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2447,12 +2447,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2471,13 +2471,13 @@ contains
     units     = 'd_mesh_b_dp_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -2485,7 +2485,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2497,12 +2497,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2521,13 +2521,13 @@ contains
     units     = 'd_mesh_b_dp_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -2535,7 +2535,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2547,12 +2547,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2569,11 +2569,11 @@ contains
 
   end subroutine test_create_field_mesh_dp_b
 
-  subroutine test_create_field_mesh_dp_c( test_name_parent, bof, mesh)
+  subroutine test_create_field_mesh_dp_c( test_name_parent, coll, mesh)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
-    type(type_field_collection), intent(inout) :: bof
+    type(type_field_collection), intent(inout) :: coll
     type(type_mesh), target,     intent(in   ) :: mesh
 
     ! Local variables:
@@ -2607,18 +2607,18 @@ contains
     long_name = 'd_mesh_c_dp_2D_long_name'
     units     = 'd_mesh_c_dp_2D_units'
 
-    call create_field( bof, d_mesh_2D, wd_mesh_2D, &
+    call create_field( coll, d_mesh_2D, wd_mesh_2D, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_2D,1)
     ub1_a = ubound( d_mesh_2D,1)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_2D)
@@ -2628,11 +2628,11 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2647,13 +2647,13 @@ contains
     units     = 'd_mesh_c_dp_3D_zeta_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
+    call create_field( coll, d_mesh_3D_zeta, wd_mesh_3D_zeta, &
       mesh, third_dimension%ice_zeta( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_zeta,1)
     ub1_a = ubound( d_mesh_3D_zeta,1)
@@ -2661,7 +2661,7 @@ contains
     lb2_a = lbound( d_mesh_3D_zeta,2)
     ub2_a = ubound( d_mesh_3D_zeta,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2673,12 +2673,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2697,13 +2697,13 @@ contains
     units     = 'd_mesh_c_dp_3D_month_units'
     nz        = 10
 
-    call create_field( bof, d_mesh_3D_month, wd_mesh_3D_month, &
+    call create_field( coll, d_mesh_3D_month, wd_mesh_3D_month, &
       mesh, third_dimension%month(), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_month,1)
     ub1_a = ubound( d_mesh_3D_month,1)
@@ -2711,7 +2711,7 @@ contains
     lb2_a = lbound( d_mesh_3D_month,2)
     ub2_a = ubound( d_mesh_3D_month,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2723,12 +2723,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2747,13 +2747,13 @@ contains
     units     = 'd_mesh_c_dp_3D_ocean_units'
     nz        = 20
 
-    call create_field( bof, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
+    call create_field( coll, d_mesh_3D_ocean, wd_mesh_3D_ocean, &
       mesh, third_dimension%ocean_depth( nz), Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    i = bof%find_field_by_name( name)
+    i = coll%find_field_by_name( name)
 
     lb1_a = lbound( d_mesh_3D_ocean,1)
     ub1_a = ubound( d_mesh_3D_ocean,1)
@@ -2761,7 +2761,7 @@ contains
     lb2_a = lbound( d_mesh_3D_ocean,2)
     ub2_a = ubound( d_mesh_3D_ocean,2)
 
-    select type (p => bof%items(i)%p)
+    select type (p => coll%items(i)%p)
     class default
       call crash('unexpected field type')
     class is (type_field_mesh_dp_3D)
@@ -2773,12 +2773,12 @@ contains
     end select
 
     call unit_test( (&
-      bof%items(i)%p%name      == name .and. &
-      bof%items(i)%p%long_name == long_name .and. &
-      bof%items(i)%p%units     == units .and. &
-      bof%items(i)%p%is_parent( mesh) .and. &
-      bof%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      bof%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%name      == name .and. &
+      coll%items(i)%p%long_name == long_name .and. &
+      coll%items(i)%p%units     == units .and. &
+      coll%items(i)%p%is_parent( mesh) .and. &
+      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
