@@ -15,20 +15,20 @@ module fields_field_collection
   ! =========================================
 
   type :: type_field_box
-     class(atype_field), allocatable :: p
+    class(atype_field), allocatable :: p
   end type type_field_box
 
   ! Field collection
   ! ================
 
   type :: type_field_collection
-     type(type_field_box), allocatable :: items(:)
-     integer                           :: n     = 0
-     integer                           :: n_max = 0
-   contains
-     procedure :: add_initialised_field_to_collection
-     procedure :: print_fields_info
-     procedure :: find_field_by_name
+    type(type_field_box), allocatable :: items(:)
+    integer                           :: n     = 0
+    integer                           :: n_max = 0
+  contains
+    procedure :: add_initialised_field_to_collection
+    procedure :: print_fields_info
+    procedure :: find_field_by_name
   end type type_field_collection
 
 contains
