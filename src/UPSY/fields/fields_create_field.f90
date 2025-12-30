@@ -13,9 +13,10 @@ module fields_create_field
     type_field_grid_dp_2D, type_field_grid_dp_3D, &
     type_field_mesh_logical_2D, type_field_mesh_logical_3D, &
     type_field_mesh_int_2D, type_field_mesh_int_3D, &
-    type_field_mesh_dp_2D, type_field_mesh_dp_3D, &
-    type_field_collection, add_initialised_field_to_collection
+    type_field_mesh_dp_2D, type_field_mesh_dp_3D
   use fields_init_field, only: init_field
+  use fields_field_collection, only: &
+    type_field_collection, add_initialised_field_to_collection
 
   implicit none
 
