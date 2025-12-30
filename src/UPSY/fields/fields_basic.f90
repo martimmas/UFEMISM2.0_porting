@@ -1,14 +1,15 @@
 module fields_basic
 
   use precisions, only: dp
-  use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use mpi_basic, only: par, sync
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string, &
+    insert_val_into_string_int
   use grid_types, only: type_grid
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid, type_Arakawa_grid
   use fields_dimensions, only: third_dimension, type_third_dimension
   use tests_main, only: test_tol_grid, test_tol_mesh
-  use mpi_f08, only: MPI_WIN
+  use mpi_f08, only: MPI_WIN, MPI_GATHER, MPI_INTEGER, MPI_COMM_WORLD
 
   implicit none
 
@@ -24,8 +25,8 @@ module fields_basic
     type_field_mesh_dp_2D, type_field_mesh_dp_3D, &
     type_field_collection, add_initialised_field_to_collection, find_field_by_name
 
-  ! Abstract base type and mesh/grid-based types
-  ! ============================================
+  ! Abstract basic field type and mesh/grid-based field types
+  ! =========================================================
 
   type, abstract :: atype_field
 
@@ -45,7 +46,7 @@ module fields_basic
 
   contains
 
-    procedure(print_field_info_ifc), deferred :: print_field_info
+    procedure :: print_field_info
     procedure :: is_parent
     procedure :: is_Arakawa_grid
     procedure :: is_third_dimension
@@ -67,82 +68,58 @@ module fields_basic
 
   type, extends(atype_field_grid) :: type_field_grid_logical_2D
     logical, pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_logical_2D
   end type type_field_grid_logical_2D
 
   type, extends(atype_field_grid) :: type_field_grid_logical_3D
     type(type_third_dimension) :: third_dimension
     logical, pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_logical_3D
   end type type_field_grid_logical_3D
 
   type, extends(atype_field_grid) :: type_field_grid_int_2D
     integer, pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_int_2D
   end type type_field_grid_int_2D
 
   type, extends(atype_field_grid) :: type_field_grid_int_3D
     type(type_third_dimension) :: third_dimension
     integer, pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_int_3D
   end type type_field_grid_int_3D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_2D
     real(dp), pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_dp_2D
   end type type_field_grid_dp_2D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_3D
     type(type_third_dimension) :: third_dimension
     real(dp), pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_grid_info_dp_3D
   end type type_field_grid_dp_3D
 
   ! Mesh-based fields
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_2D
     logical, pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_logical_2D
   end type type_field_mesh_logical_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_3D
     type(type_third_dimension) :: third_dimension
     logical, pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_logical_3D
   end type type_field_mesh_logical_3D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_2D
     integer, pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_int_2D
   end type type_field_mesh_int_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_3D
     type(type_third_dimension) :: third_dimension
     integer, pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_int_3D
   end type type_field_mesh_int_3D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_2D
     real(dp), pointer :: d(:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_dp_2D
   end type type_field_mesh_dp_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_3D
     type(type_third_dimension) :: third_dimension
     real(dp), pointer :: d(:,:)
-  contains
-    procedure :: print_field_info  => print_field_mesh_info_dp_3D
   end type type_field_mesh_dp_3D
 
   ! Wrapper so we can have a mixed-type array
@@ -165,80 +142,12 @@ module fields_basic
      procedure :: find_field_by_name
   end type type_field_collection
 
-  ! Interfaces for deferred procedures
-  ! ==================================
-
-  abstract interface
-
-    subroutine print_field_info_ifc( self)
-      import :: atype_field
-      class(atype_field), intent(in) :: self
-    end subroutine print_field_info_ifc
-
-  end interface
-
-  ! Interfaces to procedures defined in submodules
-  ! ==============================================
-
-  ! print_field_info
-  interface
-
-    module subroutine print_field_grid_info_logical_2D( self)
-      class(type_field_grid_logical_2D), intent(in) :: self
-    end subroutine print_field_grid_info_logical_2D
-
-    module subroutine print_field_grid_info_logical_3D( self)
-      class(type_field_grid_logical_3D), intent(in) :: self
-    end subroutine print_field_grid_info_logical_3D
-
-    module subroutine print_field_grid_info_int_2D( self)
-      class(type_field_grid_int_2D), intent(in) :: self
-    end subroutine print_field_grid_info_int_2D
-
-    module subroutine print_field_grid_info_int_3D( self)
-      class(type_field_grid_int_3D), intent(in) :: self
-    end subroutine print_field_grid_info_int_3D
-
-    module subroutine print_field_grid_info_dp_2D( self)
-      class(type_field_grid_dp_2D), intent(in) :: self
-    end subroutine print_field_grid_info_dp_2D
-
-    module subroutine print_field_grid_info_dp_3D( self)
-      class(type_field_grid_dp_3D), intent(in) :: self
-    end subroutine print_field_grid_info_dp_3D
-
-    module subroutine print_field_mesh_info_logical_2D( self)
-      class(type_field_mesh_logical_2D), intent(in) :: self
-    end subroutine print_field_mesh_info_logical_2D
-
-    module subroutine print_field_mesh_info_logical_3D( self)
-      class(type_field_mesh_logical_3D), intent(in) :: self
-    end subroutine print_field_mesh_info_logical_3D
-
-    module subroutine print_field_mesh_info_int_2D( self)
-      class(type_field_mesh_int_2D), intent(in) :: self
-    end subroutine print_field_mesh_info_int_2D
-
-    module subroutine print_field_mesh_info_int_3D( self)
-      class(type_field_mesh_int_3D), intent(in) :: self
-    end subroutine print_field_mesh_info_int_3D
-
-    module subroutine print_field_mesh_info_dp_2D( self)
-      class(type_field_mesh_dp_2D), intent(in) :: self
-    end subroutine print_field_mesh_info_dp_2D
-
-    module subroutine print_field_mesh_info_dp_3D( self)
-      class(type_field_mesh_dp_3D), intent(in) :: self
-    end subroutine print_field_mesh_info_dp_3D
-
-  end interface
-
 contains
 
-  subroutine add_initialised_field_to_collection( self, field)
+  subroutine add_initialised_field_to_collection( bof, field)
 
     ! In/output variables:
-    class(type_field_collection), intent(inout) :: self
+    class(type_field_collection), intent(inout) :: bof
     class(atype_field),           intent(in   ) :: field
 
     ! Local variables:
@@ -250,41 +159,41 @@ contains
     call init_routine( routine_name)
 
     ! If the collection is not alocated yet, allocate it.
-    if (.not. allocated( self%items)) then
-      self%n     = 1
-      self%n_max = 1
-      allocate( self%items(1))
-      allocate( self%items(1)%p, source = field)
+    if (.not. allocated( bof%items)) then
+      bof%n     = 1
+      bof%n_max = 1
+      allocate( bof%items(1))
+      allocate( bof%items(1)%p, source = field)
       call finalise_routine( routine_name)
       return
     end if
 
     ! If the collection is full, extend it
-    if (self%n == self%n_max) then
-      self%n_max = self%n_max * 2
-      call extend_field_collection( self%items, self%n, self%n_max)
+    if (bof%n == bof%n_max) then
+      bof%n_max = bof%n_max * 2
+      call extend_field_collection( bof%items, bof%n, bof%n_max)
     end if
 
     ! Check that this name is not already in use
     is_in_use = .false.
-    do i = 1, self%n
-      is_in_use = is_in_use .or. self%items(i)%p%name == field%name
+    do i = 1, bof%n
+      is_in_use = is_in_use .or. bof%items(i)%p%name == field%name
     end do
     if (is_in_use) call crash('a field of name "' // trim( field%name) // '" already exists')
 
     ! Add field to collection
-    self%n = self%n+1
-    allocate( self%items( self%n)%p, source = field)
+    bof%n = bof%n+1
+    allocate( bof%items( bof%n)%p, source = field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine add_initialised_field_to_collection
 
-  subroutine extend_field_collection( arr, n_keep, n_max_new)
+  subroutine extend_field_collection( items, n_keep, n_max_new)
 
     ! In/output variables:
-    type(type_field_box), allocatable, intent(inout) :: arr(:)
+    type(type_field_box), allocatable, intent(inout) :: items(:)
     integer,                           intent(in   ) :: n_keep, n_max_new
 
     ! Local variables:
@@ -297,14 +206,14 @@ contains
 
     allocate( tmp( n_keep))
     do i = 1, n_keep
-      allocate( tmp(i)%p, source = arr(i)%p)
+      allocate( tmp(i)%p, source = items(i)%p)
     end do
 
-    deallocate( arr)
-    allocate( arr( n_max_new))
+    deallocate( items)
+    allocate( items( n_max_new))
 
     do i = 1, n_keep
-      allocate( arr(i)%p, source = tmp(i)%p)
+      allocate( items(i)%p, source = tmp(i)%p)
     end do
 
     ! Remove routine from call stack
@@ -312,22 +221,22 @@ contains
 
   end subroutine extend_field_collection
 
-  subroutine print_fields_info( self)
+  subroutine print_fields_info( bof)
 
     ! In/output variables:
-    class(type_field_collection), intent(in) :: self
+    class(type_field_collection), intent(in) :: bof
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'print_fields_info'
     integer                        :: i
 
-    if (.not. allocated( self%items)) return
+    if (.not. allocated( bof%items)) return
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    do i = 1, self%n
-       call self%items(i)%p%print_field_info
+    do i = 1, bof%n
+       call bof%items(i)%p%print_field_info
     end do
 
     ! Remove routine from call stack
@@ -335,10 +244,240 @@ contains
 
   end subroutine print_fields_info
 
-  function find_field_by_name( self, name) result(i)
+  subroutine print_field_info( field)
 
     ! In/output variables:
-    class(type_field_collection), intent(in) :: self
+    class(atype_field), intent(in) :: field
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'print_field_info'
+    character(len=1024)            :: field_name
+    character(len=1024)            :: field_long_name
+    character(len=1024)            :: field_dimension
+    character(len=1024)            :: field_parent_grid_type
+    character(len=1024)            :: field_parent_grid_name
+    character(len=1024)            :: field_parent_Arakawa_grid
+    character(len=1024)            :: field_third_dimension_name
+    character(len=1024)            :: field_units
+    integer, dimension(0:par%n-1)  :: lbs, ubs
+    integer, dimension(0:par%n-1)  :: lbs1, ubs1, lbs2, ubs2
+    integer                        :: i
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    field_name                = field%name
+    field_long_name           = field%long_name
+    field_units               = field%units
+    field_parent_Arakawa_grid = field%Arakawa_grid%str()
+
+    ! Field dimensions
+    field_dimension            = ''
+    field_third_dimension_name = ''
+
+    select type (p => field)
+    class default
+      call crash('invalid field type')
+    class is (type_field_grid_logical_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_grid_logical_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    class is (type_field_grid_int_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_grid_int_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    class is (type_field_grid_dp_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_grid_dp_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    class is (type_field_mesh_logical_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_mesh_logical_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    class is (type_field_mesh_int_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_mesh_int_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    class is (type_field_mesh_dp_2D)
+      field_dimension = '2-D'
+      call gather_field_bounds_2D( field, lbs, ubs)
+    class is (type_field_mesh_dp_3D)
+      field_dimension = '3-D'
+      call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+      field_third_dimension_name = p%third_dimension%name
+    end select
+
+    ! Parent grid can be either an x/y-grid or a mesh
+    select type (p => field)
+    class default
+      call crash('invalid field type')
+    class is (atype_field_grid)
+      field_parent_grid_type = 'grid'
+      field_parent_grid_name = p%parent%name
+      class is (atype_field_mesh)
+      field_parent_grid_type = 'mesh'
+      field_parent_grid_name = p%parent%name
+    end select
+
+    if (par%primary) then
+      write(0,*) '     Field: ', colour_string( trim( field_name),'light blue')
+
+      write(0,*) '       Long name: ', trim( field_long_name)
+      write(0,*) '       Parent   : ', trim( field_parent_grid_type), ' "', &
+      trim( field_parent_grid_name), '" (', trim( field_parent_Arakawa_grid), '-grid)'
+      write(0,*) '       Units    : [', trim( field_units), ']'
+
+      select case (field_dimension)
+      case default
+        call crash('invalid field_dimension')
+      case ('2-D')
+        do i = 0, par%n-1
+          if (i == 0) then
+            write(0,*) '       Dimension: 2-D - Process ', i, ' owns [', lbs(i), ' - ', ubs(i), ']'
+          else
+            write(0,*) '                                ', i, '      [', lbs(i), ' - ', ubs(i), ']'
+          end if
+        end do
+      case ('3-D')
+        do i = 0, par%n-1
+          if (i == 0) then
+            write(0,*) '       Dimension: 3-D - Process ', i, ' owns [', lbs1(i), ' - ', ubs1(i), ']', &
+              ', [', lbs2(i), ' - ', ubs2(i), ']'
+          else
+            write(0,*) '                                ', i, '      [', lbs1(i), ' - ', ubs1(i), ']', &
+              ', [', lbs2(i), ' - ', ubs2(i), ']'
+          end if
+        end do
+      end select
+
+    end if
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine print_field_info
+
+  subroutine gather_field_bounds_2D( field, lbs, ubs)
+
+    ! In/output variables:
+    class(atype_field),            intent(in   ) :: field
+    integer, dimension(0:par%n-1), intent(  out) :: lbs, ubs
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'gather_field_bounds'
+    integer                        :: lb, ub, ierr
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    select type (p => field)
+    class default
+      call crash('invalid field type')
+    class is (type_field_grid_logical_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    class is (type_field_grid_int_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    class is (type_field_grid_dp_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    class is (type_field_mesh_logical_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    class is (type_field_mesh_int_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    class is (type_field_mesh_dp_2D)
+      lb = lbound( p%d,1)
+      ub = ubound( p%d,1)
+    end select
+
+    call MPI_GATHER( lb, 1, MPI_INTEGER, lbs, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_GATHER( ub, 1, MPI_INTEGER, ubs, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine gather_field_bounds_2D
+
+  subroutine gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
+
+    ! In/output variables:
+    class(atype_field),            intent(in   ) :: field
+    integer, dimension(0:par%n-1), intent(  out) :: lbs1, ubs1, lbs2, ubs2
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'gather_field_bounds_3D'
+    integer                        :: lb1, ub1, lb2, ub2, ierr
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    select type (p => field)
+    class default
+      call crash('invalid field type')
+    class is (type_field_grid_logical_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    class is (type_field_grid_int_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    class is (type_field_grid_dp_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    class is (type_field_mesh_logical_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    class is (type_field_mesh_int_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    class is (type_field_mesh_dp_3D)
+      lb1 = lbound( p%d,1)
+      ub1 = ubound( p%d,1)
+      lb2 = lbound( p%d,2)
+      ub2 = ubound( p%d,2)
+    end select
+
+    call MPI_GATHER( lb1, 1, MPI_INTEGER, lbs1, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_GATHER( ub1, 1, MPI_INTEGER, ubs1, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_GATHER( lb2, 1, MPI_INTEGER, lbs2, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_GATHER( ub2, 1, MPI_INTEGER, ubs2, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine gather_field_bounds_3D
+
+  function find_field_by_name( bof, name) result(i)
+
+    ! In/output variables:
+    class(type_field_collection), intent(in) :: bof
     character(len=*),             intent(in) :: name
     integer                                  :: i
 
@@ -350,15 +489,15 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    if (.not. allocated(self%items)) then
+    if (.not. allocated(bof%items)) then
       call crash('field collection not allocated')
     end if
 
     i = 0
     found_it = .false.
-    do ii = 1, size( self%items)
-      if (allocated( self%items(ii)%p)) then
-        if (self%items(ii)%p%name == name) then
+    do ii = 1, size( bof%items)
+      if (allocated( bof%items(ii)%p)) then
+        if (bof%items(ii)%p%name == name) then
           found_it = .true.
           i = ii
           exit
@@ -375,10 +514,10 @@ contains
 
   end function find_field_by_name
 
-  function is_parent( self, parent) result( res)
+  function is_parent( field, parent) result( res)
 
     ! In/output variables:
-    class(atype_field), intent(in) :: self
+    class(atype_field), intent(in) :: field
     class(*),           intent(in) :: parent
     logical                        :: res
 
@@ -390,9 +529,9 @@ contains
 
     select type(p => parent)
     class is (type_grid)
-      res = is_parent_grid( self, p)
+      res = is_parent_grid( field, p)
     class is (type_mesh)
-      res = is_parent_mesh( self, p)
+      res = is_parent_mesh( field, p)
     class default
       res = .false.
     end select
@@ -402,10 +541,10 @@ contains
 
   end function is_parent
 
-  function is_parent_grid( self, grid) result( res)
+  function is_parent_grid( field, grid) result( res)
 
     ! In/output variables:
-    class(atype_field), intent(in) :: self
+    class(atype_field), intent(in) :: field
     type(type_grid),    intent(in) :: grid
     logical                        :: res
 
@@ -415,7 +554,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type(p => self)
+    select type(p => field)
     class is (atype_field_grid)
       res = test_tol_grid( p%parent, grid, p%parent%tol_dist)
     class default
@@ -427,10 +566,10 @@ contains
 
   end function is_parent_grid
 
-  function is_parent_mesh( self, mesh) result( res)
+  function is_parent_mesh( field, mesh) result( res)
 
     ! In/output variables:
-    class(atype_field), intent(in) :: self
+    class(atype_field), intent(in) :: field
     type(type_mesh),    intent(in) :: mesh
     logical                        :: res
 
@@ -440,7 +579,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type(p => self)
+    select type(p => field)
     class is (atype_field_mesh)
       res = test_tol_mesh( p%parent, mesh, p%parent%tol_dist)
     class default
@@ -452,10 +591,10 @@ contains
 
   end function is_parent_mesh
 
-  function is_Arakawa_grid( self, field_Arakawa_grid) result( res)
+  function is_Arakawa_grid( field, field_Arakawa_grid) result( res)
 
     ! In/output variables:
-    class(atype_field),      intent(in) :: self
+    class(atype_field),      intent(in) :: field
     type(type_Arakawa_grid), intent(in) :: field_Arakawa_grid
     logical                             :: res
 
@@ -465,7 +604,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type(p => self)
+    select type(p => field)
     class is (atype_field_grid)
       res = p%Arakawa_grid == field_Arakawa_grid
     class is (atype_field_mesh)
@@ -479,10 +618,10 @@ contains
 
   end function is_Arakawa_grid
 
-  function is_third_dimension( self, field_third_dimension) result( res)
+  function is_third_dimension( field, field_third_dimension) result( res)
 
     ! In/output variables:
-    class(atype_field),         intent(in) :: self
+    class(atype_field),         intent(in) :: field
     type(type_third_dimension), intent(in) :: field_third_dimension
     logical                                :: res
 
@@ -492,7 +631,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type(p => self)
+    select type(p => field)
     class default
       call crash('class/type not implemented')
     class is (type_field_grid_logical_2D)

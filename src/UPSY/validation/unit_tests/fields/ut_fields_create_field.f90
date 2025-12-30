@@ -34,6 +34,7 @@ contains
     character(len=1024), parameter :: routine_name = 'test_create_field'
     character(len=1024), parameter :: test_name_local = 'create_field'
     character(len=1024)            :: test_name
+    type(type_grid)                :: grid
     real(dp)                       :: alpha_min, res_max
     real(dp), parameter            :: xmin = -1._dp
     real(dp), parameter            :: xmax =  1._dp
@@ -48,7 +49,9 @@ contains
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
-    call allocate_mesh_primary( mesh, 'test_mesh', 100, 200)
+    call setup_square_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
+
+    call allocate_mesh_primary( mesh, 'dummy_mesh', 100, 200)
     call initialise_dummy_mesh_5( mesh, xmin, xmax, ymin, ymax)
 
     ! Refine the test mesh
@@ -58,9 +61,9 @@ contains
     call crop_mesh_primary( mesh)
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
-    call test_create_field_grid_logical  ( test_name, bof)
-    call test_create_field_grid_int      ( test_name, bof)
-    call test_create_field_grid_dp       ( test_name, bof)
+    call test_create_field_grid_logical  ( test_name, bof, grid)
+    call test_create_field_grid_int      ( test_name, bof, grid)
+    call test_create_field_grid_dp       ( test_name, bof, grid)
     call test_create_field_mesh_logical_a( test_name, bof, mesh)
     call test_create_field_mesh_logical_b( test_name, bof, mesh)
     call test_create_field_mesh_logical_c( test_name, bof, mesh)
@@ -71,22 +74,26 @@ contains
     call test_create_field_mesh_dp_b     ( test_name, bof, mesh)
     call test_create_field_mesh_dp_c     ( test_name, bof, mesh)
 
+    ! DENK DROM
+    call bof%print_fields_info
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine test_create_field
 
-  subroutine test_create_field_grid_logical( test_name_parent, bof)
+  subroutine test_create_field_grid_logical( test_name_parent, bof, grid)
 
+    ! In/output variables:
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
     type(type_field_collection), intent(inout) :: bof
+    type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_grid_logical'
     character(len=1024), parameter               :: test_name_local = 'grid/logical'
     character(len=1024)                          :: test_name
-    type(type_grid), target                      :: grid
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
     logical, dimension(:  ), contiguous, pointer :: d_grid_2D
@@ -107,8 +114,6 @@ contains
 
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-    call setup_square_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
 
     ! 2-D
 
@@ -304,17 +309,17 @@ contains
 
   end subroutine test_create_field_grid_logical
 
-  subroutine test_create_field_grid_int( test_name_parent, bof)
+  subroutine test_create_field_grid_int( test_name_parent, bof, grid)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
     type(type_field_collection), intent(inout) :: bof
+    type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_create_field_grid_int'
     character(len=1024), parameter               :: test_name_local = 'grid/int'
     character(len=1024)                          :: test_name
-    type(type_grid), target                      :: grid
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
     integer, dimension(:  ), contiguous, pointer :: d_grid_2D
@@ -335,8 +340,6 @@ contains
 
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-    call setup_square_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
 
     ! 2-D
 
@@ -532,17 +535,17 @@ contains
 
   end subroutine test_create_field_grid_int
 
-  subroutine test_create_field_grid_dp( test_name_parent, bof)
+  subroutine test_create_field_grid_dp( test_name_parent, bof, grid)
 
     ! In/output variables:
     character(len=*),            intent(in   ) :: test_name_parent
     type(type_field_collection), intent(inout) :: bof
+    type(type_grid), target,     intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_create_field_grid_dp'
     character(len=1024), parameter                :: test_name_local = 'grid/dp'
     character(len=1024)                           :: test_name
-    type(type_grid), target                       :: grid
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
     real(dp), dimension(:  ), contiguous, pointer :: d_grid_2D
@@ -563,8 +566,6 @@ contains
 
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
-
-    call setup_square_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
 
     ! 2-D
 
