@@ -35,7 +35,8 @@ module fields_basic
     ! Parent grid
     ! type(type_grid), pointer :: parent    ! Defined in extended types atype_field_grid and atype_field_mesh!
     ! type(type_mesh), pointer :: parent
-    type(type_Arakawa_grid), private :: Arakawa_grid_val
+    type(type_Arakawa_grid),    private :: Arakawa_grid_val
+    type(type_third_dimension), private :: third_dimension_val
 
     ! Pointer to array containing the actual field data
     ! logical, pointer :: d(:)              ! Defined in extended types type_field_grid_XXX, etc.
@@ -156,7 +157,6 @@ module fields_basic
   end type type_field_grid_logical_2D
 
   type, extends(atype_field_grid) :: type_field_grid_logical_3D
-    type(type_third_dimension), private :: third_dimension_val
     logical, pointer, public :: d(:,:)
   end type type_field_grid_logical_3D
 
@@ -165,7 +165,6 @@ module fields_basic
   end type type_field_grid_int_2D
 
   type, extends(atype_field_grid) :: type_field_grid_int_3D
-    type(type_third_dimension), private :: third_dimension_val
     integer, pointer, public :: d(:,:)
   end type type_field_grid_int_3D
 
@@ -174,7 +173,6 @@ module fields_basic
   end type type_field_grid_dp_2D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_3D
-    type(type_third_dimension), private :: third_dimension_val
     real(dp), pointer, public :: d(:,:)
   end type type_field_grid_dp_3D
 
@@ -185,7 +183,6 @@ module fields_basic
   end type type_field_mesh_logical_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_3D
-    type(type_third_dimension), private :: third_dimension_val
     logical, pointer, public :: d(:,:)
   end type type_field_mesh_logical_3D
 
@@ -194,7 +191,6 @@ module fields_basic
   end type type_field_mesh_int_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_3D
-    type(type_third_dimension), private :: third_dimension_val
     integer, pointer, public :: d(:,:)
   end type type_field_mesh_int_3D
 
@@ -203,7 +199,6 @@ module fields_basic
   end type type_field_mesh_dp_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_3D
-    type(type_third_dimension), private :: third_dimension_val
     real(dp), pointer, public :: d(:,:)
   end type type_field_mesh_dp_3D
 
