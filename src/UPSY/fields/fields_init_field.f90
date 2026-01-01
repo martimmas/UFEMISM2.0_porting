@@ -65,8 +65,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -105,10 +106,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -146,8 +147,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -186,10 +188,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -227,8 +229,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -267,10 +270,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_grid( grid, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_grid( grid)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -311,8 +314,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -359,10 +363,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -408,8 +412,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -456,10 +461,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -505,8 +510,9 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -553,10 +559,10 @@ contains
     if (allocated( field)) call crash('field is already allocated')
     allocate( field)
 
-    call field%set_field_metadata( name, long_name, units)
-    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
-
-    field%third_dimension = field_third_dimension
+    call field%set_metadata( name, long_name, units)
+    call field%set_parent_mesh( mesh)
+    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call field%set_third_dimension( field_third_dimension)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then

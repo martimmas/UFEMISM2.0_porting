@@ -46,7 +46,9 @@ module fields_basic
     procedure, public :: name      => get_name
     procedure, public :: long_name => get_long_name
     procedure, public :: units     => get_units
-    procedure, public :: set_field_metadata
+    procedure, public :: set_metadata
+    procedure, public :: set_parent_Arakawa_grid
+    procedure, public :: set_third_dimension
     procedure, public :: print_info
     procedure, public :: is_parent
 
@@ -55,12 +57,12 @@ module fields_basic
   ! Interfaces to type-bound procedures defined in submodules
   interface
 
-    module subroutine set_field_metadata( field, name, long_name, units)
+    module subroutine set_metadata( field, name, long_name, units)
       class(atype_field), intent(inout) :: field
       character(len=*),   intent(in   ) :: name
       character(len=*),   intent(in   ) :: long_name
       character(len=*),   intent(in   ) :: units
-    end subroutine set_field_metadata
+    end subroutine set_metadata
 
     module function get_name( field) result( name)
       class(atype_field), intent(in) :: field
@@ -87,6 +89,16 @@ module fields_basic
       logical                        :: res
     end function is_parent
 
+    module subroutine set_parent_Arakawa_grid( field, field_Arakawa_grid)
+      class(atype_field),      intent(inout) :: field
+      type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
+    end subroutine set_parent_Arakawa_grid
+
+    module subroutine set_third_dimension( field, field_third_dimension)
+      class(atype_field),         intent(inout) :: field
+      type(type_third_dimension), intent(in   ) :: field_third_dimension
+    end subroutine set_third_dimension
+
   end interface
 
   ! Extedned abstract field type for grid- and mesh-based fields
@@ -95,29 +107,27 @@ module fields_basic
   type, abstract, extends(atype_field) :: atype_field_grid
     type(type_grid), pointer, public :: parent
   contains
-    procedure, public :: set_field_parent_grid
+    procedure, public :: set_parent_grid
   end type atype_field_grid
 
   type, abstract, extends(atype_field) :: atype_field_mesh
     type(type_mesh), pointer, public :: parent
   contains
-    procedure, public :: set_field_parent_mesh
+    procedure, public :: set_parent_mesh
   end type atype_field_mesh
 
   ! Interfaces to type-bound procedures defined in submodules
   interface
 
-    module subroutine set_field_parent_grid( field, grid, field_Arakawa_grid)
+    module subroutine set_parent_grid( field, grid)
       class(atype_field_grid), intent(inout) :: field
       type(type_grid), target, intent(in   ) :: grid
-      type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
-    end subroutine set_field_parent_grid
+    end subroutine set_parent_grid
 
-    module subroutine set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    module subroutine set_parent_mesh( field, mesh)
       class(atype_field_mesh), intent(inout) :: field
       type(type_mesh), target, intent(in   ) :: mesh
-      type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
-    end subroutine set_field_parent_mesh
+    end subroutine set_parent_mesh
 
   end interface
 
