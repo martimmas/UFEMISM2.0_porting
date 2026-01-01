@@ -146,7 +146,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -191,8 +191,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -241,8 +241,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -291,8 +291,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -372,7 +372,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -417,8 +417,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -467,8 +467,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -517,8 +517,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -598,7 +598,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -643,8 +643,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -693,8 +693,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -743,8 +743,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( grid) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
       ub1_a == grid%n2 .and. &
       lb1_f == grid%n1 .and. &
@@ -824,7 +824,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -869,8 +869,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -919,8 +919,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -969,8 +969,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1050,7 +1050,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1095,8 +1095,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1145,8 +1145,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1195,8 +1195,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1276,7 +1276,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1321,8 +1321,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1371,8 +1371,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1421,8 +1421,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1502,7 +1502,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1547,8 +1547,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1597,8 +1597,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1647,8 +1647,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -1728,7 +1728,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1773,8 +1773,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1823,8 +1823,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1873,8 +1873,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -1954,7 +1954,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -1999,8 +1999,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2049,8 +2049,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2099,8 +2099,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2180,7 +2180,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2225,8 +2225,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2275,8 +2275,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2325,8 +2325,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
       ub1_a == mesh%vi2 .and. &
       lb1_f == mesh%vi1 .and. &
@@ -2406,7 +2406,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2451,8 +2451,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2501,8 +2501,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2551,8 +2551,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
       ub1_a == mesh%ti2 .and. &
       lb1_f == mesh%ti1 .and. &
@@ -2632,7 +2632,7 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2677,8 +2677,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ice_zeta( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2727,8 +2727,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%month()) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &
@@ -2777,8 +2777,8 @@ contains
       coll%items(i)%p%long_name == long_name .and. &
       coll%items(i)%p%units     == units .and. &
       coll%items(i)%p%is_parent( mesh) .and. &
-      coll%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      coll%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      coll%items(i)%p%is_parent( third_dimension%ocean_depth( nz)) .and. &
+      coll%items(i)%p%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
       ub1_a == mesh%ei2 .and. &
       lb1_f == mesh%ei1 .and. &

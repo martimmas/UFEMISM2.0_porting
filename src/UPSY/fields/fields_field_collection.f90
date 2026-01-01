@@ -8,8 +8,7 @@ module fields_field_collection
 
   private
 
-  public :: &
-    type_field_collection, add_initialised_field_to_collection, find_field_by_name
+  public :: type_field_collection
 
   ! Wrapper so we can have a mixed-type array
   ! =========================================
@@ -27,7 +26,7 @@ module fields_field_collection
     integer                           :: n_max = 0
   contains
     procedure :: add_initialised_field_to_collection
-    procedure :: print_fields_info
+    procedure :: print_info
     procedure :: find_field_by_name
   end type type_field_collection
 
@@ -110,7 +109,7 @@ contains
 
   end subroutine extend_field_collection
 
-  subroutine print_fields_info( coll)
+  subroutine print_info( coll)
 
     ! In/output variables:
     class(type_field_collection), intent(in) :: coll
@@ -125,13 +124,13 @@ contains
     call init_routine( routine_name)
 
     do i = 1, coll%n
-       call coll%items(i)%p%print_field_info
+       call coll%items(i)%p%print_info
     end do
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine print_fields_info
+  end subroutine print_info
 
   function find_field_by_name( coll, name) result(i)
 
