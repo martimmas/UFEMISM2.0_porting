@@ -62,6 +62,25 @@ contains
 
   end subroutine set_parent_grid
 
+  function get_parent_grid( field) result( grid)
+
+    ! In/output variables:
+    class(atype_field_grid), intent(in) :: field
+    type(type_grid), pointer            :: grid
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'get_parent_grid'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    grid => field%parent
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end function get_parent_grid
+
   subroutine set_parent_mesh( field, mesh)
 
     ! In/output variables:
@@ -81,6 +100,25 @@ contains
 
   end subroutine set_parent_mesh
 
+  function get_parent_mesh( field) result( mesh)
+
+    ! In/output variables:
+    class(atype_field_mesh), intent(in) :: field
+    type(type_mesh), pointer            :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'get_parent_mesh'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    mesh => field%parent
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end function get_parent_mesh
+
   subroutine set_parent_Arakawa_grid( field, field_Arakawa_grid)
 
     ! In/output variables:
@@ -93,12 +131,31 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    field%Arakawa_grid = field_Arakawa_grid
+    field%Arakawa_grid_val = field_Arakawa_grid
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine set_parent_Arakawa_grid
+
+  function get_parent_Arakawa_grid( field) result( field_Arakawa_grid)
+
+    ! In/output variables:
+    class(atype_field), intent(in) :: field
+    type(type_Arakawa_grid)        :: field_Arakawa_grid
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'get_parent_Arakawa_grid'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    field_Arakawa_grid = field%Arakawa_grid_val
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end function get_parent_Arakawa_grid
 
   subroutine set_third_dimension( field, field_third_dimension)
 
@@ -116,22 +173,56 @@ contains
     class default
       call crash('invalid field type')
     class is (type_field_grid_logical_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     class is (type_field_grid_int_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     class is (type_field_grid_dp_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     class is (type_field_mesh_logical_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     class is (type_field_mesh_int_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     class is (type_field_mesh_dp_3D)
-      p%third_dimension = field_third_dimension
+      p%third_dimension_val = field_third_dimension
     end select
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine set_third_dimension
+
+  function get_third_dimension( field) result( field_third_dimension)
+
+    ! In/output variables:
+    class(atype_field), intent(in) :: field
+    type(type_third_dimension)     :: field_third_dimension
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'get_third_dimension'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    select type (p => field)
+    class default
+      call crash('invalid field type')
+    class is (type_field_grid_logical_3D)
+      field_third_dimension = p%third_dimension_val
+    class is (type_field_grid_int_3D)
+      field_third_dimension = p%third_dimension_val
+    class is (type_field_grid_dp_3D)
+      field_third_dimension = p%third_dimension_val
+    class is (type_field_mesh_logical_3D)
+      field_third_dimension = p%third_dimension_val
+    class is (type_field_mesh_int_3D)
+      field_third_dimension = p%third_dimension_val
+    class is (type_field_mesh_dp_3D)
+      field_third_dimension = p%third_dimension_val
+    end select
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end function get_third_dimension
 
 end submodule fields_basic_submod_set_get

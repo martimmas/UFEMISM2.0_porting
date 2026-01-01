@@ -35,7 +35,7 @@ module fields_basic
     ! Parent grid
     ! type(type_grid), pointer :: parent    ! Defined in extended types atype_field_grid and atype_field_mesh!
     ! type(type_mesh), pointer :: parent
-    type(type_Arakawa_grid), public :: Arakawa_grid
+    type(type_Arakawa_grid), private :: Arakawa_grid_val
 
     ! Pointer to array containing the actual field data
     ! logical, pointer :: d(:)              ! Defined in extended types type_field_grid_XXX, etc.
@@ -43,12 +43,17 @@ module fields_basic
 
   contains
 
+    procedure, public :: set_metadata
     procedure, public :: name      => get_name
     procedure, public :: long_name => get_long_name
     procedure, public :: units     => get_units
-    procedure, public :: set_metadata
+
     procedure, public :: set_parent_Arakawa_grid
+    procedure, public :: Arakawa_grid => get_parent_Arakawa_grid
+
     procedure, public :: set_third_dimension
+    procedure, public :: third_dimension => get_third_dimension
+
     procedure, public :: print_info
     procedure, public :: is_parent
 
@@ -94,10 +99,20 @@ module fields_basic
       type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
     end subroutine set_parent_Arakawa_grid
 
+    module function get_parent_Arakawa_grid( field) result( field_Arakawa_grid)
+      class(atype_field), intent(in) :: field
+      type(type_Arakawa_grid)        :: field_Arakawa_grid
+    end function get_parent_Arakawa_grid
+
     module subroutine set_third_dimension( field, field_third_dimension)
       class(atype_field),         intent(inout) :: field
       type(type_third_dimension), intent(in   ) :: field_third_dimension
     end subroutine set_third_dimension
+
+    module function get_third_dimension( field) result( field_third_dimension)
+      class(atype_field), intent(in) :: field
+      type(type_third_dimension)     :: field_third_dimension
+    end function get_third_dimension
 
   end interface
 
@@ -141,7 +156,7 @@ module fields_basic
   end type type_field_grid_logical_2D
 
   type, extends(atype_field_grid) :: type_field_grid_logical_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     logical, pointer, public :: d(:,:)
   end type type_field_grid_logical_3D
 
@@ -150,7 +165,7 @@ module fields_basic
   end type type_field_grid_int_2D
 
   type, extends(atype_field_grid) :: type_field_grid_int_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     integer, pointer, public :: d(:,:)
   end type type_field_grid_int_3D
 
@@ -159,7 +174,7 @@ module fields_basic
   end type type_field_grid_dp_2D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     real(dp), pointer, public :: d(:,:)
   end type type_field_grid_dp_3D
 
@@ -170,7 +185,7 @@ module fields_basic
   end type type_field_mesh_logical_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     logical, pointer, public :: d(:,:)
   end type type_field_mesh_logical_3D
 
@@ -179,7 +194,7 @@ module fields_basic
   end type type_field_mesh_int_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     integer, pointer, public :: d(:,:)
   end type type_field_mesh_int_3D
 
@@ -188,7 +203,7 @@ module fields_basic
   end type type_field_mesh_dp_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_3D
-    type(type_third_dimension) :: third_dimension
+    type(type_third_dimension), private :: third_dimension_val
     real(dp), pointer, public :: d(:,:)
   end type type_field_mesh_dp_3D
 

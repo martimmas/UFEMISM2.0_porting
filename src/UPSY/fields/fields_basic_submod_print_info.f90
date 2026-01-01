@@ -16,7 +16,9 @@ contains
     character(len=1024)            :: field_dimension
     character(len=1024)            :: field_parent_grid_type
     character(len=1024)            :: field_parent_grid_name
-    character(len=1024)            :: field_parent_Arakawa_grid
+    type(type_Arakawa_grid)        :: field_parent_Arakawa_grid
+    character(len=1024)            :: field_parent_Arakawa_grid_str
+    type(type_third_dimension)     :: field_third_dimension
     character(len=1024)            :: field_third_dimension_name
     character(len=1024)            :: field_units
     integer, dimension(0:par%n-1)  :: lbs, ubs
@@ -26,10 +28,11 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    field_name                = field%name()
-    field_long_name           = field%long_name()
-    field_units               = field%units()
-    field_parent_Arakawa_grid = field%Arakawa_grid%str()
+    field_name                    = field%name()
+    field_long_name               = field%long_name()
+    field_units                   = field%units()
+    field_parent_Arakawa_grid     = field%Arakawa_grid()
+    field_parent_Arakawa_grid_str = field_parent_Arakawa_grid%str()
 
     ! Field dimensions
     field_dimension            = ''
@@ -44,42 +47,48 @@ contains
     class is (type_field_grid_logical_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     class is (type_field_grid_int_2D)
       field_dimension = '2-D'
       call gather_field_bounds_2D( field, lbs, ubs)
     class is (type_field_grid_int_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     class is (type_field_grid_dp_2D)
       field_dimension = '2-D'
       call gather_field_bounds_2D( field, lbs, ubs)
     class is (type_field_grid_dp_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     class is (type_field_mesh_logical_2D)
       field_dimension = '2-D'
       call gather_field_bounds_2D( field, lbs, ubs)
     class is (type_field_mesh_logical_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     class is (type_field_mesh_int_2D)
       field_dimension = '2-D'
       call gather_field_bounds_2D( field, lbs, ubs)
     class is (type_field_mesh_int_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     class is (type_field_mesh_dp_2D)
       field_dimension = '2-D'
       call gather_field_bounds_2D( field, lbs, ubs)
     class is (type_field_mesh_dp_3D)
       field_dimension = '3-D'
       call gather_field_bounds_3D( field, lbs1, ubs1, lbs2, ubs2)
-      field_third_dimension_name = p%third_dimension%name
+      field_third_dimension = p%third_dimension()
+      field_third_dimension_name = field_third_dimension%name
     end select
 
     ! Parent grid can be either an x/y-grid or a mesh
@@ -99,7 +108,7 @@ contains
 
       write(0,*) '       Long name: ', trim( field_long_name)
       write(0,*) '       Parent   : ', trim( field_parent_grid_type), ' "', &
-      trim( field_parent_grid_name), '" (', trim( field_parent_Arakawa_grid), '-grid)'
+      trim( field_parent_grid_name), '" (', trim( field_parent_Arakawa_grid_str), '-grid)'
       write(0,*) '       Units    : [', trim( field_units), ']'
 
       select case (field_dimension)

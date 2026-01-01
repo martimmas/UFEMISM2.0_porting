@@ -27,6 +27,7 @@ contains
     class is (type_third_dimension)
       res = is_parent_third_dimension( field, p)
     class default
+      res = .false.
       call crash('invalid parent class')
     end select
 
@@ -103,9 +104,9 @@ contains
 
     select type(p => field)
     class is (atype_field_grid)
-      res = p%Arakawa_grid == field_Arakawa_grid
+      res = p%Arakawa_grid() == field_Arakawa_grid
     class is (atype_field_mesh)
-      res = p%Arakawa_grid == field_Arakawa_grid
+      res = p%Arakawa_grid() == field_Arakawa_grid
     class default
       res = .false.
     end select
@@ -131,31 +132,32 @@ contains
 
     select type(p => field)
     class default
+      res = .false.
       call crash('class/type not implemented')
     class is (type_field_grid_logical_2D)
       res = .false.
     class is (type_field_grid_logical_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     class is (type_field_grid_int_2D)
       res = .false.
     class is (type_field_grid_int_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     class is (type_field_grid_dp_2D)
       res = .false.
     class is (type_field_grid_dp_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     class is (type_field_mesh_logical_2D)
       res = .false.
     class is (type_field_mesh_logical_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     class is (type_field_mesh_int_2D)
       res = .false.
     class is (type_field_mesh_int_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     class is (type_field_mesh_dp_2D)
       res = .false.
     class is (type_field_mesh_dp_3D)
-      res = p%third_dimension == field_third_dimension
+      res = p%third_dimension() == field_third_dimension
     end select
 
     ! Remove routine from call stack
