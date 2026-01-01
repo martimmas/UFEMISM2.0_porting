@@ -58,7 +58,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_logical_2D'
-    type(type_field_grid_logical_2D) :: field
+    type(type_field_grid_logical_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -89,7 +89,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_logical_3D'
-    type(type_field_grid_logical_3D) :: field
+    type(type_field_grid_logical_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -119,7 +119,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_int_2D'
-    type(type_field_grid_int_2D) :: field
+    type(type_field_grid_int_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -150,7 +150,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_int_3D'
-    type(type_field_grid_int_3D) :: field
+    type(type_field_grid_int_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -180,7 +180,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_dp_2D'
-    type(type_field_grid_dp_2D) :: field
+    type(type_field_grid_dp_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -211,7 +211,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_grid_dp_3D'
-    type(type_field_grid_dp_3D) :: field
+    type(type_field_grid_dp_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -244,7 +244,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_logical_2D'
-    type(type_field_mesh_logical_2D) :: field
+    type(type_field_mesh_logical_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -275,7 +275,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_logical_3D'
-    type(type_field_mesh_logical_3D) :: field
+    type(type_field_mesh_logical_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -305,7 +305,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_int_2D'
-    type(type_field_mesh_int_2D) :: field
+    type(type_field_mesh_int_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -336,7 +336,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_int_3D'
-    type(type_field_mesh_int_3D) :: field
+    type(type_field_mesh_int_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -366,7 +366,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_dp_2D'
-    type(type_field_mesh_dp_2D) :: field
+    type(type_field_mesh_dp_2D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -397,7 +397,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter   :: routine_name = 'create_field_mesh_dp_3D'
-    type(type_field_mesh_dp_3D) :: field
+    type(type_field_mesh_dp_3D), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)

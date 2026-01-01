@@ -81,26 +81,26 @@ contains
     character(len=*), intent(in) :: test_name_parent
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_init_field_grid_logical'
-    character(len=1024), parameter               :: test_name_local = 'grid/logical'
-    character(len=1024)                          :: test_name
-    type(type_grid), target                      :: grid
-    character(len=1024)                          :: name, long_name, units
-    integer                                      :: nz
-    type(type_field_grid_logical_2D)             :: field_grid_2D
-    type(type_field_grid_logical_3D)             :: field_grid_3D_zeta
-    type(type_field_grid_logical_3D)             :: field_grid_3D_month
-    type(type_field_grid_logical_3D)             :: field_grid_3D_ocean
-    logical, dimension(:  ), contiguous, pointer :: d_grid_2D
-    logical, dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_grid_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_grid_3D_ocean
-    type(MPI_WIN)                                :: wd_grid_2D
-    type(MPI_WIN)                                :: wd_grid_3D_zeta
-    type(MPI_WIN)                                :: wd_grid_3D_month
-    type(MPI_WIN)                                :: wd_grid_3D_ocean
-    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
-    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    character(len=1024), parameter                :: routine_name = 'test_init_field_grid_logical'
+    character(len=1024), parameter                :: test_name_local = 'grid/logical'
+    character(len=1024)                           :: test_name
+    type(type_grid), target                       :: grid
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    type(type_field_grid_logical_2D), allocatable :: field_grid_2D
+    type(type_field_grid_logical_3D), allocatable :: field_grid_3D_zeta
+    type(type_field_grid_logical_3D), allocatable :: field_grid_3D_month
+    type(type_field_grid_logical_3D), allocatable :: field_grid_3D_ocean
+    logical, dimension(:  ), contiguous, pointer  :: d_grid_2D
+    logical, dimension(:,:), contiguous, pointer  :: d_grid_3D_zeta
+    logical, dimension(:,:), contiguous, pointer  :: d_grid_3D_month
+    logical, dimension(:,:), contiguous, pointer  :: d_grid_3D_ocean
+    type(MPI_WIN)                                 :: wd_grid_2D
+    type(MPI_WIN)                                 :: wd_grid_3D_zeta
+    type(MPI_WIN)                                 :: wd_grid_3D_month
+    type(MPI_WIN)                                 :: wd_grid_3D_ocean
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -282,10 +282,10 @@ contains
     type(type_grid), target                      :: grid
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_grid_int_2D)                 :: field_grid_2D
-    type(type_field_grid_int_3D)                 :: field_grid_3D_zeta
-    type(type_field_grid_int_3D)                 :: field_grid_3D_month
-    type(type_field_grid_int_3D)                 :: field_grid_3D_ocean
+    type(type_field_grid_int_2D), allocatable    :: field_grid_2D
+    type(type_field_grid_int_3D), allocatable    :: field_grid_3D_zeta
+    type(type_field_grid_int_3D), allocatable    :: field_grid_3D_month
+    type(type_field_grid_int_3D), allocatable    :: field_grid_3D_ocean
     integer, dimension(:  ), contiguous, pointer :: d_grid_2D
     integer, dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_grid_3D_month
@@ -478,10 +478,10 @@ contains
     type(type_grid), target                       :: grid
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_grid_dp_2D)                   :: field_grid_2D
-    type(type_field_grid_dp_3D)                   :: field_grid_3D_zeta
-    type(type_field_grid_dp_3D)                   :: field_grid_3D_month
-    type(type_field_grid_dp_3D)                   :: field_grid_3D_ocean
+    type(type_field_grid_dp_2D), allocatable      :: field_grid_2D
+    type(type_field_grid_dp_3D), allocatable      :: field_grid_3D_zeta
+    type(type_field_grid_dp_3D), allocatable      :: field_grid_3D_month
+    type(type_field_grid_dp_3D), allocatable      :: field_grid_3D_ocean
     real(dp), dimension(:  ), contiguous, pointer :: d_grid_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_grid_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_grid_3D_month
@@ -669,25 +669,25 @@ contains
     type(type_mesh), target, intent(in) :: mesh
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_init_field_mesh_logical_a'
-    character(len=1024), parameter               :: test_name_local = 'mesh/a/logical'
-    character(len=1024)                          :: test_name
-    character(len=1024)                          :: name, long_name, units
-    integer                                      :: nz
-    type(type_field_mesh_logical_2D)             :: field_mesh_2D
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_zeta
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_month
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_ocean
-    logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_ocean
-    type(MPI_WIN)                                :: wd_mesh_2D
-    type(MPI_WIN)                                :: wd_mesh_3D_zeta
-    type(MPI_WIN)                                :: wd_mesh_3D_month
-    type(MPI_WIN)                                :: wd_mesh_3D_ocean
-    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
-    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    character(len=1024), parameter                :: routine_name = 'test_init_field_mesh_logical_a'
+    character(len=1024), parameter                :: test_name_local = 'mesh/a/logical'
+    character(len=1024)                           :: test_name
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    type(type_field_mesh_logical_2D), allocatable :: field_mesh_2D
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_zeta
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_month
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_ocean
+    logical, dimension(:  ), contiguous, pointer  :: d_mesh_2D
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_zeta
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_month
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_ocean
+    type(MPI_WIN)                                 :: wd_mesh_2D
+    type(MPI_WIN)                                 :: wd_mesh_3D_zeta
+    type(MPI_WIN)                                 :: wd_mesh_3D_month
+    type(MPI_WIN)                                 :: wd_mesh_3D_ocean
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -862,25 +862,25 @@ contains
     type(type_mesh), target, intent(in) :: mesh
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_init_field_mesh_logical_b'
-    character(len=1024), parameter               :: test_name_local = 'mesh/b/logical'
-    character(len=1024)                          :: test_name
-    character(len=1024)                          :: name, long_name, units
-    integer                                      :: nz
-    type(type_field_mesh_logical_2D)             :: field_mesh_2D
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_zeta
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_month
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_ocean
-    logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_ocean
-    type(MPI_WIN)                                :: wd_mesh_2D
-    type(MPI_WIN)                                :: wd_mesh_3D_zeta
-    type(MPI_WIN)                                :: wd_mesh_3D_month
-    type(MPI_WIN)                                :: wd_mesh_3D_ocean
-    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
-    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    character(len=1024), parameter                :: routine_name = 'test_init_field_mesh_logical_b'
+    character(len=1024), parameter                :: test_name_local = 'mesh/b/logical'
+    character(len=1024)                           :: test_name
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    type(type_field_mesh_logical_2D), allocatable :: field_mesh_2D
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_zeta
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_month
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_ocean
+    logical, dimension(:  ), contiguous, pointer  :: d_mesh_2D
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_zeta
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_month
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_ocean
+    type(MPI_WIN)                                 :: wd_mesh_2D
+    type(MPI_WIN)                                 :: wd_mesh_3D_zeta
+    type(MPI_WIN)                                 :: wd_mesh_3D_month
+    type(MPI_WIN)                                 :: wd_mesh_3D_ocean
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1055,25 +1055,25 @@ contains
     type(type_mesh), target, intent(in) :: mesh
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_init_field_mesh_logical_c'
-    character(len=1024), parameter               :: test_name_local = 'mesh/c/logical'
-    character(len=1024)                          :: test_name
-    character(len=1024)                          :: name, long_name, units
-    integer                                      :: nz
-    type(type_field_mesh_logical_2D)             :: field_mesh_2D
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_zeta
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_month
-    type(type_field_mesh_logical_3D)             :: field_mesh_3D_ocean
-    logical, dimension(:  ), contiguous, pointer :: d_mesh_2D
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_mesh_3D_ocean
-    type(MPI_WIN)                                :: wd_mesh_2D
-    type(MPI_WIN)                                :: wd_mesh_3D_zeta
-    type(MPI_WIN)                                :: wd_mesh_3D_month
-    type(MPI_WIN)                                :: wd_mesh_3D_ocean
-    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
-    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    character(len=1024), parameter                :: routine_name = 'test_init_field_mesh_logical_c'
+    character(len=1024), parameter                :: test_name_local = 'mesh/c/logical'
+    character(len=1024)                           :: test_name
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    type(type_field_mesh_logical_2D), allocatable :: field_mesh_2D
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_zeta
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_month
+    type(type_field_mesh_logical_3D), allocatable :: field_mesh_3D_ocean
+    logical, dimension(:  ), contiguous, pointer  :: d_mesh_2D
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_zeta
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_month
+    logical, dimension(:,:), contiguous, pointer  :: d_mesh_3D_ocean
+    type(MPI_WIN)                                 :: wd_mesh_2D
+    type(MPI_WIN)                                 :: wd_mesh_3D_zeta
+    type(MPI_WIN)                                 :: wd_mesh_3D_month
+    type(MPI_WIN)                                 :: wd_mesh_3D_ocean
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1253,10 +1253,10 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_mesh_int_2D)                 :: field_mesh_2D
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_zeta
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_month
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_ocean
+    type(type_field_mesh_int_2D), allocatable    :: field_mesh_2D
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_zeta
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_month
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_ocean
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1447,10 +1447,10 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_mesh_int_2D)                 :: field_mesh_2D
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_zeta
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_month
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_ocean
+    type(type_field_mesh_int_2D), allocatable    :: field_mesh_2D
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_zeta
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_month
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_ocean
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1641,10 +1641,10 @@ contains
     character(len=1024)                          :: test_name
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    type(type_field_mesh_int_2D)                 :: field_mesh_2D
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_zeta
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_month
-    type(type_field_mesh_int_3D)                 :: field_mesh_3D_ocean
+    type(type_field_mesh_int_2D), allocatable    :: field_mesh_2D
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_zeta
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_month
+    type(type_field_mesh_int_3D), allocatable    :: field_mesh_3D_ocean
     integer, dimension(:  ), contiguous, pointer :: d_mesh_2D
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     integer, dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -1835,10 +1835,10 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_mesh_dp_2D)                   :: field_mesh_2D
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_zeta
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_month
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_ocean
+    type(type_field_mesh_dp_2D), allocatable      :: field_mesh_2D
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_zeta
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_month
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_ocean
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -2029,10 +2029,10 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_mesh_dp_2D)                   :: field_mesh_2D
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_zeta
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_month
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_ocean
+    type(type_field_mesh_dp_2D), allocatable      :: field_mesh_2D
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_zeta
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_month
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_ocean
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month
@@ -2223,10 +2223,10 @@ contains
     character(len=1024)                           :: test_name
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    type(type_field_mesh_dp_2D)                   :: field_mesh_2D
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_zeta
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_month
-    type(type_field_mesh_dp_3D)                   :: field_mesh_3D_ocean
+    type(type_field_mesh_dp_2D), allocatable      :: field_mesh_2D
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_zeta
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_month
+    type(type_field_mesh_dp_3D), allocatable      :: field_mesh_3D_ocean
     real(dp), dimension(:  ), contiguous, pointer :: d_mesh_2D
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_zeta
     real(dp), dimension(:,:), contiguous, pointer :: d_mesh_3D_month

@@ -47,20 +47,23 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_logical_2D),           intent(  out) :: field
-    logical, dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                              intent(inout) :: w
-    type(type_grid), target,                    intent(in   ) :: grid
-    type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
-    character(len=*),                           intent(in   ) :: name
-    character(len=*),                           intent(in   ) :: long_name
-    character(len=*),                           intent(in   ) :: units
+    type(type_field_grid_logical_2D), allocatable, intent(inout) :: field
+    logical, dimension(:), contiguous, pointer,    intent(inout) :: d
+    type(MPI_WIN),                                 intent(inout) :: w
+    type(type_grid), target,                       intent(in   ) :: grid
+    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
+    character(len=*),                              intent(in   ) :: name
+    character(len=*),                              intent(in   ) :: long_name
+    character(len=*),                              intent(in   ) :: units
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'init_field_grid_logical_2D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -83,21 +86,24 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_logical_3D),             intent(  out) :: field
-    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                intent(inout) :: w
-    type(type_grid), target,                      intent(in   ) :: grid
-    type(type_third_dimension),                   intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
-    character(len=*),                             intent(in   ) :: name
-    character(len=*),                             intent(in   ) :: long_name
-    character(len=*),                             intent(in   ) :: units
+    type(type_field_grid_logical_3D), allocatable, intent(inout) :: field
+    logical, dimension(:,:), contiguous, pointer,  intent(inout) :: d
+    type(MPI_WIN),                                 intent(inout) :: w
+    type(type_grid), target,                       intent(in   ) :: grid
+    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
+    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
+    character(len=*),                              intent(in   ) :: name
+    character(len=*),                              intent(in   ) :: long_name
+    character(len=*),                              intent(in   ) :: units
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'init_field_grid_logical_3D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -122,7 +128,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_int_2D),               intent(  out) :: field
+    type(type_field_grid_int_2D), allocatable,  intent(inout) :: field
     integer, dimension(:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                              intent(inout) :: w
     type(type_grid), target,                    intent(in   ) :: grid
@@ -136,6 +142,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -158,7 +167,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_int_3D),                 intent(  out) :: field
+    type(type_field_grid_int_3D), allocatable,    intent(inout) :: field
     integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                                intent(inout) :: w
     type(type_grid), target,                      intent(in   ) :: grid
@@ -173,6 +182,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -197,7 +209,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_dp_2D),                 intent(  out) :: field
+    type(type_field_grid_dp_2D), allocatable,    intent(inout) :: field
     real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                               intent(inout) :: w
     type(type_grid), target,                     intent(in   ) :: grid
@@ -211,6 +223,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -233,7 +248,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_dp_3D),                   intent(  out) :: field
+    type(type_field_grid_dp_3D), allocatable,      intent(inout) :: field
     real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                                 intent(inout) :: w
     type(type_grid), target,                       intent(in   ) :: grid
@@ -248,6 +263,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_grid( grid, field_Arakawa_grid)
@@ -275,20 +293,23 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_logical_2D),           intent(  out) :: field
-    logical, dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                              intent(inout) :: w
-    type(type_mesh), target,                    intent(in   ) :: mesh
-    type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
-    character(len=*),                           intent(in   ) :: name
-    character(len=*),                           intent(in   ) :: long_name
-    character(len=*),                           intent(in   ) :: units
+    type(type_field_mesh_logical_2D), allocatable, intent(inout) :: field
+    logical, dimension(:), contiguous, pointer,    intent(inout) :: d
+    type(MPI_WIN),                                 intent(inout) :: w
+    type(type_mesh), target,                       intent(in   ) :: mesh
+    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
+    character(len=*),                              intent(in   ) :: name
+    character(len=*),                              intent(in   ) :: long_name
+    character(len=*),                              intent(in   ) :: units
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'init_field_mesh_logical_2D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
@@ -319,21 +340,24 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_logical_3D),             intent(  out) :: field
-    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                intent(inout) :: w
-    type(type_mesh), target,                      intent(in   ) :: mesh
-    type(type_third_dimension),                   intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
-    character(len=*),                             intent(in   ) :: name
-    character(len=*),                             intent(in   ) :: long_name
-    character(len=*),                             intent(in   ) :: units
+    type(type_field_mesh_logical_3D), allocatable, intent(inout) :: field
+    logical, dimension(:,:), contiguous, pointer,  intent(inout) :: d
+    type(MPI_WIN),                                 intent(inout) :: w
+    type(type_mesh), target,                       intent(in   ) :: mesh
+    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
+    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
+    character(len=*),                              intent(in   ) :: name
+    character(len=*),                              intent(in   ) :: long_name
+    character(len=*),                              intent(in   ) :: units
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'init_field_mesh_logical_3D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
@@ -366,7 +390,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_int_2D),               intent(  out) :: field
+    type(type_field_mesh_int_2D), allocatable,  intent(inout) :: field
     integer, dimension(:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                              intent(inout) :: w
     type(type_mesh), target,                    intent(in   ) :: mesh
@@ -380,6 +404,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
@@ -410,7 +437,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_int_3D),                 intent(  out) :: field
+    type(type_field_mesh_int_3D), allocatable,    intent(inout) :: field
     integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                                intent(inout) :: w
     type(type_mesh), target,                      intent(in   ) :: mesh
@@ -425,6 +452,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
@@ -457,7 +487,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_dp_2D),                 intent(  out) :: field
+    type(type_field_mesh_dp_2D), allocatable,    intent(inout) :: field
     real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                               intent(inout) :: w
     type(type_mesh), target,                     intent(in   ) :: mesh
@@ -471,6 +501,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
@@ -501,7 +534,7 @@ contains
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_mesh_dp_3D),                   intent(  out) :: field
+    type(type_field_mesh_dp_3D), allocatable,      intent(inout) :: field
     real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
     type(MPI_WIN),                                 intent(inout) :: w
     type(type_mesh), target,                       intent(in   ) :: mesh
@@ -516,6 +549,9 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    if (allocated( field)) call crash('field is already allocated')
+    allocate( field)
 
     call field%set_field_metadata( name, long_name, units)
     call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
