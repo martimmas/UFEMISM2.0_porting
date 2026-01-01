@@ -130,35 +130,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type(p => field)
-    class default
-      res = .false.
-      call crash('class/type not implemented')
-    class is (type_field_grid_logical_2D)
-      res = .false.
-    class is (type_field_grid_logical_3D)
-      res = p%third_dimension() == field_third_dimension
-    class is (type_field_grid_int_2D)
-      res = .false.
-    class is (type_field_grid_int_3D)
-      res = p%third_dimension() == field_third_dimension
-    class is (type_field_grid_dp_2D)
-      res = .false.
-    class is (type_field_grid_dp_3D)
-      res = p%third_dimension() == field_third_dimension
-    class is (type_field_mesh_logical_2D)
-      res = .false.
-    class is (type_field_mesh_logical_3D)
-      res = p%third_dimension() == field_third_dimension
-    class is (type_field_mesh_int_2D)
-      res = .false.
-    class is (type_field_mesh_int_3D)
-      res = p%third_dimension() == field_third_dimension
-    class is (type_field_mesh_dp_2D)
-      res = .false.
-    class is (type_field_mesh_dp_3D)
-      res = p%third_dimension() == field_third_dimension
-    end select
+    res = field%third_dimension() == field_third_dimension
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
