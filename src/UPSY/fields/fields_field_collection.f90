@@ -65,9 +65,9 @@ contains
     ! Check that this name is not already in use
     is_in_use = .false.
     do i = 1, coll%n
-      is_in_use = is_in_use .or. coll%items(i)%p%name == field%name
+      is_in_use = is_in_use .or. coll%items(i)%p%name() == field%name()
     end do
-    if (is_in_use) call crash('a field of name "' // trim( field%name) // '" already exists')
+    if (is_in_use) call crash('a field of name "' // trim( field%name()) // '" already exists')
 
     ! Add field to collection
     coll%n = coll%n+1
@@ -155,7 +155,7 @@ contains
     found_it = .false.
     do ii = 1, size( coll%items)
       if (allocated( coll%items(ii)%p)) then
-        if (coll%items(ii)%p%name == name) then
+        if (coll%items(ii)%p%name() == name) then
           found_it = .true.
           i = ii
           exit

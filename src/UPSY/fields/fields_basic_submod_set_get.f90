@@ -16,14 +16,32 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    field%name      = name
-    field%long_name = long_name
-    field%units     = units
+    field%name_val      = name
+    field%long_name_val = long_name
+    field%units_val     = units
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine set_field_metadata
+
+  function get_name( field) result( name)
+    class(atype_field), intent(in) :: field
+    character(:), allocatable      :: name
+    name = field%name_val
+  end function get_name
+
+  function get_long_name( field) result( long_name)
+    class(atype_field), intent(in) :: field
+    character(:), allocatable      :: long_name
+    long_name = field%long_name_val
+  end function get_long_name
+
+  function get_units( field) result( units)
+    class(atype_field), intent(in) :: field
+    character(:), allocatable      :: units
+    units = field%units_val
+  end function get_units
 
   subroutine set_field_parent_grid( field, grid, field_Arakawa_grid)
 

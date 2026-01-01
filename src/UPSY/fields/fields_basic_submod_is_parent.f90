@@ -51,7 +51,7 @@ contains
 
     select type(p => field)
     class is (atype_field_grid)
-      res = test_tol_grid( p%parent, grid, p%parent%tol_dist)
+      res = p%parent%name == grid%name
     class default
       res = .false.
     end select
@@ -77,7 +77,7 @@ contains
 
     select type(p => field)
     class is (atype_field_mesh)
-      res = test_tol_mesh( p%parent, mesh, p%parent%tol_dist)
+      res = p%parent%name == mesh%name
     class default
       res = .false.
     end select

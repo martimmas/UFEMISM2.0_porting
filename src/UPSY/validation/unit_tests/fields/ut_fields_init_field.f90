@@ -128,9 +128,9 @@ contains
     d_grid_2D( grid%n1+1) = .true.
 
     call unit_test( (&
-      field_grid_2D%name      == name .and. &
-      field_grid_2D%long_name == long_name .and. &
-      field_grid_2D%units     == units .and. &
+      field_grid_2D%name()      == name .and. &
+      field_grid_2D%long_name() == long_name .and. &
+      field_grid_2D%units()     == units .and. &
       field_grid_2D%is_parent( grid) .and. &
       field_grid_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
@@ -165,9 +165,9 @@ contains
     d_grid_3D_zeta( grid%n1+1, 3) = .true.
 
     call unit_test( (&
-      field_grid_3D_zeta%name      == name .and. &
-      field_grid_3D_zeta%long_name == long_name .and. &
-      field_grid_3D_zeta%units     == units .and. &
+      field_grid_3D_zeta%name()      == name .and. &
+      field_grid_3D_zeta%long_name() == long_name .and. &
+      field_grid_3D_zeta%units()     == units .and. &
       field_grid_3D_zeta%is_parent( grid) .and. &
       field_grid_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_grid_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -206,9 +206,9 @@ contains
     d_grid_3D_month( grid%n1+1, 3) = .true.
 
     call unit_test( (&
-      field_grid_3D_month%name      == name .and. &
-      field_grid_3D_month%long_name == long_name .and. &
-      field_grid_3D_month%units     == units .and. &
+      field_grid_3D_month%name()      == name .and. &
+      field_grid_3D_month%long_name() == long_name .and. &
+      field_grid_3D_month%units()     == units .and. &
       field_grid_3D_month%is_parent( grid) .and. &
       field_grid_3D_month%is_parent( third_dimension%month()) .and. &
       field_grid_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -248,9 +248,9 @@ contains
     d_grid_3D_ocean( grid%n1+1, 3) = .true.
 
     call unit_test( (&
-      field_grid_3D_ocean%name      == name .and. &
-      field_grid_3D_ocean%long_name == long_name .and. &
-      field_grid_3D_ocean%units     == units .and. &
+      field_grid_3D_ocean%name()      == name .and. &
+      field_grid_3D_ocean%long_name() == long_name .and. &
+      field_grid_3D_ocean%units()     == units .and. &
       field_grid_3D_ocean%is_parent( grid) .and. &
       field_grid_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_grid_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -324,9 +324,9 @@ contains
     d_grid_2D( grid%n1+1) = test_val
 
     call unit_test( (&
-      field_grid_2D%name      == name .and. &
-      field_grid_2D%long_name == long_name .and. &
-      field_grid_2D%units     == units .and. &
+      field_grid_2D%name()      == name .and. &
+      field_grid_2D%long_name() == long_name .and. &
+      field_grid_2D%units()     == units .and. &
       field_grid_2D%is_parent( grid) .and. &
       field_grid_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
@@ -361,9 +361,9 @@ contains
     d_grid_3D_zeta( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_zeta%name      == name .and. &
-      field_grid_3D_zeta%long_name == long_name .and. &
-      field_grid_3D_zeta%units     == units .and. &
+      field_grid_3D_zeta%name()      == name .and. &
+      field_grid_3D_zeta%long_name() == long_name .and. &
+      field_grid_3D_zeta%units()     == units .and. &
       field_grid_3D_zeta%is_parent( grid) .and. &
       field_grid_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_grid_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -402,9 +402,9 @@ contains
     d_grid_3D_month( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_month%name      == name .and. &
-      field_grid_3D_month%long_name == long_name .and. &
-      field_grid_3D_month%units     == units .and. &
+      field_grid_3D_month%name()      == name .and. &
+      field_grid_3D_month%long_name() == long_name .and. &
+      field_grid_3D_month%units()     == units .and. &
       field_grid_3D_month%is_parent( grid) .and. &
       field_grid_3D_month%is_parent( third_dimension%month()) .and. &
       field_grid_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -444,9 +444,9 @@ contains
     d_grid_3D_ocean( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_ocean%name      == name .and. &
-      field_grid_3D_ocean%long_name == long_name .and. &
-      field_grid_3D_ocean%units     == units .and. &
+      field_grid_3D_ocean%name()      == name .and. &
+      field_grid_3D_ocean%long_name() == long_name .and. &
+      field_grid_3D_ocean%units()     == units .and. &
       field_grid_3D_ocean%is_parent( grid) .and. &
       field_grid_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_grid_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -520,9 +520,9 @@ contains
     d_grid_2D( grid%n1+1) = test_val
 
     call unit_test( (&
-      field_grid_2D%name      == name .and. &
-      field_grid_2D%long_name == long_name .and. &
-      field_grid_2D%units     == units .and. &
+      field_grid_2D%name()      == name .and. &
+      field_grid_2D%long_name() == long_name .and. &
+      field_grid_2D%units()     == units .and. &
       field_grid_2D%is_parent( grid) .and. &
       field_grid_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == grid%n1 .and. &
@@ -557,9 +557,9 @@ contains
     d_grid_3D_zeta( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_zeta%name      == name .and. &
-      field_grid_3D_zeta%long_name == long_name .and. &
-      field_grid_3D_zeta%units     == units .and. &
+      field_grid_3D_zeta%name()      == name .and. &
+      field_grid_3D_zeta%long_name() == long_name .and. &
+      field_grid_3D_zeta%units()     == units .and. &
       field_grid_3D_zeta%is_parent( grid) .and. &
       field_grid_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_grid_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -598,9 +598,9 @@ contains
     d_grid_3D_month( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_month%name      == name .and. &
-      field_grid_3D_month%long_name == long_name .and. &
-      field_grid_3D_month%units     == units .and. &
+      field_grid_3D_month%name()      == name .and. &
+      field_grid_3D_month%long_name() == long_name .and. &
+      field_grid_3D_month%units()     == units .and. &
       field_grid_3D_month%is_parent( grid) .and. &
       field_grid_3D_month%is_parent( third_dimension%month()) .and. &
       field_grid_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -640,9 +640,9 @@ contains
     d_grid_3D_ocean( grid%n1+1, 3) = test_val
 
     call unit_test( (&
-      field_grid_3D_ocean%name      == name .and. &
-      field_grid_3D_ocean%long_name == long_name .and. &
-      field_grid_3D_ocean%units     == units .and. &
+      field_grid_3D_ocean%name()      == name .and. &
+      field_grid_3D_ocean%long_name() == long_name .and. &
+      field_grid_3D_ocean%units()     == units .and. &
       field_grid_3D_ocean%is_parent( grid) .and. &
       field_grid_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_grid_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -713,9 +713,9 @@ contains
     d_mesh_2D( mesh%vi1+1) = .true.
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
@@ -750,9 +750,9 @@ contains
     d_mesh_3D_zeta( mesh%vi1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -791,9 +791,9 @@ contains
     d_mesh_3D_month( mesh%vi1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -833,9 +833,9 @@ contains
     d_mesh_3D_ocean( mesh%vi1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -906,9 +906,9 @@ contains
     d_mesh_2D( mesh%ti1+1) = .true.
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
@@ -943,9 +943,9 @@ contains
     d_mesh_3D_zeta( mesh%ti1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%b()) .and. &
@@ -984,9 +984,9 @@ contains
     d_mesh_3D_month( mesh%ti1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%b()) .and. &
@@ -1026,9 +1026,9 @@ contains
     d_mesh_3D_ocean( mesh%ti1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%b()) .and. &
@@ -1099,9 +1099,9 @@ contains
     d_mesh_2D( mesh%ei1+1) = .true.
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
@@ -1136,9 +1136,9 @@ contains
     d_mesh_3D_zeta( mesh%ei1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%c()) .and. &
@@ -1177,9 +1177,9 @@ contains
     d_mesh_3D_month( mesh%ei1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%c()) .and. &
@@ -1219,9 +1219,9 @@ contains
     d_mesh_3D_ocean( mesh%ei1+1, 3) = .true.
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%c()) .and. &
@@ -1293,9 +1293,9 @@ contains
     d_mesh_2D( mesh%vi1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
@@ -1330,9 +1330,9 @@ contains
     d_mesh_3D_zeta( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -1371,9 +1371,9 @@ contains
     d_mesh_3D_month( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -1413,9 +1413,9 @@ contains
     d_mesh_3D_ocean( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -1487,9 +1487,9 @@ contains
     d_mesh_2D( mesh%ti1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
@@ -1524,9 +1524,9 @@ contains
     d_mesh_3D_zeta( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%b()) .and. &
@@ -1565,9 +1565,9 @@ contains
     d_mesh_3D_month( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%b()) .and. &
@@ -1607,9 +1607,9 @@ contains
     d_mesh_3D_ocean( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%b()) .and. &
@@ -1681,9 +1681,9 @@ contains
     d_mesh_2D( mesh%ei1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
@@ -1718,9 +1718,9 @@ contains
     d_mesh_3D_zeta( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%c()) .and. &
@@ -1759,9 +1759,9 @@ contains
     d_mesh_3D_month( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%c()) .and. &
@@ -1801,9 +1801,9 @@ contains
     d_mesh_3D_ocean( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%c()) .and. &
@@ -1875,9 +1875,9 @@ contains
     d_mesh_2D( mesh%vi1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%a()) .and. &
       lb1_a == mesh%vi1 .and. &
@@ -1912,9 +1912,9 @@ contains
     d_mesh_3D_zeta( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%a()) .and. &
@@ -1953,9 +1953,9 @@ contains
     d_mesh_3D_month( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%a()) .and. &
@@ -1995,9 +1995,9 @@ contains
     d_mesh_3D_ocean( mesh%vi1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%a()) .and. &
@@ -2069,9 +2069,9 @@ contains
     d_mesh_2D( mesh%ti1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%b()) .and. &
       lb1_a == mesh%ti1 .and. &
@@ -2106,9 +2106,9 @@ contains
     d_mesh_3D_zeta( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%b()) .and. &
@@ -2147,9 +2147,9 @@ contains
     d_mesh_3D_month( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%b()) .and. &
@@ -2189,9 +2189,9 @@ contains
     d_mesh_3D_ocean( mesh%ti1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%b()) .and. &
@@ -2263,9 +2263,9 @@ contains
     d_mesh_2D( mesh%ei1+1) = test_val
 
     call unit_test( (&
-      field_mesh_2D%name      == name .and. &
-      field_mesh_2D%long_name == long_name .and. &
-      field_mesh_2D%units     == units .and. &
+      field_mesh_2D%name()      == name .and. &
+      field_mesh_2D%long_name() == long_name .and. &
+      field_mesh_2D%units()     == units .and. &
       field_mesh_2D%is_parent( mesh) .and. &
       field_mesh_2D%is_parent( Arakawa_grid%c()) .and. &
       lb1_a == mesh%ei1 .and. &
@@ -2300,9 +2300,9 @@ contains
     d_mesh_3D_zeta( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_zeta%name      == name .and. &
-      field_mesh_3D_zeta%long_name == long_name .and. &
-      field_mesh_3D_zeta%units     == units .and. &
+      field_mesh_3D_zeta%name()      == name .and. &
+      field_mesh_3D_zeta%long_name() == long_name .and. &
+      field_mesh_3D_zeta%units()     == units .and. &
       field_mesh_3D_zeta%is_parent( mesh) .and. &
       field_mesh_3D_zeta%is_parent( third_dimension%ice_zeta( nz)) .and. &
       field_mesh_3D_zeta%is_parent( Arakawa_grid%c()) .and. &
@@ -2341,9 +2341,9 @@ contains
     d_mesh_3D_month( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_month%name      == name .and. &
-      field_mesh_3D_month%long_name == long_name .and. &
-      field_mesh_3D_month%units     == units .and. &
+      field_mesh_3D_month%name()      == name .and. &
+      field_mesh_3D_month%long_name() == long_name .and. &
+      field_mesh_3D_month%units()     == units .and. &
       field_mesh_3D_month%is_parent( mesh) .and. &
       field_mesh_3D_month%is_parent( third_dimension%month()) .and. &
       field_mesh_3D_month%is_parent( Arakawa_grid%c()) .and. &
@@ -2383,9 +2383,9 @@ contains
     d_mesh_3D_ocean( mesh%ei1+1, 3) = test_val
 
     call unit_test( (&
-      field_mesh_3D_ocean%name      == name .and. &
-      field_mesh_3D_ocean%long_name == long_name .and. &
-      field_mesh_3D_ocean%units     == units .and. &
+      field_mesh_3D_ocean%name()      == name .and. &
+      field_mesh_3D_ocean%long_name() == long_name .and. &
+      field_mesh_3D_ocean%units()     == units .and. &
       field_mesh_3D_ocean%is_parent( mesh) .and. &
       field_mesh_3D_ocean%is_parent( third_dimension%ocean_depth( nz)) .and. &
       field_mesh_3D_ocean%is_parent( Arakawa_grid%c()) .and. &

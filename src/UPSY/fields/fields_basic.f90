@@ -7,8 +7,7 @@ module fields_basic
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid, type_Arakawa_grid
   use fields_dimensions, only: third_dimension, type_third_dimension
-  use tests_main, only: test_tol_grid, test_tol_mesh
-  use mpi_f08, only: MPI_WIN, MPI_GATHER, MPI_INTEGER, MPI_COMM_WORLD
+  use mpi_f08, only: MPI_WIN
 
   implicit none
 
@@ -29,9 +28,9 @@ module fields_basic
   type, abstract :: atype_field
 
     ! Metadata
-    character(len=1024) :: name
-    character(len=1024) :: long_name
-    character(len=1024) :: units
+    character(len=1024), private :: name_val
+    character(len=1024), private :: long_name_val
+    character(len=1024), private :: units_val
 
     ! Parent grid
     ! type(type_grid), pointer :: parent    ! Defined in extended types atype_field_grid and atype_field_mesh!
@@ -44,6 +43,9 @@ module fields_basic
 
   contains
 
+    procedure, public :: name      => get_name
+    procedure, public :: long_name => get_long_name
+    procedure, public :: units     => get_units
     procedure, public :: set_field_metadata
     procedure, public :: print_info
     procedure, public :: is_parent
@@ -59,6 +61,21 @@ module fields_basic
       character(len=*),   intent(in   ) :: long_name
       character(len=*),   intent(in   ) :: units
     end subroutine set_field_metadata
+
+    module function get_name( field) result( name)
+      class(atype_field), intent(in) :: field
+      character(:), allocatable      :: name
+    end function get_name
+
+    module function get_long_name( field) result( long_name)
+      class(atype_field), intent(in) :: field
+      character(:), allocatable      :: long_name
+    end function get_long_name
+
+    module function get_units( field) result( units)
+      class(atype_field), intent(in) :: field
+      character(:), allocatable      :: units
+    end function get_units
 
     module subroutine print_info( field)
       class(atype_field), intent(in) :: field

@@ -1,5 +1,7 @@
 submodule (fields_basic) fields_basic_submod_print_info
 
+  use mpi_f08, only: MPI_GATHER, MPI_INTEGER, MPI_COMM_WORLD
+
 contains
 
   subroutine print_info( field)
@@ -24,9 +26,9 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    field_name                = field%name
-    field_long_name           = field%long_name
-    field_units               = field%units
+    field_name                = field%name()
+    field_long_name           = field%long_name()
+    field_units               = field%units()
     field_parent_Arakawa_grid = field%Arakawa_grid%str()
 
     ! Field dimensions
