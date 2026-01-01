@@ -46,7 +46,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    ! If the collection is not alocated yet, allocate it.
+    ! If the collection is not allocated yet, allocate it.
     if (.not. allocated( coll%items)) then
       coll%n     = 1
       coll%n_max = 1

@@ -36,41 +36,73 @@ module fields_basic
     ! Parent grid
     ! type(type_grid), pointer :: parent    ! Defined in extended types atype_field_grid and atype_field_mesh!
     ! type(type_mesh), pointer :: parent
-    type(type_Arakawa_grid)  :: Arakawa_grid
+    type(type_Arakawa_grid), public :: Arakawa_grid
 
     ! Pointer to array containing the actual field data
     ! logical, pointer :: d(:)              ! Defined in extended types type_field_grid_XXX, etc.
-    type(MPI_WIN) :: w
+    type(MPI_WIN), public :: w
 
   contains
 
-    procedure :: print_info
-    procedure :: is_parent
+    procedure, public :: set_field_metadata
+    procedure, public :: print_info
+    procedure, public :: is_parent
 
   end type atype_field
 
   ! Interfaces to type-bound procedures defined in submodules
   interface
+
+    module subroutine set_field_metadata( field, name, long_name, units)
+      class(atype_field), intent(inout) :: field
+      character(len=*),   intent(in   ) :: name
+      character(len=*),   intent(in   ) :: long_name
+      character(len=*),   intent(in   ) :: units
+    end subroutine set_field_metadata
+
     module subroutine print_info( field)
       class(atype_field), intent(in) :: field
     end subroutine print_info
+
     module function is_parent( field, parent) result( res)
       class(atype_field), intent(in) :: field
       class(*),           intent(in) :: parent
       logical                        :: res
     end function is_parent
+
   end interface
 
   ! Extedned abstract field type for grid- and mesh-based fields
   ! ============================================================
 
   type, abstract, extends(atype_field) :: atype_field_grid
-    type(type_grid), pointer :: parent
+    type(type_grid), pointer, public :: parent
+  contains
+    procedure, public :: set_field_parent_grid
   end type atype_field_grid
 
   type, abstract, extends(atype_field) :: atype_field_mesh
-    type(type_mesh), pointer :: parent
+    type(type_mesh), pointer, public :: parent
+  contains
+    procedure, public :: set_field_parent_mesh
   end type atype_field_mesh
+
+  ! Interfaces to type-bound procedures defined in submodules
+  interface
+
+    module subroutine set_field_parent_grid( field, grid, field_Arakawa_grid)
+      class(atype_field_grid), intent(inout) :: field
+      type(type_grid), target, intent(in   ) :: grid
+      type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
+    end subroutine set_field_parent_grid
+
+    module subroutine set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+      class(atype_field_mesh), intent(inout) :: field
+      type(type_mesh), target, intent(in   ) :: mesh
+      type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
+    end subroutine set_field_parent_mesh
+
+  end interface
 
   ! Concrete field types
   ! ====================
@@ -78,59 +110,59 @@ module fields_basic
   ! Grid-based fields
 
   type, extends(atype_field_grid) :: type_field_grid_logical_2D
-    logical, pointer :: d(:)
+    logical, pointer, public :: d(:)
   end type type_field_grid_logical_2D
 
   type, extends(atype_field_grid) :: type_field_grid_logical_3D
     type(type_third_dimension) :: third_dimension
-    logical, pointer :: d(:,:)
+    logical, pointer, public :: d(:,:)
   end type type_field_grid_logical_3D
 
   type, extends(atype_field_grid) :: type_field_grid_int_2D
-    integer, pointer :: d(:)
+    integer, pointer, public :: d(:)
   end type type_field_grid_int_2D
 
   type, extends(atype_field_grid) :: type_field_grid_int_3D
     type(type_third_dimension) :: third_dimension
-    integer, pointer :: d(:,:)
+    integer, pointer, public :: d(:,:)
   end type type_field_grid_int_3D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_2D
-    real(dp), pointer :: d(:)
+    real(dp), pointer, public :: d(:)
   end type type_field_grid_dp_2D
 
   type, extends(atype_field_grid) :: type_field_grid_dp_3D
     type(type_third_dimension) :: third_dimension
-    real(dp), pointer :: d(:,:)
+    real(dp), pointer, public :: d(:,:)
   end type type_field_grid_dp_3D
 
   ! Mesh-based fields
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_2D
-    logical, pointer :: d(:)
+    logical, pointer, public :: d(:)
   end type type_field_mesh_logical_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_logical_3D
     type(type_third_dimension) :: third_dimension
-    logical, pointer :: d(:,:)
+    logical, pointer, public :: d(:,:)
   end type type_field_mesh_logical_3D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_2D
-    integer, pointer :: d(:)
+    integer, pointer, public :: d(:)
   end type type_field_mesh_int_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_int_3D
     type(type_third_dimension) :: third_dimension
-    integer, pointer :: d(:,:)
+    integer, pointer, public :: d(:,:)
   end type type_field_mesh_int_3D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_2D
-    real(dp), pointer :: d(:)
+    real(dp), pointer, public :: d(:)
   end type type_field_mesh_dp_2D
 
   type, extends(atype_field_mesh) :: type_field_mesh_dp_3D
     type(type_third_dimension) :: third_dimension
-    real(dp), pointer :: d(:,:)
+    real(dp), pointer, public :: d(:,:)
   end type type_field_mesh_dp_3D
 
 end module fields_basic

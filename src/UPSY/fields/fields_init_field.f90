@@ -62,8 +62,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -99,8 +99,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -137,8 +137,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -174,8 +174,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -212,8 +212,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -249,8 +249,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_grid( field, grid, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_grid( grid, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -290,8 +290,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -335,8 +335,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -381,8 +381,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -426,8 +426,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -472,8 +472,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     ! Allocate memory for field data array and bind field pointer to it
     if (field_Arakawa_grid == Arakawa_grid%a()) then
@@ -517,8 +517,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call set_field_metadata( field, name, long_name, units)
-    call set_field_parent_mesh( field, mesh, field_Arakawa_grid)
+    call field%set_field_metadata( name, long_name, units)
+    call field%set_field_parent_mesh( mesh, field_Arakawa_grid)
 
     field%third_dimension = field_third_dimension
 
@@ -543,73 +543,5 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine init_field_mesh_dp_3D
-
-  ! Support functions
-  ! =================
-
-  subroutine set_field_metadata( field, name, long_name, units)
-
-    ! In/output variables:
-    class(atype_field), intent(inout) :: field
-    character(len=*),   intent(in   ) :: name
-    character(len=*),   intent(in   ) :: long_name
-    character(len=*),   intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'set_field_metadata'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    field%name      = name
-    field%long_name = long_name
-    field%units     = units
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine set_field_metadata
-
-  subroutine set_field_parent_grid( field, grid, field_Arakawa_grid)
-
-    ! In/output variables:
-    class(atype_field_grid), intent(inout) :: field
-    type(type_grid), target, intent(in   ) :: grid
-    type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'set_field_parent_grid'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    field%parent       => grid
-    field%Arakawa_grid = field_Arakawa_grid
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine set_field_parent_grid
-
-  subroutine set_field_parent_mesh( field, mesh, field_Arakawa_grid)
-
-    ! In/output variables:
-    class(atype_field_mesh), intent(inout) :: field
-    type(type_mesh), target, intent(in   ) :: mesh
-    type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'set_field_parent_mesh'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    field%parent       => mesh
-    field%Arakawa_grid = field_Arakawa_grid
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine set_field_parent_mesh
 
 end module fields_init_field
