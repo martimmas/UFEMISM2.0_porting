@@ -196,14 +196,8 @@ contains
     select type (field)
     class default
       call crash('invalid field type')
-    class is (type_field_logical_2D)
-    class is (type_field_int_2D)
-    class is (type_field_dp_2D)
-    class is (type_field_logical_3D)
-      res = field_third_dimension == field%third_dimension_val
-    class is (type_field_int_3D)
-      res = field_third_dimension == field%third_dimension_val
-    class is (type_field_dp_3D)
+    class is (atype_field_2D)
+    class is (atype_field_3D)
       res = field_third_dimension == field%third_dimension_val
     end select
 

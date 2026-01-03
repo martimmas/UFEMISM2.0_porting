@@ -227,6 +227,7 @@ module fields_basic
     end function get_third_dimension
 
     module function is_third_dimension( field, field_third_dimension) result( res)
+      ! ..except for this one, which also works on type_field_2D - it just always returns .false. there
       class(atype_field),         intent(in) :: field
       type(type_third_dimension), intent(in) :: field_third_dimension
       logical                                :: res

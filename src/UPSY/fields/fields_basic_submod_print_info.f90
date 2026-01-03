@@ -46,19 +46,9 @@ contains
     select type (f => field)
     class default
       call crash('invalid field class')
-    class is (type_field_logical_2D)
+    class is (atype_field_2D)
       field_dimension = '2-D'
-    class is (type_field_int_2D)
-      field_dimension = '2-D'
-    class is (type_field_dp_2D)
-      field_dimension = '2-D'
-    class is (type_field_logical_3D)
-      field_dimension = '3-D'
-      field_third_dimension = f%third_dimension()
-    class is (type_field_int_3D)
-      field_dimension = '3-D'
-      field_third_dimension = f%third_dimension()
-    class is (type_field_dp_3D)
+    class is (atype_field_3D)
       field_dimension = '3-D'
       field_third_dimension = f%third_dimension()
     end select
