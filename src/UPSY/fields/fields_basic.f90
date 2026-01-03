@@ -14,13 +14,9 @@ module fields_basic
   private
 
   public :: &
-    atype_field, atype_field_grid, atype_field_mesh, &
-    type_field_grid_logical_2D, type_field_grid_logical_3D, &
-    type_field_grid_int_2D, type_field_grid_int_3D, &
-    type_field_grid_dp_2D, type_field_grid_dp_3D, &
-    type_field_mesh_logical_2D, type_field_mesh_logical_3D, &
-    type_field_mesh_int_2D, type_field_mesh_int_3D, &
-    type_field_mesh_dp_2D, type_field_mesh_dp_3D
+    atype_field, atype_field_2D, atype_field_3D, &
+    type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
+    type_field_logical_3D, type_field_int_3D, type_field_dp_3D
 
   ! Abstract basic field type
   ! =========================
@@ -32,43 +28,122 @@ module fields_basic
     character(len=1024), private :: long_name_val
     character(len=1024), private :: units_val
 
-    ! Parent grid
-    ! type(type_grid), pointer :: parent    ! Defined in extended types atype_field_grid and atype_field_mesh!
-    ! type(type_mesh), pointer :: parent
+    ! Grid
+    class(*), pointer,          private :: grid_val
     type(type_Arakawa_grid),    private :: Arakawa_grid_val
-    type(type_third_dimension), private :: third_dimension_val
 
     ! Pointer to array containing the actual field data
-    ! logical, pointer :: d(:)              ! Defined in extended types type_field_grid_XXX, etc.
-    type(MPI_WIN), public :: w
+    ! class(*), dimension(:), pointer, public :: d
+    type(MPI_WIN),                   public :: w
 
-  contains
+    contains
 
-    procedure, public :: set_metadata
+    procedure, public :: lbound => field_lbound
+    procedure, public :: ubound => field_ubound
+    procedure, public :: print_info
+
+    ! ===== Set/get functions
+
+    ! Metadata
+    procedure, public :: set_name
+    procedure, public :: set_long_name
+    procedure, public :: set_units
+
     procedure, public :: name      => get_name
     procedure, public :: long_name => get_long_name
     procedure, public :: units     => get_units
 
-    procedure, public :: set_parent_Arakawa_grid
-    procedure, public :: Arakawa_grid => get_parent_Arakawa_grid
+    procedure, public :: is_name
+    procedure, public :: is_long_name
+    procedure, public :: is_units
 
-    procedure, public :: set_third_dimension
-    procedure, public :: third_dimension => get_third_dimension
+    ! Grid
+    procedure, public :: set_grid
+    procedure, public :: set_Arakawa_grid
 
-    procedure, public :: print_info
-    procedure, public :: is_parent
+    procedure, public :: grid         => get_grid
+    procedure, public :: Arakawa_grid => get_Arakawa_grid
+
+    procedure, public :: is_grid
+    procedure, public :: is_Arakawa_grid
 
   end type atype_field
+
+  ! Concrete field types types for different data types/ranks
+  ! =========================================================
+
+  type, abstract, extends(atype_field) :: atype_field_2D
+  end type atype_field_2D
+
+  type, abstract, extends(atype_field) :: atype_field_3D
+    type(type_third_dimension), private :: third_dimension_val
+    contains
+    procedure, public :: set_third_dimension
+    procedure, public :: third_dimension => get_third_dimension
+    procedure, public :: is_third_dimension
+  end type atype_field_3D
+
+  type, extends( atype_field_2D) :: type_field_logical_2D
+    logical, dimension(:), contiguous, pointer :: d
+  end type type_field_logical_2D
+
+  type, extends( atype_field_2D) :: type_field_int_2D
+    integer, dimension(:), contiguous, pointer :: d
+  end type type_field_int_2D
+
+  type, extends( atype_field_2D) :: type_field_dp_2D
+    real(dp), dimension(:), contiguous, pointer :: d
+  end type type_field_dp_2D
+
+  type, extends( atype_field_3D) :: type_field_logical_3D
+    logical, dimension(:,:), contiguous, pointer :: d
+  end type type_field_logical_3D
+
+  type, extends( atype_field_3D) :: type_field_int_3D
+    integer, dimension(:,:), contiguous, pointer :: d
+  end type type_field_int_3D
+
+  type, extends( atype_field_3D) :: type_field_dp_3D
+    real(dp), dimension(:,:), contiguous, pointer :: d
+  end type type_field_dp_3D
 
   ! Interfaces to type-bound procedures defined in submodules
   interface
 
-    module subroutine set_metadata( field, name, long_name, units)
+    module function field_lbound( field, dim) result( lb)
+      class(atype_field), intent(in) :: field
+      integer,            intent(in) :: dim
+      integer                        :: lb
+    end function field_lbound
+
+    module function field_ubound( field, dim) result( ub)
+      class(atype_field), intent(in) :: field
+      integer,            intent(in) :: dim
+      integer                        :: ub
+    end function field_ubound
+
+    module subroutine print_info( field)
+      class(atype_field), intent(in) :: field
+    end subroutine print_info
+
+    ! ===== Set/get functions
+
+    ! Metadata
+
+    module subroutine set_name( field, name)
       class(atype_field), intent(inout) :: field
       character(len=*),   intent(in   ) :: name
+    end subroutine set_name
+
+    module subroutine set_long_name( field, long_name)
+      class(atype_field), intent(inout) :: field
       character(len=*),   intent(in   ) :: long_name
+    end subroutine set_long_name
+
+    module subroutine set_units( field, units)
+      class(atype_field), intent(inout) :: field
       character(len=*),   intent(in   ) :: units
-    end subroutine set_metadata
+    end subroutine set_units
 
     module function get_name( field) result( name)
       class(atype_field), intent(in) :: field
@@ -85,121 +160,78 @@ module fields_basic
       character(:), allocatable      :: units
     end function get_units
 
-    module subroutine print_info( field)
+    module function is_name( field, name) result( res)
       class(atype_field), intent(in) :: field
-    end subroutine print_info
-
-    module function is_parent( field, parent) result( res)
-      class(atype_field), intent(in) :: field
-      class(*),           intent(in) :: parent
+      character(len=*),   intent(in) :: name
       logical                        :: res
-    end function is_parent
+    end function is_name
 
-    module subroutine set_parent_Arakawa_grid( field, field_Arakawa_grid)
+    module function is_long_name( field, long_name) result( res)
+      class(atype_field), intent(in) :: field
+      character(len=*),   intent(in) :: long_name
+      logical                        :: res
+    end function is_long_name
+
+    module function is_units( field, units) result( res)
+      class(atype_field), intent(in) :: field
+      character(len=*),   intent(in) :: units
+      logical                        :: res
+    end function is_units
+
+    ! Grid
+
+    module subroutine set_grid( field, grid)
+      class(atype_field), intent(inout) :: field
+      class(*), target,   intent(in   ) :: grid
+    end subroutine set_grid
+
+    module subroutine set_Arakawa_grid( field, field_Arakawa_grid)
       class(atype_field),      intent(inout) :: field
       type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
-    end subroutine set_parent_Arakawa_grid
+    end subroutine set_Arakawa_grid
 
-    module function get_parent_Arakawa_grid( field) result( field_Arakawa_grid)
+    module function get_grid( field) result( grid)
+      class(atype_field), intent(in) :: field
+      class(*), pointer              :: grid
+    end function get_grid
+
+    module function get_Arakawa_grid( field) result( field_Arakawa_grid)
       class(atype_field), intent(in) :: field
       type(type_Arakawa_grid)        :: field_Arakawa_grid
-    end function get_parent_Arakawa_grid
+    end function get_Arakawa_grid
+
+    module function is_grid( field, grid) result( res)
+      class(atype_field), intent(in) :: field
+      class(*),           intent(in) :: grid
+      logical                        :: res
+    end function is_grid
+
+    module function is_Arakawa_grid( field, field_Arakawa_grid) result( res)
+      class(atype_field),      intent(in) :: field
+      type(type_Arakawa_grid), intent(in) :: field_Arakawa_grid
+      logical                             :: res
+    end function is_Arakawa_grid
+
+    ! Third dimension, only for concrete type type_field_3D
 
     module subroutine set_third_dimension( field, field_third_dimension)
-      class(atype_field),         intent(inout) :: field
+      class(atype_field_3D),      intent(inout) :: field
       type(type_third_dimension), intent(in   ) :: field_third_dimension
     end subroutine set_third_dimension
 
     module function get_third_dimension( field) result( field_third_dimension)
-      class(atype_field), intent(in) :: field
-      type(type_third_dimension)     :: field_third_dimension
+      class(atype_field_3D), intent(in) :: field
+      type(type_third_dimension)        :: field_third_dimension
     end function get_third_dimension
 
-  end interface
-
-  ! Extedned abstract field type for grid- and mesh-based fields
-  ! ============================================================
-
-  type, abstract, extends(atype_field) :: atype_field_grid
-    type(type_grid), pointer, public :: parent
-  contains
-    procedure, public :: set_parent_grid
-  end type atype_field_grid
-
-  type, abstract, extends(atype_field) :: atype_field_mesh
-    type(type_mesh), pointer, public :: parent
-  contains
-    procedure, public :: set_parent_mesh
-  end type atype_field_mesh
-
-  ! Interfaces to type-bound procedures defined in submodules
-  interface
-
-    module subroutine set_parent_grid( field, grid)
-      class(atype_field_grid), intent(inout) :: field
-      type(type_grid), target, intent(in   ) :: grid
-    end subroutine set_parent_grid
-
-    module subroutine set_parent_mesh( field, mesh)
-      class(atype_field_mesh), intent(inout) :: field
-      type(type_mesh), target, intent(in   ) :: mesh
-    end subroutine set_parent_mesh
+    module function is_third_dimension( field, field_third_dimension) result( res)
+      class(atype_field_3D),      intent(in) :: field
+      type(type_third_dimension), intent(in) :: field_third_dimension
+      logical                                :: res
+    end function is_third_dimension
 
   end interface
 
-  ! Concrete field types
-  ! ====================
-
-  ! Grid-based fields
-
-  type, extends(atype_field_grid) :: type_field_grid_logical_2D
-    logical, pointer, public :: d(:)
-  end type type_field_grid_logical_2D
-
-  type, extends(atype_field_grid) :: type_field_grid_logical_3D
-    logical, pointer, public :: d(:,:)
-  end type type_field_grid_logical_3D
-
-  type, extends(atype_field_grid) :: type_field_grid_int_2D
-    integer, pointer, public :: d(:)
-  end type type_field_grid_int_2D
-
-  type, extends(atype_field_grid) :: type_field_grid_int_3D
-    integer, pointer, public :: d(:,:)
-  end type type_field_grid_int_3D
-
-  type, extends(atype_field_grid) :: type_field_grid_dp_2D
-    real(dp), pointer, public :: d(:)
-  end type type_field_grid_dp_2D
-
-  type, extends(atype_field_grid) :: type_field_grid_dp_3D
-    real(dp), pointer, public :: d(:,:)
-  end type type_field_grid_dp_3D
-
-  ! Mesh-based fields
-
-  type, extends(atype_field_mesh) :: type_field_mesh_logical_2D
-    logical, pointer, public :: d(:)
-  end type type_field_mesh_logical_2D
-
-  type, extends(atype_field_mesh) :: type_field_mesh_logical_3D
-    logical, pointer, public :: d(:,:)
-  end type type_field_mesh_logical_3D
-
-  type, extends(atype_field_mesh) :: type_field_mesh_int_2D
-    integer, pointer, public :: d(:)
-  end type type_field_mesh_int_2D
-
-  type, extends(atype_field_mesh) :: type_field_mesh_int_3D
-    integer, pointer, public :: d(:,:)
-  end type type_field_mesh_int_3D
-
-  type, extends(atype_field_mesh) :: type_field_mesh_dp_2D
-    real(dp), pointer, public :: d(:)
-  end type type_field_mesh_dp_2D
-
-  type, extends(atype_field_mesh) :: type_field_mesh_dp_3D
-    real(dp), pointer, public :: d(:,:)
-  end type type_field_mesh_dp_3D
+contains
 
 end module fields_basic

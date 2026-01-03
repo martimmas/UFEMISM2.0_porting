@@ -1,589 +1,99 @@
 module fields_init_field
 
   use precisions, only: dp
-  use parameters, only: NaN
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
-  use grid_types, only: type_grid
-  use mesh_types, only: type_mesh
+  use fields_basic, only: &
+    atype_field, atype_field_2D, atype_field_3D, &
+    type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
+    type_field_logical_3D, type_field_int_3D, type_field_dp_3D
   use Arakawa_grid_mod, only: type_Arakawa_grid, Arakawa_grid
   use fields_dimensions, only: type_third_dimension
   use mpi_f08, only: MPI_WIN
-  use allocate_dist_shared_mod, only: allocate_dist_shared
-  use fields_basic, only: atype_field, atype_field_grid, atype_field_mesh, &
-    type_field_grid_logical_2D, type_field_grid_logical_3D, &
-    type_field_grid_int_2D, type_field_grid_int_3D, &
-    type_field_grid_dp_2D, type_field_grid_dp_3D, &
-    type_field_mesh_logical_2D, type_field_mesh_logical_3D, &
-    type_field_mesh_int_2D, type_field_mesh_int_3D, &
-    type_field_mesh_dp_2D, type_field_mesh_dp_3D
 
   implicit none
 
   private
 
-  public :: init_field
+  public :: initialise_field
 
-  interface init_field
-    procedure :: init_field_grid_logical_2D
-    procedure :: init_field_grid_logical_3D
-    procedure :: init_field_grid_int_2D
-    procedure :: init_field_grid_int_3D
-    procedure :: init_field_grid_dp_2D
-    procedure :: init_field_grid_dp_3D
-    procedure :: init_field_mesh_logical_2D
-    procedure :: init_field_mesh_logical_3D
-    procedure :: init_field_mesh_int_2D
-    procedure :: init_field_mesh_int_3D
-    procedure :: init_field_mesh_dp_2D
-    procedure :: init_field_mesh_dp_3D
-  end interface init_field
+  interface initialise_field
+    !< Returns an allocated instance of any of the concrete type_field_TYPE_DIM types,
+    !< with its metadata and grid set, and its array pointer associated
+    !< with the actual data field.
+    procedure :: initialise_field_logical_2D
+  end interface initialise_field
 
 contains
 
-  ! Grid-based fields
-  ! =================
-
-  subroutine init_field_grid_logical_2D( field, d, w, grid, &
+  subroutine initialise_field_logical_2D( field, d, w, field_grid, &
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_logical_2D), allocatable, intent(inout) :: field
-    logical, dimension(:), contiguous, pointer,    intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_grid), target,                       intent(in   ) :: grid
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
+    class(atype_field), allocatable, intent(  out) :: field
+    logical, dimension(:), pointer,  intent(in   ) :: d
+    type(MPI_WIN),                   intent(in   ) :: w
+    class(*), target,                intent(in   ) :: field_grid
+    type(type_Arakawa_grid),         intent(in   ) :: field_Arakawa_grid
+    character(len=*),                intent(in   ) :: name
+    character(len=*),                intent(in   ) :: long_name
+    character(len=*),                intent(in   ) :: units
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_logical_2D'
+    character(len=1024), parameter :: routine_name = 'initialise_field_logical_2D'
+    integer                        :: lb, ub
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
+    allocate( type_field_logical_2D :: field)
 
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
+    call initialise_field_meta_grid( field, field_grid, &
+      field_Arakawa_grid, name, long_name, units)
 
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc)
-      d      ( grid%n1: grid%n2) => d
-      field%d( grid%n1: grid%n2) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
+    select type(f => field)
+    class default
+      call crash('programming error?')
+    type is (type_field_logical_2D)
+      lb = lbound( d,1)
+      ub = ubound( d,1)
+      f%d( lb: ub) => d
+      f%w = w
+    end select
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine init_field_grid_logical_2D
+  end subroutine initialise_field_logical_2D
 
-  subroutine init_field_grid_logical_3D( field, d, w, grid, field_third_dimension, &
+  subroutine initialise_field_meta_grid( field, field_grid, &
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
-    type(type_field_grid_logical_3D), allocatable, intent(inout) :: field
-    logical, dimension(:,:), contiguous, pointer,  intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_grid), target,                       intent(in   ) :: grid
-    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
+    class(atype_field),      intent(inout) :: field
+    class(*), target,        intent(in   ) :: field_grid
+    type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
+    character(len=*),        intent(in   ) :: name
+    character(len=*),        intent(in   ) :: long_name
+    character(len=*),        intent(in   ) :: units
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_logical_3D'
+    character(len=1024), parameter :: routine_name = 'initialise_field_meta_grid'
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
+    ! Metadata
+    call field%set_name     ( name)
+    call field%set_long_name( long_name)
+    call field%set_units    ( units)
 
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc, field_third_dimension%n)
-      d      ( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-      field%d( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
+    ! Grid
+    call field%set_grid        ( field_grid)
+    call field%set_Arakawa_grid( field_Arakawa_grid)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine init_field_grid_logical_3D
-
-  subroutine init_field_grid_int_2D( field, d, w, grid, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_grid_int_2D), allocatable,  intent(inout) :: field
-    integer, dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                              intent(inout) :: w
-    type(type_grid), target,                    intent(in   ) :: grid
-    type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
-    character(len=*),                           intent(in   ) :: name
-    character(len=*),                           intent(in   ) :: long_name
-    character(len=*),                           intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_int_2D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc)
-      d      ( grid%n1: grid%n2) => d
-      field%d( grid%n1: grid%n2) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_grid_int_2D
-
-  subroutine init_field_grid_int_3D( field, d, w, grid, field_third_dimension, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_grid_int_3D), allocatable,    intent(inout) :: field
-    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                intent(inout) :: w
-    type(type_grid), target,                      intent(in   ) :: grid
-    type(type_third_dimension),                   intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
-    character(len=*),                             intent(in   ) :: name
-    character(len=*),                             intent(in   ) :: long_name
-    character(len=*),                             intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_int_3D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc, field_third_dimension%n)
-      d      ( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-      field%d( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_grid_int_3D
-
-  subroutine init_field_grid_dp_2D( field, d, w, grid, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_grid_dp_2D), allocatable,    intent(inout) :: field
-    real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                               intent(inout) :: w
-    type(type_grid), target,                     intent(in   ) :: grid
-    type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
-    character(len=*),                            intent(in   ) :: name
-    character(len=*),                            intent(in   ) :: long_name
-    character(len=*),                            intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_dp_2D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc)
-      d      ( grid%n1: grid%n2) => d
-      field%d( grid%n1: grid%n2) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_grid_dp_2D
-
-  subroutine init_field_grid_dp_3D( field, d, w, grid, field_third_dimension, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_grid_dp_3D), allocatable,      intent(inout) :: field
-    real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_grid), target,                       intent(in   ) :: grid
-    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_grid_dp_3D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_grid( grid)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, grid%n_loc, field_third_dimension%n)
-      d      ( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-      field%d( grid%n1: grid%n2, 1: field_third_dimension%n) => d
-    else
-      call crash('staggered square grids are not supported')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_grid_dp_3D
-
-  ! Mesh-based fields
-  ! =================
-
-  subroutine init_field_mesh_logical_2D( field, d, w, mesh, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_logical_2D), allocatable, intent(inout) :: field
-    logical, dimension(:), contiguous, pointer,    intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_mesh), target,                       intent(in   ) :: mesh
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_logical_2D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc)
-      d      ( mesh%vi1: mesh%vi2) => d
-      field%d( mesh%vi1: mesh%vi2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc)
-      d      ( mesh%ti1: mesh%ti2) => d
-      field%d( mesh%ti1: mesh%ti2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc)
-      d      ( mesh%ei1: mesh%ei2) => d
-      field%d( mesh%ei1: mesh%ei2) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_logical_2D
-
-  subroutine init_field_mesh_logical_3D( field, d, w, mesh, field_third_dimension, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_logical_3D), allocatable, intent(inout) :: field
-    logical, dimension(:,:), contiguous, pointer,  intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_mesh), target,                       intent(in   ) :: mesh
-    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_logical_3D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc, field_third_dimension%n)
-      d      ( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-      field%d( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc, field_third_dimension%n)
-      d      ( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-      field%d( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc, field_third_dimension%n)
-      d      ( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-      field%d( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_logical_3D
-
-  subroutine init_field_mesh_int_2D( field, d, w, mesh, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_int_2D), allocatable,  intent(inout) :: field
-    integer, dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                              intent(inout) :: w
-    type(type_mesh), target,                    intent(in   ) :: mesh
-    type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
-    character(len=*),                           intent(in   ) :: name
-    character(len=*),                           intent(in   ) :: long_name
-    character(len=*),                           intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_int_2D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc)
-      d      ( mesh%vi1: mesh%vi2) => d
-      field%d( mesh%vi1: mesh%vi2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc)
-      d      ( mesh%ti1: mesh%ti2) => d
-      field%d( mesh%ti1: mesh%ti2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc)
-      d      ( mesh%ei1: mesh%ei2) => d
-      field%d( mesh%ei1: mesh%ei2) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_int_2D
-
-  subroutine init_field_mesh_int_3D( field, d, w, mesh, field_third_dimension, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_int_3D), allocatable,    intent(inout) :: field
-    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                intent(inout) :: w
-    type(type_mesh), target,                      intent(in   ) :: mesh
-    type(type_third_dimension),                   intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
-    character(len=*),                             intent(in   ) :: name
-    character(len=*),                             intent(in   ) :: long_name
-    character(len=*),                             intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_int_3D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc, field_third_dimension%n)
-      d      ( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-      field%d( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc, field_third_dimension%n)
-      d      ( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-      field%d( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc, field_third_dimension%n)
-      d      ( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-      field%d( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_int_3D
-
-  subroutine init_field_mesh_dp_2D( field, d, w, mesh, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_dp_2D), allocatable,    intent(inout) :: field
-    real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                               intent(inout) :: w
-    type(type_mesh), target,                     intent(in   ) :: mesh
-    type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
-    character(len=*),                            intent(in   ) :: name
-    character(len=*),                            intent(in   ) :: long_name
-    character(len=*),                            intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_dp_2D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc)
-      d      ( mesh%vi1: mesh%vi2) => d
-      field%d( mesh%vi1: mesh%vi2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc)
-      d      ( mesh%ti1: mesh%ti2) => d
-      field%d( mesh%ti1: mesh%ti2) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc)
-      d      ( mesh%ei1: mesh%ei2) => d
-      field%d( mesh%ei1: mesh%ei2) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_dp_2D
-
-  subroutine init_field_mesh_dp_3D( field, d, w, mesh, field_third_dimension, &
-    field_Arakawa_grid, name, long_name, units)
-
-    ! In/output variables:
-    type(type_field_mesh_dp_3D), allocatable,      intent(inout) :: field
-    real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
-    type(MPI_WIN),                                 intent(inout) :: w
-    type(type_mesh), target,                       intent(in   ) :: mesh
-    type(type_third_dimension),                    intent(in   ) :: field_third_dimension
-    type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
-    character(len=*),                              intent(in   ) :: name
-    character(len=*),                              intent(in   ) :: long_name
-    character(len=*),                              intent(in   ) :: units
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'init_field_mesh_dp_3D'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    if (allocated( field)) call crash('field is already allocated')
-    allocate( field)
-
-    call field%set_metadata( name, long_name, units)
-    call field%set_parent_mesh( mesh)
-    call field%set_parent_Arakawa_grid( field_Arakawa_grid)
-    call field%set_third_dimension( field_third_dimension)
-
-    ! Allocate memory for field data array and bind field pointer to it
-    if (field_Arakawa_grid == Arakawa_grid%a()) then
-      call allocate_dist_shared( d, w, mesh%nV_loc, field_third_dimension%n)
-      d      ( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-      field%d( mesh%vi1: mesh%vi2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-      call allocate_dist_shared( d, w, mesh%nTri_loc, field_third_dimension%n)
-      d      ( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-      field%d( mesh%ti1: mesh%ti2, 1: field_third_dimension%n) => d
-    elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-      call allocate_dist_shared( d, w, mesh%nE_loc, field_third_dimension%n)
-      d      ( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-      field%d( mesh%ei1: mesh%ei2, 1: field_third_dimension%n) => d
-    else
-      call crash('invalid Arakawa grid')
-    end if
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine init_field_mesh_dp_3D
+  end subroutine initialise_field_meta_grid
 
 end module fields_init_field

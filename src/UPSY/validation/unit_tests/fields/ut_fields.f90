@@ -1,7 +1,6 @@
 module ut_fields
 
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
-  use ut_fields_init_field, only: test_init_field
   use ut_fields_create_field, only: test_create_field
 
   implicit none
@@ -29,7 +28,6 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! Run all unit tests
-    call test_init_field( test_name)
     call test_create_field( test_name)
 
     ! Remove routine from call stack
