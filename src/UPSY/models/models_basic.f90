@@ -2,7 +2,9 @@ module models_basic
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use grid_types, only: type_grid
+  use mesh_types, only: type_mesh
   use fields_main, only: type_fields_registry
 
   implicit none
@@ -19,6 +21,9 @@ module models_basic
     ! Metadata
     character(len=1024), private :: name_val
 
+    ! Grid
+    class(*), pointer, private :: grid_val
+
     ! Fields registry
     type(type_fields_registry), public :: flds_reg
 
@@ -30,6 +35,11 @@ module models_basic
     procedure, public :: set_name
     procedure, public :: name => get_name
     procedure, public :: is_name
+
+    ! Grid
+    procedure, public :: set_grid
+    procedure, public :: grid => get_grid
+    procedure, public :: is_grid
 
   end type atype_model
 
@@ -57,6 +67,24 @@ module models_basic
       character(len=*),   intent(in) :: name
       logical                        :: res
     end function is_name
+
+    ! Grid
+
+    module subroutine set_grid( model, grid)
+      class(atype_model), intent(inout) :: model
+      class(*), target,   intent(in   ) :: grid
+    end subroutine set_grid
+
+    module function get_grid( model) result( grid)
+      class(atype_model), intent(in) :: model
+      class(*), pointer              :: grid
+    end function get_grid
+
+    module function is_grid( model, grid) result( res)
+      class(atype_model), intent(in) :: model
+      class(*),           intent(in) :: grid
+      logical                        :: res
+    end function is_grid
 
   end interface
 
