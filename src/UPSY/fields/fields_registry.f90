@@ -36,9 +36,14 @@ module fields_registry
     contains
 
     generic,   public  :: create_field => &
-      create_field_logical_2D, create_field_logical_3D
+      create_field_logical_2D, create_field_int_2D, create_field_dp_2D, &
+      create_field_logical_3D, create_field_int_3D, create_field_dp_3D
     procedure, private :: create_field_logical_2D
+    procedure, private :: create_field_int_2D
+    procedure, private :: create_field_dp_2D
     procedure, private :: create_field_logical_3D
+    procedure, private :: create_field_int_3D
+    procedure, private :: create_field_dp_3D
 
     procedure, private :: add => add_field_to_registry
     procedure, private :: extend => extend_field_registry
@@ -56,14 +61,14 @@ module fields_registry
     module subroutine create_field_logical_2D( flds_reg, d, w, field_grid, &
       field_Arakawa_grid, name, long_name, units)
 
-      class(type_fields_registry),                 intent(inout) :: flds_reg
-      logical, dimension(:), contiguous, pointer,  intent(inout) :: d
-      type(MPI_WIN),                               intent(inout) :: w
-      class(*), target,                            intent(in   ) :: field_grid
-      type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
-      character(len=*),                            intent(in   ) :: name
-      character(len=*),                            intent(in   ) :: long_name
-      character(len=*),                            intent(in   ) :: units
+      class(type_fields_registry),                intent(inout) :: flds_reg
+      logical, dimension(:), contiguous, pointer, intent(inout) :: d
+      type(MPI_WIN),                              intent(inout) :: w
+      class(*), target,                           intent(in   ) :: field_grid
+      type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
+      character(len=*),                           intent(in   ) :: name
+      character(len=*),                           intent(in   ) :: long_name
+      character(len=*),                           intent(in   ) :: units
 
     end subroutine create_field_logical_2D
 
@@ -81,6 +86,64 @@ module fields_registry
       character(len=*),                             intent(in   ) :: units
 
     end subroutine create_field_logical_3D
+
+    module subroutine create_field_int_2D( flds_reg, d, w, field_grid, &
+      field_Arakawa_grid, name, long_name, units)
+
+      class(type_fields_registry),                intent(inout) :: flds_reg
+      integer, dimension(:), contiguous, pointer, intent(inout) :: d
+      type(MPI_WIN),                              intent(inout) :: w
+      class(*), target,                           intent(in   ) :: field_grid
+      type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
+      character(len=*),                           intent(in   ) :: name
+      character(len=*),                           intent(in   ) :: long_name
+      character(len=*),                           intent(in   ) :: units
+
+    end subroutine create_field_int_2D
+
+    module subroutine create_field_int_3D( flds_reg, d, w, field_grid, &
+      field_Arakawa_grid, field_third_dimension, name, long_name, units)
+
+      class(type_fields_registry),                  intent(inout) :: flds_reg
+      integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
+      type(MPI_WIN),                                intent(inout) :: w
+      class(*), target,                             intent(in   ) :: field_grid
+      type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
+      type(type_third_dimension),                   intent(in   ) :: field_third_dimension
+      character(len=*),                             intent(in   ) :: name
+      character(len=*),                             intent(in   ) :: long_name
+      character(len=*),                             intent(in   ) :: units
+
+    end subroutine create_field_int_3D
+
+    module subroutine create_field_dp_2D( flds_reg, d, w, field_grid, &
+      field_Arakawa_grid, name, long_name, units)
+
+      class(type_fields_registry),                 intent(inout) :: flds_reg
+      real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
+      type(MPI_WIN),                               intent(inout) :: w
+      class(*), target,                            intent(in   ) :: field_grid
+      type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
+      character(len=*),                            intent(in   ) :: name
+      character(len=*),                            intent(in   ) :: long_name
+      character(len=*),                            intent(in   ) :: units
+
+    end subroutine create_field_dp_2D
+
+    module subroutine create_field_dp_3D( flds_reg, d, w, field_grid, &
+      field_Arakawa_grid, field_third_dimension, name, long_name, units)
+
+      class(type_fields_registry),                   intent(inout) :: flds_reg
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
+      type(MPI_WIN),                                 intent(inout) :: w
+      class(*), target,                              intent(in   ) :: field_grid
+      type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
+      type(type_third_dimension),                    intent(in   ) :: field_third_dimension
+      character(len=*),                              intent(in   ) :: name
+      character(len=*),                              intent(in   ) :: long_name
+      character(len=*),                              intent(in   ) :: units
+
+    end subroutine create_field_dp_3D
 
   end interface
 
