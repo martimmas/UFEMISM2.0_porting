@@ -1,7 +1,7 @@
 module ut_models
 
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
-  use ut_basic, only: unit_test
+  use ut_models_io, only: test_models_io
 
   implicit none
 
@@ -27,8 +27,7 @@ contains
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
-    ! Run all unit tests
-    call unit_test( .true., test_name)
+    call test_models_io( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
