@@ -4,7 +4,7 @@ module ut_fields_create_field
   use mpi_basic, only: par
   use parameters, only: pi
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
-  use fields_main, only: &
+  use fields_main, only: third_dimension, &
     atype_field, atype_field_2D, atype_field_3D, &
     type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D, &
@@ -14,7 +14,6 @@ module ut_fields_create_field
   use mesh_types, only: type_mesh
   use grid_basic, only: setup_square_grid
   use Arakawa_grid_mod, only: Arakawa_grid
-  use fields_dimensions, only: third_dimension
   use mpi_f08, only: MPI_WIN
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
