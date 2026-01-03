@@ -173,8 +173,6 @@ contains
     res = field_Arakawa_grid == field%Arakawa_grid_val
   end function is_Arakawa_grid
 
-  ! Third dimension, only for concrete type type_field_3D
-
   subroutine set_third_dimension( field, field_third_dimension)
     class(atype_field_3D),      intent(inout) :: field
     type(type_third_dimension), intent(in   ) :: field_third_dimension
@@ -188,10 +186,27 @@ contains
   end function get_third_dimension
 
   function is_third_dimension( field, field_third_dimension) result( res)
-    class(atype_field_3D),      intent(in) :: field
+
+    class(atype_field),         intent(in) :: field
     type(type_third_dimension), intent(in) :: field_third_dimension
     logical                                :: res
-    res = field_third_dimension == field%third_dimension_val
+
+    res = .false.
+
+    select type (field)
+    class default
+      call crash('invalid field type')
+    class is (type_field_logical_2D)
+    class is (type_field_int_2D)
+    class is (type_field_dp_2D)
+    class is (type_field_logical_3D)
+      res = field_third_dimension == field%third_dimension_val
+    class is (type_field_int_3D)
+      res = field_third_dimension == field%third_dimension_val
+    class is (type_field_dp_3D)
+      res = field_third_dimension == field%third_dimension_val
+    end select
+
   end function is_third_dimension
 
 end submodule fields_basic_submod_set_get

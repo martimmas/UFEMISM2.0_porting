@@ -80,6 +80,16 @@ contains
       write(0,*) '       Long name: ', trim( field%long_name())
       write(0,*) '       Parent   : ', trim( field_grid_type), ' "', &
         trim( field_grid_name), '" (', trim( field_Arakawa_grid_name), '-grid)'
+
+      select case (field_dimension)
+      case default
+        call crash('invalid field_dimension')
+      case ('2-D')
+        write(0,*) '       Dimension: 2-D'
+      case ('3-D')
+        write(0,*) '       Dimension: 3-D (', trim( field_third_dimension%name), ')'
+      end select
+
       write(0,*) '       Units    : [', trim( field%units()), ']'
 
       select case (field_dimension)
@@ -88,18 +98,18 @@ contains
       case ('2-D')
         do i = 0, par%n-1
           if (i == 0) then
-            write(0,*) '       Dimension: 2-D - Process ', i, ' owns [', lbs(i), ' - ', ubs(i), ']'
+            write(0,*) '       Bounds   : process ', i, ' owns [', lbs(i), ' - ', ubs(i), ']'
           else
-            write(0,*) '                                ', i, '      [', lbs(i), ' - ', ubs(i), ']'
+            write(0,*) '                          ', i, '      [', lbs(i), ' - ', ubs(i), ']'
           end if
         end do
       case ('3-D')
         do i = 0, par%n-1
           if (i == 0) then
-            write(0,*) '       Dimension: 3-D - Process ', i, ' owns [', lbs1(i), ' - ', ubs1(i), ']', &
+            write(0,*) '       Bounds   : process ', i, ' owns [', lbs1(i), ' - ', ubs1(i), ']', &
               ', [', lbs2(i), ' - ', ubs2(i), ']'
           else
-            write(0,*) '                                ', i, '      [', lbs1(i), ' - ', ubs1(i), ']', &
+            write(0,*) '                          ', i, '      [', lbs1(i), ' - ', ubs1(i), ']', &
               ', [', lbs2(i), ' - ', ubs2(i), ']'
           end if
         end do

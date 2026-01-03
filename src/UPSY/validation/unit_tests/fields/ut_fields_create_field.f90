@@ -145,57 +145,163 @@ contains
       d_2D( grid%n1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
 
-    ! ! 3-D (zeta)
-    ! ! ==========
+    ! 3-D (zeta)
+    ! ==========
 
-    ! name      = 'd_grid_logical_3D_zeta'
-    ! long_name = 'd_grid_logical_3D_zeta_long_name'
-    ! units     = 'd_grid_logical_3D_zeta_units'
-    ! nz        = 10
+    name      = 'd_grid_logical_3D_zeta'
+    long_name = 'd_grid_logical_3D_zeta_long_name'
+    units     = 'd_grid_logical_3D_zeta_units'
+    nz        = 10
 
-    ! call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-    !   grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
-    !   name      = name, &
-    !   long_name = long_name, &
-    !   units     = units)
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
 
-    ! i = flds_reg%find( name)
+    i = flds_reg%find( name)
 
-    ! lb1_a = lbound( d_3D_zeta,1)
-    ! ub1_a = ubound( d_3D_zeta,1)
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
 
-    ! lb2_a = lbound( d_3D_zeta,2)
-    ! ub2_a = ubound( d_3D_zeta,2)
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
 
-    ! lb1_f = flds_reg%items(i)%p%lbound( 1)
-    ! ub1_f = flds_reg%items(i)%p%ubound( 1)
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
 
-    ! lb2_f = flds_reg%items(i)%p%lbound( 2)
-    ! ub2_f = flds_reg%items(i)%p%ubound( 2)
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
 
-    ! select type (f => flds_reg%items(i)%p)
-    ! class default
-    !   call crash('unexpected field type')
-    ! class is (type_field_logical_3D)
-    !   f%d( grid%n1+1) = test_val
-    ! end select
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( grid%n1+1,3) = test_val
+    end select
 
-    ! call unit_test( (&
-    !   flds_reg%items(i)%p%name()      == name .and. &
-    !   flds_reg%items(i)%p%long_name() == long_name .and. &
-    !   flds_reg%items(i)%p%units()     == units .and. &
-    !   flds_reg%items(i)%p%is_grid( grid) .and. &
-    !   flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-    !   lb1_a == grid%n1 .and. &
-    !   ub1_a == grid%n2 .and. &
-    !   lb1_f == grid%n1 .and. &
-    !   ub1_f == grid%n2 .and. &
-    !   lb2_a == 1  .and. &
-    !   ub2_a == nz  .and. &
-    !   lb2_f == 1  .and. &
-    !   ub2_f == nz .and. &
-    !   d_3D_zeta( grid%n1+1) .eqv. test_val), &
-    !   trim( test_name) // '_3D_zeta')
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( grid) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == grid%n1 .and. &
+      ub1_a == grid%n2 .and. &
+      lb1_f == grid%n1 .and. &
+      ub1_f == grid%n2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( grid%n1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_grid_logical_3D_month'
+    long_name = 'd_grid_logical_3D_month_long_name'
+    units     = 'd_grid_logical_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      grid, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( grid%n1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( grid) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == grid%n1 .and. &
+      ub1_a == grid%n2 .and. &
+      lb1_f == grid%n1 .and. &
+      ub1_f == grid%n2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( grid%n1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_grid_logical_3D_ocean'
+    long_name = 'd_grid_logical_3D_ocean_long_name'
+    units     = 'd_grid_logical_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( grid%n1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( grid) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == grid%n1 .and. &
+      ub1_a == grid%n2 .and. &
+      lb1_f == grid%n1 .and. &
+      ub1_f == grid%n2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( grid%n1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_ocean')
 
     ! DENK DROM
     call flds_reg%print_info

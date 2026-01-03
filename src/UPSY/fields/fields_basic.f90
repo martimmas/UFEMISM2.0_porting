@@ -66,6 +66,7 @@ module fields_basic
 
     procedure, public :: is_grid
     procedure, public :: is_Arakawa_grid
+    procedure, public :: is_third_dimension
 
   end type atype_field
 
@@ -80,7 +81,6 @@ module fields_basic
     contains
     procedure, public :: set_third_dimension
     procedure, public :: third_dimension => get_third_dimension
-    procedure, public :: is_third_dimension
   end type atype_field_3D
 
   type, extends( atype_field_2D) :: type_field_logical_2D
@@ -227,7 +227,7 @@ module fields_basic
     end function get_third_dimension
 
     module function is_third_dimension( field, field_third_dimension) result( res)
-      class(atype_field_3D),      intent(in) :: field
+      class(atype_field),         intent(in) :: field
       type(type_third_dimension), intent(in) :: field_third_dimension
       logical                                :: res
     end function is_third_dimension
