@@ -235,6 +235,4 @@ module fields_basic
 
   end interface
 
-contains
-
 end module fields_basic
