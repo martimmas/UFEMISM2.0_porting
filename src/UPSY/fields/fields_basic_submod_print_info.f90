@@ -18,6 +18,7 @@ contains
     type(type_Arakawa_grid)        :: field_Arakawa_grid
     character(len=1024)            :: field_Arakawa_grid_name
     character(len=1024)            :: field_dimension
+    character(len=1024)            :: field_data_type
     type(type_third_dimension)     :: field_third_dimension
     integer, dimension(0:par%n-1)  :: lbs, ubs
     integer, dimension(0:par%n-1)  :: lbs1, ubs1, lbs2, ubs2
@@ -53,6 +54,24 @@ contains
       field_third_dimension = f%third_dimension()
     end select
 
+    ! Data type
+    select type( f => field)
+    class default
+      call crash('invalid field class')
+    class is (type_field_logical_2D)
+      field_data_type = 'logical'
+    class is (type_field_logical_3D)
+      field_data_type = 'logical'
+    class is (type_field_int_2D)
+      field_data_type = 'int'
+    class is (type_field_int_3D)
+      field_data_type = 'int'
+    class is (type_field_dp_2D)
+      field_data_type = 'dp'
+    class is (type_field_dp_3D)
+      field_data_type = 'dp'
+    end select
+
     ! Bounds
     select case (field_dimension)
     case default
@@ -75,9 +94,10 @@ contains
       case default
         call crash('invalid field_dimension')
       case ('2-D')
-        write(0,*) '       Dimension: 2-D'
+        write(0,*) '       Type     : 2-D, ', trim( field_data_type)
       case ('3-D')
-        write(0,*) '       Dimension: 3-D (', trim( field_third_dimension%name), ')'
+        write(0,*) '       Type     : 3-D (', trim( field_third_dimension%name), '), ', &
+          trim( field_data_type)
       end select
 
       write(0,*) '       Units    : [', trim( field%units()), ']'
