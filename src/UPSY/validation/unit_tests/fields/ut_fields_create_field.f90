@@ -86,9 +86,13 @@ contains
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
     logical, dimension(:  ), contiguous, pointer :: d_2D
-    logical, dimension(:,:), contiguous, pointer :: d_3D
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
     type(MPI_WIN)                                :: wd_2D
-    type(MPI_WIN)                                :: wd_3D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
     integer                                      :: i
     integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
     integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
@@ -101,12 +105,14 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! 2-D
+    ! ===
 
     name      = 'd_grid_logical_2D'
     long_name = 'd_grid_logical_2D_long_name'
     units     = 'd_grid_logical_2D_units'
 
-    call flds_reg%create_field( d_2D, wd_2D, grid, Arakawa_grid%a(), &
+    call flds_reg%create_field( d_2D, wd_2D, &
+      grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -138,6 +144,58 @@ contains
       ub1_f == grid%n2 .and. &
       d_2D( grid%n1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
+
+    ! ! 3-D (zeta)
+    ! ! ==========
+
+    ! name      = 'd_grid_logical_3D_zeta'
+    ! long_name = 'd_grid_logical_3D_zeta_long_name'
+    ! units     = 'd_grid_logical_3D_zeta_units'
+    ! nz        = 10
+
+    ! call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+    !   grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+    !   name      = name, &
+    !   long_name = long_name, &
+    !   units     = units)
+
+    ! i = flds_reg%find( name)
+
+    ! lb1_a = lbound( d_3D_zeta,1)
+    ! ub1_a = ubound( d_3D_zeta,1)
+
+    ! lb2_a = lbound( d_3D_zeta,2)
+    ! ub2_a = ubound( d_3D_zeta,2)
+
+    ! lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ! ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    ! lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ! ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    ! select type (f => flds_reg%items(i)%p)
+    ! class default
+    !   call crash('unexpected field type')
+    ! class is (type_field_logical_3D)
+    !   f%d( grid%n1+1) = test_val
+    ! end select
+
+    ! call unit_test( (&
+    !   flds_reg%items(i)%p%name()      == name .and. &
+    !   flds_reg%items(i)%p%long_name() == long_name .and. &
+    !   flds_reg%items(i)%p%units()     == units .and. &
+    !   flds_reg%items(i)%p%is_grid( grid) .and. &
+    !   flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+    !   lb1_a == grid%n1 .and. &
+    !   ub1_a == grid%n2 .and. &
+    !   lb1_f == grid%n1 .and. &
+    !   ub1_f == grid%n2 .and. &
+    !   lb2_a == 1  .and. &
+    !   ub2_a == nz  .and. &
+    !   lb2_f == 1  .and. &
+    !   ub2_f == nz .and. &
+    !   d_3D_zeta( grid%n1+1) .eqv. test_val), &
+    !   trim( test_name) // '_3D_zeta')
 
     ! DENK DROM
     call flds_reg%print_info
