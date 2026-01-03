@@ -68,6 +68,18 @@ contains
     call test_create_field_grid_int      ( test_name, grid)
     call test_create_field_grid_dp       ( test_name, grid)
 
+    call test_create_field_mesh_logical_a( test_name, mesh)
+    call test_create_field_mesh_int_a    ( test_name, mesh)
+    call test_create_field_mesh_dp_a     ( test_name, mesh)
+
+    call test_create_field_mesh_logical_b( test_name, mesh)
+    call test_create_field_mesh_int_b    ( test_name, mesh)
+    call test_create_field_mesh_dp_b     ( test_name, mesh)
+
+    call test_create_field_mesh_logical_c( test_name, mesh)
+    call test_create_field_mesh_int_c    ( test_name, mesh)
+    call test_create_field_mesh_dp_c     ( test_name, mesh)
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -780,5 +792,2129 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_create_field_grid_dp
+
+  subroutine test_create_field_mesh_logical_a( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_a'
+    character(len=1024), parameter               :: test_name_local = 'mesh/a/logical'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    logical, dimension(:  ), contiguous, pointer :: d_2D
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    logical, parameter                           :: test_val = .true.
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_logical_2D'
+    long_name = 'd_mesh_logical_2D_long_name'
+    units     = 'd_mesh_logical_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_2D)
+      f%d( mesh%vi1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      d_2D( mesh%vi1+1) .eqv. test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_zeta'
+    long_name = 'd_mesh_logical_3D_zeta_long_name'
+    units     = 'd_mesh_logical_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%vi1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_logical_3D_month'
+    long_name = 'd_mesh_logical_3D_month_long_name'
+    units     = 'd_mesh_logical_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%vi1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_ocean'
+    long_name = 'd_mesh_logical_3D_ocean_long_name'
+    units     = 'd_mesh_logical_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%vi1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_logical_a
+
+  subroutine test_create_field_mesh_int_a( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_a'
+    character(len=1024), parameter               :: test_name_local = 'mesh/a/int'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    integer, dimension(:  ), contiguous, pointer :: d_2D
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    integer, parameter                           :: test_val = 1337
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_int_2D'
+    long_name = 'd_mesh_int_2D_long_name'
+    units     = 'd_mesh_int_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_2D)
+      f%d( mesh%vi1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      d_2D( mesh%vi1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_zeta'
+    long_name = 'd_mesh_int_3D_zeta_long_name'
+    units     = 'd_mesh_int_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_int_3D_month'
+    long_name = 'd_mesh_int_3D_month_long_name'
+    units     = 'd_mesh_int_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_ocean'
+    long_name = 'd_mesh_int_3D_ocean_long_name'
+    units     = 'd_mesh_int_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_int_a
+
+  subroutine test_create_field_mesh_dp_a( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_a'
+    character(len=1024), parameter                :: test_name_local = 'mesh/a/dp'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                 :: wd_2D
+    type(MPI_WIN)                                 :: wd_3D_zeta
+    type(MPI_WIN)                                 :: wd_3D_month
+    type(MPI_WIN)                                 :: wd_3D_ocean
+    integer                                       :: i
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp), parameter                           :: test_val = 13.37_dp
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_dp_2D'
+    long_name = 'd_mesh_dp_2D_long_name'
+    units     = 'd_mesh_dp_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_2D)
+      f%d( mesh%vi1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      d_2D( mesh%vi1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_zeta'
+    long_name = 'd_mesh_dp_3D_zeta_long_name'
+    units     = 'd_mesh_dp_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_dp_3D_month'
+    long_name = 'd_mesh_dp_3D_month_long_name'
+    units     = 'd_mesh_dp_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_ocean'
+    long_name = 'd_mesh_dp_3D_ocean_long_name'
+    units     = 'd_mesh_dp_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%vi1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%vi1 .and. &
+      ub1_a == mesh%vi2 .and. &
+      lb1_f == mesh%vi1 .and. &
+      ub1_f == mesh%vi2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%vi1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_dp_a
+
+  subroutine test_create_field_mesh_logical_b( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_b'
+    character(len=1024), parameter               :: test_name_local = 'mesh/b/logical'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    logical, dimension(:  ), contiguous, pointer :: d_2D
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    logical, parameter                           :: test_val = .true.
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_logical_2D'
+    long_name = 'd_mesh_logical_2D_long_name'
+    units     = 'd_mesh_logical_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_2D)
+      f%d( mesh%ti1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      d_2D( mesh%ti1+1) .eqv. test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_zeta'
+    long_name = 'd_mesh_logical_3D_zeta_long_name'
+    units     = 'd_mesh_logical_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ti1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_logical_3D_month'
+    long_name = 'd_mesh_logical_3D_month_long_name'
+    units     = 'd_mesh_logical_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ti1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_ocean'
+    long_name = 'd_mesh_logical_3D_ocean_long_name'
+    units     = 'd_mesh_logical_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ti1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_logical_b
+
+  subroutine test_create_field_mesh_int_b( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_b'
+    character(len=1024), parameter               :: test_name_local = 'mesh/b/int'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    integer, dimension(:  ), contiguous, pointer :: d_2D
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    integer, parameter                           :: test_val = 1337
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_int_2D'
+    long_name = 'd_mesh_int_2D_long_name'
+    units     = 'd_mesh_int_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_2D)
+      f%d( mesh%ti1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      d_2D( mesh%ti1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_zeta'
+    long_name = 'd_mesh_int_3D_zeta_long_name'
+    units     = 'd_mesh_int_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_int_3D_month'
+    long_name = 'd_mesh_int_3D_month_long_name'
+    units     = 'd_mesh_int_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_ocean'
+    long_name = 'd_mesh_int_3D_ocean_long_name'
+    units     = 'd_mesh_int_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_int_b
+
+  subroutine test_create_field_mesh_dp_b( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_b'
+    character(len=1024), parameter                :: test_name_local = 'mesh/b/dp'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                 :: wd_2D
+    type(MPI_WIN)                                 :: wd_3D_zeta
+    type(MPI_WIN)                                 :: wd_3D_month
+    type(MPI_WIN)                                 :: wd_3D_ocean
+    integer                                       :: i
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp), parameter                           :: test_val = 13.37_dp
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_dp_2D'
+    long_name = 'd_mesh_dp_2D_long_name'
+    units     = 'd_mesh_dp_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_2D)
+      f%d( mesh%ti1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      d_2D( mesh%ti1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_zeta'
+    long_name = 'd_mesh_dp_3D_zeta_long_name'
+    units     = 'd_mesh_dp_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_dp_3D_month'
+    long_name = 'd_mesh_dp_3D_month_long_name'
+    units     = 'd_mesh_dp_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_ocean'
+    long_name = 'd_mesh_dp_3D_ocean_long_name'
+    units     = 'd_mesh_dp_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ti1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ti1 .and. &
+      ub1_a == mesh%ti2 .and. &
+      lb1_f == mesh%ti1 .and. &
+      ub1_f == mesh%ti2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ti1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_dp_b
+
+  subroutine test_create_field_mesh_logical_c( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_logical_c'
+    character(len=1024), parameter               :: test_name_local = 'mesh/c/logical'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    logical, dimension(:  ), contiguous, pointer :: d_2D
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    logical, parameter                           :: test_val = .true.
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_logical_2D'
+    long_name = 'd_mesh_logical_2D_long_name'
+    units     = 'd_mesh_logical_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_2D)
+      f%d( mesh%ei1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      d_2D( mesh%ei1+1) .eqv. test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_zeta'
+    long_name = 'd_mesh_logical_3D_zeta_long_name'
+    units     = 'd_mesh_logical_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ei1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_logical_3D_month'
+    long_name = 'd_mesh_logical_3D_month_long_name'
+    units     = 'd_mesh_logical_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ei1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_logical_3D_ocean'
+    long_name = 'd_mesh_logical_3D_ocean_long_name'
+    units     = 'd_mesh_logical_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_logical_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ei1+1,3) .eqv. test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_logical_c
+
+  subroutine test_create_field_mesh_int_c( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter               :: routine_name = 'test_create_field_mesh_int_c'
+    character(len=1024), parameter               :: test_name_local = 'mesh/c/int'
+    character(len=1024)                          :: test_name
+    type(type_fields_registry)                   :: flds_reg
+    character(len=1024)                          :: name, long_name, units
+    integer                                      :: nz
+    integer, dimension(:  ), contiguous, pointer :: d_2D
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                :: wd_2D
+    type(MPI_WIN)                                :: wd_3D_zeta
+    type(MPI_WIN)                                :: wd_3D_month
+    type(MPI_WIN)                                :: wd_3D_ocean
+    integer                                      :: i
+    integer                                      :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                      :: lb1_f, ub1_f, lb2_f, ub2_f
+    integer, parameter                           :: test_val = 1337
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_int_2D'
+    long_name = 'd_mesh_int_2D_long_name'
+    units     = 'd_mesh_int_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_2D)
+      f%d( mesh%ei1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      d_2D( mesh%ei1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_zeta'
+    long_name = 'd_mesh_int_3D_zeta_long_name'
+    units     = 'd_mesh_int_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_int_3D_month'
+    long_name = 'd_mesh_int_3D_month_long_name'
+    units     = 'd_mesh_int_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_int_3D_ocean'
+    long_name = 'd_mesh_int_3D_ocean_long_name'
+    units     = 'd_mesh_int_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_int_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_int_c
+
+  subroutine test_create_field_mesh_dp_c( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*),           intent(in   ) :: test_name_parent
+    type(type_mesh), target,    intent(in   ) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_create_field_mesh_dp_c'
+    character(len=1024), parameter                :: test_name_local = 'mesh/c/dp'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer                                       :: nz
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    type(MPI_WIN)                                 :: wd_2D
+    type(MPI_WIN)                                 :: wd_3D_zeta
+    type(MPI_WIN)                                 :: wd_3D_month
+    type(MPI_WIN)                                 :: wd_3D_ocean
+    integer                                       :: i
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp), parameter                           :: test_val = 13.37_dp
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! 2-D
+    ! ===
+
+    name      = 'd_mesh_dp_2D'
+    long_name = 'd_mesh_dp_2D_long_name'
+    units     = 'd_mesh_dp_2D_units'
+
+    call flds_reg%create_field( d_2D, wd_2D, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_2D,1)
+    ub1_a = ubound( d_2D,1)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_2D)
+      f%d( mesh%ei1+1) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      d_2D( mesh%ei1+1) == test_val), &
+      trim( test_name) // '_2D')
+
+    ! 3-D (zeta)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_zeta'
+    long_name = 'd_mesh_dp_3D_zeta_long_name'
+    units     = 'd_mesh_dp_3D_zeta_units'
+    nz        = 10
+
+    call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_zeta,1)
+    ub1_a = ubound( d_3D_zeta,1)
+
+    lb2_a = lbound( d_3D_zeta,2)
+    ub2_a = ubound( d_3D_zeta,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_zeta( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_zeta')
+
+    ! 3-D (month)
+    ! ===========
+
+    name      = 'd_mesh_dp_3D_month'
+    long_name = 'd_mesh_dp_3D_month_long_name'
+    units     = 'd_mesh_dp_3D_month_units'
+
+    call flds_reg%create_field( d_3D_month, wd_3D_month, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_month,1)
+    ub1_a = ubound( d_3D_month,1)
+
+    lb2_a = lbound( d_3D_month,2)
+    ub2_a = ubound( d_3D_month,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      d_3D_month( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_month')
+
+    ! 3-D (ocean)
+    ! ==========
+
+    name      = 'd_mesh_dp_3D_ocean'
+    long_name = 'd_mesh_dp_3D_ocean_long_name'
+    units     = 'd_mesh_dp_3D_ocean_units'
+    nz        = 20
+
+    call flds_reg%create_field( d_3D_ocean, wd_3D_ocean, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    i = flds_reg%find( name)
+
+    lb1_a = lbound( d_3D_ocean,1)
+    ub1_a = ubound( d_3D_ocean,1)
+
+    lb2_a = lbound( d_3D_ocean,2)
+    ub2_a = ubound( d_3D_ocean,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    select type (f => flds_reg%items(i)%p)
+    class default
+      call crash('unexpected field type')
+    class is (type_field_dp_3D)
+      f%d( mesh%ei1+1,3) = test_val
+    end select
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      lb1_a == mesh%ei1 .and. &
+      ub1_a == mesh%ei2 .and. &
+      lb1_f == mesh%ei1 .and. &
+      ub1_f == mesh%ei2 .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      d_3D_ocean( mesh%ei1+1,3) == test_val), &
+      trim( test_name) // '_3D_ocean')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_create_field_mesh_dp_c
 
 end module ut_fields_create_field
