@@ -2,6 +2,7 @@ module ut_fields
 
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
   use ut_fields_create_field, only: test_create_field
+  use ut_fields_io, only: test_io
 
   implicit none
 
@@ -29,6 +30,7 @@ contains
 
     ! Run all unit tests
     call test_create_field( test_name)
+    call test_io( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
