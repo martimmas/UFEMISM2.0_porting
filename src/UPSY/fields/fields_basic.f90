@@ -2,7 +2,8 @@ module fields_basic
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
+    warning, crash, colour_string
   use grid_types, only: type_grid
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid, type_Arakawa_grid
@@ -29,8 +30,9 @@ module fields_basic
     character(len=1024), private :: units_val
 
     ! Grid
-    class(*), pointer,          private :: grid_val
-    type(type_Arakawa_grid),    private :: Arakawa_grid_val
+    class(*), pointer,       private :: grid_val
+    type(type_Arakawa_grid), private :: Arakawa_grid_val
+    type(type_par_arr_info), private :: pai_val
 
     ! Pointer to array containing the actual field data
     ! class(*), dimension(:), pointer, public :: d
@@ -60,13 +62,16 @@ module fields_basic
     ! Grid
     procedure, public :: set_grid
     procedure, public :: set_Arakawa_grid
+    procedure, public :: set_pai
 
     procedure, public :: grid         => get_grid
     procedure, public :: Arakawa_grid => get_Arakawa_grid
+    procedure, public :: pai          => get_pai
 
     procedure, public :: is_grid
     procedure, public :: is_Arakawa_grid
     procedure, public :: is_third_dimension
+    procedure, public :: is_pai
 
   end type atype_field
 
@@ -84,27 +89,27 @@ module fields_basic
   end type atype_field_3D
 
   type, extends( atype_field_2D) :: type_field_logical_2D
-    logical, dimension(:), contiguous, pointer :: d
+    logical, dimension(:), contiguous, pointer :: d_nih
   end type type_field_logical_2D
 
   type, extends( atype_field_2D) :: type_field_int_2D
-    integer, dimension(:), contiguous, pointer :: d
+    integer, dimension(:), contiguous, pointer :: d_nih
   end type type_field_int_2D
 
   type, extends( atype_field_2D) :: type_field_dp_2D
-    real(dp), dimension(:), contiguous, pointer :: d
+    real(dp), dimension(:), contiguous, pointer :: d_nih
   end type type_field_dp_2D
 
   type, extends( atype_field_3D) :: type_field_logical_3D
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d_nih
   end type type_field_logical_3D
 
   type, extends( atype_field_3D) :: type_field_int_3D
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d_nih
   end type type_field_int_3D
 
   type, extends( atype_field_3D) :: type_field_dp_3D
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d_nih
   end type type_field_dp_3D
 
   ! Interfaces to type-bound procedures defined in submodules
@@ -192,6 +197,16 @@ module fields_basic
       type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
     end subroutine set_Arakawa_grid
 
+    module subroutine set_pai( field, field_pai)
+      class(atype_field),      intent(inout) :: field
+      type(type_par_arr_info), intent(in   ) :: field_pai
+    end subroutine set_pai
+
+    module subroutine set_third_dimension( field, field_third_dimension)
+      class(atype_field_3D),      intent(inout) :: field
+      type(type_third_dimension), intent(in   ) :: field_third_dimension
+    end subroutine set_third_dimension
+
     module function get_grid( field) result( grid)
       class(atype_field), intent(in) :: field
       class(*), pointer              :: grid
@@ -201,6 +216,16 @@ module fields_basic
       class(atype_field), intent(in) :: field
       type(type_Arakawa_grid)        :: field_Arakawa_grid
     end function get_Arakawa_grid
+
+    module function get_pai( field) result( field_pai)
+      class(atype_field), intent(in) :: field
+      type(type_par_arr_info)        :: field_pai
+    end function get_pai
+
+    module function get_third_dimension( field) result( field_third_dimension)
+      class(atype_field_3D), intent(in) :: field
+      type(type_third_dimension)        :: field_third_dimension
+    end function get_third_dimension
 
     module function is_grid( field, grid) result( res)
       class(atype_field), intent(in) :: field
@@ -214,17 +239,11 @@ module fields_basic
       logical                             :: res
     end function is_Arakawa_grid
 
-    ! Third dimension, only for concrete type type_field_3D
-
-    module subroutine set_third_dimension( field, field_third_dimension)
-      class(atype_field_3D),      intent(inout) :: field
-      type(type_third_dimension), intent(in   ) :: field_third_dimension
-    end subroutine set_third_dimension
-
-    module function get_third_dimension( field) result( field_third_dimension)
-      class(atype_field_3D), intent(in) :: field
-      type(type_third_dimension)        :: field_third_dimension
-    end function get_third_dimension
+    module function is_pai( field, field_pai) result( res)
+      class(atype_field),      intent(in) :: field
+      type(type_par_arr_info), intent(in) :: field_pai
+      logical                             :: res
+    end function is_pai
 
     module function is_third_dimension( field, field_third_dimension) result( res)
       ! ..except for this one, which also works on type_field_2D - it just always returns .false. there

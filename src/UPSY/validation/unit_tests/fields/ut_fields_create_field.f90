@@ -141,7 +141,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_2D)
-      f%d( grid%n1+1) = test_val
+      f%d_nih( grid%n1+1) = test_val
     end select
 
     call unit_test( (&
@@ -150,10 +150,11 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       d_2D( grid%n1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
 
@@ -166,7 +167,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -189,7 +190,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -198,11 +199,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -241,7 +243,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -250,11 +252,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -294,7 +297,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -303,11 +306,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -377,7 +381,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_2D)
-      f%d( grid%n1+1) = test_val
+      f%d_nih( grid%n1+1) = test_val
     end select
 
     call unit_test( (&
@@ -385,11 +389,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       d_2D( grid%n1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -402,7 +407,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -425,7 +430,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -434,11 +439,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -477,7 +483,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -486,11 +492,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -530,7 +537,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -539,11 +546,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -613,7 +621,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_2D)
-      f%d( grid%n1+1) = test_val
+      f%d_nih( grid%n1+1) = test_val
     end select
 
     call unit_test( (&
@@ -621,11 +629,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       d_2D( grid%n1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -638,7 +647,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -661,7 +670,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -670,11 +679,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -713,7 +723,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -722,11 +732,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -766,7 +777,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( grid%n1+1,3) = test_val
+      f%d_nih( grid%n1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -775,11 +786,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( grid) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( grid%pai) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == grid%n1 .and. &
-      ub1_a == grid%n2 .and. &
-      lb1_f == grid%n1 .and. &
-      ub1_f == grid%n2 .and. &
+      lb1_a == grid%pai%i1_nih .and. &
+      ub1_a == grid%pai%i2_nih .and. &
+      lb1_f == grid%pai%i1_nih .and. &
+      ub1_f == grid%pai%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -849,7 +861,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_2D)
-      f%d( mesh%vi1+1) = test_val
+      f%d_nih( mesh%vi1+1) = test_val
     end select
 
     call unit_test( (&
@@ -857,11 +869,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       d_2D( mesh%vi1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
 
@@ -874,7 +887,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -897,7 +910,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -906,11 +919,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -949,7 +963,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -958,11 +972,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -1002,7 +1017,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1011,11 +1026,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1085,7 +1101,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_2D)
-      f%d( mesh%vi1+1) = test_val
+      f%d_nih( mesh%vi1+1) = test_val
     end select
 
     call unit_test( (&
@@ -1093,11 +1109,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       d_2D( mesh%vi1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -1110,7 +1127,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -1133,7 +1150,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1142,11 +1159,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1185,7 +1203,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1194,11 +1212,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -1238,7 +1257,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1247,11 +1266,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1321,7 +1341,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_2D)
-      f%d( mesh%vi1+1) = test_val
+      f%d_nih( mesh%vi1+1) = test_val
     end select
 
     call unit_test( (&
@@ -1329,11 +1349,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       d_2D( mesh%vi1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -1346,7 +1367,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -1369,7 +1390,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1378,11 +1399,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1421,7 +1443,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1430,11 +1452,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -1474,7 +1497,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%vi1+1,3) = test_val
+      f%d_nih( mesh%vi1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1483,11 +1506,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_V) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%vi1 .and. &
-      ub1_a == mesh%vi2 .and. &
-      lb1_f == mesh%vi1 .and. &
-      ub1_f == mesh%vi2 .and. &
+      lb1_a == mesh%pai_V%i1_nih .and. &
+      ub1_a == mesh%pai_V%i2_nih .and. &
+      lb1_f == mesh%pai_V%i1_nih .and. &
+      ub1_f == mesh%pai_V%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1557,7 +1581,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_2D)
-      f%d( mesh%ti1+1) = test_val
+      f%d_nih( mesh%ti1+1) = test_val
     end select
 
     call unit_test( (&
@@ -1566,10 +1590,11 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       d_2D( mesh%ti1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
 
@@ -1582,7 +1607,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -1605,7 +1630,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1614,11 +1639,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1657,7 +1683,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1666,11 +1692,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -1710,7 +1737,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1719,11 +1746,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1793,7 +1821,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_2D)
-      f%d( mesh%ti1+1) = test_val
+      f%d_nih( mesh%ti1+1) = test_val
     end select
 
     call unit_test( (&
@@ -1801,11 +1829,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       d_2D( mesh%ti1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -1818,7 +1847,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -1841,7 +1870,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1850,11 +1879,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -1893,7 +1923,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1902,11 +1932,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -1946,7 +1977,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -1955,11 +1986,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2029,7 +2061,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_2D)
-      f%d( mesh%ti1+1) = test_val
+      f%d_nih( mesh%ti1+1) = test_val
     end select
 
     call unit_test( (&
@@ -2037,11 +2069,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       d_2D( mesh%ti1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -2054,7 +2087,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -2077,7 +2110,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2086,11 +2119,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2129,7 +2163,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2138,11 +2172,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -2182,7 +2217,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ti1+1,3) = test_val
+      f%d_nih( mesh%ti1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2191,11 +2226,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_Tri) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ti1 .and. &
-      ub1_a == mesh%ti2 .and. &
-      lb1_f == mesh%ti1 .and. &
-      ub1_f == mesh%ti2 .and. &
+      lb1_a == mesh%pai_Tri%i1_nih .and. &
+      ub1_a == mesh%pai_Tri%i2_nih .and. &
+      lb1_f == mesh%pai_Tri%i1_nih .and. &
+      ub1_f == mesh%pai_Tri%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2265,7 +2301,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_2D)
-      f%d( mesh%ei1+1) = test_val
+      f%d_nih( mesh%ei1+1) = test_val
     end select
 
     call unit_test( (&
@@ -2273,11 +2309,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       d_2D( mesh%ei1+1) .eqv. test_val), &
       trim( test_name) // '_2D')
 
@@ -2290,7 +2327,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -2313,7 +2350,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2322,11 +2359,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2365,7 +2403,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2374,11 +2412,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -2418,7 +2457,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_logical_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2427,11 +2466,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2501,7 +2541,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_2D)
-      f%d( mesh%ei1+1) = test_val
+      f%d_nih( mesh%ei1+1) = test_val
     end select
 
     call unit_test( (&
@@ -2509,11 +2549,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       d_2D( mesh%ei1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -2526,7 +2567,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -2549,7 +2590,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2558,11 +2599,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2601,7 +2643,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2610,11 +2652,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -2654,7 +2697,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_int_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2663,11 +2706,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2737,7 +2781,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_2D)
-      f%d( mesh%ei1+1) = test_val
+      f%d_nih( mesh%ei1+1) = test_val
     end select
 
     call unit_test( (&
@@ -2745,11 +2789,12 @@ contains
       flds_reg%items(i)%p%long_name() == long_name .and. &
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       d_2D( mesh%ei1+1) == test_val), &
       trim( test_name) // '_2D')
 
@@ -2762,7 +2807,7 @@ contains
     nz        = 10
 
     call flds_reg%create_field( d_3D_zeta, wd_3D_zeta, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz), &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
@@ -2785,7 +2830,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2794,11 +2839,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
-      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz, 'regular')) .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &
@@ -2837,7 +2883,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2846,11 +2892,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == 12 .and. &
       lb2_f == 1  .and. &
@@ -2890,7 +2937,7 @@ contains
     class default
       call crash('unexpected field type')
     class is (type_field_dp_3D)
-      f%d( mesh%ei1+1,3) = test_val
+      f%d_nih( mesh%ei1+1,3) = test_val
     end select
 
     call unit_test( (&
@@ -2899,11 +2946,12 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%c()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh%pai_E) .and. &
       flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
-      lb1_a == mesh%ei1 .and. &
-      ub1_a == mesh%ei2 .and. &
-      lb1_f == mesh%ei1 .and. &
-      ub1_f == mesh%ei2 .and. &
+      lb1_a == mesh%pai_E%i1_nih .and. &
+      ub1_a == mesh%pai_E%i2_nih .and. &
+      lb1_f == mesh%pai_E%i1_nih .and. &
+      ub1_f == mesh%pai_E%i2_nih .and. &
       lb2_a == 1  .and. &
       ub2_a == nz .and. &
       lb2_f == 1  .and. &

@@ -1,6 +1,5 @@
 submodule (fields_basic) fields_basic_submod_print_info
 
-  use control_resources_and_error_messaging, only: warning
   use mpi_f08, only: MPI_GATHER, MPI_INTEGER, MPI_COMM_WORLD
 
 contains
@@ -149,17 +148,17 @@ contains
     class default
       call crash('invalid field type')
     class is (type_field_logical_2D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     class is (type_field_int_2D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     class is (type_field_dp_2D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     class is (type_field_logical_3D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     class is (type_field_int_3D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     class is (type_field_dp_3D)
-      lb = lbound( f%d, dim)
+      lb = lbound( f%d_nih, dim)
     end select
 
     ! Remove routine from call stack
@@ -184,17 +183,17 @@ contains
     class default
       call crash('invalid field type')
     class is (type_field_logical_2D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     class is (type_field_int_2D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     class is (type_field_dp_2D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     class is (type_field_logical_3D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     class is (type_field_int_3D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     class is (type_field_dp_3D)
-      ub = ubound( f%d, dim)
+      ub = ubound( f%d_nih, dim)
     end select
 
     ! Remove routine from call stack
