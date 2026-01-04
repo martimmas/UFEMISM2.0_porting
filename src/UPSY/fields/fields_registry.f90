@@ -48,8 +48,9 @@ module fields_registry
     procedure, private :: add => add_field_to_registry
     procedure, private :: extend => extend_field_registry
     procedure, public  :: find => find_field_by_name
-
     procedure, public  :: print_info
+
+    procedure, public  :: write_to_netcdf
 
   end type type_fields_registry
 
@@ -172,8 +173,17 @@ module fields_registry
 
   end interface
 
+  ! i/o
+  interface
 
+    module subroutine write_to_netcdf( flds_reg, filename, ncid)
+      class(type_fields_registry), intent(in) :: flds_reg
+      character(len=*),            intent(in) :: filename
+      integer,                     intent(in) :: ncid
+    end subroutine write_to_netcdf
 
+  end interface
 
+contains
 
 end module fields_registry
