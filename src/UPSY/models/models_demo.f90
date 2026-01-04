@@ -42,7 +42,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_demo_model'
-    integer                        :: vi,ti,k
+    integer                        :: vi,ti,k,m
     real(dp)                       :: x,y,cx,cy
 
     ! Add routine to call stack
@@ -94,8 +94,12 @@ contains
       x = mesh%V( vi,1)
       y = mesh%V( vi,2)
 
-      model%H( vi) = max( 0._dp, sin( x * pi / cx) * sin( y * pi / cy) - 0.2_dp)
+      model%H( vi) = max( 0._dp, cos( x * pi / cx) * cos( y * pi / cy) - 0.2_dp)
       model%mask_ice( vi) = model%H( vi) > 0._dp
+
+      do m = 1, 12
+        model%T2m( vi,m) = hypot( x,y) + sin( real(m,dp) * 2._dp * pi / 12._dp)
+      end do
 
     end do
 
@@ -105,7 +109,8 @@ contains
       y = mesh%Trigc( ti,2)
 
       do k = 1, nz
-        model%u_3D( ti,k) = max( 0._dp, sin( x * pi / cx) * sin( y * pi / cy) - 0.2_dp) + real( k,dp)
+        model%u_3D( ti,k) = max( 0._dp, cos( x * pi / cx) * cos( y * pi / cy) - 0.2_dp) + real( k,dp)
+        model%v_3D( ti,k) =             sin( x * pi / cx) * sin( y * pi / cy)           + real( k,dp)
       end do
 
     end do
