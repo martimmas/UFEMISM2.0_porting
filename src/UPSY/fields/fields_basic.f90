@@ -74,6 +74,10 @@ module fields_basic
     procedure, public :: is_third_dimension
     procedure, public :: is_pai
 
+    ! ===== i/o
+
+    procedure, public :: write_to_netcdf
+
   end type atype_field
 
   ! Concrete field types types for different data types/ranks
@@ -252,6 +256,14 @@ module fields_basic
       type(type_third_dimension), intent(in) :: field_third_dimension
       logical                                :: res
     end function is_third_dimension
+
+    ! ===== i/o
+
+    module subroutine write_to_netcdf( field, filename, ncid)
+      class(atype_field), intent(in) :: field
+      character(len=*),   intent(in) :: filename
+      integer,            intent(in) :: ncid
+    end subroutine write_to_netcdf
 
   end interface
 

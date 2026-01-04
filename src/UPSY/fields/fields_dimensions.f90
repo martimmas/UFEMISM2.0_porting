@@ -30,6 +30,7 @@ module fields_dimensions
   contains
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_third_dimension_equality
+    procedure, public  :: create_dim_and_var_in_netcdf
   end type type_third_dimension
 
   type(type_third_dimension_factory) :: third_dimension
@@ -103,5 +104,28 @@ contains
     logical                                 :: res
     res = dim1%name == dim2%name
   end function test_third_dimension_equality
+
+  subroutine create_dim_and_var_in_netcdf( dim, filename, ncid)
+
+    ! In/output variables:
+    class(type_third_dimension), intent(in) :: dim
+    character(len=*),            intent(in) :: filename
+    integer,                     intent(in) :: ncid
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'create_dim_and_var_in_netcdf'
+    integer                        :: id_dim, id_var
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call create_dimension( filename, ncid, trim( dim%name), dim%n, id_dim)
+    call create_variable( filename, ncid, trim( dim%name), NF90_DOUBLE, [id_dim], id_var)
+    call write_var_primary( filename, ncid, id_var, dim%val)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine create_dim_and_var_in_netcdf
 
 end module fields_dimensions
