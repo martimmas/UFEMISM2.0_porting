@@ -56,6 +56,31 @@ module fields_registry
   ! Interfaces to type-bound procedures defined in submodules
   ! =========================================================
 
+  ! basics
+  interface
+
+    module subroutine add_field_to_registry( flds_reg, field)
+      class(type_fields_registry), intent(inout) :: flds_reg
+      class(atype_field),          intent(in   ) :: field
+    end subroutine add_field_to_registry
+
+    module subroutine extend_field_registry( flds_reg)
+      class(type_fields_registry), intent(inout) :: flds_reg
+    end subroutine extend_field_registry
+
+    module subroutine print_info( flds_reg)
+      class(type_fields_registry), intent(in) :: flds_reg
+    end subroutine print_info
+
+    module function find_field_by_name( flds_reg, name) result(i)
+      class(type_fields_registry), intent(in) :: flds_reg
+      character(len=*),            intent(in) :: name
+      integer                                 :: i
+    end function find_field_by_name
+
+  end interface
+
+  ! create_field
   interface
 
     module subroutine create_field_logical_2D( flds_reg, d_nih, w, field_grid, &
