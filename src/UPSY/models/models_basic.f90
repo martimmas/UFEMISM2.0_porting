@@ -41,6 +41,10 @@ module models_basic
     procedure, public :: grid => get_grid
     procedure, public :: is_grid
 
+    ! ===== NetCDF output
+
+    procedure, public :: write_to_restart_file
+
   end type atype_model
 
   ! Interfaces to type-bound procedures defined in submodules
@@ -85,6 +89,13 @@ module models_basic
       class(*),           intent(in) :: grid
       logical                        :: res
     end function is_grid
+
+    ! ===== NetCDF output
+
+    module subroutine write_to_restart_file( model, output_dir)
+      class(atype_model), intent(in) :: model
+      character(len=*),   intent(in) :: output_dir
+    end subroutine write_to_restart_file
 
   end interface
 

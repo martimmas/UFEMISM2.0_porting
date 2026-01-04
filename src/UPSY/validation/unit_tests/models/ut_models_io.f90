@@ -9,7 +9,7 @@ module ut_models_io
   use mesh_refinement_basic, only: refine_mesh_uniform
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use models_demo, only: type_demo_model
-  use ut_basic, only: unit_test
+  use ut_basic, only: unit_test, foldername_unit_tests_output
 
   implicit none
 
@@ -79,7 +79,7 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     call demo_model%init( mesh, nz)
-    call demo_model%flds_reg%print_info
+    call demo_model%write_to_restart_file( foldername_unit_tests_output)
 
     ! Run all unit tests
     call unit_test( .true., test_name)
