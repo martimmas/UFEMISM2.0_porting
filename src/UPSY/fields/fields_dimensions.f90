@@ -114,10 +114,17 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'create_dim_and_var_in_netcdf'
-    integer                        :: id_dim, id_var
+    integer                        :: dim_length, id_dim, id_var
 
     ! Add routine to call stack
     call init_routine( routine_name)
+
+    ! Check if this dimension is already present in the file; if so, skip it
+    call inquire_dim( filename, ncid, trim( dim%name), dim_length, id_dim)
+    if (id_dim /= -1) then
+      call finalise_routine( routine_name)
+      return
+    end if
 
     call create_dimension( filename, ncid, trim( dim%name), dim%n, id_dim)
     call create_variable( filename, ncid, trim( dim%name), NF90_DOUBLE, [id_dim], id_var)

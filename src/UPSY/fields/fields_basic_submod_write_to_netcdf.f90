@@ -26,6 +26,14 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
+    select type (f => field)
+    class default
+      call crash('invalid field type')
+    class is (atype_field_2D)
+    class is (atype_field_3D)
+      call f%third_dimension_val%create_dim_and_var_in_netcdf( filename, ncid)
+    end select
+
     var_type = get_var_type( field)
     dim_ids  = get_dim_ids( field, filename, ncid)
     call create_variable( filename, ncid, trim( field%name()), var_type, dim_ids, id_var)
