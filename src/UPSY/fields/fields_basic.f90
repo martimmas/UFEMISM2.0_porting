@@ -8,6 +8,7 @@ module fields_basic
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid, type_Arakawa_grid
   use fields_dimensions, only: third_dimension, type_third_dimension
+  use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_WIN
 
   implicit none
