@@ -188,13 +188,10 @@ CONTAINS
     TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
     TYPE(type_laddie_forcing),              intent(IN)    :: forcing
 
+    REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_tot
+
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
-    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis, neighbour_count
-    TYPE(type_transect)                                   :: transect
-    REAL(dp)                                              :: total_area 
-    REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot, SGD_temp_transect_GAUS
-    ! INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -205,59 +202,85 @@ CONTAINS
 
     ! Compute SGD on the primary
     IF (par%primary) THEN
-
-      ! Loop over the different transects
-      transect_loop: DO it = 1, size(forcing%transects)
-        transect = forcing%transects(it)
-        
-        ! Loop over vertices in transect 
-        vertex_loop: DO vi_trans = 1, transect%nV
-          vi = transect%index_point(vi_trans)
-
-          ! Check if the vertex is in mask_gl_fl_tot
-          IF (forcing%mask_gl_fl( vi)) THEN
-
-            ! IF apply SGD to this single vertex only, divide the flux strength by the vertex area
-            IF (C%distribute_SGD == 'single_cell') THEN
-              
-              SGD_temp_tot( vi) = SGD_temp_tot( vi) + transect%flux_strength / mesh%A(vi) 
-              
-              EXIT vertex_loop  ! guarantees “only once per transect”
+      CALL compute_SGD_at_transects_on_primary(mesh, laddie, forcing, SGD_temp_tot)
+      laddie%SGD = SGD_temp_tot ! FJFJ: Could multiply by a time dependence, or make flux strength depend on time
+    END IF 
 
 
-            ! IF distribute SGD over multiple vertices, keep count of area and later on divide by the total area
-            ELSEIF (C%distribute_SGD == 'distribute_2neighbours') THEN
-              
-              ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
-              total_area = 0._dp
-              SGD_temp_transect = 0._dp
+    ! Finalise routine path
+    CALL finalise_routine( routine_name)
 
-              ! Save initial cell
-              SGD_temp_transect( vi) = transect%flux_strength 
-              total_area = total_area + mesh%A( vi)
-              
-              neighbour_count = 0
-              ! Loop over its neighbours 
-              DO nr = 1, mesh%nC( vi)
 
-                ! DO WHILE (neighbour_count < 2)
-                vi_neighbour = mesh%C( vi, nr)
+  END SUBROUTINE compute_SGD_at_transects
+  
+  SUBROUTINE compute_SGD_at_transects_on_primary( mesh, laddie, forcing, SGD_temp_tot)
 
-                ! Only apply SGD to cells that are in mask_gl_fl
-                IF (forcing%mask_gl_fl(vi_neighbour) .AND. neighbour_count<2) THEN
-                  SGD_temp_transect( vi_neighbour) = transect%flux_strength
-                  total_area = total_area + mesh%A( vi_neighbour)
+    ! In- and output variables
+    TYPE(type_mesh),                        INTENT(IN)    :: mesh
+    TYPE(type_laddie_model),                INTENT(INOUT) :: laddie
+    TYPE(type_laddie_forcing),              intent(IN)    :: forcing
+    REAL(dp), DIMENSION(mesh%nV), intent(INOUT)           :: SGD_temp_tot
 
-                  neighbour_count = neighbour_count + 1
-                END IF
+    ! Local variables:
+    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects_on_primary'
+    INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis, neighbour_count
+    TYPE(type_transect)                                   :: transect
+    REAL(dp)                                              :: total_area 
+    REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_transect_GAUS
 
-              END DO
-              
-              ! Save SGD_temp_transect to SGD_temp_tot
-              SGD_temp_tot = SGD_temp_tot + ( SGD_temp_transect / total_area ) 
+    ! Loop over the different transects
+    transect_loop: DO it = 1, size(forcing%transects)
+      transect = forcing%transects(it)
+      
+      ! Loop over vertices in transect 
+      vertex_loop: DO vi_trans = 1, transect%nV
+        vi = transect%index_point(vi_trans)
 
-              EXIT vertex_loop  ! guarantees “only once per transect”
+        ! Check if the vertex is in mask_gl_fl_tot
+        IF (forcing%mask_gl_fl( vi)) THEN
 
+          ! IF apply SGD to this single vertex only, divide the flux strength by the vertex area
+          IF (C%distribute_SGD == 'single_cell') THEN
+            
+            SGD_temp_tot( vi) = SGD_temp_tot( vi) + transect%flux_strength / mesh%A(vi) 
+            
+            EXIT vertex_loop  ! guarantees “only once per transect”
+
+
+          ! IF distribute SGD over multiple vertices, keep count of area and later on divide by the total area
+          ELSEIF (C%distribute_SGD == 'distribute_2neighbours') THEN
+            
+            ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
+            total_area = 0._dp
+            SGD_temp_transect = 0._dp
+
+            ! Save initial cell
+            SGD_temp_transect( vi) = transect%flux_strength 
+            total_area = total_area + mesh%A( vi)
+            
+            neighbour_count = 0
+            ! Loop over its neighbours 
+            DO nr = 1, mesh%nC( vi)
+
+              ! DO WHILE (neighbour_count < 2)
+              vi_neighbour = mesh%C( vi, nr)
+
+              ! Only apply SGD to cells that are in mask_gl_fl
+              IF (forcing%mask_gl_fl(vi_neighbour) .AND. neighbour_count<2) THEN
+                SGD_temp_transect( vi_neighbour) = transect%flux_strength
+                total_area = total_area + mesh%A( vi_neighbour)
+
+                neighbour_count = neighbour_count + 1
+              END IF
+
+            END DO
+            
+            ! Save SGD_temp_transect to SGD_temp_tot
+            SGD_temp_tot = SGD_temp_tot + ( SGD_temp_transect / total_area ) 
+
+            EXIT vertex_loop  ! guarantees “only once per transect”
+            
+            !!! GAUSSIAN distribution - FJFJ: work in progress
             ! ELSEIF (C%distribute_SGD == 'distribute_Gaussian') THEN
               
             !   ! Initialise total_area (over which transect SGD will be distributed), and SGD_temp_transect at zero
@@ -295,24 +318,16 @@ CONTAINS
 
             !   EXIT vertex_loop  ! guarantees “only once per transect”
 
-            END IF
-
           END IF
 
-        END DO vertex_loop
+        END IF
 
-      END DO transect_loop
+      END DO vertex_loop
 
-      laddie%SGD = SGD_temp_tot ! Could multiply by a time dependence, or make flux strength depend on time
+    END DO transect_loop
 
-    END IF ! par%primary
+  END SUBROUTINE compute_SGD_at_transects_on_primary
 
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-
-  END SUBROUTINE compute_SGD_at_transects
-  
   SUBROUTINE compute_subglacial_discharge( mesh, laddie, forcing)
   ! Compute subglacial discharge (SGD)
   ! TODO clean up routine; avoid so many if statements
