@@ -44,7 +44,6 @@ module laddie_forcing_types
     type(MPI_WIN) :: wf_coriolis
 
     type(type_transect), dimension(:), allocatable :: transects
-    type(type_transect), dimension(:), allocatable :: SGD_transects
 
   end type type_laddie_forcing
 
