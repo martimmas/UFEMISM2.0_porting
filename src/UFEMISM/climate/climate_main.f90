@@ -18,9 +18,11 @@ MODULE climate_main
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE climate_idealised                                      , ONLY: initialise_climate_model_idealised, run_climate_model_idealised
   USE climate_realistic                                      , ONLY: initialise_climate_model_realistic, run_climate_model_realistic, remap_climate_realistic
+  USE climate_snapshot_plus_uniform_deltaT                   , ONLY: initialise_climate_model_snapshot_plus_uniform_deltaT, run_climate_model_snapshot_plus_uniform_deltaT, remap_climate_snapshot_plus_uniform_deltaT
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use netcdf_io_main
   use climate_matrix                                         , only: run_climate_model_matrix, initialise_climate_matrix, remap_climate_matrix_model
+  use SMB_snapshot_plus_anomalies, only: run_climate_model_SMB_snapshot_plus_anomalies
 
   IMPLICIT NONE
 
@@ -42,7 +44,7 @@ CONTAINS
     TYPE(type_global_forcing),              INTENT(IN)    :: forcing
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
-    TYPE(type_SMB_model), optional,         INTENT(IN)    :: SMB
+    TYPE(type_SMB_model), optional,         INTENT(INOUT) :: SMB
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_climate_model'
@@ -50,7 +52,7 @@ CONTAINS
 
     ! Add routine to path
     CALL init_routine( routine_name)
-    
+
     ! Check if we need to calculate a new climate
     IF (C%do_asynchronous_climate) THEN
       ! Asynchronous coupling: do not calculate a new climate in
@@ -88,24 +90,28 @@ CONTAINS
     END IF
 
     ! Run the chosen climate model
-    IF     (choice_climate_model == 'none') THEN
+    SELECT CASE (choice_climate_model)
+    CASE ('none')
       ! No need to do anything
-    ELSEIF (choice_climate_model == 'idealised') THEN
+    CASE ('idealised')
       CALL run_climate_model_idealised( mesh, ice, climate, time)
-    ELSEIF (choice_climate_model == 'realistic') THEN
+    CASE ('realistic')
       CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
-    ELSEIF (choice_climate_model == 'matrix') THEN
+    CASE ('snapshot_plus_uniform_deltaT')
+      CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)
+    CASE ('matrix')
       call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
-    ELSE
+    case ('SMB_snapshot_plus_anomalies')
+      call run_climate_model_SMB_snapshot_plus_anomalies( mesh, climate, SMB, time)
+    CASE DEFAULT
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
-    END IF
+    END SELECT
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE run_climate_model
 
-! solved as
   SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name)
 
     ! Initialise the climate model
@@ -161,17 +167,25 @@ CONTAINS
     climate%t_next = C%start_time_of_run
 
     ! Determine which climate model to initialise
+    ! Print to terminal
+    IF (par%primary)  WRITE(*,"(A)") '     Initialising climate model "' // &
+      colour_string( TRIM( choice_climate_model),'light blue') // '"...'
     select case (choice_climate_model)
+    case default
+      call crash('unknown choice_climate_model "' // trim( choice_climate_model) // '"')
+    case ('none')
       ! No need to do anything
     case ('idealised')
       call initialise_climate_model_idealised( mesh, climate)
     case ('realistic')
       call initialise_climate_model_realistic( mesh, ice, climate, forcing, region_name)
+    case ('snapshot_plus_uniform_deltaT')
+      call initialise_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, region_name)
     case ('matrix')
       if (par%primary)  write(*,"(A)") '   Initialising climate matrix model...'
       call initialise_climate_matrix( mesh, grid, ice, climate, region_name, forcing)
-    case ('default')
-      call crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
+    case ('SMB_snapshot_plus_anomalies')
+      ! No need to do anything (initialisation is handled by the SMB model)
     end select
 
     ! Finalise routine path
@@ -197,30 +211,33 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    ! Determine which climate model to initialise for this region
-    IF     (region_name == 'NAM') THEN
+    ! Determine which climate model is used for this region
+    select case (region_name)
+    case default
+      call crash('unknown region_name "' // region_name // '"')
+    case ('NAM')
       choice_climate_model = C%choice_climate_model_NAM
-    ELSEIF (region_name == 'EAS') THEN
+    case ('EAS')
       choice_climate_model = C%choice_climate_model_EAS
-    ELSEIF (region_name == 'GRL') THEN
+    case ('GRL')
       choice_climate_model = C%choice_climate_model_GRL
-    ELSEIF (region_name == 'ANT') THEN
+    case ('ANT')
       choice_climate_model = C%choice_climate_model_ANT
-    ELSE
-      CALL crash('unknown region_name "' // region_name // '"')
-    END IF
+    end select
 
     ! Write to the restart file of the chosen climate model
-    IF     (choice_climate_model == 'none') THEN
+    select case (choice_climate_model)
+    case default
+      call crash('unknown choice_climate_model "' // trim( choice_climate_model) // '"')
+    case ('none', &
+          'idealised', &
+          'SMB_snapshot_plus_anomalies')
       ! No need to do anything
-    ELSEIF (choice_climate_model == 'idealised') THEN
-      ! No need to do anything
-    ELSEIF (choice_climate_model == 'realistic' .OR. &
-            choice_climate_model == 'matrix') THEN
-      CALL write_to_restart_file_climate_model_region( mesh, climate, region_name, time)
-    ELSE
-      CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
-    END IF
+    case ('realistic', &
+          'snapshot_plus_uniform_deltaT', &
+          'matrix')
+      call write_to_restart_file_climate_model_region( mesh, climate, region_name, time)
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -291,29 +308,32 @@ CONTAINS
     CALL init_routine( routine_name)
 
     ! Determine which climate model to initialise for this region
-    IF     (region_name == 'NAM') THEN
+    select case (region_name)
+    case default
+      call crash('unknown region_name "' // region_name // '"')
+    case ('NAM')
       choice_climate_model = C%choice_climate_model_NAM
-    ELSEIF (region_name == 'EAS') THEN
+    case ('EAS')
       choice_climate_model = C%choice_climate_model_EAS
-    ELSEIF (region_name == 'GRL') THEN
+    case ('GRL')
       choice_climate_model = C%choice_climate_model_GRL
-    ELSEIF (region_name == 'ANT') THEN
+    case ('ANT')
       choice_climate_model = C%choice_climate_model_ANT
-    ELSE
-      CALL crash('unknown region_name "' // region_name // '"')
-    END IF
+    end select
 
     ! Create the restart file of the chosen climate model
-    IF     (choice_climate_model == 'none') THEN
+    select case (choice_climate_model)
+    case default
+      call crash('unknown choice_climate_model "' // trim( choice_climate_model) // '"')
+    case ('none', &
+          'idealised', &
+          'SMB_snapshot_plus_anomalies')
       ! No need to do anything
-    ELSEIF (choice_climate_model == 'idealised') THEN
-      ! No need to do anything
-    ELSEIF (choice_climate_model == 'realistic' .OR. &
-            choice_climate_model == 'matrix') THEN
-      CALL create_restart_file_climate_model_region( mesh, climate, region_name)
-    ELSE
-      CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
-    END IF
+    case ('realistic', &
+          'snapshot_plus_uniform_deltaT', &
+          'matrix')
+      call create_restart_file_climate_model_region( mesh, climate, region_name)
+    end select
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -425,6 +445,8 @@ CONTAINS
       ! No need to remap anything here
     ELSEIF (choice_climate_model == 'realistic') THEN
       call remap_climate_realistic(mesh_old, mesh_new, climate, region_name)
+    ELSEIF (choice_climate_model == 'snapshot_plus_uniform_deltaT')  THEN
+      call remap_climate_snapshot_plus_uniform_deltaT(mesh_old, mesh_new, climate, region_name)
     ELSEIF (choice_climate_model == 'matrix') THEN
       call remap_climate_matrix_model( mesh_new, climate, region_name, grid, ice, forcing)
     ELSE

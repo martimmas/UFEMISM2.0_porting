@@ -170,6 +170,8 @@ contains
       ! Ice geometry
       case ('Hi')
         call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hi', forcing%Hi, d_is_hybrid = .true.)
+      case ('Hb')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hb', forcing%Hb, d_is_hybrid = .true.)
       case ('Hib')
         call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hib', forcing%Hib, d_is_hybrid = .true.)
       case ('TAF')
@@ -187,6 +189,8 @@ contains
       case ('S_ocean')
         call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'S_ocean', forcing%S_ocean, d_is_hybrid = .true.)
 
+      case ('f_coriolis')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'f_coriolis', forcing%f_coriolis, d_is_hybrid = .true.)
 
     ! ===== Masks =====
     ! =================
@@ -247,6 +251,8 @@ contains
         call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_base', laddie%T_base, d_is_hybrid = .true.)
       case ('T_amb')
         call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_amb', laddie%T_amb, d_is_hybrid = .true.)
+      case ('T_freeze')
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_freeze', laddie%T_freeze, d_is_hybrid = .true.)
       case ('u_star')
         call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'u_star', laddie%u_star, d_is_hybrid = .true.)
       case ('gamma_T')
@@ -420,6 +426,8 @@ contains
       ! Ice geometry
       case ('Hi')
         call add_field_mesh_dp_2D_notime( filename, ncid, 'Hi', long_name = 'Ice thickness', units = 'm')
+      case ('Hb')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'Hb', long_name = 'Bedrock elevation', units = 'm w.r.t. sea level')
       case ('Hib')
         call add_field_mesh_dp_2D_notime( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. sea level')
       case ('TAF')
@@ -442,6 +450,9 @@ contains
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'PSU')
+
+      case ('f_coriolis')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'f_coriolis', long_name = 'Coriolis parameter', units = 's^-1')
 
       case ('mask_SGD')
         call add_field_mesh_int_2d( filename, ncid, 'mask_SGD', long_name = 'Mask indicating potential subglacial discharge cells')
@@ -494,6 +505,8 @@ contains
         call add_field_mesh_dp_2D( filename, ncid, 'T_base', long_name = 'Temperature at ice/ocean interface', units = 'deg C')
       case ('T_amb')
         call add_field_mesh_dp_2D( filename, ncid, 'T_amb', long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
+      case ('T_freeze')
+        call add_field_mesh_dp_2D( filename, ncid, 'T_freeze', long_name = 'Feezing temperature', units = 'deg C')
       case ('u_star')
         call add_field_mesh_dp_2D( filename, ncid, 'u_star', long_name = 'Friction velocity', units = 'm s^-1')
       case ('gamma_T')

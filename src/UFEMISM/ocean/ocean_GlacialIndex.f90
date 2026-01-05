@@ -67,19 +67,6 @@ subroutine initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, s
         call crash('unknown region_name "' // region_name // '"')
     end select
 
-    ! Allocating timeframe variables; the series itself is allocated in the read function below
-    allocate(ocean%GI%GI_t0)
-    allocate(ocean%GI%GI_t1)
-    allocate(ocean%GI%GI_at_t0)
-    allocate(ocean%GI%GI_at_t1)
-    allocate( ocean%GI%T0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%S0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%T0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%S0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
-    ocean%GI%T0_warm = 0._dp
-    ocean%GI%S0_warm = 0._dp
-    ocean%GI%T0_cold = 0._dp
-    ocean%GI%S0_cold = 0._dp
 
     ! Fill in  main variables
     call read_field_from_file_3D_ocean( filename_ocean_snapshot_warm, field_name_options_T_ocean,  mesh, C%output_dir, C%z_ocean, ocean%GI%T0_warm)
@@ -92,13 +79,15 @@ subroutine initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, s
 
     ! Apply extrapolation method if required
     select case (C%choice_ocean_extrapolation_method)
-        case('initialisation')
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_warm)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_warm)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_cold)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_cold)
-        case default
-        call crash('unknown choice_ocean_extrapolation_method "' // trim( C%choice_ocean_extrapolation_method) // '"')
+    case('none')
+      ! Do nothing (assume input ocean data has already been extrapolated)
+    case('initialisation')
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_warm)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_warm)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_cold)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_cold)
+    case default
+      call crash('unknown choice_ocean_extrapolation_method "' // trim( C%choice_ocean_extrapolation_method) // '"')
     end select
 
     call finalise_routine(routine_name)

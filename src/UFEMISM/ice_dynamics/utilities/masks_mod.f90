@@ -256,9 +256,9 @@ contains
           exit
         case ('PineIsland','Thwaites','Amery','RiiserLarsen','SipleCoast', 'LarsenC', &
               'TransMounts','DotsonCrosson', 'Franka_WAIS', 'Dotson_channel','Wilkes', &
-              'Antarctic_Peninsula', &                                                                                ! Antarctica
-              'Narsarsuaq','Nuuk','Jakobshavn','NGIS','Qaanaaq', &                                                    ! Greenland
-              'Patagonia', &                                                                                          ! Patagonia
+              'Antarctic_Peninsula', 'Institute', &                                           ! Antarctica
+              'Narsarsuaq','Nuuk','Jakobshavn','NGIS','Qaanaaq', &                            ! Greenland
+              'Patagonia', &                                                                  ! Patagonia
               'CalvMIP_quarter')                                                              ! Idealised
           ! List of known regions of interest: these pass the test
         case default
@@ -339,6 +339,8 @@ contains
               call calc_polygon_Wilkes_basins( poly_ROI)  
             case ('Antarctic_Peninsula')
               call calc_polygon_Antarctic_Peninsula( poly_ROI)
+            case ('Institute')
+              call calc_polygon_Institute_basin( poly_ROI)    
             case default
               ! Requested area not in this model domain; skip
               cycle
