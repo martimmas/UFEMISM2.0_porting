@@ -97,10 +97,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    logical, dimension(:  ), contiguous, pointer :: d_2D
-    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    logical, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null() => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -337,10 +337,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    integer, dimension(:  ), contiguous, pointer :: d_2D
-    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    integer, dimension(:,:), contiguous, pointer :: d_3D_month
-    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    integer, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -577,10 +577,10 @@ contains
     type(type_fields_registry)                    :: flds_reg
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    real(dp), dimension(:  ), contiguous, pointer :: d_2D
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D       => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                 :: wd_2D
     type(MPI_WIN)                                 :: wd_3D_zeta
     type(MPI_WIN)                                 :: wd_3D_month
@@ -817,10 +817,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    logical, dimension(:  ), contiguous, pointer :: d_2D
-    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    logical, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -1057,10 +1057,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    integer, dimension(:  ), contiguous, pointer :: d_2D
-    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    integer, dimension(:,:), contiguous, pointer :: d_3D_month
-    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    integer, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -1297,10 +1297,10 @@ contains
     type(type_fields_registry)                    :: flds_reg
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    real(dp), dimension(:  ), contiguous, pointer :: d_2D
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D       => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                 :: wd_2D
     type(MPI_WIN)                                 :: wd_3D_zeta
     type(MPI_WIN)                                 :: wd_3D_month
@@ -1537,10 +1537,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    logical, dimension(:  ), contiguous, pointer :: d_2D
-    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    logical, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -1777,10 +1777,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    integer, dimension(:  ), contiguous, pointer :: d_2D
-    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    integer, dimension(:,:), contiguous, pointer :: d_3D_month
-    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    integer, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -2017,10 +2017,10 @@ contains
     type(type_fields_registry)                    :: flds_reg
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    real(dp), dimension(:  ), contiguous, pointer :: d_2D
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D       => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                 :: wd_2D
     type(MPI_WIN)                                 :: wd_3D_zeta
     type(MPI_WIN)                                 :: wd_3D_month
@@ -2257,10 +2257,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    logical, dimension(:  ), contiguous, pointer :: d_2D
-    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    logical, dimension(:,:), contiguous, pointer :: d_3D_month
-    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    logical, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -2497,10 +2497,10 @@ contains
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units
     integer                                      :: nz
-    integer, dimension(:  ), contiguous, pointer :: d_2D
-    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta
-    integer, dimension(:,:), contiguous, pointer :: d_3D_month
-    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean
+    integer, dimension(:  ), contiguous, pointer :: d_2D       => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    integer, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
@@ -2737,10 +2737,10 @@ contains
     type(type_fields_registry)                    :: flds_reg
     character(len=1024)                           :: name, long_name, units
     integer                                       :: nz
-    real(dp), dimension(:  ), contiguous, pointer :: d_2D
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month
-    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean
+    real(dp), dimension(:  ), contiguous, pointer :: d_2D       => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_month => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                 :: wd_2D
     type(MPI_WIN)                                 :: wd_3D_zeta
     type(MPI_WIN)                                 :: wd_3D_month

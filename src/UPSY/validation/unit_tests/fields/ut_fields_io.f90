@@ -147,7 +147,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d
+    logical, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -197,7 +197,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -247,7 +247,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -297,7 +297,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -347,7 +347,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d
+    integer, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -397,7 +397,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -447,7 +447,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -497,7 +497,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -547,7 +547,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d
+    real(dp), dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -597,7 +597,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -647,7 +647,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -697,7 +697,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -750,7 +750,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d
+    logical, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -800,7 +800,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -850,7 +850,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -900,7 +900,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -950,7 +950,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d
+    integer, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1000,7 +1000,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1050,7 +1050,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1100,7 +1100,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1150,7 +1150,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d
+    real(dp), dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1200,7 +1200,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1250,7 +1250,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1300,7 +1300,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1353,7 +1353,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d
+    logical, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1403,7 +1403,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1453,7 +1453,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1503,7 +1503,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1553,7 +1553,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d
+    integer, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1603,7 +1603,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1653,7 +1653,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1703,7 +1703,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1753,7 +1753,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d
+    real(dp), dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1803,7 +1803,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1853,7 +1853,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1903,7 +1903,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -1956,7 +1956,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d
+    logical, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2006,7 +2006,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2056,7 +2056,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2106,7 +2106,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d
+    logical, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2156,7 +2156,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d
+    integer, dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2206,7 +2206,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2256,7 +2256,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2306,7 +2306,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d
+    integer, dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2356,7 +2356,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d
+    real(dp), dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2406,7 +2406,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2456,7 +2456,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
@@ -2506,7 +2506,7 @@ contains
     character(len=1024)                          :: test_name
     type(type_fields_registry)                   :: flds_reg
     character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                :: w
     integer                                      :: ncid, i
 
