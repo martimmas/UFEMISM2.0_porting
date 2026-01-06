@@ -7,14 +7,15 @@ MODULE laddie_hydrology
   use parameters
   use mesh_types, only: type_mesh
   use mesh_utilities, only: find_containing_vertex
-  use laddie_forcing_types, only: type_laddie_forcing
-  use transects_main                                         
-  use string_module 
-  use transect_types
+  use laddie_forcing_types, only: type_laddie_forcing, type_transect_SGD
+  use transects_main
+  use string_module
 
   implicit none
 
-  public 
+  private
+
+  public :: initialise_transects_SGD
 
 contains
 
@@ -62,9 +63,9 @@ contains
   subroutine initialise_transect_SGD( mesh, transect, transect_str)
 
     ! In/output variables
-    type(type_mesh),     intent(in   ) :: mesh
-    type(type_transect), intent(  out) :: transect
-    character(len=*),    intent(in   ) :: transect_str
+    type(type_mesh),         intent(in   ) :: mesh
+    type(type_transect_SGD), intent(  out) :: transect
+    character(len=*),        intent(in   ) :: transect_str
 
     ! Local variables:
     character(len=1024), parameter        :: routine_name = 'initialise_transect_SGD'

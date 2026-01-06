@@ -10,7 +10,7 @@ module transects_main
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
-  use transect_types, only: type_transect
+  use transect_types, only: atype_transect, type_transect
   use string_module, only: separate_strings_by_double_vertical_bars
   use netcdf_io_main
   use netcdf, only: NF90_UNLIMITED
@@ -543,7 +543,7 @@ contains
     !< Generate transect vertices spaced dx apart along waypoints
 
     ! In/output variables:
-    type(type_transect),      intent(inout) :: transect
+    class(atype_transect),    intent(inout) :: transect
     real(dp), dimension(:,:), intent(in   ) :: waypoints
     real(dp),                 intent(in   ) :: dx
 

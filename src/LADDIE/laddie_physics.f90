@@ -12,10 +12,9 @@ MODULE laddie_physics
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
   USE laddie_model_types                                     , ONLY: type_laddie_model, type_laddie_timestep
-  use laddie_forcing_types, only: type_laddie_forcing
+  use laddie_forcing_types, only: type_laddie_forcing, type_transect_SGD
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use checksum_mod, only: checksum
-  use transect_types  
   use mesh_utilities, only: extrapolate_Gaussian
 
   IMPLICIT NONE
@@ -191,8 +190,8 @@ CONTAINS
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'compute_SGD_at_transects'
     INTEGER                                               :: vi, ierr, it, vi_trans, vi_last, nr, vi_neighbour, vis, neighbour_count
-    TYPE(type_transect)                                   :: transect
     REAL(dp)                                              :: total_area 
+    TYPE(type_transect_SGD)                               :: transect
     REAL(dp), DIMENSION(mesh%nV)                          :: SGD_temp_transect, SGD_temp_tot, SGD_temp_transect_GAUS
     ! INTEGER, DIMENSION(mesh%vi1: mesh%vi2)                :: mask_SGD_extrapolation
 

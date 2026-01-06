@@ -8,12 +8,23 @@ module laddie_forcing_types
   use precisions                                             , only: dp
   use CSR_sparse_matrix_type                                 , only: type_sparse_matrix_CSR_dp
   use mpi_f08                                                , only: MPI_WIN
-  use transect_types                                         , only: type_transect
+  use transect_types                                         , only: atype_transect
 
   implicit none
 
+  private
+
+  public :: type_transect_SGD, type_laddie_forcing
+
 ! ===== Types =====
 ! =================
+
+  type, extends( atype_transect) :: type_transect_SGD
+
+    real(dp)                  :: flux_strength
+    integer, dimension(10000) :: index_point
+
+  end type type_transect_SGD
 
   type type_laddie_forcing
     ! The laddie model structure
@@ -43,8 +54,7 @@ module laddie_forcing_types
     type(MPI_WIN) :: wTi, wT_ocean, wS_ocean
     type(MPI_WIN) :: wf_coriolis
 
-    type(type_transect), dimension(:), allocatable :: transects
-    type(type_transect), dimension(:), allocatable :: SGD_transects
+    type(type_transect_SGD), dimension(:), allocatable :: transects
 
   end type type_laddie_forcing
 
