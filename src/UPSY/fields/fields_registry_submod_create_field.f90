@@ -2,12 +2,12 @@ submodule( fields_registry) fields_registry_submod_create_field
 
 contains
 
-  subroutine create_field_logical_2D( flds_reg, d, w, field_grid, &
+  subroutine create_field_logical_2D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                 intent(inout) :: flds_reg
-    logical, dimension(:), contiguous, pointer,  intent(inout) :: d
+    logical, dimension(:), contiguous, pointer,  intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
     type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
@@ -24,9 +24,9 @@ contains
     call init_routine( routine_name)
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
-    call allocate_dist_shared( d, w, n)
-    d( lb: ub) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, name, long_name, units)
+    call allocate_dist_shared( d_nih, w, n)
+    d_nih( lb: ub) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units)
     call flds_reg%add( field)
 
     ! Remove routine from call stack
@@ -34,12 +34,12 @@ contains
 
   end subroutine create_field_logical_2D
 
-  subroutine create_field_logical_3D( flds_reg, d, w, field_grid, &
+  subroutine create_field_logical_3D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                  intent(inout) :: flds_reg
-    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d
+    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                intent(inout) :: w
     class(*), target,                             intent(in   ) :: field_grid
     type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
@@ -58,9 +58,9 @@ contains
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
-    call allocate_dist_shared( d, w, n1, n2)
-    d( lb1: ub1, lb2: ub2) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, &
+    call allocate_dist_shared( d_nih, w, n1, n2)
+    d_nih( lb1: ub1, lb2: ub2) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units)
     call flds_reg%add( field)
 
@@ -69,12 +69,12 @@ contains
 
   end subroutine create_field_logical_3D
 
-  subroutine create_field_int_2D( flds_reg, d, w, field_grid, &
+  subroutine create_field_int_2D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                 intent(inout) :: flds_reg
-    integer, dimension(:), contiguous, pointer,  intent(inout) :: d
+    integer, dimension(:), contiguous, pointer,  intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
     type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
@@ -91,9 +91,9 @@ contains
     call init_routine( routine_name)
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
-    call allocate_dist_shared( d, w, n)
-    d( lb: ub) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, name, long_name, units)
+    call allocate_dist_shared( d_nih, w, n)
+    d_nih( lb: ub) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units)
     call flds_reg%add( field)
 
     ! Remove routine from call stack
@@ -101,12 +101,12 @@ contains
 
   end subroutine create_field_int_2D
 
-  subroutine create_field_int_3D( flds_reg, d, w, field_grid, &
+  subroutine create_field_int_3D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                  intent(inout) :: flds_reg
-    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d
+    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                intent(inout) :: w
     class(*), target,                             intent(in   ) :: field_grid
     type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
@@ -125,9 +125,9 @@ contains
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
-    call allocate_dist_shared( d, w, n1, n2)
-    d( lb1: ub1, lb2: ub2) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, &
+    call allocate_dist_shared( d_nih, w, n1, n2)
+    d_nih( lb1: ub1, lb2: ub2) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units)
     call flds_reg%add( field)
 
@@ -136,12 +136,12 @@ contains
 
   end subroutine create_field_int_3D
 
-  subroutine create_field_dp_2D( flds_reg, d, w, field_grid, &
+  subroutine create_field_dp_2D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                 intent(inout) :: flds_reg
-    real(dp), dimension(:), contiguous, pointer, intent(inout) :: d
+    real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
     type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
@@ -158,9 +158,9 @@ contains
     call init_routine( routine_name)
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
-    call allocate_dist_shared( d, w, n)
-    d( lb: ub) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, name, long_name, units)
+    call allocate_dist_shared( d_nih, w, n)
+    d_nih( lb: ub) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units)
     call flds_reg%add( field)
 
     ! Remove routine from call stack
@@ -168,12 +168,12 @@ contains
 
   end subroutine create_field_dp_2D
 
-  subroutine create_field_dp_3D( flds_reg, d, w, field_grid, &
+  subroutine create_field_dp_3D( flds_reg, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! In/output variables:
     class(type_fields_registry),                   intent(inout) :: flds_reg
-    real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d
+    real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                 intent(inout) :: w
     class(*), target,                              intent(in   ) :: field_grid
     type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
@@ -192,9 +192,9 @@ contains
 
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
-    call allocate_dist_shared( d, w, n1, n2)
-    d( lb1: ub1, lb2: ub2) => d
-    call initialise_field( field, d, w, field_grid, field_Arakawa_grid, &
+    call allocate_dist_shared( d_nih, w, n1, n2)
+    d_nih( lb1: ub1, lb2: ub2) => d_nih
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units)
     call flds_reg%add( field)
 
@@ -223,8 +223,8 @@ contains
     class is (type_grid)
 
       if (field_Arakawa_grid == Arakawa_grid%a()) then
-        lb = g%n1
-        ub = g%n2
+        lb = g%pai%i1_nih
+        ub = g%pai%i2_nih
       else
         call crash('staggered x/y-grids not supported')
       end if
@@ -232,14 +232,14 @@ contains
     class is (type_mesh)
 
       if (field_Arakawa_grid == Arakawa_grid%a()) then
-        lb = g%vi1
-        ub = g%vi2
+        lb = g%pai_V%i1_nih
+        ub = g%pai_V%i2_nih
       elseif (field_Arakawa_grid == Arakawa_grid%b()) then
-        lb = g%ti1
-        ub = g%ti2
+        lb = g%pai_Tri%i1_nih
+        ub = g%pai_Tri%i2_nih
       elseif (field_Arakawa_grid == Arakawa_grid%c()) then
-        lb = g%ei1
-        ub = g%ei2
+        lb = g%pai_E%i1_nih
+        ub = g%pai_E%i2_nih
       else
         call crash('invalid Arakawa grid for type_mesh')
       end if

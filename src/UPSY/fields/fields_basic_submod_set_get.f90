@@ -95,6 +95,18 @@ contains
     field%Arakawa_grid_val = field_Arakawa_grid
   end subroutine set_Arakawa_grid
 
+  subroutine set_pai( field, field_pai)
+    class(atype_field),      intent(inout) :: field
+    type(type_par_arr_info), intent(in   ) :: field_pai
+    field%pai_val = field_pai
+  end subroutine set_pai
+
+  subroutine set_third_dimension( field, field_third_dimension)
+    class(atype_field_3D),      intent(inout) :: field
+    type(type_third_dimension), intent(in   ) :: field_third_dimension
+    field%third_dimension_val = field_third_dimension
+  end subroutine set_third_dimension
+
   function get_grid( field) result( grid)
 
     ! In/output variables:
@@ -126,6 +138,18 @@ contains
     type(type_Arakawa_grid)        :: field_Arakawa_grid
     field_Arakawa_grid = field%Arakawa_grid_val
   end function get_Arakawa_grid
+
+  function get_pai( field) result( field_pai)
+    class(atype_field), intent(in) :: field
+    type(type_par_arr_info)        :: field_pai
+    field_pai = field%pai_val
+  end function get_pai
+
+  function get_third_dimension( field) result( field_third_dimension)
+    class(atype_field_3D), intent(in) :: field
+    type(type_third_dimension)        :: field_third_dimension
+    field_third_dimension = field%third_dimension_val
+  end function get_third_dimension
 
   function is_grid( field, grid) result( res)
 
@@ -173,17 +197,12 @@ contains
     res = field_Arakawa_grid == field%Arakawa_grid_val
   end function is_Arakawa_grid
 
-  subroutine set_third_dimension( field, field_third_dimension)
-    class(atype_field_3D),      intent(inout) :: field
-    type(type_third_dimension), intent(in   ) :: field_third_dimension
-    field%third_dimension_val = field_third_dimension
-  end subroutine set_third_dimension
-
-  function get_third_dimension( field) result( field_third_dimension)
-    class(atype_field_3D), intent(in) :: field
-    type(type_third_dimension)        :: field_third_dimension
-    field_third_dimension = field%third_dimension_val
-  end function get_third_dimension
+  function is_pai( field, field_pai) result( res)
+    class(atype_field),      intent(in) :: field
+    type(type_par_arr_info), intent(in) :: field_pai
+    logical                             :: res
+    res = field_pai == field%pai_val
+  end function is_pai
 
   function is_third_dimension( field, field_third_dimension) result( res)
 
