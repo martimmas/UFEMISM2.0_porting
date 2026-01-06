@@ -100,7 +100,7 @@ contains
     logical, dimension(:  ), contiguous, pointer :: d_2D       => null()
     logical, dimension(:,:), contiguous, pointer :: d_3D_zeta  => null()
     logical, dimension(:,:), contiguous, pointer :: d_3D_month => null()
-    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null() => null()
+    logical, dimension(:,:), contiguous, pointer :: d_3D_ocean => null()
     type(MPI_WIN)                                :: wd_2D
     type(MPI_WIN)                                :: wd_3D_zeta
     type(MPI_WIN)                                :: wd_3D_month
