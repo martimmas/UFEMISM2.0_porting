@@ -24,6 +24,8 @@ module mpi_distributed_memory_grid
   end interface distribute_gridded_data_from_primary
 
   interface gather_gridded_data_to_primary
+    procedure gather_gridded_data_to_primary_logical_2D
+    procedure gather_gridded_data_to_primary_logical_3D
     procedure gather_gridded_data_to_primary_int_2D
     procedure gather_gridded_data_to_primary_int_3D
     procedure gather_gridded_data_to_primary_dp_2D
@@ -335,6 +337,100 @@ end subroutine distribute_gridded_data_from_primary_dp_3D
 
 ! gather_gridded_data_to_primary
 ! ==============================
+
+subroutine gather_gridded_data_to_primary_logical_2D( grid, d_grid_vec_partial, d_grid)
+  !< Gather a 2-D gridded data field to the primary.
+  !< Input from all: partial data in vector form
+  !< Output to primary: total data field in field form
+
+  ! In/output variables:
+  type(type_grid),                   intent(in   ) :: grid
+  logical, dimension(:  ),           intent(in   ) :: d_grid_vec_partial
+  logical, dimension(:,:), optional, intent(  out) :: d_grid
+
+  ! Local variables:
+  character(len=256), parameter      :: routine_name = 'gather_gridded_data_to_primary_logical_2D'
+  integer                            :: n,i,j
+  logical, dimension(:), allocatable :: d_grid_vec_total
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  ! allocate memory
+  if (par%primary) then
+    allocate( d_grid_vec_total( grid%n), source = .false.)
+  else
+    ! It must be allocated to be used in a function call
+    allocate( d_grid_vec_total(0) )
+  end if
+
+  ! Gather data
+  call gather_to_primary( d_grid_vec_partial, d_grid_vec_total)
+
+  ! Convert to grid form
+  if (par%primary) then
+    if (.not. present(d_grid)) call crash("d_grid must be present on primary")
+    do n = 1, grid%n
+      i = grid%n2ij( n,1)
+      j = grid%n2ij( n,2)
+      d_grid( i,j) = d_grid_vec_total( n)
+    end do
+  end if ! if (par%primary) then
+
+  ! Clean up after yourself
+  deallocate( d_grid_vec_total)
+
+  ! Add routine to path
+  call finalise_routine( routine_name)
+
+end subroutine gather_gridded_data_to_primary_logical_2D
+
+subroutine gather_gridded_data_to_primary_logical_3D( grid, d_grid_vec_partial, d_grid)
+  !< Gather a 3-D gridded data field to the primary.
+  !< Input from all: partial data in vector form
+  !< Output to primary: total data field in field form
+
+  ! In/output variables:
+  type(type_grid),           intent(in   ) :: grid
+  logical, dimension(:,:  ), intent(in   ) :: d_grid_vec_partial
+  logical, dimension(:,:,:), intent(  out) :: d_grid
+
+  ! Local variables:
+  character(len=256), parameter        :: routine_name = 'gather_gridded_data_to_primary_logical_3D'
+  integer                              :: k
+  logical, dimension(:,:), allocatable :: d_grid_2D
+  logical, dimension(:  ), allocatable :: d_grid_vec_partial_2D
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  ! Safety
+  if (par%primary .and. size( d_grid,3) /= size( d_grid_vec_partial,2)) call crash('vector sizes dont match!')
+
+  ! allocate memory
+  if (par%primary) then
+    allocate( d_grid_2D( grid%nx, grid%ny), source = .false.)
+  else
+    allocate( d_grid_2d(0,0))
+  end if
+
+  allocate( d_grid_vec_partial_2D( grid%n_loc), source = .false.)
+
+  ! Treat each layer as a separate 2-D field
+  do k = 1, size( d_grid_vec_partial,2)
+    d_grid_vec_partial_2D = d_grid_vec_partial( :,k)
+    call gather_gridded_data_to_primary_logical_2D( grid, d_grid_vec_partial_2D, d_grid_2D)
+    if (par%primary) d_grid( :,:,k) = d_grid_2D
+  end do
+
+  ! Clean up after yourself
+  deallocate( d_grid_2D)
+  deallocate( d_grid_vec_partial_2D)
+
+  ! Add routine to path
+  call finalise_routine( routine_name)
+
+end subroutine gather_gridded_data_to_primary_logical_3D
 
 subroutine gather_gridded_data_to_primary_int_2D( grid, d_grid_vec_partial, d_grid)
   !< Gather a 2-D gridded data field to the primary.
