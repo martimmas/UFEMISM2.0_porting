@@ -94,7 +94,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
@@ -166,7 +166,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc, nz))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
@@ -228,7 +228,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
@@ -291,7 +291,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc, 12))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
@@ -364,7 +364,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc, nz))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
@@ -438,7 +438,7 @@ contains
 
     ! Distribute data over the processes
     allocate( d_grid_vec_partial( grid%n_loc, nz_ocean))
-    call distribute_gridded_data_from_primary( grid, d, d_grid_vec_partial)
+    call distribute_gridded_data_from_primary( grid, d_grid_vec_partial, d)
 
     ! Write to output file
     filename = trim(foldername_unit_tests_output) // '/' // trim( strrep( test_name,'/','_')) // '.nc'
