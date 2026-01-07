@@ -34,6 +34,8 @@ module mpi_distributed_memory
   end interface gather_to_all
 
   interface distribute_from_primary
+    procedure distribute_from_primary_logical_1D
+    procedure distribute_from_primary_logical_2D
     procedure distribute_from_primary_int_1D
     procedure distribute_from_primary_int_2D
     procedure distribute_from_primary_dp_1D
@@ -71,7 +73,7 @@ contains
   end subroutine partition_list
 
 ! ===== Gather distributed variables to the primary =====
-! ======================================================
+! =======================================================
 
   subroutine gather_to_primary_logical_1D( d_partial, d_tot)
     !< Gather a distributed 1-D integer variable to the primary
@@ -630,7 +632,94 @@ contains
   end subroutine gather_to_all_dp_2D
 
 ! ===== Distribute variables from the primary =====
-! ================================================
+! =================================================
+
+  subroutine distribute_from_primary_logical_1D( d_partial, d_tot)
+    !< Distribute a 1-D logical variable from the primary
+    !< (e.g. after reading from to NetCDF)
+
+    ! Input variables:
+    logical, dimension(:),           intent(  out) :: d_partial
+    logical, dimension(:), optional, intent(in   ) :: d_tot
+
+    ! Local variables:
+    character(len=256), parameter :: routine_name = 'distribute_from_primary_logical_1D'
+    integer                       :: ierr,n1,n_tot,i
+    integer,  dimension(1:par%n)  :: counts, displs
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Size of the partial array owned by this process
+    n1 = size( d_partial,1)
+
+    ! Determine total size of distributed array
+    call MPI_ALLGATHER( n1, 1, MPI_integer, counts, 1, MPI_integer, MPI_COMM_WORLD, ierr)
+    n_tot = sum( counts)
+    call MPI_BCAST( n_tot, 1, MPI_integer, 0, MPI_COMM_WORLD, ierr)
+
+    ! Safety
+    if (par%primary) then
+      if( .not. present( d_tot)) call crash('d_tot must be present on primary')
+      if( n_tot /= size( d_tot,1)) call crash('combined sizes of d_partial dont match size of d_tot')
+    end if
+
+    ! Calculate displacements for MPI_SCATTERV
+    displs( 1) = 0
+    do i = 2, par%n
+      displs( i) = displs( i-1) + counts( i-1)
+    end do
+
+    ! Scatter data to all the processes
+    call MPI_SCATTERV( d_tot, counts, displs, MPI_LOGICAL, d_partial, n1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine distribute_from_primary_logical_1D
+
+  subroutine distribute_from_primary_logical_2D( d_partial, d_tot)
+    !< Distribute a 2-D logical variable from the primary
+    !< (e.g. after reading from to NetCDF)
+
+    ! Input variables:
+    logical, dimension(:,:),           intent(  out) :: d_partial
+    logical, dimension(:,:), optional, intent(in   ) :: d_tot
+
+    ! Local variables:
+    character(len=256), parameter :: routine_name = 'distribute_from_primary_logical_2D'
+    integer                       :: ierr,n1,n2,i,n2_proc,j
+    type(MPI_STATUS)              :: recv_status
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Size of the array owned by this process
+    n1 = size( d_partial,1)
+    n2 = size( d_partial,2)
+
+    ! Check sizes
+    do i = 1, par%n-1
+      if (par%i == i) then
+        call MPI_SEND( n2, 1, MPI_integer, 0, 0, MPI_COMM_WORLD, ierr)
+      elseif (par%primary) then
+        call MPI_RECV( n2_proc, 1, MPI_integer, i, MPI_ANY_TAG, MPI_COMM_WORLD, recv_status, ierr)
+        if (n2_proc /= n2) call crash('n2 = {int_01} on primary, but {int_02} on process {int_03}!', int_01 = n2, int_02 = n2_proc, int_03 = i)
+      end if
+    end do
+
+    do j = 1, n2
+      if (par%primary) then
+        call distribute_from_primary_logical_1D( d_partial( :,j), d_tot( :,j))
+      else
+        call distribute_from_primary_logical_1D( d_partial( :,j))
+      endif
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine distribute_from_primary_logical_2D
 
   subroutine distribute_from_primary_int_1D( d_partial, d_tot)
     !< Distribute a 1-D integer variable from the primary
