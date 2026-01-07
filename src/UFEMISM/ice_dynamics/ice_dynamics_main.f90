@@ -1204,9 +1204,9 @@ contains
     end if
 
     ! Distribute BC masks to all processes
-    call distribute_from_primary( BC_prescr_mask_tot   , BC_prescr_mask   )
-    call distribute_from_primary( BC_prescr_mask_b_tot , BC_prescr_mask_b )
-    call distribute_from_primary( BC_prescr_mask_bk_tot, BC_prescr_mask_bk)
+    call distribute_from_primary( BC_prescr_mask   , BC_prescr_mask_tot   )
+    call distribute_from_primary( BC_prescr_mask_b , BC_prescr_mask_b_tot )
+    call distribute_from_primary( BC_prescr_mask_bk, BC_prescr_mask_bk_tot)
 
     ! == Fill in prescribed velocities and thicknesses away from the front
     ! ====================================================================
