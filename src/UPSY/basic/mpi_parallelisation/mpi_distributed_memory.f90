@@ -26,6 +26,7 @@ module mpi_distributed_memory
 
   interface gather_to_all
     procedure gather_to_all_logical_1D
+    procedure gather_to_all_logical_2D
     procedure gather_to_all_int_1D
     procedure gather_to_all_int_2D
     procedure gather_to_all_dp_1D
@@ -395,12 +396,60 @@ contains
     end do
 
     ! Gather data to all processes
-    call MPI_ALLGATHERV( d_partial, n1, MPI_logical, d_tot, counts, displs, MPI_logical, MPI_COMM_WORLD, ierr)
+    call MPI_ALLGATHERV( d_partial, n1, MPI_LOGICAL, d_tot, counts, displs, MPI_LOGICAL, MPI_COMM_WORLD, ierr)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine gather_to_all_logical_1D
+
+  subroutine gather_to_all_logical_2D( d_partial, d_tot)
+    !< Gather a distributed 2-D logical variable to all processes
+
+    ! Input variables:
+    logical, dimension(:,:), intent(in   ) :: d_partial
+    logical, dimension(:,:), intent(  out) :: d_tot
+
+    ! Local variables:
+    character(len=256), parameter             :: routine_name = 'gather_to_all_logical_2D'
+    integer                                   :: ierr,n1,n2,i,n2_proc
+    logical , dimension(:      ), allocatable :: d_partial_1D
+    logical , dimension(:      ), allocatable :: d_tot_1D
+    integer                                   :: n1_tot,j
+    type(MPI_STATUS)              :: recv_status
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Size of the array owned by this process
+    n1 = size( d_partial,1)
+    n2 = size( d_partial,2)
+
+    ! Check sizes
+    do i = 1, par%n-1
+      if (par%i == i) then
+        call MPI_SEND( n2, 1, MPI_integer, 0, 0, MPI_COMM_WORLD, ierr)
+      elseif (par%primary) then
+        call MPI_RECV( n2_proc, 1, MPI_integer, i, MPI_ANY_TAG, MPI_COMM_WORLD, recv_status, ierr)
+        if (n2_proc /= n2) call crash('n2 = {int_01} on primary, but {int_02} on process {int_03}!', int_01 = n2, int_02 = n2_proc, int_03 = i)
+      end if
+    end do
+
+    ! Gather 1 column at a time
+    ALLOCATE( d_partial_1D( n1))
+    n1_tot = size( d_tot,1)
+    ALLOCATE( d_tot_1D( n1_tot))
+
+    do j = 1, n2
+      d_partial_1D = d_partial( :,j)
+      call gather_to_all_logical_1D( d_partial_1D, d_tot_1D)
+      d_tot( :,j) = d_tot_1D
+    end do
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine gather_to_all_logical_2D
 
   subroutine gather_to_all_int_1D( d_partial, d_tot)
     !< Gather a distributed 1-D integer variable to all processes
