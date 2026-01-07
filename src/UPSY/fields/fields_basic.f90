@@ -77,6 +77,7 @@ module fields_basic
     ! ===== i/o
 
     procedure, public :: write_to_netcdf
+    procedure, public :: read_from_netcdf
 
   end type atype_field
 
@@ -264,6 +265,12 @@ module fields_basic
       character(len=*),   intent(in) :: filename
       integer,            intent(in) :: ncid
     end subroutine write_to_netcdf
+
+    module subroutine read_from_netcdf( field, filename, ncid)
+      class(atype_field), intent(inout) :: field
+      character(len=*),   intent(in   ) :: filename
+      integer,            intent(in   ) :: ncid
+    end subroutine read_from_netcdf
 
   end interface
 
