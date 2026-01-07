@@ -486,13 +486,13 @@ contains
 ! ===== Distribute variables from the primary =====
 ! ================================================
 
-  subroutine distribute_from_primary_int_1D( d_tot, d_partial)
+  subroutine distribute_from_primary_int_1D( d_partial, d_tot)
     !< Distribute a 1-D integer variable from the primary
     !< (e.g. after reading from to NetCDF)
 
     ! Input variables:
-    integer, dimension(:), optional, intent(in   ) :: d_tot
     integer, dimension(:),           intent(  out) :: d_partial
+    integer, dimension(:), optional, intent(in   ) :: d_tot
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'distribute_from_primary_int_1D'
@@ -530,13 +530,13 @@ contains
 
   end subroutine distribute_from_primary_int_1D
 
-  subroutine distribute_from_primary_int_2D( d_tot, d_partial)
+  subroutine distribute_from_primary_int_2D( d_partial, d_tot)
     !< Distribute a 2-D integer variable from the primary
     !< (e.g. after reading from to NetCDF)
 
     ! Input variables:
-    integer, dimension(:,:), optional, intent(in   ) :: d_tot
     integer, dimension(:,:),           intent(  out) :: d_partial
+    integer, dimension(:,:), optional, intent(in   ) :: d_tot
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'distribute_from_primary_int_2D'
@@ -562,9 +562,9 @@ contains
 
     do j = 1, n2
       if (par%primary) then
-        call distribute_from_primary_int_1D( d_tot( :, j), d_partial( : ,j))
+        call distribute_from_primary_int_1D( d_partial( :,j), d_tot( :,j))
       else
-        call distribute_from_primary_int_1D( d_partial=d_partial( : ,j))
+        call distribute_from_primary_int_1D( d_partial( :,j))
       endif
     end do
 
@@ -573,13 +573,13 @@ contains
 
   end subroutine distribute_from_primary_int_2D
 
-  subroutine distribute_from_primary_dp_1D( d_tot, d_partial)
+  subroutine distribute_from_primary_dp_1D( d_partial, d_tot)
     !< Distribute a 1-D dp variable from the primary
     !< (e.g. after reading from to NetCDF)
 
     ! Input variables:
-    real(dp), dimension(:), optional, intent(in   ) :: d_tot
     real(dp), dimension(:),           intent(  out) :: d_partial
+    real(dp), dimension(:), optional, intent(in   ) :: d_tot
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'distribute_from_primary_dp_1D'
@@ -617,13 +617,13 @@ contains
 
   end subroutine distribute_from_primary_dp_1D
 
-  subroutine distribute_from_primary_dp_2D( d_tot, d_partial)
+  subroutine distribute_from_primary_dp_2D( d_partial, d_tot)
     !< Distribute a 2-D dp variable from the primary
     !< (e.g. after reading from to NetCDF)
 
     ! Input variables:
-    real(dp), dimension(:,:), optional, intent(in   ) :: d_tot
     real(dp), dimension(:,:),           intent(  out) :: d_partial
+    real(dp), dimension(:,:), optional, intent(in   ) :: d_tot
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'distribute_from_primary_dp_2D'
@@ -650,9 +650,9 @@ contains
     ! Distribute 1 column at a time
     do j = 1, n2
       if (par%primary) then
-        call distribute_from_primary_dp_1D( d_tot( :, j), d_partial( : ,j))
+        call distribute_from_primary_dp_1D( d_partial( :,j), d_tot( :,j))
       else
-        call distribute_from_primary_dp_1D( d_partial=d_partial( : ,j))
+        call distribute_from_primary_dp_1D( d_partial( :,j))
       endif
     end do
 

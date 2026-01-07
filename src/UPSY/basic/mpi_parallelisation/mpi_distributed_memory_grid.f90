@@ -75,7 +75,7 @@ subroutine distribute_gridded_data_from_primary_int_2D( grid, d_grid, d_grid_vec
   end if ! if (par%primary) then
 
   ! Distribute vector-form data to the processes
-  call distribute_from_primary( d_grid_vec_total, d_grid_vec_partial)
+  call distribute_from_primary( d_grid_vec_partial, d_grid_vec_total)
 
   ! Clean up after yourself
   deallocate( d_grid_vec_total)
@@ -123,7 +123,7 @@ subroutine distribute_gridded_data_from_primary_dp_2D( grid, d_grid, d_grid_vec_
   end if ! if (par%primary) then
 
   ! Distribute vector-form data to the processes
-  call distribute_from_primary( d_grid_vec_total, d_grid_vec_partial)
+  call distribute_from_primary( d_grid_vec_partial, d_grid_vec_total)
 
   ! Clean up after yourself
   deallocate( d_grid_vec_total)

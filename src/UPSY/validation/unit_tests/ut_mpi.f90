@@ -590,7 +590,7 @@ contains
     end if
 
     ! Distribute data
-    call distribute_from_primary( aa, bb)
+    call distribute_from_primary( bb, aa)
 
     ! Check results
     if (par%primary) then
@@ -643,7 +643,7 @@ contains
     end if
 
     ! Distribute data
-    call distribute_from_primary( aa, bb)
+    call distribute_from_primary( bb, aa)
 
     ! Check results
     if (par%primary) then
@@ -695,7 +695,7 @@ contains
     end if
 
     ! Distribute data
-    call distribute_from_primary( aa, bb)
+    call distribute_from_primary( bb, aa)
 
     ! Check results
     if (par%primary) then
@@ -748,7 +748,7 @@ contains
     end if
 
     ! Distribute data
-    call distribute_from_primary( aa, bb)
+    call distribute_from_primary( bb, aa)
 
     ! Check results
     if (par%primary) then
