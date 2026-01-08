@@ -44,6 +44,7 @@ module models_basic
     ! ===== NetCDF output
 
     procedure, public :: write_to_restart_file
+    procedure, public :: read_from_restart_file
 
   end type atype_model
 
@@ -92,10 +93,16 @@ module models_basic
 
     ! ===== NetCDF output
 
-    module subroutine write_to_restart_file( model, output_dir)
-      class(atype_model), intent(in) :: model
-      character(len=*),   intent(in) :: output_dir
+    module subroutine write_to_restart_file( model, output_dir, filename)
+      class(atype_model),                  intent(in   ) :: model
+      character(len=*),                    intent(in   ) :: output_dir
+      character(:), allocatable, optional, intent(  out) :: filename
     end subroutine write_to_restart_file
+
+    module subroutine read_from_restart_file( model, filename)
+      class(atype_model), intent(inout) :: model
+      character(len=*),   intent(in   ) :: filename
+    end subroutine read_from_restart_file
 
   end interface
 

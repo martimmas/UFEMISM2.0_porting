@@ -52,25 +52,26 @@ contains
     call calc_all_secondary_mesh_data( mesh, 0._dp, -90._dp, 71._dp)
 
     ! Run all unit tests
-    call test_write_to_restart_file( test_name, mesh)
+    call test_write_to_read_from_restart_file( test_name, mesh)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine test_models_io
 
-  subroutine test_write_to_restart_file( test_name_parent, mesh)
+  subroutine test_write_to_read_from_restart_file( test_name_parent, mesh)
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
     type(type_mesh),  intent(in) :: mesh
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'test_write_to_restart_file'
-    character(len=1024), parameter :: test_name_local = 'write_to_restart_file'
+    character(len=1024), parameter :: routine_name = 'test_write_to_read_from_restart_file'
+    character(len=1024), parameter :: test_name_local = 'write_to_read_from_restart_file'
     character(len=1024)            :: test_name
-    type(type_demo_model)          :: demo_model
+    type(type_demo_model)          :: demo_model1, demo_model2
     integer, parameter             :: nz = 15
+    character(:), allocatable      :: filename
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -78,8 +79,11 @@ contains
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
-    call demo_model%init( mesh, nz)
-    call demo_model%write_to_restart_file( foldername_unit_tests_output)
+    call demo_model1%init( mesh, nz)
+    call demo_model1%write_to_restart_file( foldername_unit_tests_output, filename)
+
+    call demo_model2%init( mesh, nz)
+    call demo_model2%read_from_restart_file( filename)
 
     ! Run all unit tests
     call unit_test( .true., test_name)
@@ -87,6 +91,6 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine test_write_to_restart_file
+  end subroutine test_write_to_read_from_restart_file
 
 end module ut_models_io
