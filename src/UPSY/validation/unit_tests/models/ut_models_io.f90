@@ -86,7 +86,7 @@ contains
     call demo_model2%read_from_restart_file( filename)
 
     ! Run all unit tests
-    call unit_test( .true., test_name)
+    call unit_test( demo_model1 == demo_model2, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
