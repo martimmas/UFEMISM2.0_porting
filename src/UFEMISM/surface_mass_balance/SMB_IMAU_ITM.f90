@@ -14,6 +14,8 @@ module SMB_IMAU_ITM
   USE parameters,      only: T0, L_fusion, sec_per_year, pi, ice_density
   use netcdf_io_main
   use global_forcing_types
+  use allocate_dist_shared_mod, only: allocate_dist_shared
+  use reallocate_dist_shared_mod, only: reallocate_dist_shared
 
   implicit none
 
@@ -23,7 +25,7 @@ module SMB_IMAU_ITM
 
 contains
 
-subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
+  subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
     ! Run the IMAU-ITM SMB model.
 
     ! NOTE: all the SMB components are in meters of water equivalent;
@@ -133,7 +135,6 @@ subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
 
   end subroutine run_SMB_model_IMAUITM
 
-
   subroutine initialise_SMB_model_IMAUITM( mesh, ice, IMAUITM, region_name)
     ! Allocate memory for the data fields of the SMB model.
 
@@ -153,8 +154,6 @@ subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
 
     ! Add routine to path
     CALL init_routine( routine_name)
-
-
 
     ! Determine which constants to use for this region
     IF     (region_name == 'NAM') THEN
@@ -186,21 +185,33 @@ subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
     IMAUITM%albedo_snow         = C%SMB_IMAUITM_albedo_snow
 
     ! Allocating necessary fields
-    allocate( IMAUITM%AlbedoSurf      (mesh%vi1:mesh%vi2))
-    allocate( IMAUITM%Rainfall        (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Snowfall        (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%AddedFirn       (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Melt            (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Refreezing      (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Refreezing_year (mesh%vi1:mesh%vi2))
-    allocate( IMAUITM%Runoff          (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Albedo          (mesh%vi1:mesh%vi2, 12))
-    allocate( IMAUITM%Albedo_year     (mesh%vi1:mesh%vi2))
-    allocate( IMAUITM%SMB_monthly     (mesh%vi1:mesh%vi2,12))
+    call allocate_dist_shared( IMAUITM%AlbedoSurf       , IMAUITM%wAlbedoSurf      , mesh%pai_V%n_nih    )
+    call allocate_dist_shared( IMAUITM%Rainfall         , IMAUITM%wRainfall        , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Snowfall         , IMAUITM%wSnowfall        , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%AddedFirn        , IMAUITM%wAddedFirn       , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Melt             , IMAUITM%wMelt            , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Refreezing       , IMAUITM%wRefreezing      , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Refreezing_year  , IMAUITM%wRefreezing_year , mesh%pai_V%n_nih    )
+    call allocate_dist_shared( IMAUITM%Runoff           , IMAUITM%wRunoff          , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Albedo           , IMAUITM%wAlbedo          , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%Albedo_year      , IMAUITM%wAlbedo_year     , mesh%pai_V%n_nih    )
+    call allocate_dist_shared( IMAUITM%SMB_monthly      , IMAUITM%wSMB_monthly     , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%FirnDepth        , IMAUITM%wFirnDepth       , mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( IMAUITM%MeltPreviousYear , IMAUITM%wMeltPreviousYear, mesh%pai_V%n_nih    )
 
-    allocate( IMAUITM%FirnDepth        (mesh%vi1:mesh%vi2,12))
-    allocate( IMAUITM%MeltPreviousYear (mesh%vi1:mesh%vi2))
-
+    IMAUITM%AlbedoSurf      ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => IMAUITM%AlbedoSurf
+    IMAUITM%Rainfall        ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Rainfall
+    IMAUITM%Snowfall        ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Snowfall
+    IMAUITM%AddedFirn       ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%AddedFirn
+    IMAUITM%Melt            ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Melt
+    IMAUITM%Refreezing      ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Refreezing
+    IMAUITM%Refreezing_year ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => IMAUITM%Refreezing_year
+    IMAUITM%Runoff          ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Runoff
+    IMAUITM%Albedo          ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%Albedo
+    IMAUITM%Albedo_year     ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => IMAUITM%Albedo_year
+    IMAUITM%SMB_monthly     ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%SMB_monthly
+    IMAUITM%FirnDepth       ( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => IMAUITM%FirnDepth
+    IMAUITM%MeltPreviousYear( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => IMAUITM%MeltPreviousYear
 
     ! Initialisation choice
     IF     (region_name == 'NAM') THEN
@@ -324,19 +335,33 @@ subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! call reallocate_bounds(SMB%IMAUITM%AlbedoSurf      , mesh_new%vi1, mesh_new%vi2    )
-    ! call reallocate_bounds(SMB%IMAUITM%MeltPreviousYear, mesh_new%vi1, mesh_new%vi2    )
-    ! call reallocate_bounds(SMB%IMAUITM%Refreezing_year , mesh_new%vi1, mesh_new%vi2    )
-    ! call reallocate_bounds(SMB%IMAUITM%Albedo_year     , mesh_new%vi1, mesh_new%vi2    )
-    ! call reallocate_bounds(SMB%IMAUITM%FirnDepth       , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Rainfall        , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Snowfall        , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%AddedFirn       , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Melt            , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Refreezing      , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Runoff          , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%Albedo          , mesh_new%vi1, mesh_new%vi2, 12)
-    ! call reallocate_bounds(SMB%IMAUITM%SMB_monthly     , mesh_new%vi1, mesh_new%vi2, 12)
+    call reallocate_dist_shared( IMAUITM%AlbedoSurf      , IMAUITM%wAlbedoSurf      , mesh_new%pai_V%n_nih    )
+    call reallocate_dist_shared( IMAUITM%MeltPreviousYear, IMAUITM%wMeltPreviousYear, mesh_new%pai_V%n_nih    )
+    call reallocate_dist_shared( IMAUITM%Refreezing_year , IMAUITM%wRefreezing_year , mesh_new%pai_V%n_nih    )
+    call reallocate_dist_shared( IMAUITM%Albedo_year     , IMAUITM%wAlbedo_year     , mesh_new%pai_V%n_nih    )
+    call reallocate_dist_shared( IMAUITM%FirnDepth       , IMAUITM%wFirnDepth       , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Rainfall        , IMAUITM%wRainfall        , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Snowfall        , IMAUITM%wSnowfall        , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%AddedFirn       , IMAUITM%wAddedFirn       , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Melt            , IMAUITM%wMelt            , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Refreezing      , IMAUITM%wRefreezing      , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Runoff          , IMAUITM%wRunoff          , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%Albedo          , IMAUITM%wAlbedo          , mesh_new%pai_V%n_nih, 12)
+    call reallocate_dist_shared( IMAUITM%SMB_monthly     , IMAUITM%wSMB_monthly     , mesh_new%pai_V%n_nih, 12)
+
+    IMAUITM%AlbedoSurf      ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => IMAUITM%AlbedoSurf
+    IMAUITM%Rainfall        ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Rainfall
+    IMAUITM%Snowfall        ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Snowfall
+    IMAUITM%AddedFirn       ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%AddedFirn
+    IMAUITM%Melt            ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Melt
+    IMAUITM%Refreezing      ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Refreezing
+    IMAUITM%Refreezing_year ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => IMAUITM%Refreezing_year
+    IMAUITM%Runoff          ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Runoff
+    IMAUITM%Albedo          ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%Albedo
+    IMAUITM%Albedo_year     ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => IMAUITM%Albedo_year
+    IMAUITM%SMB_monthly     ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%SMB_monthly
+    IMAUITM%FirnDepth       ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => IMAUITM%FirnDepth
+    IMAUITM%MeltPreviousYear( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => IMAUITM%MeltPreviousYear
 
     ! Finalise routine path
     call finalise_routine( routine_name)
