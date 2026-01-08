@@ -143,4 +143,21 @@ contains
 
   end function find_field_by_name
 
+  function test_fields_registry_equality( flds_reg1, flds_reg2) result( res)
+
+    ! In/output variables:
+    class(type_fields_registry), intent(in) :: flds_reg1, flds_reg2
+    logical                                 :: res
+
+    ! Local variables:
+    integer :: i
+
+    res = flds_reg1%n == flds_reg2%n
+    if (.not. res) return
+    do i = 1, flds_reg1%n
+      res = res .and. flds_reg1%items(i)%p == flds_reg2%items(i)%p
+    end do
+
+  end function test_fields_registry_equality
+
 end submodule fields_registry_submod_basic
