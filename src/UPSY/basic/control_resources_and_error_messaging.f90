@@ -10,7 +10,7 @@ MODULE control_resources_and_error_messaging
 
   use basic_program_info, only: program_name
   use mpi_f08, only: MPI_WTIME
-  USE precisions                                             , ONLY: dp
+  use precisions, only: dp
   use mpi_basic, only: par, sync
 
   IMPLICIT NONE
