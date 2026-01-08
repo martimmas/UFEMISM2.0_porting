@@ -1,7 +1,5 @@
 module ice_dynamics_main
 
-  !< The main ice-dynamical model
-
   use mpi_basic, only: par
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
