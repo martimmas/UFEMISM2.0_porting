@@ -135,6 +135,9 @@ contains
 
   end subroutine test_io
 
+
+
+
   subroutine test_io_grid_logical_2D( test_name_parent, grid)
 
     ! In/output variables:
@@ -145,11 +148,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_2D'
     character(len=1024), parameter               :: test_name_local = 'grid/logical_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:  ), contiguous, pointer :: d1 => null()
+    logical, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -165,20 +169,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1) = .true.
+    d1( grid%n1) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -195,11 +206,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'grid/logical_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -215,20 +228,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = .true.
+    d1( grid%n1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -245,11 +265,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_month'
     character(len=1024), parameter               :: test_name_local = 'grid/logical_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -265,20 +286,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = .true.
+    d1( grid%n1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -295,11 +323,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'grid/logical_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -315,20 +345,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = .true.
+    d1( grid%n1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -345,11 +382,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_2D'
     character(len=1024), parameter               :: test_name_local = 'grid/int_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:  ), contiguous, pointer :: d1 => null()
+    integer, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -365,20 +403,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1) = 1337
+    d1( grid%n1) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -395,11 +440,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'grid/int_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -415,20 +462,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 1337
+    d1( grid%n1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -445,11 +499,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_month'
     character(len=1024), parameter               :: test_name_local = 'grid/int_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -465,20 +520,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 1337
+    d1( grid%n1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -495,11 +557,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'grid/int_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -515,20 +579,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 1337
+    d1( grid%n1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -538,18 +609,19 @@ contains
   subroutine test_io_grid_dp_2D( test_name_parent, grid)
 
     ! In/output variables:
-    character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: test_name_parent
+    type(type_grid), target, intent(in   ) :: grid
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_io_grid_dp_2D'
-    character(len=1024), parameter               :: test_name_local = 'grid/dp_2D'
-    character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_2D'
+    character(len=1024), parameter                :: test_name_local = 'grid/dp_2D'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg1, flds_reg2
+    character(:), allocatable                     :: name, long_name, units, filename
+    real(dp), dimension(:  ), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                 :: w1, w2
+    integer                                       :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -565,20 +637,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1) = 13.37_dp
+    d1( grid%n1) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -588,18 +667,20 @@ contains
   subroutine test_io_grid_dp_3D_zeta( test_name_parent, grid)
 
     ! In/output variables:
-    character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: test_name_parent
+    type(type_grid), target, intent(in   ) :: grid
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_io_grid_dp_3D_zeta'
-    character(len=1024), parameter               :: test_name_local = 'grid/dp_3D_zeta'
-    character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_zeta'
+    character(len=1024), parameter                :: test_name_local = 'grid/dp_3D_zeta'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg1, flds_reg2
+    character(:), allocatable                     :: name, long_name, units, filename
+    integer                                       :: nz = 10
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                 :: w1, w2
+    integer                                       :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -615,20 +696,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 13.37_dp
+    d1( grid%n1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -638,18 +726,19 @@ contains
   subroutine test_io_grid_dp_3D_month( test_name_parent, grid)
 
     ! In/output variables:
-    character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: test_name_parent
+    type(type_grid), target, intent(in   ) :: grid
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_io_grid_dp_3D_month'
-    character(len=1024), parameter               :: test_name_local = 'grid/dp_3D_month'
-    character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_month'
+    character(len=1024), parameter                :: test_name_local = 'grid/dp_3D_month'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg1, flds_reg2
+    character(:), allocatable                     :: name, long_name, units, filename
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                 :: w1, w2
+    integer                                       :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -665,20 +754,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       grid, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 13.37_dp
+    d1( grid%n1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -688,18 +784,20 @@ contains
   subroutine test_io_grid_dp_3D_ocean( test_name_parent, grid)
 
     ! In/output variables:
-    character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: test_name_parent
+    type(type_grid), target, intent(in   ) :: grid
 
     ! Local variables:
-    character(len=1024), parameter               :: routine_name = 'test_io_grid_dp_3D_ocean'
-    character(len=1024), parameter               :: test_name_local = 'grid/dp_3D_ocean'
-    character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_ocean'
+    character(len=1024), parameter                :: test_name_local = 'grid/dp_3D_ocean'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg1, flds_reg2
+    character(:), allocatable                     :: name, long_name, units, filename
+    integer                                       :: nz = 20
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                 :: w1, w2
+    integer                                       :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -715,20 +813,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
 
-    call flds_reg%create_field( d, w, &
-      grid, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( grid%n1,3) = 13.37_dp
+    d1( grid%n1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      grid, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -748,11 +853,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_logical_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/logical_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:  ), contiguous, pointer :: d1 => null()
+    logical, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -768,20 +874,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1) = .true.
+    d1( mesh%vi1) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -798,11 +911,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_logical_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/logical_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -818,20 +933,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -848,11 +970,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_logical_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/logical_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -868,20 +991,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -898,11 +1028,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_logical_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/logical_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -918,20 +1050,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -948,11 +1087,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_int_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/int_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:  ), contiguous, pointer :: d1 => null()
+    integer, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -968,20 +1108,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1) = 1337
+    d1( mesh%vi1) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -998,11 +1145,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_int_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/int_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1018,20 +1167,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1048,11 +1204,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_int_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/int_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1068,20 +1225,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1098,11 +1262,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_int_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/int_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1118,20 +1284,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1148,11 +1321,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_dp_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/dp_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:  ), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1168,20 +1342,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1) = 13.37_dp
+    d1( mesh%vi1) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1198,11 +1379,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_dp_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/dp_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1218,20 +1401,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1248,11 +1438,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_dp_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/dp_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1268,20 +1459,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%a(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1298,11 +1496,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_a_dp_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/a/dp_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1318,20 +1518,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%vi1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1351,11 +1558,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_logical_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/logical_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:  ), contiguous, pointer :: d1 => null()
+    logical, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1371,20 +1579,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1) = .true.
+    d1( mesh%vi1) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1401,11 +1616,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_logical_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/logical_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1421,20 +1638,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1451,11 +1675,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_logical_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/logical_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1471,20 +1696,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1501,11 +1733,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_logical_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/logical_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1521,20 +1755,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1551,11 +1792,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_int_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/int_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:  ), contiguous, pointer :: d1 => null()
+    integer, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1571,20 +1813,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1) = 1337
+    d1( mesh%vi1) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1601,11 +1850,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_int_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/int_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1621,20 +1872,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1651,11 +1909,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_int_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/int_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1671,20 +1930,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1701,11 +1967,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_int_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/int_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1721,20 +1989,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1751,11 +2026,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_dp_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/dp_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:  ), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1771,20 +2047,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1) = 13.37_dp
+    d1( mesh%vi1) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1801,11 +2084,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_dp_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/dp_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1821,20 +2106,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1851,11 +2143,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_dp_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/dp_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1871,20 +2164,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%b(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1901,11 +2201,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_b_dp_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/b/dp_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1921,20 +2223,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ti1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1954,11 +2263,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_logical_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/logical_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:  ), contiguous, pointer :: d1 => null()
+    logical, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -1974,20 +2284,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1) = .true.
+    d1( mesh%vi1) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2004,11 +2321,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_logical_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/logical_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2024,20 +2343,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2054,11 +2380,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_logical_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/logical_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2074,20 +2401,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2104,11 +2438,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_logical_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/logical_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    logical, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    logical, dimension(:,:), contiguous, pointer :: d1 => null()
+    logical, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2124,20 +2460,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = .true.
+    d1( mesh%vi1,3) = .true.
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2154,11 +2497,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_int_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/int_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:  ), contiguous, pointer :: d1 => null()
+    integer, dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2174,20 +2518,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1) = 1337
+    d1( mesh%vi1) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2204,11 +2555,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_int_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/int_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2224,20 +2577,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2254,11 +2614,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_int_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/int_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2274,20 +2635,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2304,11 +2672,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_int_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/int_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    integer, dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    integer, dimension(:,:), contiguous, pointer :: d1 => null()
+    integer, dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2324,20 +2694,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 1337
+    d1( mesh%vi1,3) = 1337
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2354,11 +2731,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_dp_2D'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/dp_2D'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:  ), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:  ), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:  ), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2374,20 +2752,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1) = 13.37_dp
+    d1( mesh%vi1) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2404,11 +2789,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_dp_3D_zeta'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/dp_3D_zeta'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 10
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2424,20 +2811,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( 10, 'regular'), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2454,11 +2848,12 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_dp_3D_month'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/dp_3D_month'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2474,20 +2869,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
+    call flds_reg1%create_field( d1, w1, &
       mesh, Arakawa_grid%c(), third_dimension%month(), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2504,11 +2906,13 @@ contains
     character(len=1024), parameter               :: routine_name = 'test_io_mesh_c_dp_3D_ocean'
     character(len=1024), parameter               :: test_name_local = 'mesh/c/dp_3D_ocean'
     character(len=1024)                          :: test_name
-    type(type_fields_registry)                   :: flds_reg
-    character(len=1024)                          :: name, long_name, units, filename
-    real(dp), dimension(:,:), contiguous, pointer :: d => null()
-    type(MPI_WIN)                                :: w
-    integer                                      :: ncid, i
+    type(type_fields_registry)                   :: flds_reg1, flds_reg2
+    character(:), allocatable                    :: name, long_name, units, filename
+    integer                                      :: nz = 20
+    real(dp), dimension(:,:), contiguous, pointer :: d1 => null()
+    real(dp), dimension(:,:), contiguous, pointer :: d2 => null()
+    type(MPI_WIN)                                :: w1, w2
+    integer                                      :: ncid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -2524,20 +2928,27 @@ contains
     call create_new_netcdf_file_for_writing( filename, ncid)
     call setup_mesh_in_netcdf_file( filename, ncid, mesh)
 
-    call flds_reg%create_field( d, w, &
-      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( 20), &
+    call flds_reg1%create_field( d1, w1, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
       name      = name, &
       long_name = long_name, &
       units     = units)
 
-    d( mesh%ei1,3) = 13.37_dp
+    d1( mesh%vi1,3) = 13.37_dp
 
-    i = flds_reg%find( name)
-    call flds_reg%items(i)%p%write_to_netcdf( filename, ncid)
-
+    call flds_reg1%items(1)%p%write_to_netcdf ( filename, ncid)
     call close_netcdf_file( ncid)
 
-    call unit_test( .true., test_name)
+    call flds_reg2%create_field( d2, w2, &
+      mesh, Arakawa_grid%c(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units)
+
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+
+    call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

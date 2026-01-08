@@ -41,6 +41,9 @@ module fields_basic
 
     contains
 
+    generic,   public  :: operator(==) => eq
+    procedure, private :: eq => test_field_equality
+
     procedure, public :: lbound => field_lbound
     procedure, public :: ubound => field_ubound
     procedure, public :: print_info
@@ -77,6 +80,7 @@ module fields_basic
     ! ===== i/o
 
     procedure, public :: write_to_netcdf
+    procedure, public :: read_from_netcdf
 
   end type atype_field
 
@@ -121,6 +125,11 @@ module fields_basic
   ! =========================================================
 
   interface
+
+    module function test_field_equality( field1, field2) result( res)
+      class(atype_field), intent(in) :: field1, field2
+      logical                        :: res
+    end function test_field_equality
 
     module function field_lbound( field, dim) result( lb)
       class(atype_field), intent(in) :: field
@@ -264,6 +273,12 @@ module fields_basic
       character(len=*),   intent(in) :: filename
       integer,            intent(in) :: ncid
     end subroutine write_to_netcdf
+
+    module subroutine read_from_netcdf( field, filename, ncid)
+      class(atype_field), intent(inout) :: field
+      character(len=*),   intent(in   ) :: filename
+      integer,            intent(in   ) :: ncid
+    end subroutine read_from_netcdf
 
   end interface
 
