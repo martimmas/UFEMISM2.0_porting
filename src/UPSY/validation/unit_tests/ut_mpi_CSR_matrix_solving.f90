@@ -12,7 +12,6 @@ module ut_mpi_CSR_matrix_solving
   use CSR_matrix_basics, only: allocate_matrix_CSR_dist, add_entry_CSR_dist, finalise_matrix_CSR_dist
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, MPI_WIN
   use mpi_distributed_shared_memory
-  use mpi_distributed_memory, only: distribute_from_primary
   use CSR_matrix_solving, only: solve_matrix_equation_CSR_Jacobi_wrapper, solve_matrix_equation_CSR_Jacobi
 
   implicit none

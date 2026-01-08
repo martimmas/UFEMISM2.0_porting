@@ -185,9 +185,10 @@ contains
       if (allocated( refgeo%mesh_raw%V)) call crash('found both grid and mesh in refgeo!')
 
       ! Remap data to the model mesh
-      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%Hi_grid_raw, refgeo%Hi)
-      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%Hb_grid_raw, refgeo%Hb)
-      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%SL_grid_raw, refgeo%SL)
+      method = C%choice_refgeo_remapping_method
+      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%Hi_grid_raw, refgeo%Hi, method)
+      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%Hb_grid_raw, refgeo%Hb, method)
+      call map_from_xy_grid_to_mesh_2D( refgeo%grid_raw, mesh, C%output_dir, refgeo%SL_grid_raw, refgeo%SL, method)
 
     elseif (allocated( refgeo%mesh_raw%V)) then
       ! Meshed
@@ -475,10 +476,10 @@ contains
     end if
 
     ! Distribute the data over the processes in vector form
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hi, refgeo%Hi_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hb, refgeo%Hb_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hs, refgeo%Hs_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, SL, refgeo%SL_grid_raw)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hi_grid_raw, Hi)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hb_grid_raw, Hb)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hs_grid_raw, Hs)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%SL_grid_raw, SL)
 
     ! Finalise routine path
     call finalise_routine( routine_name)

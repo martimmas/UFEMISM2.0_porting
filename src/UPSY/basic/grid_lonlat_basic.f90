@@ -245,7 +245,7 @@ CONTAINS
     END IF
 
     ! Distribute vector-form data to the processes
-    CALL distribute_from_primary( d_grid_vec_total, d_grid_vec_partial)
+    CALL distribute_from_primary( d_grid_vec_partial, d_grid_vec_total)
 
     ! Clean up after yourself
     IF (par%primary) DEALLOCATE( d_grid_vec_total)
