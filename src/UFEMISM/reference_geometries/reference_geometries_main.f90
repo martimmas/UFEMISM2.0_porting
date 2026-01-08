@@ -476,10 +476,10 @@ contains
     end if
 
     ! Distribute the data over the processes in vector form
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hi, refgeo%Hi_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hb, refgeo%Hb_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, Hs, refgeo%Hs_grid_raw)
-    call distribute_gridded_data_from_primary( refgeo%grid_raw, SL, refgeo%SL_grid_raw)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hi_grid_raw, Hi)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hb_grid_raw, Hb)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%Hs_grid_raw, Hs)
+    call distribute_gridded_data_from_primary( refgeo%grid_raw, refgeo%SL_grid_raw, SL)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
