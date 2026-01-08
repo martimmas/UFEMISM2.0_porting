@@ -17,7 +17,7 @@ MODULE SMB_main
   USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
   USE SMB_idealised                                          , ONLY: initialise_SMB_model_idealised, run_SMB_model_idealised
   USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
-  USE SMB_IMAU_ITM                                           , ONLY: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM
+  use SMB_IMAU_ITM, only: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
   use plane_geometry, only: is_in_polygon
@@ -436,22 +436,7 @@ CONTAINS
       CASE ('prescribed')
         CALL initialise_SMB_model_prescribed( mesh_new, SMB, region_name)
       CASE ('IMAU-ITM')
-        !CALL initialise_SMB_model_parameterised( mesh, ice, SMB, climate, region_name)
-        CALL reallocate_bounds( SMB%SMB                    , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%AlbedoSurf      , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%MeltPreviousYear, mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%Refreezing_year , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%Albedo_year     , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%FirnDepth   , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Rainfall    , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Snowfall    , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%AddedFirn   , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Melt        , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Refreezing  , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Runoff      , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Albedo      , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%SMB_monthly , mesh_new%vi1, mesh_new%vi2, 12)
-
+        call remap_SMB_model_IMAUITM( mesh_old, mesh_new, SMB%IMAUITM)
       CASE ('reconstructed')
         CALL crash('Remapping after mesh update not implemented yet for reconstructed SMB')
       CASE DEFAULT

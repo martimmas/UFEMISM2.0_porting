@@ -17,6 +17,10 @@ module SMB_IMAU_ITM
 
   implicit none
 
+  private
+
+  public :: run_SMB_model_IMAUITM, initialise_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+
 contains
 
 subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
@@ -305,5 +309,38 @@ subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
     CALL finalise_routine( routine_name)
 
   end subroutine initialise_IMAUITM_firn_from_file
+
+  subroutine remap_SMB_model_IMAUITM( mesh_old, mesh_new, IMAUITM)
+    ! Remap the SMB model
+
+    ! In- and output variables
+    type(type_mesh),               intent(in   ) :: mesh_old
+    type(type_mesh),               intent(in   ) :: mesh_new
+    type(type_SMB_model_IMAU_ITM), intent(inout) :: IMAUITM
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'remap_SMB_model'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! call reallocate_bounds(SMB%IMAUITM%AlbedoSurf      , mesh_new%vi1, mesh_new%vi2    )
+    ! call reallocate_bounds(SMB%IMAUITM%MeltPreviousYear, mesh_new%vi1, mesh_new%vi2    )
+    ! call reallocate_bounds(SMB%IMAUITM%Refreezing_year , mesh_new%vi1, mesh_new%vi2    )
+    ! call reallocate_bounds(SMB%IMAUITM%Albedo_year     , mesh_new%vi1, mesh_new%vi2    )
+    ! call reallocate_bounds(SMB%IMAUITM%FirnDepth       , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Rainfall        , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Snowfall        , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%AddedFirn       , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Melt            , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Refreezing      , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Runoff          , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%Albedo          , mesh_new%vi1, mesh_new%vi2, 12)
+    ! call reallocate_bounds(SMB%IMAUITM%SMB_monthly     , mesh_new%vi1, mesh_new%vi2, 12)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine remap_SMB_model_IMAUITM
 
 end module SMB_IMAU_ITM
