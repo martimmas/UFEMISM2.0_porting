@@ -188,6 +188,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -247,6 +248,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -305,6 +307,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -364,6 +367,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -422,6 +426,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -481,6 +486,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -539,6 +545,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -598,6 +605,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -656,6 +664,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -715,6 +724,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -773,6 +783,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -832,6 +843,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -893,6 +905,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -952,6 +965,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1010,6 +1024,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1069,6 +1084,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1127,6 +1143,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1186,6 +1203,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1244,6 +1262,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1303,6 +1322,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1361,6 +1381,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1420,6 +1441,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1478,6 +1500,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1537,6 +1560,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1598,6 +1622,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1657,6 +1682,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1715,6 +1741,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1774,6 +1801,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1832,6 +1860,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1891,6 +1920,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -1949,6 +1979,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2008,6 +2039,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2066,6 +2098,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2125,6 +2158,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2183,6 +2217,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2242,6 +2277,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2303,6 +2339,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2362,6 +2399,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2420,6 +2458,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2479,6 +2518,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2537,6 +2577,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2596,6 +2637,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2654,6 +2696,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2713,6 +2756,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2771,6 +2815,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2830,6 +2875,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2888,6 +2934,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
@@ -2947,6 +2994,7 @@ contains
 
     call open_existing_netcdf_file_for_reading( filename, ncid)
     call flds_reg2%items(1)%p%read_from_netcdf( filename, ncid)
+    call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
