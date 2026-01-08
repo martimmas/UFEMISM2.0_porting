@@ -51,6 +51,7 @@ module fields_registry
     procedure, public  :: print_info
 
     procedure, public  :: write_to_netcdf
+    procedure, public  :: read_from_netcdf
 
   end type type_fields_registry
 
@@ -181,6 +182,12 @@ module fields_registry
       character(len=*),            intent(in) :: filename
       integer,                     intent(in) :: ncid
     end subroutine write_to_netcdf
+
+    module subroutine read_from_netcdf( flds_reg, filename, ncid)
+      class(type_fields_registry), intent(inout) :: flds_reg
+      character(len=*),            intent(in   ) :: filename
+      integer,                     intent(in   ) :: ncid
+    end subroutine read_from_netcdf
 
   end interface
 

@@ -7,8 +7,8 @@ submodule (fields_basic) fields_basic_submod_read_from_netcdf
 contains
 
   subroutine read_from_netcdf( field, filename, ncid)
-    ! NOTE: assumes the NetCDF file already exists, is open, and
-    !       already contains the grid/mesh and third dimension
+    ! NOTE: assumes the NetCDF file is defined on
+    !       the same grid/mesh as the field
 
     ! In/output variables:
     class(atype_field), intent(inout) :: field
