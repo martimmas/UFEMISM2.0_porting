@@ -29,6 +29,9 @@ module models_basic
 
     contains
 
+    generic,   public  :: operator(==) => eq
+    procedure, private :: eq => test_model_equality
+
     ! ===== Set/get functions
 
     ! Metadata
@@ -52,6 +55,11 @@ module models_basic
   ! =========================================================
 
   interface
+
+    module function test_model_equality( model1, model2) result( res)
+      class(atype_model), intent(in) :: model1, model2
+      logical                        :: res
+    end function test_model_equality
 
     ! ===== Set/get functions
 

@@ -45,7 +45,6 @@ module fields_registry
     procedure, private :: create_field_int_3D
     procedure, private :: create_field_dp_3D
 
-
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_fields_registry_equality
     procedure, private :: add => add_field_to_registry
