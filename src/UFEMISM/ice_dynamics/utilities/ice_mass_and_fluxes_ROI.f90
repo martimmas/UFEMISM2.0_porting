@@ -20,7 +20,7 @@ module ice_mass_and_fluxes_ROI
 
   private
 
-  public :: calc_ice_mass_and_fluxes_ROI
+  public :: calc_ice_mass_and_fluxes_ROI, calc_ice_margin_fluxes_ROI
 
 contains
 
@@ -461,5 +461,115 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine calc_ice_transitional_fluxes_ROI
+
+  subroutine calc_ice_margin_fluxes_ROI( mesh, ice, calving_flux, calving_and_front_melt_flux, i_ROI)
+      !< Calculate the ice flux through the ice margin using an upwind scheme
+
+      ! This is the same routine as calc_ice_transitional_fluxes, 
+      ! but does not integrate over all vertices, so the results are given
+      ! in the mesh, with fluxes per cell
+
+
+      ! In/output variables:
+      type(type_mesh),             intent(in   ) :: mesh
+      type(type_ice_model),        intent(in   ) :: ice
+      real(dp),                    intent(  out) :: calving_flux
+      real(dp),                    intent(  out) :: calving_and_front_melt_flux
+      integer,                     intent(in)    :: i_ROI
+
+      ! Local variables:
+      character(len=1024), parameter         :: routine_name = 'calc_ice_margin_fluxes_ROI'
+      real(dp), dimension(mesh%ei1:mesh%ei2) :: u_vav_c, v_vav_c
+      real(dp), dimension(mesh%nE)           :: u_vav_c_tot, v_vav_c_tot
+      real(dp), dimension(mesh%nV)           :: Hi_tot
+      real(dp), dimension(mesh%nV)           :: fraction_margin_tot
+      logical,  dimension(mesh%nV)           :: mask_floating_ice_tot
+      logical,  dimension(mesh%nV)           :: mask_icefree_land_tot
+      logical,  dimension(mesh%nV)           :: mask_icefree_ocean_tot
+      integer                                :: vi, ci, ei, vj, ierr
+      real(dp)                               :: A_i, L_c
+      real(dp)                               :: u_perp
+
+      ! Add routine to path
+      call init_routine( routine_name)
+
+      ! Calculate vertically averaged ice velocities on the triangle edges
+      call map_velocities_from_b_to_c_2D( mesh, ice%u_vav_b, ice%v_vav_b, u_vav_c, v_vav_c)
+      call gather_to_all( u_vav_c, u_vav_c_tot)
+      call gather_to_all( v_vav_c, v_vav_c_tot)
+
+      ! Gather ice thickness from all processes
+      call gather_to_all( ice%Hi, Hi_tot)
+      call gather_to_all( ice%fraction_margin, fraction_margin_tot)
+
+      ! Gather basic masks to all processes
+      call gather_to_all( ice%mask_floating_ice , mask_floating_ice_tot )
+      call gather_to_all( ice%mask_icefree_land , mask_icefree_land_tot )
+      call gather_to_all( ice%mask_icefree_ocean, mask_icefree_ocean_tot)
+
+      ! Initialise
+      calving_flux                = 0._dp
+      calving_and_front_melt_flux = 0._dp
+      
+
+      do vi = mesh%vi1, mesh%vi2
+      if (ice%mask_ROI( vi) == i_ROI) then
+
+        ! Loop over all connections of vertex vi
+        do ci = 1, mesh%nC( vi)
+
+          ! Connection ci from vertex vi leads through edge ei to vertex vj
+          ei = mesh%VE( vi,ci)
+          vj = mesh%C(  vi,ci)
+
+          ! The Voronoi cell of vertex vi has area A_i
+          A_i = mesh%A( vi)
+
+          ! The shared Voronoi cell boundary section between the
+          ! Voronoi cells of vertices vi and vj has length L_c
+          L_c = mesh%Cw( vi,ci)
+
+          ! Calculate vertically averaged ice velocity component perpendicular
+          ! to this shared Voronoi cell boundary section
+          u_perp = u_vav_c_tot( ei) * mesh%D_x( vi, ci)/mesh%D( vi, ci) + v_vav_c_tot( ei) * mesh%D_y( vi, ci)/mesh%D( vi, ci)
+
+          ! Calculate the flux: if u_perp > 0, that means that this mass is
+          ! flowing out from our transitional vertex. If so, add it its (negative) total.
+          ! A negative velocity u_perp < 0 means that the ice is flowing _into_ this
+          ! transitional zone. That might happen if there is an ice shelf flowing into
+          ! grounded ice. Account for that as well to get a perfect mass tracking.
+          ! For the other zones, u_perp < 0 would come from an area with no ice, so
+          ! that case adds 0 anyway. Thus, only consider positive velocities.
+
+          ! Floating calving front
+          if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_cf_fl( vi) .and. mask_icefree_ocean_tot( vj)) THEN
+            calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
+            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+          end if
+
+          ! Land-terminating ice (grounded or floating)
+          if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_margin( vi) .and. mask_icefree_land_tot( vj)) then
+            calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
+            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+          end if
+
+          ! Marine-terminating ice (grounded or floating)
+          if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_margin( vi) .and. mask_icefree_ocean_tot( vj)) then
+            calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
+            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+          end if
+
+        end do ! do ci = 1, mesh%nC( vi)
+      end if ! ice%mask_ROI( vi) == i_ROI
+      end do ! do vi = mesh%vi1, mesh%vi2
+
+      ! Add together values from each process
+      call MPI_ALLREDUCE( MPI_IN_PLACE, calving_flux,                1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE( MPI_IN_PLACE, calving_and_front_melt_flux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+
+      ! Finalise routine path
+      call finalise_routine( routine_name)
+
+  end subroutine calc_ice_margin_fluxes_ROI
 
 end module ice_mass_and_fluxes_ROI
