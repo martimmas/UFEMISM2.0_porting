@@ -49,7 +49,7 @@ CONTAINS
         ! No need to do anything
       CASE ('LINEAR')
         ! No need to do anything
-      CASE ('AMUNDSEN_SEA')
+      CASE ('LINEAR_THERMOCLINE')
         ! No need to do anything
     END SELECT
 
@@ -89,8 +89,8 @@ CONTAINS
         CALL initialise_ocean_model_idealised_TANH( mesh, ocean)
       CASE ('LINEAR')
         CALL initialise_ocean_model_idealised_LINEAR( mesh, ocean)
-      CASE ('AMUNDSEN_SEA')
-        CALL initialise_ocean_model_idealised_AMUNDSEN_SEA( mesh, ocean)
+      CASE ('LINEAR_THERMOCLINE')
+        CALL initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     END SELECT
 
     ! Finalise routine path
@@ -229,10 +229,10 @@ CONTAINS
   ! == IDEALISED AMUNDSEN SEA ==
   ! ============
 
-  SUBROUTINE initialise_ocean_model_idealised_AMUNDSEN_SEA( mesh, ocean)
+  SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     ! Idealised forcing to compare with the MITgcm runs done by Paul for the Amundsen Sea
-    ! From 0 - 300 m depth: 34 PSU, -1.0 degC
-    ! From 700 - deep: 34.7 PSU, 1.2 degC
+    ! From 0 - 300 m depth: 34 PSU, -1.0 degC --> 200 m for THW 200m runs, 300 m for AMU 400m runs
+    ! From 700 - deep: 34.7 PSU, 1.2 degC --> 600 m for THW 200m runs, 700 m for AMU 400m runs
     ! In between these layers: a linear increase in temperature and salinity
 
     IMPLICIT NONE
@@ -241,32 +241,34 @@ CONTAINS
     TYPE(type_ocean_model),               INTENT(INOUT) :: ocean
 
     ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                       :: routine_name = 'initialise_ocean_model_idealised_AMUNDSEN_SEA'
+    CHARACTER(LEN=256), PARAMETER                       :: routine_name = 'initialise_ocean_model_idealised_LINEAR_THERMOCLINE'
     INTEGER                                             :: vi
     INTEGER                                             :: k
     REAL(dp), PARAMETER                                 :: S0 = 34.0_dp    ! [PSU]  Surface salinity
     REAL(dp), PARAMETER                                 :: T0 = -1.0_dp    ! [deg C]  Surface temperature
     REAL(dp), PARAMETER                                 :: S1 = 34.7_dp    ! [PSU]  Surface salinity
-    REAL(dp), PARAMETER                                 :: T1 = 1.2_dp    ! [deg C]  Surface temperature
+    REAL(dp), PARAMETER                                 :: T1 = 1.2_dp     ! [deg C]  Surface temperature
+    REAL(dp), PARAMETER                                 :: thermo_depth_start = 200.0_dp ! depth at which thermocline starts
+    REAL(dp), PARAMETER                                 :: thermo_depth_end = 600.0_dp ! depth at which thermocline starts
 
     ! Add routine to path
-    CALL init_routine( routine_name)
+    CALL init_routine( routine_name) 
 
     DO vi = mesh%vi1, mesh%vi2
       DO k = 1, C%nz_ocean
 
         ! Surface layer
-        IF (C%z_ocean( k) <= 300.0_dp ) THEN 
+        IF (C%z_ocean( k) <= thermo_depth_start ) THEN 
           ocean%T( vi, k) = T0
           ocean%S( vi, k) = S0
 
         ! Intermediate layer (thermocline), linearly increase temperature and salinity
-        ELSEIF (C%z_ocean( k) > 300.0_dp  .AND. C%z_ocean( k) < 700.0_dp) THEN 
-          ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-300._dp)/400._dp
-          ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-300._dp)/400._dp
+        ELSEIF (C%z_ocean( k) > thermo_depth_start  .AND. C%z_ocean( k) < thermo_depth_end) THEN 
+          ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-thermo_depth_start)/(thermo_depth_end-thermo_depth_start)
+          ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-thermo_depth_start)/(thermo_depth_end-thermo_depth_start)
 
         ! Deep layer
-        ELSEIF (C%z_ocean( k) >= 700.0_dp) THEN 
+        ELSEIF (C%z_ocean( k) >= thermo_depth_end) THEN 
           ocean%T( vi, k) = T1
           ocean%S( vi, k) = S1
 
@@ -278,6 +280,6 @@ CONTAINS
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
-  END SUBROUTINE initialise_ocean_model_idealised_AMUNDSEN_SEA
+  END SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE
 
 END MODULE ocean_idealised
