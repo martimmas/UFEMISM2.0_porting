@@ -7,7 +7,8 @@ module scalar_output_files
   use region_types, only: type_model_region
   use netcdf_io_main
   use reallocate_mod
-
+  use time_utilities, only: days_since_ISMIP_basetime
+  
   implicit none
 
   private
@@ -524,7 +525,7 @@ contains
       call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti)
 
       ! Write the time to the file
-      call write_buffer_to_scalar_file_single_variable( filename, ncid, 'time',              region%scalars%buffer%ismip%time,              n, ti+1)
+      call write_buffer_to_scalar_file_single_variable( filename, ncid, 'time', days_since_ISMIP_basetime(region%scalars%buffer%ismip%time), n, ti+1)
 
       ! Integrated ice geometry
       call write_buffer_to_scalar_file_single_variable( filename, ncid, 'lim',             region%scalars%buffer%ismip%lim,             n, ti+1)
