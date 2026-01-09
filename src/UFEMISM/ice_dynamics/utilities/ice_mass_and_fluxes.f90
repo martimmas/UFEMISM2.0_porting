@@ -4,6 +4,7 @@ module ice_mass_and_fluxes
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_SUM
   use precisions, only: dp
   use mpi_basic, only: par
+  use model_configuration, only: C
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use parameters, only: ice_density, seawater_density, ocean_area, sec_per_year
   use mesh_types, only: type_mesh
@@ -584,14 +585,21 @@ contains
       ! =============
 
       if (ice%mask_cf_gr( vi) .eqv. .FALSE.) then
-        land_ice_area_fraction( vi) = REAL( ice%mask_grounded_ice( vi) .OR. &
-                                            ice%mask_floating_ice( vi), dp)
+        if (ice%mask_grounded_ice( vi) .OR. ice%mask_floating_ice( vi)) then
+          land_ice_area_fraction( vi) = 1._dp
+        else
+          land_ice_area_fraction( vi) = 0._dp
+        end if
       else
         land_ice_area_fraction( vi) = ice%fraction_margin( vi)
       end if
 
       if (ice%mask_cf_fl( vi) .eqv. .FALSE.) then
-        floating_ice_shelf_area_fraction( vi) = REAL( ice%mask_floating_ice( vi), dp)
+        if (ice%mask_floating_ice( vi) .eqv. .TRUE.) then
+          floating_ice_shelf_area_fraction( vi) = 1._dp
+        else
+          floating_ice_shelf_area_fraction( vi) = 0._dp
+        end if
       else
         floating_ice_shelf_area_fraction( vi) = ice%fraction_margin( vi)
       end if
