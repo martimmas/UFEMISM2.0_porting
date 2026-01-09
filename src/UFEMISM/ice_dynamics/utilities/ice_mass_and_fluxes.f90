@@ -66,6 +66,11 @@ contains
     ! Compute area- and transitional-lines-integrated fluxes
     call calc_icesheet_integrated_fluxes( mesh, ice, SMB, BMB, LMB, scalars)
 
+    ! ISMIP quantities
+    if (C%do_create_ISMIP_output) then
+      call calc_ISMIP_scalars( mesh, ice, SMB, BMB, scalars)
+    end if
+
     ! Finalise routine path
     call finalise_routine( routine_name)
 
@@ -466,7 +471,7 @@ contains
 
     real(dp), dimension(mesh%ei1:mesh%ei2) :: u_vav_c, v_vav_c
     real(dp), dimension(mesh%nE)           :: u_vav_c_tot, v_vav_c_tot
-    real(dp), dimension(mesh%nV)           :: Hi_tot
+    real(dp), dimension(mesh%nV)           :: Hi_tot, TAF_tot
     real(dp), dimension(mesh%nV)           :: fraction_margin_tot
     logical,  dimension(mesh%nV)           :: mask_floating_ice_tot
     logical,  dimension(mesh%nV)           :: mask_icefree_land_tot
@@ -507,10 +512,10 @@ contains
     call gather_to_all( ice%mask_icefree_land , mask_icefree_land_tot )
     call gather_to_all( ice%mask_icefree_ocean, mask_icefree_ocean_tot)
 
-    allocate( land_ice_area_fraction          ( region%mesh%vi1:region%mesh%vi2))
-    allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
-    allocate( calving_flux                    ( region%mesh%vi1:region%mesh%vi2))
-    allocate( calving_and_front_melt_flux     ( region%mesh%vi1:region%mesh%vi2))
+    allocate( land_ice_area_fraction          ( mesh%vi1:mesh%vi2))
+    allocate( floating_ice_shelf_area_fraction( mesh%vi1:mesh%vi2))
+    allocate( calving_flux                    ( mesh%vi1:mesh%vi2))
+    allocate( calving_and_front_melt_flux     ( mesh%vi1:mesh%vi2))
 
     ! Initialise
     land_ice_mass                     = 0._dp
@@ -523,7 +528,7 @@ contains
     total_calving_flux                = 0._dp
     total_calving_and_front_melt_flux = 0._dp
 
-    DO vi = region%mesh%vi1, region%mesh%vi2
+    DO vi = mesh%vi1, mesh%vi2
 
       ! Calving and front melting fluxes
       ! ================================
@@ -578,32 +583,32 @@ contains
       ! Ice fractions
       ! =============
 
-      if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
-        land_ice_area_fraction( vi) = REAL( region%ice%mask_grounded_ice( vi) .OR. &
-                                            region%ice%mask_floating_ice( vi), dp)
+      if (ice%mask_cf_gr( vi) .eqv. .FALSE.) then
+        land_ice_area_fraction( vi) = REAL( ice%mask_grounded_ice( vi) .OR. &
+                                            ice%mask_floating_ice( vi), dp)
       else
-        land_ice_area_fraction( vi) = region%ice%fraction_margin( vi)
+        land_ice_area_fraction( vi) = ice%fraction_margin( vi)
       end if
 
-      if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
-        floating_ice_shelf_area_fraction( vi) = REAL( region%ice%mask_floating_ice( vi), dp)
+      if (ice%mask_cf_fl( vi) .eqv. .FALSE.) then
+        floating_ice_shelf_area_fraction( vi) = REAL( ice%mask_floating_ice( vi), dp)
       else
-        floating_ice_shelf_area_fraction( vi) = region%ice%fraction_margin( vi)
+        floating_ice_shelf_area_fraction( vi) = ice%fraction_margin( vi)
       end if
 
       ! Integrated values
       ! =================
-      land_ice_mass                     = land_ice_mass                     + (Hi_tot(                  vi) * region%mesh%A( vi) * ice_density)    ! kg
-      mass_above_floatation             = mass_above_floatation             + MAX( 0._dp, TAF_tot(      vi) * region%mesh%A( vi) * ice_density)    ! kg
-      grounded_ice_sheet_area           = grounded_ice_sheet_area           + (region%ice%fraction_gr( vi)  * region%mesh%A( vi))                  ! m2
-      floating_ice_sheet_area           = floating_ice_sheet_area           + (floating_ice_shelf_area_fraction( vi) * region%mesh%A( vi))                  ! m2
-      total_SMB                         = total_SMB                         + (land_ice_area_fraction( vi) * region%SMB%SMB_year(  vi) * region%mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
-      total_BMB                         = total_BMB                         + (land_ice_area_fraction( vi) * region%BMB%BMB(       vi) * region%mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
-      total_BMB_shelf                   = total_BMB_shelf                   + (land_ice_area_fraction( vi) * region%BMB%BMB_shelf( vi) * region%mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
-      total_calving_flux                = total_calving_flux                + (calving_flux( vi)                                       * region%mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
-      total_calving_and_front_melt_flux = total_calving_and_front_melt_flux + (calving_and_front_melt_flux( vi)                        * region%mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
+      land_ice_mass                     = land_ice_mass                     + (Hi_tot(                  vi) * mesh%A( vi) * ice_density)    ! kg
+      mass_above_floatation             = mass_above_floatation             + MAX( 0._dp, TAF_tot(      vi) * mesh%A( vi) * ice_density)    ! kg
+      grounded_ice_sheet_area           = grounded_ice_sheet_area           + (ice%fraction_gr( vi)  * mesh%A( vi))                  ! m2
+      floating_ice_sheet_area           = floating_ice_sheet_area           + (floating_ice_shelf_area_fraction( vi) * mesh%A( vi))                  ! m2
+      total_SMB                         = total_SMB                         + (land_ice_area_fraction( vi) * SMB%SMB(  vi) * mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
+      total_BMB                         = total_BMB                         + (land_ice_area_fraction( vi) * BMB%BMB(       vi) * mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
+      total_BMB_shelf                   = total_BMB_shelf                   + (land_ice_area_fraction( vi) * BMB%BMB_shelf( vi) * mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
+      total_calving_flux                = total_calving_flux                + (calving_flux( vi)                                       * mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
+      total_calving_and_front_melt_flux = total_calving_and_front_melt_flux + (calving_and_front_melt_flux( vi)                        * mesh%A( vi) * ice_density / sec_per_year) ! kg s-1
 
-    END DO ! vi = 1, region%mesh%nV
+    END DO ! vi = mesh%vi1, mesh%vi2
     
     scalars%ismip%lim             = land_ice_mass
     scalars%ismip%limnsw          = mass_above_floatation
@@ -638,10 +643,10 @@ contains
 
 
       ! In/output variables:
-      type(type_mesh),             intent(in   ) :: mesh
-      type(type_ice_model),        intent(in   ) :: ice
-      real(dp),                    intent(  out) :: calving_flux
-      real(dp),                    intent(  out) :: calving_and_front_melt_flux
+      type(type_mesh),              intent(in   ) :: mesh
+      type(type_ice_model),         intent(in   ) :: ice
+      real(dp), dimension(mesh%nV), intent(  out) :: calving_flux
+      real(dp), dimension(mesh%nV), intent(  out) :: calving_and_front_melt_flux
 
       ! Local variables:
       character(len=1024), parameter         :: routine_name = 'calc_ice_margin_fluxes'
