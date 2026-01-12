@@ -7,7 +7,6 @@ module scalar_output_files_ROI
   use region_types, only: type_model_region
   use netcdf_io_main
   use reallocate_mod
-  use time_utilities, only: days_since_ISMIP_basetime
 
   implicit none
 
