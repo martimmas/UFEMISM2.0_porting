@@ -15,9 +15,8 @@ contains
     integer,                     intent(in) :: ncid
 
     ! Local variables:
-    character(len=1024), parameter                        :: routine_name = 'write_to_netcdf'
-    type(type_third_dimension), dimension(:), allocatable :: dims
-    integer                                               :: i
+    character(len=1024), parameter :: routine_name = 'write_to_netcdf'
+    integer                        :: i
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -30,5 +29,30 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine write_to_netcdf
+
+  subroutine read_from_netcdf( flds_reg, filename, ncid)
+    ! NOTE: assumes the NetCDF file is defined on
+    !       the same grid/mesh as the fields
+
+    ! In/output variables:
+    class(type_fields_registry), intent(inout) :: flds_reg
+    character(len=*),            intent(in   ) :: filename
+    integer,                     intent(in   ) :: ncid
+
+    ! Local variables:
+    character(len=1024), parameter                        :: routine_name = 'read_from_netcdf'
+    integer                                               :: i
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    do i = 1, flds_reg%n
+      call flds_reg%items(i)%p%read_from_netcdf( filename, ncid)
+    end do
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine read_from_netcdf
 
 end submodule fields_registry_submod_io

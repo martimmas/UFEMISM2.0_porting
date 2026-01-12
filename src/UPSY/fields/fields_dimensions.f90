@@ -8,6 +8,7 @@ module fields_dimensions
     initialise_scaled_vertical_coordinate_old_15_layer
   use netcdf_io_main
   use netcdf, only: NF90_DOUBLE
+  use mpi_f08, only: MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD
 
   implicit none
 
@@ -31,6 +32,7 @@ module fields_dimensions
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_third_dimension_equality
     procedure, public  :: create_dim_and_var_in_netcdf
+    procedure, public  :: is_dim_and_var_in_netcdf
   end type type_third_dimension
 
   type(type_third_dimension_factory) :: third_dimension
@@ -134,5 +136,49 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine create_dim_and_var_in_netcdf
+
+  function is_dim_and_var_in_netcdf( dim, filename, ncid) result( res)
+
+    ! In/output variables:
+    class(type_third_dimension), intent(in) :: dim
+    character(len=*),            intent(in) :: filename
+    integer,                     intent(in) :: ncid
+    logical                                 :: res
+
+    ! Local variables:
+    character(len=1024), parameter      :: routine_name = 'is_dim_and_var_in_netcdf'
+    integer                             :: dim_length, id_dim, id_var
+    real(dp), dimension(:), allocatable :: d_from_file
+    integer                             :: ierr
+    integer                             :: i
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    res = .false.
+
+    ! Check if the corresponding dimension exists in the file, and is of the correct length
+    call inquire_dim( filename, ncid, trim( dim%name), dim_length, id_dim)
+    if (id_dim == -1 .or. dim_length /= dim%n) goto 888
+
+    ! Check if the corresponding variable exists in the file
+    call inquire_var( filename, ncid, trim( dim%name), id_var)
+    if (id_var == -1) goto 888
+
+    ! Read it, and check if it has the right values
+    allocate( d_from_file( dim_length))
+    call read_var_primary( filename, ncid, id_var, d_from_file)
+    call MPI_BCAST( d_from_file, dim_length, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+
+    do i = 1, dim_length
+      if (abs( d_from_file( i) / dim%val( i) - 1._dp) > 1e-9_dp) goto 888
+    end do
+
+    res = .true.
+
+    ! Remove routine from call stack
+888 call finalise_routine( routine_name)
+
+  end function is_dim_and_var_in_netcdf
 
 end module fields_dimensions

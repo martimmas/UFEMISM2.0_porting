@@ -45,12 +45,15 @@ module fields_registry
     procedure, private :: create_field_int_3D
     procedure, private :: create_field_dp_3D
 
+    generic,   public  :: operator(==) => eq
+    procedure, private :: eq => test_fields_registry_equality
     procedure, private :: add => add_field_to_registry
     procedure, private :: extend => extend_field_registry
     procedure, public  :: find => find_field_by_name
     procedure, public  :: print_info
 
     procedure, public  :: write_to_netcdf
+    procedure, public  :: read_from_netcdf
 
   end type type_fields_registry
 
@@ -59,6 +62,11 @@ module fields_registry
 
   ! basics
   interface
+
+    module function test_fields_registry_equality( flds_reg1, flds_reg2) result( res)
+      class(type_fields_registry), intent(in) :: flds_reg1, flds_reg2
+      logical                                 :: res
+    end function test_fields_registry_equality
 
     module subroutine add_field_to_registry( flds_reg, field)
       class(type_fields_registry), intent(inout) :: flds_reg
@@ -181,6 +189,12 @@ module fields_registry
       character(len=*),            intent(in) :: filename
       integer,                     intent(in) :: ncid
     end subroutine write_to_netcdf
+
+    module subroutine read_from_netcdf( flds_reg, filename, ncid)
+      class(type_fields_registry), intent(inout) :: flds_reg
+      character(len=*),            intent(in   ) :: filename
+      integer,                     intent(in   ) :: ncid
+    end subroutine read_from_netcdf
 
   end interface
 

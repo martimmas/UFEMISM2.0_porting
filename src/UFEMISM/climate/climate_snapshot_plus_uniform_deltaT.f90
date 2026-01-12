@@ -19,7 +19,6 @@ MODULE climate_snapshot_plus_uniform_deltaT
   USE netcdf_io_main
   USE netcdf_basic
   use reallocate_mod                                         , only: reallocate_bounds
-  use mpi_distributed_memory, only: distribute_from_primary
   use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, get_insolation_at_time
 
   IMPLICIT NONE
@@ -99,7 +98,7 @@ CONTAINS
 
     ! Run the chosen realistic climate model
     climate%snapshot_unif_dT%snapshot%has_insolation = .FALSE.
-    
+
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
@@ -192,7 +191,7 @@ CONTAINS
     ! Local Variables
     CHARACTER(LEN=256), PARAMETER                        :: routine_name = 'apply_precipitation_CC_correction'
     INTEGER                                              :: vi, m
-    
+
     ! Add routine to path
     CALL init_routine( routine_name)
 
@@ -227,7 +226,7 @@ CONTAINS
     CALL init_routine( routine_name)
 
     IF     ((C%choice_climate_model_realistic == 'snapshot_plus_uniform_deltaT') .AND. (climate%snapshot_unif_dT%snapshot%do_lapse_rates)) THEN
-      
+
       allocate( T_inv     (mesh%vi1:mesh%vi2, 12))
       allocate( T_inv_ref (mesh%vi1:mesh%vi2, 12))
 
@@ -272,7 +271,7 @@ CONTAINS
     character(LEN=3),                       intent(in)    :: region_name
 
     ! Local variables
-    character(LEN=256), parameter                         :: routine_name = 'remap_climate_snapshot_plus_uniform_deltaT' 
+    character(LEN=256), parameter                         :: routine_name = 'remap_climate_snapshot_plus_uniform_deltaT'
     character(LEN=256)                                    :: choice_climate_model
     character(LEN=256)                                    :: filename_climate_snapshot
     character(LEN=256)                                    :: choice_SMB_model
@@ -291,7 +290,7 @@ CONTAINS
       IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
           climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
       END IF
-    case ('EAS') 
+    case ('EAS')
       filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_EAS
       climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_EAS
       climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
@@ -324,7 +323,7 @@ CONTAINS
     IF (climate%snapshot_unif_dT%snapshot%has_insolation .eqv. .TRUE.) THEN
       call remap_snapshot( climate%snapshot, mesh_new)
     END IF
-      
+
     ! Read single-time data from external file
     call read_field_from_file_2D( filename_climate_snapshot, 'Hs', mesh_new, C%output_dir, climate%snapshot%Hs)
     call read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m', mesh_new, C%output_dir, climate%T2m)

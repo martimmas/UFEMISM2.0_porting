@@ -14,7 +14,6 @@ module ut_mpi_CSR_matrix_vector_multiplication
     multiply_CSR_matrix_with_vector_1D_wrapper
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, MPI_WIN
   use mpi_distributed_shared_memory
-  use mpi_distributed_memory, only: distribute_from_primary
 
   implicit none
 
