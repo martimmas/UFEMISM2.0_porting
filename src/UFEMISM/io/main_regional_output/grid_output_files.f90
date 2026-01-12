@@ -1858,6 +1858,7 @@ contains
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'yvelmean')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litemptop')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotgr')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotfl')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'strbasemag')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'licalvf')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lifmassbf')
