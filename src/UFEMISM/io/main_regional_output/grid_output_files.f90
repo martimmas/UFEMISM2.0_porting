@@ -1900,7 +1900,7 @@ contains
       call open_existing_netcdf_file_for_writing( region%output_filename_grid_ismip, ncid)
 
       ! write the time to the file
-      call write_time_to_file( region%output_filename_grid_ismip, ncid, days_since_ISMIP_basetime(region%time))
+      call write_time_to_file( region%output_filename_grid_ismip, ncid, region%time * 360._dp)
 
       ! write the default data fields to the file
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lithk')
@@ -2036,7 +2036,7 @@ contains
     call open_existing_netcdf_file_for_writing( filename, ncid)
 
     ! write the time to the file
-    call write_time_to_file( filename, ncid, days_since_ISMIP_basetime(region%time))
+    call write_time_to_file( filename, ncid, region%time * 360._dp)
 
     ! write the ISMIP data fields to the file
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lithk')
