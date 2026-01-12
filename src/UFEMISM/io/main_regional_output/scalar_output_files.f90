@@ -530,7 +530,7 @@ contains
       ! Integrated ice geometry
       call write_buffer_to_scalar_file_single_variable( filename, ncid, 'lim',             region%scalars%buffer%ismip%lim,             n, ti+1)
       call write_buffer_to_scalar_file_single_variable( filename, ncid, 'limnsw',          region%scalars%buffer%ismip%limnsw,          n, ti+1)
-      call write_buffer_to_scalar_file_single_variable( filename, ncid, 'iareagl',         region%scalars%buffer%ismip%iareagl,         n, ti+1)
+      call write_buffer_to_scalar_file_single_variable( filename, ncid, 'iareagr',         region%scalars%buffer%ismip%iareagr,         n, ti+1)
       call write_buffer_to_scalar_file_single_variable( filename, ncid, 'iareafl',         region%scalars%buffer%ismip%iareafl,         n, ti+1)
 
       call write_buffer_to_scalar_file_single_variable( filename, ncid, 'tendacabf',       region%scalars%buffer%ismip%tendacabf,       n, ti+1)
@@ -678,7 +678,7 @@ contains
 
       region%scalars%buffer%ismip%lim     ( n) = region%scalars%ismip%lim
       region%scalars%buffer%ismip%limnsw  ( n) = region%scalars%ismip%limnsw
-      region%scalars%buffer%ismip%iareagl ( n) = region%scalars%ismip%iareagl
+      region%scalars%buffer%ismip%iareagr ( n) = region%scalars%ismip%iareagr
       region%scalars%buffer%ismip%iareafl ( n) = region%scalars%ismip%iareafl
 
       region%scalars%buffer%ismip%tendacabf       ( n) = region%scalars%ismip%tendacabf
@@ -716,7 +716,7 @@ contains
 
     call reallocate( region%scalars%buffer%ismip%lim             , n_mem, source = 0._dp)
     call reallocate( region%scalars%buffer%ismip%limnsw          , n_mem, source = 0._dp)
-    call reallocate( region%scalars%buffer%ismip%iareagl         , n_mem, source = 0._dp)
+    call reallocate( region%scalars%buffer%ismip%iareagr         , n_mem, source = 0._dp)
     call reallocate( region%scalars%buffer%ismip%iareafl         , n_mem, source = 0._dp)
 
     call reallocate( region%scalars%buffer%ismip%tendacabf       , n_mem, source = 0._dp)

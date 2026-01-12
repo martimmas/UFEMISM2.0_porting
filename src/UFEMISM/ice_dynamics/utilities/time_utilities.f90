@@ -7,6 +7,8 @@ module time_utilities
 
   implicit none
 
+  contains
+
   function days_since_ISMIP_basetime( time) result( ndays)
     ! Calculate the number of days since ISMIP basetime
     ! Assume basetime equals t = 0

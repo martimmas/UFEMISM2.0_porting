@@ -7,7 +7,7 @@ module grid_output_files
   use region_types, only: type_model_region
   use grid_types, only: type_grid
   use netcdf_io_main
-  use ice_mass_and_fluxes, only: 
+  use ice_mass_and_fluxes, only: calc_ice_margin_fluxes
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
@@ -238,11 +238,13 @@ contains
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D_ocean
     real(dp), dimension(:),   allocatable :: mask_int
+    integer                               :: vi
 
     ! 2D ISMIP-only variables
     REAL(dp), DIMENSION(:),   allocatable :: Ti_base_gr
     REAL(dp), DIMENSION(:),   allocatable :: Ti_base_fl
     REAL(dp), DIMENSION(:),   allocatable :: basal_drag
+    REAL(dp), DIMENSION(:),   allocatable :: BMB_sheet
     REAL(dp), DIMENSION(:),   allocatable :: calving_flux
     REAL(dp), DIMENSION(:),   allocatable :: calving_and_front_melt_flux
     REAL(dp), DIMENSION(:),   allocatable :: land_ice_area_fraction
@@ -873,15 +875,20 @@ contains
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Hb, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'topg', d_grid_vec_partial_2D)
     case ('hfgeoubed')
-      ! TODO: GHF from where?
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%geothermal_heat_flux, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'hfgeoubed', d_grid_vec_partial_2D)
     case ('acabf')
-      ! TODO: SMB_year from where?
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB_year, d_grid_vec_partial_2D)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'acabf', d_grid_vec_partial_2D)
     case ('libmassbfgr')
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%BMB%BMB_sheet, d_grid_vec_partial_2D)
+      allocate( BMB_sheet( region%mesh%vi1:region%mesh%vi2))
+      BMB_sheet = 0._dp
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
+          BMB_sheet( vi) = region%BMB%BMB( vi)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_sheet, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbfgr', d_grid_vec_partial_2D)
     case ('libmassbffl')
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%BMB%BMB_shelf, d_grid_vec_partial_2D)
@@ -918,8 +925,8 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litemptop', d_grid_vec_partial_2D)
     case ('litempbotgr')
       allocate( Ti_base_gr( region%mesh%vi1:region%mesh%vi2))
-      do vi = region:mesh:vi1, region:mesh:vi2
-        if (region%ice%mask_grounded_ice(vi) == 1) then
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
           Ti_base_gr( vi) = region%ice%Ti( vi,C%nz)
         end if
       end do
@@ -927,8 +934,8 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
     case ('litempbotfl')
       allocate( Ti_base_fl( region%mesh%vi1:region%mesh%vi2))
-      do vi = region:mesh:vi1, region:mesh:vi2
-        if (region%ice%mask_floating_ice(vi) == 1) then
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
           Ti_base_fl( vi) = region%ice%Ti( vi,C%nz)
         end if
       end do
@@ -938,12 +945,12 @@ contains
       ! TODO: what to prescribe here?? basal_shear_stress? basal_friction_coefficient?
       ! From UFEMISM1.x:
       ! allocate( basal_drag( region%mesh%vi1:region%mesh%vi2))
-      ! do vi = region:mesh:vi1, region:mesh:vi2
+      ! do vi = region%mesh%vi1, region%mesh%vi2
       !   IF (region%ice%mask_grounded_ice( vi) == 1 .AND. region%ice%f_grnd_a( vi) > 0._dp) THEN
       !     basal_drag( vi) = region%ice%uabs_base_a( vi) * region%ice%beta_a( vi) * region%ice%f_grnd_a( vi)**.5_dp
       !   END IF
       ! end do
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, basal_shear_stress, d_grid_vec_partial_2D)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%basal_shear_stress, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'strbasemag', d_grid_vec_partial_2D)
     case ('licalvf')
       allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2))
@@ -959,10 +966,13 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'lifmassbf', d_grid_vec_partial_2D)
     case ('sftgif')
       allocate( land_ice_area_fraction( region%mesh%vi1:region%mesh%vi2))
-      do vi = region:mesh:vi1, region:mesh:vi2
+      do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
-          land_ice_area_fraction( vi) = REAL( region%ice%mask_grounded_ice( vi) .OR. &
-                                               region%ice%mask_floating_ice( vi), dp)
+           if( region%ice%mask_grounded_ice( vi) .OR. region%ice%mask_floating_ice( vi)) then
+              land_ice_area_fraction( vi) = 1._dp
+            else
+              land_ice_area_fraction( vi) = 0._dp
+            end if
         else
           land_ice_area_fraction( vi) = region%ice%fraction_margin( vi)
         end if
@@ -974,9 +984,13 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgrf', d_grid_vec_partial_2D)
     case ('sftflf')
       allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
-      do vi = region:mesh:vi1, region:mesh:vi2
+      do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
-          floating_ice_shelf_area_fraction( vi) = REAL( region%ice%mask_floating_ice( vi), dp)
+           if( region%ice%mask_floating_ice( vi)) then
+            floating_ice_shelf_area_fraction( vi) = 1._dp
+          else
+            floating_ice_shelf_area_fraction( vi) = 0._dp
+          end if
         else
           floating_ice_shelf_area_fraction( vi) = region%ice%fraction_margin( vi)
         end if
@@ -1802,7 +1816,7 @@ contains
       call init_routine( routine_name)
 
       ! if no NetCDF output should be created, do nothing
-      if (.not. C%do_create_netcdf_ISMIP_output) then
+      if (.not. C%do_create_ISMIP_output) then
         call finalise_routine( routine_name)
         return
       end if

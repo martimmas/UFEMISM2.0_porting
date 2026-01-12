@@ -552,7 +552,7 @@ contains
 
       call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'tendacabf',          region%scalars_ROI(i_ROI)%buffer%ismip%tendacabf,          n, ti+1)
       call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'tendlibmassbf',      region%scalars_ROI(i_ROI)%buffer%ismip%tendlibmassbf,      n, ti+1)
-      call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'litendlibmassbfflm', region%scalars_ROI(i_ROI)%buffer%ismip%litendlibmassbfflm, n, ti+1)
+      call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'tendlibmassbffl',    region%scalars_ROI(i_ROI)%buffer%ismip%tendlibmassbffl,    n, ti+1)
       call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'tendlicalvf',        region%scalars_ROI(i_ROI)%buffer%ismip%tendlicalvf,        n, ti+1)
       call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'tendlifmassbf',      region%scalars_ROI(i_ROI)%buffer%ismip%tendlifmassbf,      n, ti+1)
       
@@ -700,7 +700,7 @@ contains
 
         region%scalars_ROI(i_ROI)%buffer%ismip%lim     ( n) = region%scalars_ROI(i_ROI)%ismip%lim
         region%scalars_ROI(i_ROI)%buffer%ismip%limnsw  ( n) = region%scalars_ROI(i_ROI)%ismip%limnsw
-        region%scalars_ROI(i_ROI)%buffer%ismip%iareagl ( n) = region%scalars_ROI(i_ROI)%ismip%iareagl
+        region%scalars_ROI(i_ROI)%buffer%ismip%iareagr ( n) = region%scalars_ROI(i_ROI)%ismip%iareagr
         region%scalars_ROI(i_ROI)%buffer%ismip%iareafl ( n) = region%scalars_ROI(i_ROI)%ismip%iareafl
 
         region%scalars_ROI(i_ROI)%buffer%ismip%tendacabf       ( n) = region%scalars_ROI(i_ROI)%ismip%tendacabf
@@ -741,7 +741,7 @@ contains
 
       call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%lim             , n_mem, source = 0._dp)
       call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%limnsw          , n_mem, source = 0._dp)
-      call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%iareagl         , n_mem, source = 0._dp)
+      call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%iareagr         , n_mem, source = 0._dp)
       call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%iareafl         , n_mem, source = 0._dp)
 
       call reallocate( region%scalars_ROI(i_ROI)%buffer%ismip%tendacabf       , n_mem, source = 0._dp)
