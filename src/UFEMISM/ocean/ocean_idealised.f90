@@ -226,8 +226,8 @@ CONTAINS
 
   END SUBROUTINE initialise_ocean_model_idealised_LINEAR
 
-  ! == IDEALISED AMUNDSEN SEA ==
-  ! ============
+  ! == LINEAR THERMOCLINE ==
+  ! ========================
 
   SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     ! Idealised forcing representing a two-layer ocean forcing separated by a linear thermocline in between
