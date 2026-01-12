@@ -100,7 +100,7 @@ MODULE region_types
     INTEGER                                     :: nROI                              ! Number of regions of interest for this model region
     TYPE(type_grid),             DIMENSION(100) :: output_grids_ROI                  ! The square grids used for gridded output files for the region of interest
     CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_grid_ROI         ! Name of NetCDF output file for the region of interest (grid version)
-    CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_grid_ismip_ROI   ! Name of ISMIP NetCDF output file for the region of interest (grid version)
+    CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_ismip_grid_ROI   ! Name of ISMIP NetCDF output file for the region of interest (grid version)
     TYPE(type_regional_scalars), DIMENSION(100) :: scalars_ROI                       ! Scalar data (e.g. total area, volume, mass balance) for the region of interest
     CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_scalar_ROI       ! Name of NetCDF output file for the region of interest (scalar version)
     CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_ismip_scalar_ROI ! Name of ISMIP NetCDF output file for the region of interest (scalar version)

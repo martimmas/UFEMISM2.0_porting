@@ -654,7 +654,7 @@ CONTAINS
 
     ! Create the scalar regional output file
     CALL create_scalar_regional_output_file( region)
-    CALL create_scalar_ISMIP_regional_output_file( region)
+    CALL create_ISMIP_scalar_regional_output_file( region)
     if (region%nROI > 0) then
       CALL create_scalar_regional_output_file_ROI( region)
       CALL create_ISMIP_scalar_regional_output_file_ROI( region)
