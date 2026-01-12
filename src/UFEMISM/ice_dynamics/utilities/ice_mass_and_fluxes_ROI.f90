@@ -653,6 +653,8 @@ contains
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%tendlicalvf,     1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%tendlifmassbf,   1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
 
+    ! Finalise routine path
+    call finalise_routine( routine_name)
 
   end subroutine calc_ISMIP_scalars_ROI
 
