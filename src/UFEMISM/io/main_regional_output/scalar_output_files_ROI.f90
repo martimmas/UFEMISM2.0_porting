@@ -542,7 +542,7 @@ contains
       call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti)
 
       ! Write the time to the file
-      call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'time', days_since_ISMIP_basetime(region%scalars_ROI(i_ROI)%buffer%ismip%time),               n, ti+1)
+      call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'time',               region%scalars_ROI(i_ROI)%buffer%ismip%time * 360._dp,     n, ti+1)
 
       ! Integrated ice geometry
       call write_buffer_to_scalar_file_single_variable_ROI( filename, ncid, 'lim',                region%scalars_ROI(i_ROI)%buffer%ismip%lim,                n, ti+1)
