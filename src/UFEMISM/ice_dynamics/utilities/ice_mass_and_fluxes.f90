@@ -38,7 +38,7 @@ contains
     type(type_regional_scalars),   intent(inout) :: scalars
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'calc_ice_model_scalars'
+    character(len=1024), parameter :: routine_name = 'calc_ice_mass_and_fluxes'
 
     ! === Initialisation ===
     ! ======================
@@ -639,6 +639,8 @@ contains
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%tendlicalvf,     1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%tendlifmassbf,   1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
 
+    ! Finalise routine path
+    call finalise_routine( routine_name)
 
   end subroutine calc_ISMIP_scalars
 
