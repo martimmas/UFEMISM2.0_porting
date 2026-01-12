@@ -49,6 +49,8 @@ CONTAINS
         ! No need to do anything
       CASE ('LINEAR')
         ! No need to do anything
+      CASE ('LINEAR_THERMOCLINE')
+        ! No need to do anything
     END SELECT
 
     ! Finalise routine path
@@ -87,6 +89,8 @@ CONTAINS
         CALL initialise_ocean_model_idealised_TANH( mesh, ocean)
       CASE ('LINEAR')
         CALL initialise_ocean_model_idealised_LINEAR( mesh, ocean)
+      CASE ('LINEAR_THERMOCLINE')
+        CALL initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     END SELECT
 
     ! Finalise routine path
@@ -221,5 +225,60 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE initialise_ocean_model_idealised_LINEAR
+
+  ! == LINEAR THERMOCLINE ==
+  ! ========================
+
+  SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
+    ! Idealised forcing representing a two-layer ocean forcing separated by a linear thermocline in between
+    ! See for example Figure 3 from de Rydt et al. (2014), https://doi.org/10.1002/2013JC009513
+
+    IMPLICIT NONE
+
+    TYPE(type_mesh),                      INTENT(IN)    :: mesh
+    TYPE(type_ocean_model),               INTENT(INOUT) :: ocean
+
+    ! Local variables:
+    CHARACTER(LEN=256), PARAMETER                       :: routine_name = 'initialise_ocean_model_idealised_LINEAR_THERMOCLINE'
+    INTEGER                                             :: vi
+    INTEGER                                             :: k
+    REAL(dp)                                            :: S0, S1, T0, T1
+
+    ! Add routine to path
+    CALL init_routine( routine_name) 
+
+    ! Read in surface (0) / deep (1) layer salinity (S) and temperature (T)
+    S0 = C%ocean_lin_therm_surf_salinity
+    S1 = C%ocean_lin_therm_deep_salinity
+    T0 = C%ocean_lin_therm_surf_temperature
+    T1 = C%ocean_lin_therm_deep_temperature
+
+    DO vi = mesh%vi1, mesh%vi2
+      DO k = 1, C%nz_ocean
+
+        ! Surface layer
+        IF (C%z_ocean( k) <= C%ocean_lin_therm_thermocline_top ) THEN 
+          ocean%T( vi, k) = T0
+          ocean%S( vi, k) = S0
+
+        ! Thermocline
+        ELSEIF (C%z_ocean( k) > C%ocean_lin_therm_thermocline_top  .AND. C%z_ocean( k) < C%ocean_lin_therm_thermocline_bottom) THEN 
+          ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
+          ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
+
+        ! Deep layer
+        ELSEIF (C%z_ocean( k) >= C%ocean_lin_therm_thermocline_bottom) THEN 
+          ocean%T( vi, k) = T1
+          ocean%S( vi, k) = S1
+
+        END IF
+
+      END DO
+    END DO
+
+    ! Finalise routine path
+    CALL finalise_routine( routine_name)
+
+  END SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE
 
 END MODULE ocean_idealised
