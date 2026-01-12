@@ -231,6 +231,7 @@ CONTAINS
 
   SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     ! Idealised forcing representing a two-layer ocean forcing separated by a linear thermocline in between
+    ! See for example Figure S1 from Holland et al. (2023), https://doi.org/10.1029/2023GL103088
 
     IMPLICIT NONE
 
@@ -246,6 +247,7 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name) 
 
+    ! Read in surface (0) / deep (1) layer salinity (S) and temperature (T)
     S0 = C%ocean_lin_therm_surf_salinity
     S1 = C%ocean_lin_therm_deep_salinity
     T0 = C%ocean_lin_therm_surf_temperature
@@ -259,7 +261,7 @@ CONTAINS
           ocean%T( vi, k) = T0
           ocean%S( vi, k) = S0
 
-        ! Intermediate layer (thermocline), linearly increase temperature and salinity
+        ! Thermocline
         ELSEIF (C%z_ocean( k) > C%ocean_lin_therm_thermocline_top  .AND. C%z_ocean( k) < C%ocean_lin_therm_thermocline_bottom) THEN 
           ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
           ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
