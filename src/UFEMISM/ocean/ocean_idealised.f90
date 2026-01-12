@@ -231,7 +231,7 @@ CONTAINS
 
   SUBROUTINE initialise_ocean_model_idealised_LINEAR_THERMOCLINE( mesh, ocean)
     ! Idealised forcing representing a two-layer ocean forcing separated by a linear thermocline in between
-    ! See for example Figure S1 from Holland et al. (2023), https://doi.org/10.1029/2023GL103088
+    ! See for example Figure 3 from de Rydt et al. (2014), https://doi.org/10.1002/2013JC009513
 
     IMPLICIT NONE
 
