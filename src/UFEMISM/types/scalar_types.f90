@@ -8,7 +8,27 @@ module scalar_types
 
   public :: type_regional_scalars, type_scalar_output_buffer, type_regional_ismip_scalars, type_ismip_scalar_output_buffer
 
-  contains
+  type type_ismip_scalar_output_buffer
+    !< Memory for buffering scalar output (from every model time step) between output writing intervals
+    ! for ISMIP data-request scalar file
+
+    integer :: n_mem         !< Number of timeframes for which memory has been allocated
+    integer :: n             !< Number of timeframes that are currently buffered
+
+    real(dp), dimension(:), allocatable :: time
+  
+    real(dp), dimension(:), allocatable :: lim
+    real(dp), dimension(:), allocatable :: limnsw
+    real(dp), dimension(:), allocatable :: iareagr  
+    real(dp), dimension(:), allocatable :: iareafl
+
+    real(dp), dimension(:), allocatable :: tendacabf      
+    real(dp), dimension(:), allocatable :: tendlibmassbf  
+    real(dp), dimension(:), allocatable :: tendlibmassbffl
+    real(dp), dimension(:), allocatable :: tendlicalvf  
+    real(dp), dimension(:), allocatable :: tendlifmassbf
+
+  end type type_ismip_scalar_output_buffer
 
   type type_scalar_output_buffer
     !< Memory for buffering scalar output (from every model time step) between output writing intervals
@@ -64,27 +84,21 @@ module scalar_types
 
   end type type_scalar_output_buffer
 
-  type type_ismip_scalar_output_buffer
-    !< Memory for buffering scalar output (from every model time step) between output writing intervals
-    ! for ISMIP data-request scalar file
+  type type_regional_ismip_scalars
+  ! Data fields storing the regional ISMIP data-request scalar data
 
-    integer :: n_mem         !< Number of timeframes for which memory has been allocated
-    integer :: n             !< Number of timeframes that are currently buffered
+    real(dp) :: lim                        ! [kg]      land_ice_mass
+    real(dp) :: limnsw                     ! [m^2]     land_ice_mass_not_displacing_sea_water
+    real(dp) :: iareagr                    ! [m^2]     grounded_ice_sheet_area
+    real(dp) :: iareafl                    ! [m^2]     floating_ice_sheet_area
 
-    real(dp), dimension(:), allocatable :: time
-  
-    real(dp), dimension(:), allocatable :: lim
-    real(dp), dimension(:), allocatable :: limnsw
-    real(dp), dimension(:), allocatable :: iareagr  
-    real(dp), dimension(:), allocatable :: iareafl
+    real(dp) :: tendacabf                  ! [kg s^-1] tendency_of_land_ice_mass_due_to_surface_mass_balance
+    real(dp) :: tendlibmassbf              ! [kg s^-1] tendency_of_land_ice_mass_due_to_basal_mass_balance
+    real(dp) :: tendlibmassbffl            ! [kg s^-1] tendency_of_land_ice_mass_due_to_basal_mass_balance
+    real(dp) :: tendlicalvf                ! [kg s^-1] tendency_of_land_ice_mass_due_to_calving
+    real(dp) :: tendlifmassbf              ! [kg s^-1] tendency_of_land_ice_mass_due_to_calving_and_ice_front_melting
 
-    real(dp), dimension(:), allocatable :: tendacabf      
-    real(dp), dimension(:), allocatable :: tendlibmassbf  
-    real(dp), dimension(:), allocatable :: tendlibmassbffl
-    real(dp), dimension(:), allocatable :: tendlicalvf  
-    real(dp), dimension(:), allocatable :: tendlifmassbf
-
-  end type type_ismip_scalar_output_buffer
+  end type type_regional_ismip_scalars
 
   type type_regional_scalars
     ! Data fields storing the regional scalar data
@@ -142,21 +156,5 @@ module scalar_types
     type(type_regional_ismip_scalars) :: ismip
 
   end type type_regional_scalars
-
-  type type_regional_ismip_scalars
-  ! Data fields storing the regional ISMIP data-request scalar data
-
-    real(dp) :: lim                        ! [kg]      land_ice_mass
-    real(dp) :: limnsw                     ! [m^2]     land_ice_mass_not_displacing_sea_water
-    real(dp) :: iareagr                    ! [m^2]     grounded_ice_sheet_area
-    real(dp) :: iareafl                    ! [m^2]     floating_ice_sheet_area
-
-    real(dp) :: tendacabf                  ! [kg s^-1] tendency_of_land_ice_mass_due_to_surface_mass_balance
-    real(dp) :: tendlibmassbf              ! [kg s^-1] tendency_of_land_ice_mass_due_to_basal_mass_balance
-    real(dp) :: tendlibmassbffl            ! [kg s^-1] tendency_of_land_ice_mass_due_to_basal_mass_balance
-    real(dp) :: tendlicalvf                ! [kg s^-1] tendency_of_land_ice_mass_due_to_calving
-    real(dp) :: tendlifmassbf              ! [kg s^-1] tendency_of_land_ice_mass_due_to_calving_and_ice_front_melting
-
-  end type type_regional_ismip_scalars
 
 end module scalar_types
