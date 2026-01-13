@@ -722,6 +722,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: ocean_linear_deep_temperature_config         = -2.3_dp                          ! [degC] Deep ocean temperature when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_deep_salinity_config            = 34.8_dp                          ! [psu] Deep ocean salinity when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_reference_depth_config          = 2000.0_dp                        ! [m] Depth where deep values are prescribed
+    real(dp)            :: ocean_lin_therm_surf_salinity_config         = 34.0_dp                          ! [psu] Surface salinity when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_deep_salinity_config         = 34.7_dp                          ! [psu] Deep salinity when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_surf_temperature_config      = -1.0_dp                          ! [degC] Surface temperature when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_deep_temperature_config      = 1.2_dp                           ! [degC] Deep temperature when using 'LINEAR_THERMOCLINE' 
+    real(dp)            :: ocean_lin_therm_thermocline_top_config       = 200.0_dp                         ! [m] Top of thermocline depth when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_thermocline_bottom_config    = 600.0_dp                         ! [m] Bottom of thermocline depth when using 'LINEAR_THERMOCLINE'
 
     ! Choice of realistic ocean model
     character(len=1024) :: choice_ocean_model_realistic_config          = ''
@@ -1892,6 +1898,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: ocean_linear_deep_temperature
     real(dp)            :: ocean_linear_deep_salinity
     real(dp)            :: ocean_linear_reference_depth
+    real(dp)            :: ocean_lin_therm_surf_salinity
+    real(dp)            :: ocean_lin_therm_deep_salinity
+    real(dp)            :: ocean_lin_therm_surf_temperature
+    real(dp)            :: ocean_lin_therm_deep_temperature
+    real(dp)            :: ocean_lin_therm_thermocline_top
+    real(dp)            :: ocean_lin_therm_thermocline_bottom
 
     ! Choice of realistic ocean model
     character(len=1024) :: choice_ocean_model_realistic
@@ -2845,6 +2857,12 @@ contains
       ocean_linear_deep_temperature_config                        , &
       ocean_linear_deep_salinity_config                           , &
       ocean_linear_reference_depth_config                         , &
+      ocean_lin_therm_surf_salinity_config                        , &
+      ocean_lin_therm_deep_salinity_config                        , &
+      ocean_lin_therm_surf_temperature_config                     , &
+      ocean_lin_therm_deep_temperature_config                     , &
+      ocean_lin_therm_thermocline_top_config                      , &
+      ocean_lin_therm_thermocline_bottom_config                   , &
       choice_ocean_model_realistic_config                         , &
       filename_ocean_snapshot_NAM_config                          , &
       filename_ocean_snapshot_EAS_config                          , &
@@ -3886,6 +3904,12 @@ contains
     C%ocean_linear_deep_temperature                          = ocean_linear_deep_temperature_config
     C%ocean_linear_deep_salinity                             = ocean_linear_deep_salinity_config
     C%ocean_linear_reference_depth                           = ocean_linear_reference_depth_config
+    C%ocean_lin_therm_surf_salinity                          = ocean_lin_therm_surf_salinity_config
+    C%ocean_lin_therm_deep_salinity                          = ocean_lin_therm_deep_salinity_config
+    C%ocean_lin_therm_surf_temperature                       = ocean_lin_therm_surf_temperature_config
+    C%ocean_lin_therm_deep_temperature                       = ocean_lin_therm_deep_temperature_config
+    C%ocean_lin_therm_thermocline_top                        = ocean_lin_therm_thermocline_top_config
+    C%ocean_lin_therm_thermocline_bottom                     = ocean_lin_therm_thermocline_bottom_config
 
     ! Choice of realistic ocean model
     C%choice_ocean_model_realistic                           = choice_ocean_model_realistic_config
