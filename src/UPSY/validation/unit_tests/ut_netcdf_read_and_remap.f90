@@ -87,7 +87,8 @@ contains
     character(len=1024), parameter              :: routine_name = 'test_read_from_file'
     character(len=1024)                         :: test_name
     real(dp), dimension(:), allocatable         :: d_dist
-    real(dp), dimension(:), contiguous, pointer :: d_hybrid, d_hybrid_loc
+    real(dp), dimension(:), contiguous, pointer :: d_hybrid     => null()
+    real(dp), dimension(:), contiguous, pointer :: d_hybrid_loc => null()
     type(MPI_WIN)                               :: wd_hybrid
     real(dp)                                    :: d_max, d_min
     integer                                     :: ierr
