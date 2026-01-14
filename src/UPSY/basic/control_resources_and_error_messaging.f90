@@ -48,7 +48,7 @@ CONTAINS
     ! Local variables:
     INTEGER :: i
 
-    ALLOCATE( resource_tracker( 2000))
+    ALLOCATE( resource_tracker( 7000))
 
     ! Initialise values
     DO i = 1, size( resource_tracker,1)

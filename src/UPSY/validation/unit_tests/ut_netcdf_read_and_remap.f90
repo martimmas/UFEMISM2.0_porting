@@ -19,6 +19,7 @@ module ut_netcdf_read_and_remap
   use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, &
     MPI_MIN, MPI_MAX, MPI_COMM_WORLD
   use allocate_dist_shared_mod, only: allocate_dist_shared
+  use deallocate_dist_shared_mod, only: deallocate_dist_shared
 
   implicit none
 
@@ -135,6 +136,9 @@ contains
       test_ge_le( d_min, -1.00_dp, -0.95_dp) .and. &
       test_ge_le( d_max,  0.95_dp,  1.00_dp)
     call unit_test( test_result, trim( test_name) // '_hybrid')
+
+    ! Clean up after yourself
+    call deallocate_dist_shared( d_hybrid, wd_hybrid)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
