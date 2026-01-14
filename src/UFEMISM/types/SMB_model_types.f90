@@ -1,48 +1,48 @@
-MODULE SMB_model_types
+module SMB_model_types
 
-  ! The different data types used in the SMB modules
+  use precisions, only: dp
+  use mpi_f08, only: MPI_WIN
 
-! ===== Preamble =====
-! ====================
+  implicit none
 
-  USE precisions                                             , ONLY: dp
+  private
 
-  IMPLICIT NONE
+  public :: type_SMB_model, type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
 
-! ===== Types =====
-! =================
-
-   TYPE type_SMB_model_IMAU_ITM
-    ! The IMAU-ITM SMB model data structure
+  type type_SMB_model_IMAU_ITM
+    !< The IMAU-ITM SMB model data structure
 
     ! Main data fields
-    REAL(dp), DIMENSION(:  ),     ALLOCATABLE :: AlbedoSurf              ! Surface albedo underneath the snow layer (water, rock or ice)
-    REAL(dp), DIMENSION(:  ),     ALLOCATABLE :: MeltPreviousYear        ! [m.w.e.] total melt in the previous year
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: FirnDepth               ! [m] depth of the firn layer
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Rainfall                ! Monthly rainfall (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Snowfall                ! Monthly snowfall (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: AddedFirn               ! Monthly added firn (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Melt                    ! Monthly melt (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Refreezing              ! Monthly refreezing (m)
-    REAL(dp), DIMENSION(:  ),     ALLOCATABLE :: Refreezing_year         ! Yearly  refreezing (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Runoff                  ! Monthly runoff (m)
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: Albedo                  ! Monthly albedo
-    REAL(dp), DIMENSION(:  ),     ALLOCATABLE :: Albedo_year             ! Yearly albedo
-    REAL(dp), DIMENSION(:,:),     ALLOCATABLE :: SMB_monthly             ! [m] Monthly SMB
+    real(dp), dimension(:  ), contiguous, pointer :: AlbedoSurf              ! Surface albedo underneath the snow layer (water, rock or ice)
+    real(dp), dimension(:  ), contiguous, pointer :: MeltPreviousYear        ! [m.w.e.] total melt in the previous year
+    real(dp), dimension(:,:), contiguous, pointer :: FirnDepth               ! [m] depth of the firn layer
+    real(dp), dimension(:,:), contiguous, pointer :: Rainfall                ! Monthly rainfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Snowfall                ! Monthly snowfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: AddedFirn               ! Monthly added firn (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Melt                    ! Monthly melt (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Refreezing              ! Monthly refreezing (m)
+    real(dp), dimension(:  ), contiguous, pointer :: Refreezing_year         ! Yearly  refreezing (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Runoff                  ! Monthly runoff (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Albedo                  ! Monthly albedo
+    real(dp), dimension(:  ), contiguous, pointer :: Albedo_year             ! Yearly albedo
+    real(dp), dimension(:,:), contiguous, pointer :: SMB_monthly             ! [m] Monthly SMB
+    type(MPI_WIN) :: wAlbedoSurf, wMeltPreviousYear, wFirnDepth, wRainfall
+    type(MPI_WIN) :: wSnowfall, wAddedFirn, wMelt, wRefreezing, wRefreezing_year
+    type(MPI_WIN) :: wRunoff, wAlbedo, wAlbedo_year, wSMB_monthly
 
     ! Tuning parameters for the IMAU-ITM SMB model (different for each region, set from config)
-    REAL(dp)  :: C_abl_constant
-    REAL(dp)  :: C_abl_Ts
-    REAL(dp)  :: C_abl_Q
-    REAL(dp)  :: C_refr
+    real(dp)  :: C_abl_constant
+    real(dp)  :: C_abl_Ts
+    real(dp)  :: C_abl_Q
+    real(dp)  :: C_refr
 
     ! Ideally these parameters should not be region-dependent?
-    REAL(dp)  :: albedo_water
-    REAL(dp)  :: albedo_soil
-    REAL(dp)  :: albedo_ice
-    REAL(dp)  :: albedo_snow
+    real(dp)  :: albedo_water
+    real(dp)  :: albedo_soil
+    real(dp)  :: albedo_ice
+    real(dp)  :: albedo_snow
 
-  END TYPE type_SMB_model_IMAU_ITM
+  end type type_SMB_model_IMAU_ITM
 
   type type_SMB_model_snapshot_plus_anomalies
 
@@ -69,25 +69,23 @@ MODULE SMB_model_types
 
   end type type_SMB_model_snapshot_plus_anomalies
 
-  TYPE type_SMB_model
+  type type_SMB_model
     ! The SMB model data structure.
 
     ! Main data fields
-    REAL(dp), DIMENSION(:    ), ALLOCATABLE      :: SMB                       ! Yearly  SMB (m)
+    real(dp), dimension(:    ), allocatable      :: SMB                       ! Yearly  SMB (m)
 
     ! Sub-models
-    REAL(dp), DIMENSION(:    ), ALLOCATABLE      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
+    real(dp), dimension(:    ), allocatable      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
     TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
     ! Timestepping
-    REAL(dp)                                     :: t_next
+    real(dp)                                     :: t_next
 
     ! Metadata
-    CHARACTER(LEN=256)                           :: restart_filename          ! Name for generated restart file
+    character(:), allocatable                    :: restart_filename          ! Name for generated restart file
 
-  END TYPE type_SMB_model
+  end type type_SMB_model
 
-CONTAINS
-
-END MODULE SMB_model_types
+end module SMB_model_types
