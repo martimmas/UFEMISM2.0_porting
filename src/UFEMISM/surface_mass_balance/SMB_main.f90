@@ -14,10 +14,11 @@ MODULE SMB_main
   USE grid_basic                                             , ONLY: type_grid
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  use SMB_model_types, only: type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
+  use SMB_model_types, only: type_SMB_model_snapshot_plus_anomalies
   USE SMB_idealised                                          , ONLY: run_SMB_model_idealised
   USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
-  use SMB_IMAU_ITM, only: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM, initialise_SMB_model_IMAUITM, &
+    run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
   use plane_geometry, only: is_in_polygon

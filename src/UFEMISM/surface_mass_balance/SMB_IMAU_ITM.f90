@@ -8,20 +8,57 @@ module SMB_IMAU_ITM
   use model_configuration, only: C
   use parameters
   use mesh_types, only: type_mesh
-  use ice_model_types,     only: type_ice_model
+  use ice_model_types, only: type_ice_model
   use climate_model_types, only: type_climate_model
-  USE parameters,      only: T0, L_fusion, sec_per_year, pi, ice_density
+  use parameters, only: T0, L_fusion, sec_per_year, pi, ice_density
   use netcdf_io_main
   use global_forcing_types
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
-  use SMB_model_types, only: type_SMB_model_IMAU_ITM
+  use mpi_f08, only: MPI_WIN
 
   implicit none
 
   private
 
-  public :: run_SMB_model_IMAUITM, initialise_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+  public :: &
+    type_SMB_model_IMAU_ITM, run_SMB_model_IMAUITM, &
+    initialise_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+
+  type type_SMB_model_IMAU_ITM
+    !< The IMAU Insolation-Temperature Model
+
+    ! Main data fields
+    real(dp), dimension(:  ), contiguous, pointer :: AlbedoSurf              ! Surface albedo underneath the snow layer (water, rock or ice)
+    real(dp), dimension(:  ), contiguous, pointer :: MeltPreviousYear        ! [m.w.e.] total melt in the previous year
+    real(dp), dimension(:,:), contiguous, pointer :: FirnDepth               ! [m] depth of the firn layer
+    real(dp), dimension(:,:), contiguous, pointer :: Rainfall                ! Monthly rainfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Snowfall                ! Monthly snowfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: AddedFirn               ! Monthly added firn (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Melt                    ! Monthly melt (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Refreezing              ! Monthly refreezing (m)
+    real(dp), dimension(:  ), contiguous, pointer :: Refreezing_year         ! Yearly  refreezing (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Runoff                  ! Monthly runoff (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Albedo                  ! Monthly albedo
+    real(dp), dimension(:  ), contiguous, pointer :: Albedo_year             ! Yearly albedo
+    real(dp), dimension(:,:), contiguous, pointer :: SMB_monthly             ! [m] Monthly SMB
+    type(MPI_WIN) :: wAlbedoSurf, wMeltPreviousYear, wFirnDepth, wRainfall
+    type(MPI_WIN) :: wSnowfall, wAddedFirn, wMelt, wRefreezing, wRefreezing_year
+    type(MPI_WIN) :: wRunoff, wAlbedo, wAlbedo_year, wSMB_monthly
+
+    ! Tuning parameters for the IMAU-ITM SMB model (different for each region, set from config)
+    real(dp) :: C_abl_constant
+    real(dp) :: C_abl_Ts
+    real(dp) :: C_abl_Q
+    real(dp) :: C_refr
+
+    ! Ideally these parameters should not be region-dependent?
+    real(dp) :: albedo_water
+    real(dp) :: albedo_soil
+    real(dp) :: albedo_ice
+    real(dp) :: albedo_snow
+
+  end type type_SMB_model_IMAU_ITM
 
 contains
 

@@ -7,42 +7,7 @@ module SMB_model_types
 
   private
 
-  public :: type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
-
-  type type_SMB_model_IMAU_ITM
-    !< The IMAU-ITM SMB model data structure
-
-    ! Main data fields
-    real(dp), dimension(:  ), contiguous, pointer :: AlbedoSurf              ! Surface albedo underneath the snow layer (water, rock or ice)
-    real(dp), dimension(:  ), contiguous, pointer :: MeltPreviousYear        ! [m.w.e.] total melt in the previous year
-    real(dp), dimension(:,:), contiguous, pointer :: FirnDepth               ! [m] depth of the firn layer
-    real(dp), dimension(:,:), contiguous, pointer :: Rainfall                ! Monthly rainfall (m)
-    real(dp), dimension(:,:), contiguous, pointer :: Snowfall                ! Monthly snowfall (m)
-    real(dp), dimension(:,:), contiguous, pointer :: AddedFirn               ! Monthly added firn (m)
-    real(dp), dimension(:,:), contiguous, pointer :: Melt                    ! Monthly melt (m)
-    real(dp), dimension(:,:), contiguous, pointer :: Refreezing              ! Monthly refreezing (m)
-    real(dp), dimension(:  ), contiguous, pointer :: Refreezing_year         ! Yearly  refreezing (m)
-    real(dp), dimension(:,:), contiguous, pointer :: Runoff                  ! Monthly runoff (m)
-    real(dp), dimension(:,:), contiguous, pointer :: Albedo                  ! Monthly albedo
-    real(dp), dimension(:  ), contiguous, pointer :: Albedo_year             ! Yearly albedo
-    real(dp), dimension(:,:), contiguous, pointer :: SMB_monthly             ! [m] Monthly SMB
-    type(MPI_WIN) :: wAlbedoSurf, wMeltPreviousYear, wFirnDepth, wRainfall
-    type(MPI_WIN) :: wSnowfall, wAddedFirn, wMelt, wRefreezing, wRefreezing_year
-    type(MPI_WIN) :: wRunoff, wAlbedo, wAlbedo_year, wSMB_monthly
-
-    ! Tuning parameters for the IMAU-ITM SMB model (different for each region, set from config)
-    real(dp)  :: C_abl_constant
-    real(dp)  :: C_abl_Ts
-    real(dp)  :: C_abl_Q
-    real(dp)  :: C_refr
-
-    ! Ideally these parameters should not be region-dependent?
-    real(dp)  :: albedo_water
-    real(dp)  :: albedo_soil
-    real(dp)  :: albedo_ice
-    real(dp)  :: albedo_snow
-
-  end type type_SMB_model_IMAU_ITM
+  public :: type_SMB_model_snapshot_plus_anomalies
 
   type type_SMB_model_snapshot_plus_anomalies
 
