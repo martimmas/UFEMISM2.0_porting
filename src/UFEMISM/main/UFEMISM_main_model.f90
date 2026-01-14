@@ -299,12 +299,6 @@ CONTAINS
       ! Write to the main regional output files
       CALL write_to_main_regional_output_file_mesh( region)
 
-      ! Write to the region-of-interest output files
-      DO i = 1, region%nROI
-        CALL write_to_main_regional_output_file_grid_ROI( region, region%output_grids_ROI( i), region%output_filenames_grid_ROI( i))
-        CALL write_to_ISMIP_regional_output_file_grid_ROI( region, region%output_grids_ROI( i), region%output_filenames_ismip_grid_ROI( i))
-      END DO
-
       ! Write to the transect output files
       call write_to_transect_netcdf_output_files( region)
 
@@ -334,6 +328,12 @@ CONTAINS
       ! Write to the gridded regional output file
       CALL write_to_main_regional_output_file_grid( region)
       CALL write_to_ISMIP_regional_output_file_grid( region)
+
+      ! Write to the region-of-interest output files
+      DO i = 1, region%nROI
+        CALL write_to_main_regional_output_file_grid_ROI( region, region%output_grids_ROI( i), region%output_filenames_grid_ROI( i))
+        CALL write_to_ISMIP_regional_output_file_grid_ROI( region, region%output_grids_ROI( i), region%output_filenames_ismip_grid_ROI( i))
+      END DO
     END IF
 
     ! Finalise routine path
