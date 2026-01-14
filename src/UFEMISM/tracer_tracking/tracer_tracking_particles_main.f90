@@ -8,7 +8,7 @@ module tracer_tracking_model_particles_main
   use tracer_tracking_model_types, only: type_tracer_tracking_model_particles
   use model_configuration, only: C
   use tracer_tracking_model_particles_basic, only: update_particle_velocity, create_particle_at_ice_surface
-  use SMB_model_types, only: type_SMB_model
+  use SMB_main, only: type_SMB_model
   use grid_basic, only: setup_square_grid
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D
   use mpi_distributed_memory, only: gather_to_all

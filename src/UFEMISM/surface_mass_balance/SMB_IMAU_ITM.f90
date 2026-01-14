@@ -8,71 +8,101 @@ module SMB_IMAU_ITM
   use model_configuration, only: C
   use parameters
   use mesh_types, only: type_mesh
-  use ice_model_types,     only: type_ice_model
-  use SMB_model_types,     only: type_SMB_model, type_SMB_model_IMAU_ITM
+  use ice_model_types, only: type_ice_model
   use climate_model_types, only: type_climate_model
-  USE parameters,      only: T0, L_fusion, sec_per_year, pi, ice_density
+  use parameters, only: T0, L_fusion, sec_per_year, pi, ice_density
   use netcdf_io_main
   use global_forcing_types
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
+  use mpi_f08, only: MPI_WIN
 
   implicit none
 
   private
 
-  public :: run_SMB_model_IMAUITM, initialise_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+  public :: &
+    type_SMB_model_IMAU_ITM, run_SMB_model_IMAUITM, &
+    initialise_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+
+  type type_SMB_model_IMAU_ITM
+    !< The IMAU Insolation-Temperature Model
+
+    ! Main data fields
+    real(dp), dimension(:  ), contiguous, pointer :: AlbedoSurf              ! Surface albedo underneath the snow layer (water, rock or ice)
+    real(dp), dimension(:  ), contiguous, pointer :: MeltPreviousYear        ! [m.w.e.] total melt in the previous year
+    real(dp), dimension(:,:), contiguous, pointer :: FirnDepth               ! [m] depth of the firn layer
+    real(dp), dimension(:,:), contiguous, pointer :: Rainfall                ! Monthly rainfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Snowfall                ! Monthly snowfall (m)
+    real(dp), dimension(:,:), contiguous, pointer :: AddedFirn               ! Monthly added firn (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Melt                    ! Monthly melt (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Refreezing              ! Monthly refreezing (m)
+    real(dp), dimension(:  ), contiguous, pointer :: Refreezing_year         ! Yearly  refreezing (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Runoff                  ! Monthly runoff (m)
+    real(dp), dimension(:,:), contiguous, pointer :: Albedo                  ! Monthly albedo
+    real(dp), dimension(:  ), contiguous, pointer :: Albedo_year             ! Yearly albedo
+    real(dp), dimension(:,:), contiguous, pointer :: SMB_monthly             ! [m] Monthly SMB
+    type(MPI_WIN) :: wAlbedoSurf, wMeltPreviousYear, wFirnDepth, wRainfall
+    type(MPI_WIN) :: wSnowfall, wAddedFirn, wMelt, wRefreezing, wRefreezing_year
+    type(MPI_WIN) :: wRunoff, wAlbedo, wAlbedo_year, wSMB_monthly
+
+    ! Tuning parameters for the IMAU-ITM SMB model (different for each region, set from config)
+    real(dp) :: C_abl_constant
+    real(dp) :: C_abl_Ts
+    real(dp) :: C_abl_Q
+    real(dp) :: C_refr
+
+    ! Ideally these parameters should not be region-dependent?
+    real(dp) :: albedo_water
+    real(dp) :: albedo_soil
+    real(dp) :: albedo_ice
+    real(dp) :: albedo_snow
+
+  end type type_SMB_model_IMAU_ITM
 
 contains
 
-  subroutine run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
+  subroutine run_SMB_model_IMAUITM( mesh, ice, IMAUITM, climate)
     ! Run the IMAU-ITM SMB model.
 
     ! NOTE: all the SMB components are in meters of water equivalent;
     !       the end result (SMB and SMB_year) are in meters of ice equivalent.
 
     ! In- and output variables
-    type(type_mesh),          intent(in)    :: mesh
-    type(type_ice_model),     intent(in)    :: ice
-    type(type_climate_model), intent(in)    :: climate
-    type(type_SMB_model),     intent(inout) :: SMB
+    type(type_mesh),               intent(in)    :: mesh
+    type(type_ice_model),          intent(in)    :: ice
+    type(type_SMB_model_IMAU_ITM), intent(inout) :: IMAUITM
+    type(type_climate_model),      intent(in)    :: climate
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'run_SMB_model_IMAUITM'
-    integer                       :: vi
-    integer                       :: m,mprev
-    real(dp)                      :: snowfrac, liquid_water, sup_imp_wat
-    !real(dp)                      :: dummy_dp
+    character(len=1024), parameter :: routine_name = 'run_SMB_model_IMAUITM'
+    integer                        :: vi
+    integer                        :: m,mprev
+    real(dp)                       :: snowfrac, liquid_water, sup_imp_wat
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! Run the IMAU-ITM SMB model
-
-    ! Initialise
-    ! To prevent compiler warnings
-    !dummy_dp = mesh%xmin
-    !dummy_dp = SMB%SMB( mesh%vi1)
-
     DO vi = mesh%vi1, mesh%vi2
-      ! Background albedo
-      SMB%IMAUITM%AlbedoSurf( vi) = SMB%IMAUITM%albedo_soil
-      IF ((ice%mask_icefree_ocean( vi) .eqv. .TRUE. .AND. ice%mask_floating_ice( vi) .eqv. .FALSE.) .OR. ice%mask_noice( vi) .eqv. .TRUE.) SMB%IMAUITM%AlbedoSurf( vi) = SMB%IMAUITM%albedo_water
-      IF (ice%mask_grounded_ice(   vi) .eqv. .TRUE. .OR. ice%mask_floating_ice(  vi) .eqv. .TRUE.) SMB%IMAUITM%AlbedoSurf( vi) = SMB%IMAUITM%albedo_ice
 
-      DO m = 1, 12  ! Month loop
+      ! Background albedo
+      IMAUITM%AlbedoSurf( vi) = IMAUITM%albedo_soil
+      IF ((ice%mask_icefree_ocean( vi) .eqv. .TRUE. .AND. ice%mask_floating_ice( vi) .eqv. .FALSE.) .OR. ice%mask_noice( vi) .eqv. .TRUE.) IMAUITM%AlbedoSurf( vi) = IMAUITM%albedo_water
+      IF (ice%mask_grounded_ice(   vi) .eqv. .TRUE. .OR. ice%mask_floating_ice(  vi) .eqv. .TRUE.) IMAUITM%AlbedoSurf( vi) = IMAUITM%albedo_ice
+
+      DO m = 1, 12
 
         mprev = m - 1
         IF (mprev==0) mprev = 12
 
-        SMB%IMAUITM%Albedo( vi,m) = MIN(SMB%IMAUITM%albedo_snow, MAX( SMB%IMAUITM%AlbedoSurf( vi), SMB%IMAUITM%albedo_snow - (SMB%IMAUITM%albedo_snow - SMB%IMAUITM%AlbedoSurf( vi))  * &
-                             EXP(-15._dp * SMB%IMAUITM%FirnDepth( vi,mprev)) - 0.015_dp * SMB%IMAUITM%MeltPreviousYear( vi)))
-        IF ((ice%mask_icefree_ocean( vi) .eqv. .TRUE. .AND. ice%mask_floating_ice( vi) .eqv. .FALSE.) .OR. ice%mask_noice( vi) .eqv. .TRUE.) SMB%IMAUITM%Albedo( vi,m) = SMB%IMAUITM%albedo_water
+        IMAUITM%Albedo( vi,m) = MIN(IMAUITM%albedo_snow, MAX( IMAUITM%AlbedoSurf( vi), IMAUITM%albedo_snow - (IMAUITM%albedo_snow - IMAUITM%AlbedoSurf( vi))  * &
+                             EXP(-15._dp * IMAUITM%FirnDepth( vi,mprev)) - 0.015_dp * IMAUITM%MeltPreviousYear( vi)))
+        IF ((ice%mask_icefree_ocean( vi) .eqv. .TRUE. .AND. ice%mask_floating_ice( vi) .eqv. .FALSE.) .OR. ice%mask_noice( vi) .eqv. .TRUE.) IMAUITM%Albedo( vi,m) = IMAUITM%albedo_water
 
         ! Determine ablation as a function of surface temperature and albedo/insolation according to Bintanja et al. (2002)
-        SMB%IMAUITM%Melt( vi,m) = MAX(0._dp, ( SMB%IMAUITM%C_abl_Ts         * (climate%T2m( vi,m) - T0) + &
-                                       SMB%IMAUITM%C_abl_Q          * (1.0_dp - SMB%IMAUITM%Albedo( vi,m)) * climate%Q_TOA( vi,m) - &
-                                       SMB%IMAUITM%C_abl_constant)  * sec_per_year / (L_fusion * 1000._dp * 12._dp))
+        IMAUITM%Melt( vi,m) = MAX(0._dp, ( IMAUITM%C_abl_Ts         * (climate%T2m( vi,m) - T0) + &
+                                       IMAUITM%C_abl_Q          * (1.0_dp - IMAUITM%Albedo( vi,m)) * climate%Q_TOA( vi,m) - &
+                                       IMAUITM%C_abl_constant)  * sec_per_year / (L_fusion * 1000._dp * 12._dp))
 
         ! Determine accumulation with snow/rain fraction from Ohmura et al. (1999), liquid water content (rain and melt water) and snow depth
 
@@ -82,8 +112,8 @@ contains
         snowfrac = MAX(0._dp, MIN(1._dp, 0.5_dp   * (1 - ATAN((climate%T2m(vi,m) - T0) / 3.5_dp)  / 1.25664_dp))) ! ANICE "realistic" snow fractions
         !snowfrac = MAX(0._dp, MIN(1._dp, 0.725_dp * (1 - ATAN((climate%T2m( vi,m) - T0) / 5.95_dp) / 1.8566_dp))) ! IMAU-ICE "tuned" snow fractions
 
-        SMB%IMAUITM%Snowfall( vi,m) = climate%Precip( vi,m) *          snowfrac
-        SMB%IMAUITM%Rainfall( vi,m) = climate%Precip( vi,m) * (1._dp - snowfrac)
+        IMAUITM%Snowfall( vi,m) = climate%Precip( vi,m) *          snowfrac
+        IMAUITM%Rainfall( vi,m) = climate%Precip( vi,m) * (1._dp - snowfrac)
 
         ! Refreezing according to Janssens & Huybrechts (2000)
         ! The refreezing (=effective retention) is the minimum value of the amount of super imposed
@@ -91,44 +121,42 @@ contains
         ! (see also Huybrechts & de Wolde, 1999)
 
         ! Add this month's snow accumulation to next month's initial snow depth.
-        SMB%IMAUITM%AddedFirn( vi,m) = SMB%IMAUITM%Snowfall( vi,m) - SMB%IMAUITM%Melt( vi,m)
-        SMB%IMAUITM%FirnDepth( vi,m) = MIN(10._dp, MAX(0._dp, SMB%IMAUITM%FirnDepth( vi,mprev) + SMB%IMAUITM%AddedFirn( vi,m) ))
+        IMAUITM%AddedFirn( vi,m) = IMAUITM%Snowfall( vi,m) - IMAUITM%Melt( vi,m)
+        IMAUITM%FirnDepth( vi,m) = MIN(10._dp, MAX(0._dp, IMAUITM%FirnDepth( vi,mprev) + IMAUITM%AddedFirn( vi,m) ))
 
       END DO ! DO m = 1, 12
 
       ! Calculate refreezing for the whole year, divide equally over the 12 months, then calculate resulting runoff and SMB.
       ! This resolves the problem with refreezing where liquid water is mostly available in summer
       ! but "refreezing potential" mostly in winter, and there is no proper meltwater retention.
-      sup_imp_wat  = SMB%IMAUITM%C_refr * MAX(0._dp, T0 - SUM(climate%T2m( vi,:))/12._dp)
-      liquid_water = SUM(SMB%IMAUITM%Rainfall( vi,:)) + SUM(SMB%IMAUITM%Melt( vi,:))
+      sup_imp_wat  = IMAUITM%C_refr * MAX(0._dp, T0 - SUM(climate%T2m( vi,:))/12._dp)
+      liquid_water = SUM(IMAUITM%Rainfall( vi,:)) + SUM(IMAUITM%Melt( vi,:))
 
       ! Note: Refreezing is limited by the ability of the firn layer to store melt water. currently a ten meter firn layer can store
       ! 2.5 m of water. However, this is based on expert judgement, NOT empirical evidence.
-      SMB%IMAUITM%Refreezing_year( vi) = MIN( MIN( MIN( sup_imp_wat, liquid_water), SUM(climate%Precip( vi,:))), 0.25_dp * SUM(SMB%IMAUITM%FirnDepth( vi,:)/12._dp)) ! version from IMAU-ICE dev branch
+      IMAUITM%Refreezing_year( vi) = MIN( MIN( MIN( sup_imp_wat, liquid_water), SUM(climate%Precip( vi,:))), 0.25_dp * SUM(IMAUITM%FirnDepth( vi,:)/12._dp)) ! version from IMAU-ICE dev branch
       !SMB%Refreezing_year( vi) = MIN( MIN( sup_imp_wat, liquid_water), SUM(climate%Precip( vi,:))) ! outdated version on main branch
 
-      IF (ice%mask_grounded_ice( vi)  .eqv. .FALSE. .OR. ice%mask_floating_ice( vi) .eqv. .FALSE.) SMB%IMAUITM%Refreezing_year( vi) = 0._dp
-      IF (ice%mask_icefree_ocean( vi) .eqv. .TRUE.)                                                SMB%IMAUITM%AddedFirn( vi,:)     = 0._dp ! Does it make sense to add firn over the ocean?!
+      IF (ice%mask_grounded_ice( vi)  .eqv. .FALSE. .OR. ice%mask_floating_ice( vi) .eqv. .FALSE.) IMAUITM%Refreezing_year( vi) = 0._dp
+      IF (ice%mask_icefree_ocean( vi) .eqv. .TRUE.)                                                IMAUITM%AddedFirn( vi,:)     = 0._dp ! Does it make sense to add firn over the ocean?!
 
 
 
       DO m = 1, 12
-        SMB%IMAUITM%Refreezing(  vi,m) = SMB%IMAUITM%Refreezing_year( vi) / 12._dp
-        SMB%IMAUITM%Runoff(      vi,m) = SMB%IMAUITM%Melt( vi,m) + SMB%IMAUITM%Rainfall( vi,m) - SMB%IMAUITM%Refreezing( vi,m)
-        SMB%IMAUITM%SMB_monthly( vi,m) = SMB%IMAUITM%Snowfall( vi,m) + SMB%IMAUITM%Refreezing( vi,m) - SMB%IMAUITM%Melt( vi,m)
+        IMAUITM%Refreezing(  vi,m) = IMAUITM%Refreezing_year( vi) / 12._dp
+        IMAUITM%Runoff(      vi,m) = IMAUITM%Melt( vi,m) + IMAUITM%Rainfall( vi,m) - IMAUITM%Refreezing( vi,m)
+        IMAUITM%SMB_monthly( vi,m) = IMAUITM%Snowfall( vi,m) + IMAUITM%Refreezing( vi,m) - IMAUITM%Melt( vi,m)
       END DO
 
-      SMB%SMB( vi) = SUM(SMB%IMAUITM%SMB_monthly( vi,:))
       !IF (ice%mask_icefree_ocean( vi) .eqv. .TRUE.) SMB%SMB( vi) = 0._dp ! should we limit SMB over open ocean?
 
       ! Calculate total melt over this year, to be used for determining next year's albedo
-      SMB%IMAUITM%MeltPreviousYear( vi) = SUM(SMB%IMAUITM%Melt( vi,:))
+      IMAUITM%MeltPreviousYear( vi) = SUM(IMAUITM%Melt( vi,:))
 
     END DO
 
     ! Convert final SMB from water to ice equivalent
-      SMB%IMAUITM%SMB_monthly( mesh%vi1:mesh%vi2,:) = SMB%IMAUITM%SMB_monthly(  mesh%vi1:mesh%vi2,:) * 1000._dp / ice_density
-      SMB%SMB(                  mesh%vi1:mesh%vi2)   = SMB%SMB(                   mesh%vi1:mesh%vi2)   * 1000._dp / ice_density
+    IMAUITM%SMB_monthly( mesh%vi1:mesh%vi2,:) = IMAUITM%SMB_monthly(  mesh%vi1:mesh%vi2,:) * 1000._dp / ice_density
 
     ! Finalise routine path
     call finalise_routine( routine_name)
