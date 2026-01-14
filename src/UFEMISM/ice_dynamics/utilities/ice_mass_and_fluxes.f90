@@ -458,7 +458,7 @@ contains
   end subroutine calc_ice_transitional_fluxes
 
   subroutine calc_ISMIP_scalars( mesh, ice, SMB, BMB, scalars)
-  !< Calculate all scalars in ISMIP format
+    !< Calculate all scalars in ISMIP format
 
     ! In/output variables:
     type(type_mesh),             intent(in   ) :: mesh
