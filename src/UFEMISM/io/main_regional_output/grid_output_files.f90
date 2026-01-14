@@ -245,20 +245,12 @@ contains
     real(dp), dimension(:),   allocatable :: Ti_base_gr
     real(dp), dimension(:),   allocatable :: Ti_base_fl
     real(dp), dimension(:),   allocatable :: basal_drag
-    real(dp), dimension(:),   allocatable :: BMB_sheet
+    real(dp), dimension(:),   allocatable :: BMB_masked
     real(dp), dimension(:),   allocatable :: calving_flux
     real(dp), dimension(:),   allocatable :: calving_and_front_melt_flux
     real(dp), dimension(:),   allocatable :: land_ice_area_fraction
     real(dp), dimension(:),   allocatable :: grounded_ice_sheet_area_fraction
     real(dp), dimension(:),   allocatable :: floating_ice_shelf_area_fraction
-
-    logical,  dimension(region%mesh%nV)    :: mask_grounded_ice_tot
-    logical,  dimension(region%mesh%nV)    :: mask_floating_ice_tot
-    logical,  dimension(region%mesh%nV)    :: mask_cf_gr_tot
-    logical,  dimension(region%mesh%nV)    :: mask_cf_fl_tot
-    real(dp), dimension(region%mesh%nV)    :: fraction_margin_tot
-    real(dp), dimension(region%mesh%nV)    :: Ti_bot_tot
-    real(dp), dimension(region%mesh%nV)    :: BMB_tot
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -890,22 +882,23 @@ contains
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'acabf', d_grid_vec_partial_2D)
     case ('libmassbfgr')
-      allocate( BMB_sheet            ( region%mesh%vi1:region%mesh%vi2))
-      call gather_to_all(region%BMB%BMB,               BMB_tot)
-      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
-      
-      BMB_sheet = 0._dp
+      allocate( BMB_masked( region%mesh%vi1:region%mesh%vi2),source=0._dp)
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (mask_grounded_ice_tot(vi) .eqv. .TRUE.) then
-          BMB_sheet( vi) = BMB_tot( vi)
+        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
+          BMB_masked( vi) = region%BMB%BMB( vi) ! TODO: BMB for the grounded ice is not assigned anywhere
         end if
       end do
-
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_sheet, d_grid_vec_partial_2D)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_masked, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbfgr', d_grid_vec_partial_2D)
-      deallocate(BMB_sheet)
+      deallocate(BMB_masked)
     case ('libmassbffl')
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%BMB%BMB_shelf, d_grid_vec_partial_2D)
+      allocate( BMB_masked( region%mesh%vi1:region%mesh%vi2),source=0._dp)
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
+          BMB_masked( vi) = region%BMB%BMB_shelf( vi)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_masked, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbffl', d_grid_vec_partial_2D)
     case ('dlithkdt')
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%dHi_dt, d_grid_vec_partial_2D)
@@ -938,13 +931,10 @@ contains
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Ti(:,1), d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litemptop', d_grid_vec_partial_2D)
     case ('litempbotgr')
-      allocate( Ti_base_gr           ( region%mesh%vi1:region%mesh%vi2))
-      call gather_to_all(region%ice%Ti(:,region%mesh%nz),                Ti_bot_tot)
-      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
-
+      allocate( Ti_base_gr            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (mask_grounded_ice_tot(vi) .eqv. .TRUE.) then
-          Ti_base_gr( vi) = Ti_bot_tot( vi)
+        if (region%ice%mask_grounded_ice(vi)) then
+          Ti_base_gr( vi) = region%ice%Ti( vi,region%mesh%nz)
         end if
       end do
 
@@ -952,13 +942,11 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
       deallocate( Ti_base_gr)
     case ('litempbotfl')
-      allocate( Ti_base_fl           ( region%mesh%vi1:region%mesh%vi2))
-      call gather_to_all(region%ice%Ti(:,region%mesh%nz),                Ti_bot_tot)
-      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
-
+      allocate( Ti_base_fl            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)    
+    
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (mask_floating_ice_tot(vi) .eqv. .TRUE.) then
-          Ti_base_fl( vi) = Ti_bot_tot( vi)
+        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
+          Ti_base_fl( vi) = region%ice%Ti(vi,region%mesh%nz)
         end if
       end do
 
@@ -991,19 +979,16 @@ contains
       if (par%primary) write(0,'(A)') '   deallocated variables.'
     case ('sftgif')
       allocate( land_ice_area_fraction( region%mesh%vi1:region%mesh%vi2))
-      call gather_to_all(region%ice%fraction_margin,   fraction_margin_tot)
-      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
-      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
       
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (mask_cf_gr_tot( vi) .eqv. .FALSE.) then
-           if( mask_grounded_ice_tot( vi) .OR. mask_floating_ice_tot( vi)) then
+        if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
+           if( region%ice%mask_grounded_ice( vi) .OR. region%ice%mask_floating_ice( vi)) then
               land_ice_area_fraction( vi) = 1._dp
             else
               land_ice_area_fraction( vi) = 0._dp
             end if
         else
-          land_ice_area_fraction( vi) = fraction_margin_tot( vi)
+          land_ice_area_fraction( vi) = region%ice%fraction_margin( vi)
         end if
       end do
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, land_ice_area_fraction, d_grid_vec_partial_2D)
@@ -1014,19 +999,16 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgrf', d_grid_vec_partial_2D)
     case ('sftflf')
       allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
-      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
-      call gather_to_all(region%ice%mask_cf_fl,        mask_cf_fl_tot)
-      call gather_to_all(region%ice%fraction_margin,   fraction_margin_tot)
 
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (mask_cf_fl_tot( vi) .eqv. .FALSE.) then
-           if( mask_floating_ice_tot( vi)) then
+        if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
+           if( region%ice%mask_floating_ice( vi)) then
             floating_ice_shelf_area_fraction( vi) = 1._dp
           else
             floating_ice_shelf_area_fraction( vi) = 0._dp
           end if
         else
-          floating_ice_shelf_area_fraction( vi) = fraction_margin_tot( vi)
+          floating_ice_shelf_area_fraction( vi) = region%ice%fraction_margin( vi)
         end if
       end do
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, floating_ice_shelf_area_fraction, d_grid_vec_partial_2D)
