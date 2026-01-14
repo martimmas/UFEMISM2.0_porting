@@ -14,7 +14,6 @@ MODULE SMB_main
   USE grid_basic                                             , ONLY: type_grid
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  use SMB_model_types, only: type_SMB_model_snapshot_plus_anomalies
   USE SMB_idealised                                          , ONLY: run_SMB_model_idealised
   USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM, initialise_SMB_model_IMAUITM, &
@@ -24,8 +23,8 @@ MODULE SMB_main
   use plane_geometry, only: is_in_polygon
   use mesh_data_smoothing, only: smooth_Gaussian
   use netcdf_io_main
-  use SMB_snapshot_plus_anomalies, only: initialise_SMB_model_snapshot_plus_anomalies, &
-    run_SMB_model_snapshot_plus_anomalies
+  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies, &
+    initialise_SMB_model_snapshot_plus_anomalies, run_SMB_model_snapshot_plus_anomalies
 
   IMPLICIT NONE
 

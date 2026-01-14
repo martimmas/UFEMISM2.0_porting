@@ -5,7 +5,6 @@ module SMB_snapshot_plus_anomalies
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use mesh_types, only: type_mesh
   use climate_model_types, only: type_climate_model
-  use SMB_model_types, only: type_SMB_model_snapshot_plus_anomalies
   use parameters, only: NaN
   use model_configuration, only: C
   use netcdf_io_main
@@ -16,9 +15,35 @@ module SMB_snapshot_plus_anomalies
   private
 
   public :: &
+    type_SMB_model_snapshot_plus_anomalies, &
     run_climate_model_SMB_snapshot_plus_anomalies, &
     initialise_SMB_model_snapshot_plus_anomalies, &
     run_SMB_model_snapshot_plus_anomalies
+
+  type type_SMB_model_snapshot_plus_anomalies
+
+    ! Baseline climate
+    real(dp), dimension(:,:), allocatable :: T2m_baseline
+    real(dp), dimension(:  ), allocatable :: SMB_baseline
+
+    ! Two anomaly timeframes enveloping the current model time
+    real(dp)                              :: anomaly_t0
+    real(dp), dimension(:  ), allocatable :: T2m_anomaly_0
+    real(dp), dimension(:  ), allocatable :: SMB_anomaly_0
+
+    real(dp)                              :: anomaly_t1
+    real(dp), dimension(:  ), allocatable :: T2m_anomaly_1
+    real(dp), dimension(:  ), allocatable :: SMB_anomaly_1
+
+    ! Time-weighted anomaly
+    real(dp), dimension(:  ), allocatable :: T2m_anomaly
+    real(dp), dimension(:  ), allocatable :: SMB_anomaly
+
+    ! Applied climate
+    real(dp), dimension(:,:), allocatable :: T2m    ! = baseline + anomaly
+    real(dp), dimension(:  ), allocatable :: SMB
+
+  end type type_SMB_model_snapshot_plus_anomalies
 
 contains
 
