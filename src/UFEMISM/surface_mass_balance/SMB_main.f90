@@ -50,6 +50,7 @@ CONTAINS
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model'
     CHARACTER(LEN=256)                                    :: choice_SMB_model
+    integer                                               :: vi
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -104,7 +105,10 @@ CONTAINS
     CASE ('reconstructed')
       CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
     CASE ('IMAU-ITM')
-      CALL run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
+      CALL run_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, climate)
+      do vi = mesh%vi1, mesh%vi2
+        SMB%SMB( vi) = sum( SMB%IMAUITM%SMB_monthly( vi,:))
+      end do
     case ('snapshot_plus_anomalies')
       call run_SMB_model_snapshot_plus_anomalies( mesh, SMB, time)
     END SELECT
