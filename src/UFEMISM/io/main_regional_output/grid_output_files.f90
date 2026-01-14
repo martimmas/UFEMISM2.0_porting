@@ -1,5 +1,6 @@
 module grid_output_files
 
+  use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_SUM
   use precisions, only: dp
   use mpi_basic, only: par
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
@@ -11,7 +12,7 @@ module grid_output_files
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
-  use time_utilities, only: days_since_ISMIP_basetime
+  use mpi_distributed_memory, only: gather_to_all
 
   implicit none
 
@@ -31,7 +32,7 @@ contains
     type(type_model_region), intent(in   ) :: region
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'write_to_main_regional_output_file_mesh'
+    character(len=1024), parameter :: routine_name = 'write_to_main_regional_output_file_grid'
     integer                        :: ncid
 
     ! Add routine to path
@@ -238,18 +239,26 @@ contains
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D_ocean
     real(dp), dimension(:),   allocatable :: mask_int
-    integer                               :: vi
+    integer                               :: vi, ierr
 
     ! 2D ISMIP-only variables
-    REAL(dp), DIMENSION(:),   allocatable :: Ti_base_gr
-    REAL(dp), DIMENSION(:),   allocatable :: Ti_base_fl
-    REAL(dp), DIMENSION(:),   allocatable :: basal_drag
-    REAL(dp), DIMENSION(:),   allocatable :: BMB_sheet
-    REAL(dp), DIMENSION(:),   allocatable :: calving_flux
-    REAL(dp), DIMENSION(:),   allocatable :: calving_and_front_melt_flux
-    REAL(dp), DIMENSION(:),   allocatable :: land_ice_area_fraction
-    REAL(dp), DIMENSION(:),   allocatable :: grounded_ice_sheet_area_fraction
-    REAL(dp), DIMENSION(:),   allocatable :: floating_ice_shelf_area_fraction
+    real(dp), dimension(:),   allocatable :: Ti_base_gr
+    real(dp), dimension(:),   allocatable :: Ti_base_fl
+    real(dp), dimension(:),   allocatable :: basal_drag
+    real(dp), dimension(:),   allocatable :: BMB_sheet
+    real(dp), dimension(:),   allocatable :: calving_flux
+    real(dp), dimension(:),   allocatable :: calving_and_front_melt_flux
+    real(dp), dimension(:),   allocatable :: land_ice_area_fraction
+    real(dp), dimension(:),   allocatable :: grounded_ice_sheet_area_fraction
+    real(dp), dimension(:),   allocatable :: floating_ice_shelf_area_fraction
+
+    logical,  dimension(region%mesh%nV)    :: mask_grounded_ice_tot
+    logical,  dimension(region%mesh%nV)    :: mask_floating_ice_tot
+    logical,  dimension(region%mesh%nV)    :: mask_cf_gr_tot
+    logical,  dimension(region%mesh%nV)    :: mask_cf_fl_tot
+    real(dp), dimension(region%mesh%nV)    :: fraction_margin_tot
+    real(dp), dimension(region%mesh%nV)    :: Ti_bot_tot
+    real(dp), dimension(region%mesh%nV)    :: BMB_tot
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -881,20 +890,25 @@ contains
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'acabf', d_grid_vec_partial_2D)
     case ('libmassbfgr')
-      allocate( BMB_sheet( region%mesh%vi1:region%mesh%vi2))
+      allocate( BMB_sheet            ( region%mesh%vi1:region%mesh%vi2))
+      call gather_to_all(region%BMB%BMB,               BMB_tot)
+      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
+      
       BMB_sheet = 0._dp
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
-          BMB_sheet( vi) = region%BMB%BMB( vi)
+        if (mask_grounded_ice_tot(vi) .eqv. .TRUE.) then
+          BMB_sheet( vi) = BMB_tot( vi)
         end if
       end do
+
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_sheet, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbfgr', d_grid_vec_partial_2D)
+      deallocate(BMB_sheet)
     case ('libmassbffl')
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%BMB%BMB_shelf, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbffl', d_grid_vec_partial_2D)
     case ('dlithkdt')
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%dHs_dt, d_grid_vec_partial_2D)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%dHi_dt, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'dlithkdt', d_grid_vec_partial_2D)
     case ('xvelsurf')
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%u_surf, d_grid_vec_partial_2D)
@@ -924,32 +938,34 @@ contains
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Ti(:,1), d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litemptop', d_grid_vec_partial_2D)
     case ('litempbotgr')
-      allocate( Ti_base_gr( region%mesh%vi1:region%mesh%vi2))
+      allocate( Ti_base_gr           ( region%mesh%vi1:region%mesh%vi2))
+      call gather_to_all(region%ice%Ti(:,region%mesh%nz),                Ti_bot_tot)
+      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
+
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
-          Ti_base_gr( vi) = region%ice%Ti( vi,C%nz)
+        if (mask_grounded_ice_tot(vi) .eqv. .TRUE.) then
+          Ti_base_gr( vi) = Ti_bot_tot( vi)
         end if
       end do
+
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_gr, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
+      deallocate( Ti_base_gr)
     case ('litempbotfl')
-      allocate( Ti_base_fl( region%mesh%vi1:region%mesh%vi2))
+      allocate( Ti_base_fl           ( region%mesh%vi1:region%mesh%vi2))
+      call gather_to_all(region%ice%Ti(:,region%mesh%nz),                Ti_bot_tot)
+      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
+
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
-          Ti_base_fl( vi) = region%ice%Ti( vi,C%nz)
+        if (mask_floating_ice_tot(vi) .eqv. .TRUE.) then
+          Ti_base_fl( vi) = Ti_bot_tot( vi)
         end if
       end do
+
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_fl, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotfl', d_grid_vec_partial_2D)
+      deallocate( Ti_base_fl)
     case ('strbasemag')
-      ! TODO: what to prescribe here?? basal_shear_stress? basal_friction_coefficient?
-      ! From UFEMISM1.x:
-      ! allocate( basal_drag( region%mesh%vi1:region%mesh%vi2))
-      ! do vi = region%mesh%vi1, region%mesh%vi2
-      !   IF (region%ice%mask_grounded_ice( vi) == 1 .AND. region%ice%f_grnd_a( vi) > 0._dp) THEN
-      !     basal_drag( vi) = region%ice%uabs_base_a( vi) * region%ice%beta_a( vi) * region%ice%f_grnd_a( vi)**.5_dp
-      !   END IF
-      ! end do
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%basal_shear_stress, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'strbasemag', d_grid_vec_partial_2D)
     case ('licalvf')
@@ -958,45 +974,64 @@ contains
       call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux, calving_and_front_melt_flux)
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_flux, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'licalvf', d_grid_vec_partial_2D)
+      deallocate( calving_flux)
+      deallocate( calving_and_front_melt_flux)
     case ('lifmassbf')
       allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2))
       allocate( calving_and_front_melt_flux( region%mesh%vi1:region%mesh%vi2))
+      if (par%primary) write(0,'(A)') '   allocated variables.'
       call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux, calving_and_front_melt_flux)
+      if (par%primary) write(0,'(A)') '   calculated fluxes.'
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_and_front_melt_flux, d_grid_vec_partial_2D)
+      if (par%primary) write(0,'(A)') '   mapped variable to grid.'
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'lifmassbf', d_grid_vec_partial_2D)
+      if (par%primary) write(0,'(A)') '   wrote to file.'
+      deallocate( calving_flux)
+      deallocate( calving_and_front_melt_flux)
+      if (par%primary) write(0,'(A)') '   deallocated variables.'
     case ('sftgif')
       allocate( land_ice_area_fraction( region%mesh%vi1:region%mesh%vi2))
+      call gather_to_all(region%ice%fraction_margin,   fraction_margin_tot)
+      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
+      call gather_to_all(region%ice%mask_grounded_ice, mask_grounded_ice_tot)
+      
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
-           if( region%ice%mask_grounded_ice( vi) .OR. region%ice%mask_floating_ice( vi)) then
+        if (mask_cf_gr_tot( vi) .eqv. .FALSE.) then
+           if( mask_grounded_ice_tot( vi) .OR. mask_floating_ice_tot( vi)) then
               land_ice_area_fraction( vi) = 1._dp
             else
               land_ice_area_fraction( vi) = 0._dp
             end if
         else
-          land_ice_area_fraction( vi) = region%ice%fraction_margin( vi)
+          land_ice_area_fraction( vi) = fraction_margin_tot( vi)
         end if
       end do
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, land_ice_area_fraction, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgif', d_grid_vec_partial_2D)
+      deallocate( land_ice_area_fraction)
     case ('sftgrf')
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%fraction_gr, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgrf', d_grid_vec_partial_2D)
     case ('sftflf')
       allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
+      call gather_to_all(region%ice%mask_floating_ice, mask_floating_ice_tot)
+      call gather_to_all(region%ice%mask_cf_fl,        mask_cf_fl_tot)
+      call gather_to_all(region%ice%fraction_margin,   fraction_margin_tot)
+
       do vi = region%mesh%vi1, region%mesh%vi2
-        if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
-           if( region%ice%mask_floating_ice( vi)) then
+        if (mask_cf_fl_tot( vi) .eqv. .FALSE.) then
+           if( mask_floating_ice_tot( vi)) then
             floating_ice_shelf_area_fraction( vi) = 1._dp
           else
             floating_ice_shelf_area_fraction( vi) = 0._dp
           end if
         else
-          floating_ice_shelf_area_fraction( vi) = region%ice%fraction_margin( vi)
+          floating_ice_shelf_area_fraction( vi) = fraction_margin_tot( vi)
         end if
       end do
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, floating_ice_shelf_area_fraction, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftflf', d_grid_vec_partial_2D)
+      deallocate(floating_ice_shelf_area_fraction)
     end select
 
     ! Finalise routine path
@@ -1924,12 +1959,11 @@ contains
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotgr')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotfl')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'strbasemag')
-      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'licalvf')
-      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lifmassbf')
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'licalvf')
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lifmassbf')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgif')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgrf')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftflf')
-      
 
       ! Close the file
       call close_netcdf_file( ncid)
@@ -2061,8 +2095,8 @@ contains
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotgr')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotfl')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'strbasemag')
-    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'licalvf')
-    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lifmassbf')
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'licalvf')
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lifmassbf')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgif')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgrf')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftflf')
