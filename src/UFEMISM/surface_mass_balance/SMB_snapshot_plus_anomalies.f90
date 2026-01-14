@@ -5,7 +5,7 @@ module SMB_snapshot_plus_anomalies
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use mesh_types, only: type_mesh
   use climate_model_types, only: type_climate_model
-  use SMB_model_types, only: type_SMB_model, type_SMB_model_snapshot_plus_anomalies
+  use SMB_model_types, only: type_SMB_model_snapshot_plus_anomalies
   use parameters, only: NaN
   use model_configuration, only: C
   use netcdf_io_main
@@ -22,13 +22,13 @@ module SMB_snapshot_plus_anomalies
 
 contains
 
-  subroutine run_climate_model_SMB_snapshot_plus_anomalies( mesh, climate, SMB, time)
+  subroutine run_climate_model_SMB_snapshot_plus_anomalies( mesh, climate, snapshot_plus_anomalies, time)
 
     ! In/output variables:
-    type(type_mesh),          intent(in   ) :: mesh
-    type(type_climate_model), intent(inout) :: climate
-    type(type_SMB_model),     intent(inout) :: SMB
-    real(dp),                 intent(in   ) :: time
+    type(type_mesh),                              intent(in   ) :: mesh
+    type(type_climate_model),                     intent(inout) :: climate
+    type(type_SMB_model_snapshot_plus_anomalies), intent(inout) :: snapshot_plus_anomalies
+    real(dp),                                     intent(in   ) :: time
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_climate_model_SMB_snapshot_plus_anomalies'
@@ -40,41 +40,41 @@ contains
 
     ! If the current model time falls outside the enveloping window
     ! of the two timeframes that have been read, update them
-    if (time < SMB%snapshot_plus_anomalies%anomaly_t0 .or. &
-        time > SMB%snapshot_plus_anomalies%anomaly_t1) then
-      call update_timeframes( mesh, SMB%snapshot_plus_anomalies, time)
+    if (time < snapshot_plus_anomalies%anomaly_t0 .or. &
+        time > snapshot_plus_anomalies%anomaly_t1) then
+      call update_timeframes( mesh, snapshot_plus_anomalies, time)
     end if
 
     ! Interpolate between the two timeframes to find the applied anomaly
-    w0 = (SMB%snapshot_plus_anomalies%anomaly_t1 - time) / &
-         (SMB%snapshot_plus_anomalies%anomaly_t1 - SMB%snapshot_plus_anomalies%anomaly_t0)
+    w0 = (snapshot_plus_anomalies%anomaly_t1 - time) / &
+         (snapshot_plus_anomalies%anomaly_t1 - snapshot_plus_anomalies%anomaly_t0)
     w1 = 1._dp - w0
 
-    SMB%snapshot_plus_anomalies%T2m_anomaly = &
-      w0 * SMB%snapshot_plus_anomalies%T2m_anomaly_0 + &
-      w1 * SMB%snapshot_plus_anomalies%T2m_anomaly_1
+    snapshot_plus_anomalies%T2m_anomaly = &
+      w0 * snapshot_plus_anomalies%T2m_anomaly_0 + &
+      w1 * snapshot_plus_anomalies%T2m_anomaly_1
 
     ! Add anomaly to snapshot to find the applied temperature
     do m = 1, 12
-      SMB%snapshot_plus_anomalies%T2m( mesh%vi1:mesh%vi2,m) = &
-        SMB%snapshot_plus_anomalies%T2m_baseline( mesh%vi1:mesh%vi2,m) + &
-        SMB%snapshot_plus_anomalies%T2m_anomaly ( mesh%vi1:mesh%vi2  )
+      snapshot_plus_anomalies%T2m( mesh%vi1:mesh%vi2,m) = &
+        snapshot_plus_anomalies%T2m_baseline( mesh%vi1:mesh%vi2,m) + &
+        snapshot_plus_anomalies%T2m_anomaly ( mesh%vi1:mesh%vi2  )
     end do
 
     ! Copy to climate model
-    climate%T2m( mesh%vi1:mesh%vi2,:) = SMB%snapshot_plus_anomalies%T2m( mesh%vi1:mesh%vi2,:)
+    climate%T2m( mesh%vi1:mesh%vi2,:) = snapshot_plus_anomalies%T2m( mesh%vi1:mesh%vi2,:)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine run_climate_model_SMB_snapshot_plus_anomalies
 
-  subroutine run_SMB_model_snapshot_plus_anomalies( mesh, SMB, time)
+  subroutine run_SMB_model_snapshot_plus_anomalies( mesh, snapshot_plus_anomalies, time)
 
     ! In/output variables:
-    type(type_mesh),          intent(in   ) :: mesh
-    type(type_SMB_model),     intent(inout) :: SMB
-    real(dp),                 intent(in   ) :: time
+    type(type_mesh),                              intent(in   ) :: mesh
+    type(type_SMB_model_snapshot_plus_anomalies), intent(inout) :: snapshot_plus_anomalies
+    real(dp),                                     intent(in   ) :: time
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_SMB_model_snapshot_plus_anomalies'
@@ -85,27 +85,24 @@ contains
 
     ! If the current model time falls outside the enveloping window
     ! of the two timeframes that have been read, update them
-    if (time < SMB%snapshot_plus_anomalies%anomaly_t0 .or. &
-        time > SMB%snapshot_plus_anomalies%anomaly_t1) then
-      call update_timeframes( mesh, SMB%snapshot_plus_anomalies, time)
+    if (time < snapshot_plus_anomalies%anomaly_t0 .or. &
+        time > snapshot_plus_anomalies%anomaly_t1) then
+      call update_timeframes( mesh, snapshot_plus_anomalies, time)
     end if
 
     ! Interpolate between the two timeframes to find the applied anomaly
-    w0 = (SMB%snapshot_plus_anomalies%anomaly_t1 - time) / &
-         (SMB%snapshot_plus_anomalies%anomaly_t1 - SMB%snapshot_plus_anomalies%anomaly_t0)
+    w0 = (snapshot_plus_anomalies%anomaly_t1 - time) / &
+         (snapshot_plus_anomalies%anomaly_t1 - snapshot_plus_anomalies%anomaly_t0)
     w1 = 1._dp - w0
 
-    SMB%snapshot_plus_anomalies%SMB_anomaly = &
-      w0 * SMB%snapshot_plus_anomalies%SMB_anomaly_0 + &
-      w1 * SMB%snapshot_plus_anomalies%SMB_anomaly_1
+    snapshot_plus_anomalies%SMB_anomaly = &
+      w0 * snapshot_plus_anomalies%SMB_anomaly_0 + &
+      w1 * snapshot_plus_anomalies%SMB_anomaly_1
 
     ! Add anomaly to snapshot to find the applied SMB
-    SMB%snapshot_plus_anomalies%SMB = &
-      SMB%snapshot_plus_anomalies%SMB_baseline + &
-      SMB%snapshot_plus_anomalies%SMB_anomaly
-
-    ! Copy to SMB model
-    SMB%SMB = SMB%snapshot_plus_anomalies%SMB
+    snapshot_plus_anomalies%SMB = &
+      snapshot_plus_anomalies%SMB_baseline + &
+      snapshot_plus_anomalies%SMB_anomaly
 
     ! Finalise routine path
     call finalise_routine( routine_name)

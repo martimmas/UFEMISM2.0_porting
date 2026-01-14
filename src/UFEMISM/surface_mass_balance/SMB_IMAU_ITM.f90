@@ -9,13 +9,13 @@ module SMB_IMAU_ITM
   use parameters
   use mesh_types, only: type_mesh
   use ice_model_types,     only: type_ice_model
-  use SMB_model_types,     only: type_SMB_model_IMAU_ITM
   use climate_model_types, only: type_climate_model
   USE parameters,      only: T0, L_fusion, sec_per_year, pi, ice_density
   use netcdf_io_main
   use global_forcing_types
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
+  use SMB_model_types, only: type_SMB_model_IMAU_ITM
 
   implicit none
 

@@ -13,7 +13,6 @@ MODULE SMB_prescribed
   USE mesh_types                                             , ONLY: type_mesh
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  USE SMB_model_types                                        , ONLY: type_SMB_model
   use netcdf_io_main
 
   IMPLICIT NONE
@@ -33,25 +32,16 @@ CONTAINS
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
     TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model_prescribed'
-    REAL(dp)                                              :: dummy_dp
-    CHARACTER                                             :: dummy_char
     CHARACTER(LEN=256)                                    :: choice_SMB_prescribed
 
     ! Add routine to path
     CALL init_routine( routine_name)
-
-    ! To prevent compiler warnings
-    dummy_dp   = mesh%xmin
-    dummy_dp   = ice%Hi( mesh%vi1)
-    dummy_dp   = SMB%SMB( mesh%vi1)
-    dummy_char = region_name( 1:1)
-    dummy_dp   = time
 
     ! Determine the type of prescribed SMB forcing for this region
     SELECT CASE (region_name)
@@ -90,7 +80,7 @@ CONTAINS
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
     ! Local variables:
@@ -141,18 +131,13 @@ CONTAINS
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model_prescribed_notime'
-    REAL(dp)                                              :: dummy_dp
 
     ! Add routine to path
     CALL init_routine( routine_name)
-
-    ! To prevent compiler warnings
-    dummy_dp = mesh%xmin
-    dummy_dp = SMB%SMB( mesh%vi1)
 
     ! No need to do anything, as the SMB was already read during initialisation
 
@@ -172,7 +157,7 @@ CONTAINS
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
     ! Local variables:
@@ -207,10 +192,10 @@ CONTAINS
     ! Read SMB from file
     IF (timeframe_SMB_prescribed == 1E9_dp) THEN
       ! Assume the file has no time dimension
-      CALL read_field_from_file_2D( filename_SMB_prescribed, 'SMB||surface_mass_balance||', mesh, C%output_dir, SMB%SMB)
+      CALL read_field_from_file_2D( filename_SMB_prescribed, 'SMB||surface_mass_balance||', mesh, C%output_dir, SMB)
     ELSE
       ! Assume the file has a time dimension, and read the specified timeframe
-      CALL read_field_from_file_2D( filename_SMB_prescribed, 'SMB||surface_mass_balance||', mesh, C%output_dir, SMB%SMB, time_to_read = timeframe_SMB_prescribed)
+      CALL read_field_from_file_2D( filename_SMB_prescribed, 'SMB||surface_mass_balance||', mesh, C%output_dir, SMB, time_to_read = timeframe_SMB_prescribed)
     END IF
 
     ! Finalise routine path

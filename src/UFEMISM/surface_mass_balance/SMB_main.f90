@@ -14,8 +14,8 @@ MODULE SMB_main
   USE grid_basic                                             , ONLY: type_grid
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
-  USE SMB_idealised                                          , ONLY: initialise_SMB_model_idealised, run_SMB_model_idealised
+  use SMB_model_types, only: type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
+  USE SMB_idealised                                          , ONLY: run_SMB_model_idealised
   USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   use SMB_IMAU_ITM, only: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
@@ -27,6 +27,25 @@ MODULE SMB_main
     run_SMB_model_snapshot_plus_anomalies
 
   IMPLICIT NONE
+
+  type type_SMB_model
+    ! The surface mass balance model
+
+    ! Main data fields
+    real(dp), dimension(:    ), allocatable      :: SMB                       ! Yearly  SMB (m)
+
+    ! Sub-models
+    real(dp), dimension(:    ), allocatable      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
+    TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
+    type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
+
+    ! Timestepping
+    real(dp)                                     :: t_next
+
+    ! Metadata
+    character(:), allocatable                    :: restart_filename          ! Name for generated restart file
+
+  end type type_SMB_model
 
 CONTAINS
 
@@ -99,9 +118,9 @@ CONTAINS
     CASE ('uniform')
       SMB%SMB = C%uniform_SMB
     CASE ('idealised')
-      CALL run_SMB_model_idealised( mesh, ice, SMB, time)
+      CALL run_SMB_model_idealised( mesh, ice, SMB%SMB, time)
     CASE ('prescribed')
-      CALL run_SMB_model_prescribed( mesh, ice, SMB, region_name, time)
+      CALL run_SMB_model_prescribed( mesh, ice, SMB%SMB, region_name, time)
     CASE ('reconstructed')
       CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
     CASE ('IMAU-ITM')
@@ -110,7 +129,11 @@ CONTAINS
         SMB%SMB( vi) = sum( SMB%IMAUITM%SMB_monthly( vi,:))
       end do
     case ('snapshot_plus_anomalies')
-      call run_SMB_model_snapshot_plus_anomalies( mesh, SMB, time)
+      call run_SMB_model_snapshot_plus_anomalies( mesh, SMB%snapshot_plus_anomalies, time)
+      do vi = mesh%vi1, mesh%vi2
+        SMB%SMB( vi) = SMB%snapshot_plus_anomalies%SMB( vi)
+      end do
+
     END SELECT
 
     ! Finalise routine path
@@ -169,9 +192,9 @@ CONTAINS
     CASE ('uniform')
       SMB%SMB = C%uniform_SMB
     CASE ('idealised')
-      CALL initialise_SMB_model_idealised( mesh, SMB)
+      ! No need to do anything
     CASE ('prescribed')
-      CALL initialise_SMB_model_prescribed( mesh, SMB, region_name)
+      CALL initialise_SMB_model_prescribed( mesh, SMB%SMB, region_name)
     CASE ('reconstructed')
       CALL initialise_SMB_model_reconstructed( mesh, SMB, region_name)
     CASE ('IMAU-ITM')
@@ -438,7 +461,7 @@ CONTAINS
       CASE ('idealised')
         ! No need to do anything
       CASE ('prescribed')
-        CALL initialise_SMB_model_prescribed( mesh_new, SMB, region_name)
+        CALL initialise_SMB_model_prescribed( mesh_new, SMB%SMB, region_name)
       CASE ('IMAU-ITM')
         call remap_SMB_model_IMAUITM( mesh_old, mesh_new, SMB%IMAUITM)
       CASE ('reconstructed')

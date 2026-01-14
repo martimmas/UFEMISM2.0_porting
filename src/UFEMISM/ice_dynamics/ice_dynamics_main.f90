@@ -10,7 +10,7 @@ module ice_dynamics_main
   use ice_model_types, only: type_ice_model
   use reference_geometry_types, only: type_reference_geometry
   use GIA_model_types, only: type_GIA_model
-  use SMB_model_types, only: type_SMB_model
+  use SMB_main, only: type_SMB_model
   use BMB_model_types, only: type_BMB_model
   use LMB_model_types, only: type_LMB_model
   use AMB_model_types, only: type_AMB_model

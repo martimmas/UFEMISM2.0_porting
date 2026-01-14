@@ -11,7 +11,7 @@ module inversion_utilities
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
   use reference_geometry_types, only: type_reference_geometry
-  use SMB_model_types, only: type_SMB_model
+  use SMB_main, only: type_SMB_model
   use BMB_model_types, only: type_BMB_model
   use LMB_model_types, only: type_LMB_model
   use AMB_model_types, only: type_AMB_model

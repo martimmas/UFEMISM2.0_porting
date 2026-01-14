@@ -7,7 +7,7 @@ module SMB_model_types
 
   private
 
-  public :: type_SMB_model, type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
+  public :: type_SMB_model_IMAU_ITM, type_SMB_model_snapshot_plus_anomalies
 
   type type_SMB_model_IMAU_ITM
     !< The IMAU-ITM SMB model data structure
@@ -68,24 +68,5 @@ module SMB_model_types
     real(dp), dimension(:  ), allocatable :: SMB
 
   end type type_SMB_model_snapshot_plus_anomalies
-
-  type type_SMB_model
-    ! The SMB model data structure.
-
-    ! Main data fields
-    real(dp), dimension(:    ), allocatable      :: SMB                       ! Yearly  SMB (m)
-
-    ! Sub-models
-    real(dp), dimension(:    ), allocatable      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
-    TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
-    type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
-
-    ! Timestepping
-    real(dp)                                     :: t_next
-
-    ! Metadata
-    character(:), allocatable                    :: restart_filename          ! Name for generated restart file
-
-  end type type_SMB_model
 
 end module SMB_model_types

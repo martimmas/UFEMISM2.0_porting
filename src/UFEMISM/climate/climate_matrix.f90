@@ -14,7 +14,7 @@ module climate_matrix
   use grid_types                                             , only: type_grid
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
-  use SMB_model_types, only: type_SMB_model
+  use SMB_main, only: type_SMB_model
   use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_snapshot
   use reallocate_mod                                         , only: reallocate_bounds
   use netcdf_io_main
