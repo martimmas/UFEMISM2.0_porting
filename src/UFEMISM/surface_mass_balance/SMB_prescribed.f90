@@ -12,6 +12,7 @@ module SMB_prescribed
   use netcdf_io_main
   use SMB_basic, only: atype_SMB_model
   use allocate_dist_shared_mod, only: allocate_dist_shared
+  use deallocate_dist_shared_mod, only: deallocate_dist_shared
 
   implicit none
 
@@ -32,12 +33,11 @@ module SMB_prescribed
 
 contains
 
-  subroutine run( self, mesh, ice, region_name, time)
+  subroutine run( self, mesh, region_name, time)
 
     ! In/output variables:
     class(type_SMB_model_prescribed), intent(inout) :: self
     type(type_mesh),                  intent(in   ) :: mesh
-    type(type_ice_model),             intent(in   ) :: ice
     character(len=3),                 intent(in   ) :: region_name
     real(dp),                         intent(in   ) :: time
 
@@ -90,6 +90,9 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
+    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
+
     ! Determine the type of prescribed SMB forcing for this region
     select case (region_name)
     case default
@@ -117,11 +120,12 @@ contains
 
   end subroutine init
 
-  subroutine remap( self, mesh_new)
+  subroutine remap( self, mesh_new, region_name)
 
     ! In/output variables:
     class(type_SMB_model_prescribed), intent(inout) :: self
     type(type_mesh),                  intent(in   ) :: mesh_new
+    character(len=3),                 intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'remap_SMB_model_prescribed'
@@ -129,7 +133,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call crash('remapping not yet implemented for type_SMB_model_prescribed')
+    call deallocate_dist_shared( self%SMB, self%wSMB)
+    call self%init( mesh_new, region_name)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -172,9 +177,6 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
-    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
 
     ! Determine filename for this model region
     select case (region_name)

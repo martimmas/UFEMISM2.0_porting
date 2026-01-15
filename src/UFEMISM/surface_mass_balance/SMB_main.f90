@@ -125,7 +125,7 @@ contains
       end do
 
     CASE ('prescribed')
-      call SMB%prescribed%run( mesh, ice, region_name, time)
+      call SMB%prescribed%run( mesh, region_name, time)
       do vi = mesh%vi1, mesh%vi2
         SMB%SMB( vi) = SMB%prescribed%SMB( vi)
       end do
@@ -471,7 +471,7 @@ contains
       CASE ('idealised')
         call SMB%idealised%remap( mesh_new)
       CASE ('prescribed')
-        call SMB%prescribed%remap( mesh_new)
+        call SMB%prescribed%remap( mesh_new, region_name)
       CASE ('reconstructed')
         call SMB%reconstructed%remap( mesh_new)
       CASE ('IMAU-ITM')
