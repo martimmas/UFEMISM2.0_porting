@@ -743,8 +743,8 @@ contains
 
       end do ! do vi = mesh%vi1, mesh%vi2
 
-      ! Add together values from each process
-      call MPI_ALLREDUCE( MPI_IN_PLACE, calving_flux,                1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+      ! Add together values from each process - is that necessary when not integrating over the entire domain?
+      ! call MPI_ALLREDUCE( MPI_IN_PLACE, calving_flux,                1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
       ! call MPI_ALLREDUCE( MPI_IN_PLACE, calving_and_front_melt_flux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr) ! TODO: when front melt is computed
 
       ! Finalise routine path
