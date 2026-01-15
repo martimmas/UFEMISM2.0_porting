@@ -213,6 +213,9 @@ contains
     self%albedo_snow         = C%SMB_IMAUITM_albedo_snow
 
     ! Allocating necessary fields
+    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
+    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
+
     call allocate_dist_shared( self%AlbedoSurf       , self%wAlbedoSurf      , mesh%pai_V%n_nih    )
     call allocate_dist_shared( self%Rainfall         , self%wRainfall        , mesh%pai_V%n_nih, 12)
     call allocate_dist_shared( self%Snowfall         , self%wSnowfall        , mesh%pai_V%n_nih, 12)

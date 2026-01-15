@@ -158,6 +158,9 @@ contains
 
     ! Allocate memory
 
+    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
+    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
+
     ! Baseline climate
     call allocate_dist_shared( self%T2m_baseline, self%wT2m_baseline, mesh%pai_V%n_nih, 12)
     call allocate_dist_shared( self%SMB_baseline, self%wSMB_baseline, mesh%pai_V%n_nih    )
@@ -182,9 +185,7 @@ contains
 
     ! Applied climate
     call allocate_dist_shared( self%T2m, self%wT2m, mesh%pai_V%n_nih, 12)
-    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih    )
     self%T2m( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => self%T2m
-    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => self%SMB
 
     ! Read baseline snapshot
     call read_field_from_file_2D_monthly( C%SMB_snp_p_anml_filename_snapshot_T2m, 'T2m', &
