@@ -14,9 +14,9 @@ module SMB_main
   use climate_model_types, only: type_climate_model
   use SMB_idealised, only: type_SMB_model_idealised
   use SMB_prescribed, only: type_SMB_model_prescribed
+  use SMB_reconstructed, only: type_SMB_model_reconstructed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies
-  use SMB_reconstructed, only: initialise_SMB_model_reconstructed, run_SMB_model_reconstructed
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
@@ -36,6 +36,7 @@ module SMB_main
     ! Sub-models
     type(type_SMB_model_idealised)               :: idealised
     type(type_SMB_model_prescribed)              :: prescribed
+    type(type_SMB_model_reconstructed)           :: reconstructed
     type(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
@@ -130,7 +131,10 @@ contains
       end do
 
     CASE ('reconstructed')
-      CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB%SMB, region_name, time)
+      call SMB%reconstructed%run( mesh, grid_smooth, ice, region_name, time)
+      do vi = mesh%vi1, mesh%vi2
+        SMB%SMB( vi) = SMB%reconstructed%SMB( vi)
+      end do
 
     CASE ('IMAU-ITM')
       call SMB%IMAUITM%run( mesh, ice, climate)
@@ -204,7 +208,7 @@ contains
     CASE ('prescribed')
       call SMB%prescribed%init( mesh, region_name)
     CASE ('reconstructed')
-      CALL initialise_SMB_model_reconstructed( mesh, region_name)
+      call SMB%reconstructed%init( mesh)
     CASE ('IMAU-ITM')
       call SMB%IMAUITM%init( mesh, ice, region_name)
     case ('snapshot_plus_anomalies')
@@ -469,10 +473,10 @@ contains
         call SMB%idealised%remap( mesh_new)
       CASE ('prescribed')
         call SMB%prescribed%remap( mesh_new)
+      CASE ('reconstructed')
+        call SMB%reconstructed%remap( mesh_new)
       CASE ('IMAU-ITM')
         call SMB%IMAUITM%remap( mesh_old, mesh_new)
-      CASE ('reconstructed')
-        CALL crash('Remapping after mesh update not implemented yet for reconstructed SMB')
       CASE DEFAULT
         CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT
