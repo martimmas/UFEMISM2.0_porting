@@ -351,7 +351,6 @@ contains
   end subroutine initialise_IMAUITM_firn_from_file
 
   subroutine remap( self, mesh_old, mesh_new)
-    ! Remap the SMB model
 
     ! In- and output variables
     class(type_SMB_model_IMAU_ITM), intent(inout) :: self

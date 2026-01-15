@@ -49,60 +49,13 @@ module SMB_snapshot_plus_anomalies
 
     contains
 
-      procedure, public  :: init, run
+      procedure, public  :: init, run, remap
       procedure, public  :: run_climate
       procedure, private :: update_timeframes
 
   end type type_SMB_model_snapshot_plus_anomalies
 
 contains
-
-  subroutine run_climate( self, mesh, climate, time)
-
-    ! In/output variables:
-    class(type_SMB_model_snapshot_plus_anomalies), intent(inout) :: self
-    type(type_mesh),                               intent(in   ) :: mesh
-    type(type_climate_model),                      intent(inout) :: climate
-    real(dp),                                      intent(in   ) :: time
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'run_climate_model_SMB_snapshot_plus_anomalies'
-    real(dp)                       :: w0, w1
-    integer                        :: m
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    ! If the current model time falls outside the enveloping window
-    ! of the two timeframes that have been read, update them
-    if (time < self%anomaly_t0 .or. &
-        time > self%anomaly_t1) then
-      call self%update_timeframes( mesh, time)
-    end if
-
-    ! Interpolate between the two timeframes to find the applied anomaly
-    w0 = (self%anomaly_t1 - time) / &
-         (self%anomaly_t1 - self%anomaly_t0)
-    w1 = 1._dp - w0
-
-    self%T2m_anomaly = &
-      w0 * self%T2m_anomaly_0 + &
-      w1 * self%T2m_anomaly_1
-
-    ! Add anomaly to snapshot to find the applied temperature
-    do m = 1, 12
-      self%T2m( mesh%vi1:mesh%vi2,m) = &
-        self%T2m_baseline( mesh%vi1:mesh%vi2,m) + &
-        self%T2m_anomaly ( mesh%vi1:mesh%vi2  )
-    end do
-
-    ! Copy to climate model
-    climate%T2m( mesh%vi1:mesh%vi2,:) = self%T2m( mesh%vi1:mesh%vi2,:)
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine run_climate
 
   subroutine run( self, mesh, time)
 
@@ -202,6 +155,71 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine init
+
+  subroutine remap( self)
+
+    ! In/output variables:
+    class(type_SMB_model_snapshot_plus_anomalies), intent(inout) :: self
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'remap_SMB_model_snapshot_plus_anomalies'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    call crash('remapping not yet implemented for type_SMB_model_snapshot_plus_anomalies')
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine remap
+
+  subroutine run_climate( self, mesh, climate, time)
+
+    ! In/output variables:
+    class(type_SMB_model_snapshot_plus_anomalies), intent(inout) :: self
+    type(type_mesh),                               intent(in   ) :: mesh
+    type(type_climate_model),                      intent(inout) :: climate
+    real(dp),                                      intent(in   ) :: time
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'run_climate_model_SMB_snapshot_plus_anomalies'
+    real(dp)                       :: w0, w1
+    integer                        :: m
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! If the current model time falls outside the enveloping window
+    ! of the two timeframes that have been read, update them
+    if (time < self%anomaly_t0 .or. &
+        time > self%anomaly_t1) then
+      call self%update_timeframes( mesh, time)
+    end if
+
+    ! Interpolate between the two timeframes to find the applied anomaly
+    w0 = (self%anomaly_t1 - time) / &
+         (self%anomaly_t1 - self%anomaly_t0)
+    w1 = 1._dp - w0
+
+    self%T2m_anomaly = &
+      w0 * self%T2m_anomaly_0 + &
+      w1 * self%T2m_anomaly_1
+
+    ! Add anomaly to snapshot to find the applied temperature
+    do m = 1, 12
+      self%T2m( mesh%vi1:mesh%vi2,m) = &
+        self%T2m_baseline( mesh%vi1:mesh%vi2,m) + &
+        self%T2m_anomaly ( mesh%vi1:mesh%vi2  )
+    end do
+
+    ! Copy to climate model
+    climate%T2m( mesh%vi1:mesh%vi2,:) = self%T2m( mesh%vi1:mesh%vi2,:)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine run_climate
 
   subroutine update_timeframes( self, mesh, time)
 
