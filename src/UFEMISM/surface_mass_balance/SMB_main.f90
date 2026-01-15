@@ -155,15 +155,14 @@ contains
 
   END SUBROUTINE run_SMB_model
 
-  SUBROUTINE initialise_SMB_model( mesh, ice, climate, SMB, region_name)
+  SUBROUTINE initialise_SMB_model( mesh, ice, SMB, region_name)
     ! Initialise the SMB model
 
     ! In- and output variables
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_climate_model),               INTENT(IN)    :: climate
-    TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
+    TYPE(type_mesh),                        intent(in   ) :: mesh
+    TYPE(type_ice_model),                   intent(in   ) :: ice
+    TYPE(type_SMB_model),                   intent(inout) :: SMB
+    CHARACTER(LEN=3),                       intent(in   ) :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_SMB_model'
