@@ -15,14 +15,13 @@ module SMB_main
   use SMB_idealised, only: run_SMB_model_idealised
   use SMB_prescribed, only: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
+  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
   use plane_geometry, only: is_in_polygon
   use mesh_data_smoothing, only: smooth_Gaussian
   use netcdf_io_main
-  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies, &
-    initialise_SMB_model_snapshot_plus_anomalies, run_SMB_model_snapshot_plus_anomalies
 
   implicit none
 
@@ -125,7 +124,7 @@ contains
         SMB%SMB( vi) = sum( SMB%IMAUITM%SMB_monthly( vi,:))
       end do
     case ('snapshot_plus_anomalies')
-      call run_SMB_model_snapshot_plus_anomalies( mesh, SMB%snapshot_plus_anomalies, time)
+      call SMB%snapshot_plus_anomalies%run( mesh, time)
       do vi = mesh%vi1, mesh%vi2
         SMB%SMB( vi) = SMB%snapshot_plus_anomalies%SMB( vi)
       end do
@@ -194,7 +193,7 @@ contains
     CASE ('IMAU-ITM')
       call SMB%IMAUITM%init( mesh, ice, region_name)
     case ('snapshot_plus_anomalies')
-      call initialise_SMB_model_snapshot_plus_anomalies( mesh, SMB%snapshot_plus_anomalies)
+      call SMB%snapshot_plus_anomalies%init( mesh)
     CASE DEFAULT
       CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT

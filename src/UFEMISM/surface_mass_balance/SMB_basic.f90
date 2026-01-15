@@ -3,6 +3,7 @@ module SMB_basic
 
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use mpi_f08, only: MPI_WIN
   use UPSY_main, only: atype_model
 
   implicit none
@@ -15,7 +16,8 @@ module SMB_basic
     !< The basic surface mass balance model
 
       ! Main data fields
-      real(dp), dimension(:), allocatable :: SMB   !< [m] Net annual  SMB
+      real(dp), dimension(:), contiguous, pointer :: SMB   !< [m] Net annual  SMB
+      type(MPI_WIN) :: wSMB
 
       ! Timestepping
       real(dp) :: t_next

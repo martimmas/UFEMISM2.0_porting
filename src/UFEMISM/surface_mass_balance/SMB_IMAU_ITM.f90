@@ -59,8 +59,6 @@ module SMB_IMAU_ITM
 
     contains
 
-      private
-
       procedure, public  :: init, run, remap
       procedure, private :: initialise_IMAUITM_firn_from_file
 
