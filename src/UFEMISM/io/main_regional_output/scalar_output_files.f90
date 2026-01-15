@@ -7,6 +7,8 @@ module scalar_output_files
   use region_types, only: type_model_region
   use netcdf_io_main
   use reallocate_mod
+  use netcdf_basic
+  use netcdf, only: NF90_DOUBLE, NF90_UNLIMITED
   
   implicit none
 
@@ -559,6 +561,8 @@ contains
       character(len=1024), parameter :: routine_name = 'create_ISMIP_scalar_regional_output_file'
       character(len=1024)            :: filename_base, filename
       integer                        :: ncid
+      integer                        :: id_dim_time
+      integer                        :: id_var_time
 
       ! Add routine to path
       call init_routine( routine_name)
@@ -580,8 +584,12 @@ contains
       ! Create the NetCDF file
       call create_new_netcdf_file_for_writing( filename, ncid)
 
-      ! Add time, zeta, and month dimensions+variables to the file
-      call add_time_dimension_to_file( filename, ncid)
+      ! Add time dimension to the file manually because of different units
+      ! call add_time_dimension_to_file( filename, ncid)
+      call create_dimension(   filename, ncid, get_first_option_from_list( field_name_options_time), NF90_UNLIMITED, id_dim_time)
+      call create_variable(    filename, ncid, get_first_option_from_list( field_name_options_time), NF90_DOUBLE, (/ id_dim_time /), id_var_time)
+      call add_attribute_char( filename, ncid, id_var_time, 'long_name', 'Time')
+      call add_attribute_char( filename, ncid, id_var_time, 'units', 'days')
 
       call add_field_dp_0D( filename, ncid, 'lim',        long_name = 'land_ice_mass',                          units = 'kg')
       call add_field_dp_0D( filename, ncid, 'limnsw',     long_name = 'land_ice_mass_not_displacing_sea_water', units = 'kg')
@@ -673,7 +681,7 @@ contains
       if (n > region%scalars%buffer%ismip%n_mem - 10) call extend_scalar_output_buffer( region)
 
       ! Store new timeframe in buffer
-      region%scalars%buffer%ismip%time    ( n) = region%time
+      region%scalars%buffer%ismip%time    ( n) = region%time * 360._dp ! need to convert to number of days for ISMIP
 
       region%scalars%buffer%ismip%lim     ( n) = region%scalars%ismip%lim
       region%scalars%buffer%ismip%limnsw  ( n) = region%scalars%ismip%limnsw
