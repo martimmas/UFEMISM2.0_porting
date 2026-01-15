@@ -1,24 +1,23 @@
-MODULE SMB_main
+module SMB_main
 
   ! The main SMB model module.
 
-! ===== Preamble =====
-! ====================
-
-  USE precisions                                             , ONLY: dp
-  USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string
-  USE model_configuration                                    , ONLY: C
-  USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
-  USE grid_basic                                             , ONLY: type_grid
-  USE ice_model_types                                        , ONLY: type_ice_model
-  USE climate_model_types                                    , ONLY: type_climate_model
-  USE SMB_idealised                                          , ONLY: run_SMB_model_idealised
-  USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
+  use precisions, only: dp
+  use mpi_basic, only: par, sync
+  use mpi_f08, only: MPI_WIN
+  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string
+  use model_configuration, only: C
+  use parameters
+  use mesh_types, only: type_mesh
+  use grid_basic, only: type_grid
+  use ice_model_types, only: type_ice_model
+  use climate_model_types, only: type_climate_model
+  use SMB_idealised, only: run_SMB_model_idealised
+  use SMB_prescribed, only: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM, initialise_SMB_model_IMAUITM, &
     run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
-  USE reallocate_mod                                         , ONLY: reallocate_bounds
+  use allocate_dist_shared_mod, only: allocate_dist_shared
+  use reallocate_dist_shared_mod, only: reallocate_dist_shared
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
   use plane_geometry, only: is_in_polygon
   use mesh_data_smoothing, only: smooth_Gaussian
@@ -26,17 +25,17 @@ MODULE SMB_main
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies, &
     initialise_SMB_model_snapshot_plus_anomalies, run_SMB_model_snapshot_plus_anomalies
 
-  IMPLICIT NONE
+  implicit none
 
   type type_SMB_model
     ! The surface mass balance model
 
     ! Main data fields
-    real(dp), dimension(:    ), allocatable      :: SMB                       ! Yearly  SMB (m)
+    real(dp), dimension(:), contiguous, pointer :: SMB                       ! Yearly  SMB (m)
+    type(MPI_WIN) :: wSMB
 
     ! Sub-models
-    real(dp), dimension(:    ), allocatable      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
-    TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
+    type(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
     ! Timestepping
@@ -47,7 +46,7 @@ MODULE SMB_main
 
   end type type_SMB_model
 
-CONTAINS
+contains
 
 ! ===== Main routines =====
 ! =========================
@@ -116,7 +115,7 @@ CONTAINS
     CASE DEFAULT
       CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     CASE ('uniform')
-      SMB%SMB = C%uniform_SMB
+      SMB%SMB( mesh%vi1: mesh%vi2) = C%uniform_SMB
     CASE ('idealised')
       CALL run_SMB_model_idealised( mesh, ice, SMB%SMB, time)
     CASE ('prescribed')
@@ -181,8 +180,8 @@ CONTAINS
       colour_string( trim( choice_SMB_model),'light blue') // '...'
 
     ! Allocate memory for main variables
-    ALLOCATE( SMB%SMB( mesh%vi1:mesh%vi2))
-    SMB%SMB = 0._dp
+    call allocate_dist_shared( SMB%SMB, SMB%wSMB, mesh%pai_V%n_nih)
+    SMB%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => SMB%SMB
 
     ! Set time of next calculation to start time
     SMB%t_next = C%start_time_of_run
@@ -190,7 +189,7 @@ CONTAINS
     ! Determine which SMB model to initialise
     SELECT CASE (choice_SMB_model)
     CASE ('uniform')
-      SMB%SMB = C%uniform_SMB
+      SMB%SMB( mesh%vi1: mesh%vi2) = C%uniform_SMB
     CASE ('idealised')
       ! No need to do anything
     CASE ('prescribed')
@@ -306,6 +305,7 @@ CONTAINS
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
+
   END SUBROUTINE write_to_restart_file_SMB_model_region
 
   SUBROUTINE create_restart_file_SMB_model( mesh, SMB, region_name)
@@ -452,7 +452,7 @@ CONTAINS
     END SELECT
 
     ! Reallocate memory for main variables
-    CALL reallocate_bounds( SMB%SMB, mesh_new%vi1, mesh_new%vi2)
+    call reallocate_dist_shared( SMB%SMB, SMB%wSMB, mesh_new%pai_V%n_nih)
 
     ! Determine which SMB model to initialise
     SELECT CASE (choice_SMB_model)
@@ -541,7 +541,7 @@ CONTAINS
     END DO
 
     ! Smooth the reconstructed field
-    SMB_smoothed = SMB%SMB
+    SMB_smoothed = SMB%SMB(mesh%vi1:mesh%vi2)
     CALL smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
 
     ! Only apply the smoothed field inside the reconstructed area
@@ -559,7 +559,7 @@ CONTAINS
     END DO
 
     ! Smooth the field once more
-    SMB_smoothed = SMB%SMB
+    SMB_smoothed = SMB%SMB(mesh%vi1:mesh%vi2)
     CALL smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
 
     ! Apply this second smoothing only outside of the reconstructed area
@@ -603,4 +603,4 @@ CONTAINS
 
   END SUBROUTINE initialise_SMB_model_reconstructed
 
-END MODULE SMB_main
+end module SMB_main

@@ -30,11 +30,11 @@ CONTAINS
     IMPLICIT NONE
 
     ! In/output variables:
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-    REAL(dp),                               INTENT(IN)    :: time
+    TYPE(type_mesh),                                          INTENT(IN)    :: mesh
+    TYPE(type_ice_model),                                     INTENT(IN)    :: ice
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
+    CHARACTER(LEN=3),                                         INTENT(IN)    :: region_name
+    REAL(dp),                                                 INTENT(IN)    :: time
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model_prescribed'
@@ -79,9 +79,9 @@ CONTAINS
     IMPLICIT NONE
 
     ! In- and output variables
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
+    TYPE(type_mesh),                                          INTENT(IN)    :: mesh
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
+    CHARACTER(LEN=3),                                         INTENT(IN)    :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_SMB_model_prescribed'
@@ -130,8 +130,8 @@ CONTAINS
     IMPLICIT NONE
 
     ! In/output variables:
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
+    TYPE(type_mesh),                                          INTENT(IN   ) :: mesh
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model_prescribed_notime'
@@ -156,9 +156,9 @@ CONTAINS
     IMPLICIT NONE
 
     ! In- and output variables
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
+    TYPE(type_mesh),                                          INTENT(IN   ) :: mesh
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
+    CHARACTER(LEN=3),                                         INTENT(IN   ) :: region_name
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_SMB_model_prescribed_notime'
