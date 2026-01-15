@@ -644,7 +644,7 @@ contains
 
   end subroutine calc_ISMIP_scalars
 
-  subroutine calc_ice_margin_fluxes( mesh, ice, calving_flux, calving_and_front_melt_flux)
+  subroutine calc_ice_margin_fluxes( mesh, ice, calving_flux)
       !< Calculate the ice flux through the ice margin using an upwind scheme
 
       ! This is the same routine as calc_ice_transitional_fluxes, 
@@ -656,7 +656,7 @@ contains
       type(type_mesh),              intent(in   ) :: mesh
       type(type_ice_model),         intent(in   ) :: ice
       real(dp), dimension(mesh%nV), intent(  out) :: calving_flux
-      real(dp), dimension(mesh%nV), intent(  out) :: calving_and_front_melt_flux
+      ! real(dp), dimension(mesh%nV), intent(  out) :: calving_and_front_melt_flux ! TODO: when front melt is computed
 
       ! Local variables:
       character(len=1024), parameter         :: routine_name = 'calc_ice_margin_fluxes'
@@ -690,7 +690,7 @@ contains
 
       ! Initialise
       calving_flux                = 0._dp
-      calving_and_front_melt_flux = 0._dp
+      ! calving_and_front_melt_flux = 0._dp ! TODO: when front melt is computed
       
 
       do vi = mesh%vi1, mesh%vi2
@@ -724,19 +724,19 @@ contains
           ! Floating calving front
           if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_cf_fl( vi) .and. mask_icefree_ocean_tot( vj)) THEN
             calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
-            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+            ! calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: when front melt is computed
           end if
 
           ! Land-terminating ice (grounded or floating)
           if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_margin( vi) .and. mask_icefree_land_tot( vj)) then
             calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
-            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+            ! calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: when front melt is computed
           end if
 
           ! Marine-terminating ice (grounded or floating)
           if (fraction_margin_tot( vi) >= 1._dp .and. ice%mask_margin( vi) .and. mask_icefree_ocean_tot( vj)) then
             calving_flux( vi) = calving_flux( vi) - L_c * max( 0._dp, u_perp) * Hi_tot( vi) * 1.0E-09_dp ! [Gt/yr]
-            calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: add front melt when computed?
+            ! calving_and_front_melt_flux( vi) = calving_flux( vi) ! TODO: when front melt is computed
           end if
 
         end do ! do ci = 1, mesh%nC( vi)
@@ -745,7 +745,7 @@ contains
 
       ! Add together values from each process
       call MPI_ALLREDUCE( MPI_IN_PLACE, calving_flux,                1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
-      call MPI_ALLREDUCE( MPI_IN_PLACE, calving_and_front_melt_flux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
+      ! call MPI_ALLREDUCE( MPI_IN_PLACE, calving_and_front_melt_flux, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr) ! TODO: when front melt is computed
 
       ! Finalise routine path
       call finalise_routine( routine_name)
