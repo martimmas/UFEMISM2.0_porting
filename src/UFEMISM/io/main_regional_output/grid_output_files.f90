@@ -937,19 +937,16 @@ contains
           Ti_base_gr( vi) = region%ice%Ti( vi,region%mesh%nz)
         end if
       end do
-
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_gr, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
       deallocate( Ti_base_gr)
     case ('litempbotfl')
       allocate( Ti_base_fl            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)    
-    
       do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
           Ti_base_fl( vi) = region%ice%Ti(vi,region%mesh%nz)
         end if
       end do
-
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_fl, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotfl', d_grid_vec_partial_2D)
       deallocate( Ti_base_fl)
@@ -958,28 +955,18 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'strbasemag', d_grid_vec_partial_2D)
     case ('licalvf')
       allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2))
-      allocate( calving_and_front_melt_flux( region%mesh%vi1:region%mesh%vi2))
-      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux, calving_and_front_melt_flux)
+      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux)
       call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_flux, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'licalvf', d_grid_vec_partial_2D)
       deallocate( calving_flux)
-      deallocate( calving_and_front_melt_flux)
     case ('lifmassbf')
-      allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2))
-      allocate( calving_and_front_melt_flux( region%mesh%vi1:region%mesh%vi2))
-      if (par%primary) write(0,'(A)') '   allocated variables.'
-      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux, calving_and_front_melt_flux)
-      if (par%primary) write(0,'(A)') '   calculated fluxes.'
-      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_and_front_melt_flux, d_grid_vec_partial_2D)
-      if (par%primary) write(0,'(A)') '   mapped variable to grid.'
+      allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2)) ! for now just gets the calving flux w/o front melt
+      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_flux, d_grid_vec_partial_2D)
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'lifmassbf', d_grid_vec_partial_2D)
-      if (par%primary) write(0,'(A)') '   wrote to file.'
       deallocate( calving_flux)
-      deallocate( calving_and_front_melt_flux)
-      if (par%primary) write(0,'(A)') '   deallocated variables.'
     case ('sftgif')
       allocate( land_ice_area_fraction( region%mesh%vi1:region%mesh%vi2))
-      
       do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
            if( region%ice%mask_grounded_ice( vi) .OR. region%ice%mask_floating_ice( vi)) then
@@ -999,7 +986,6 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgrf', d_grid_vec_partial_2D)
     case ('sftflf')
       allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
-
       do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
            if( region%ice%mask_floating_ice( vi)) then
@@ -1852,9 +1838,7 @@ contains
 
       ! Add time, zeta, and month dimensions+variables to the file
       call add_time_dimension_to_file(  region%output_filename_grid_ismip, ncid)
-      ! call add_zeta_dimension_to_file(  region%output_filename_grid_ismip, ncid, region%mesh%zeta)
       call add_month_dimension_to_file( region%output_filename_grid_ismip, ncid)
-      ! call add_depth_dimension_to_file( region%output_filename_grid_ismip, ncid, C%z_ocean)
 
       ! Add the default data fields to the file
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lithk')
@@ -1877,8 +1861,8 @@ contains
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotgr')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotfl')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'strbasemag')
-      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'licalvf')
-      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lifmassbf')
+      ! call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+      ! call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lifmassbf') ! TODO: when front melt is computed
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgif')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgrf')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftflf')
@@ -1941,8 +1925,8 @@ contains
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotgr')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotfl')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'strbasemag')
-      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'licalvf')
-      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lifmassbf')
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lifmassbf') ! TODO: when front melt is computed
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgif')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgrf')
       call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftflf')
@@ -1987,9 +1971,7 @@ contains
 
     ! Add time, zeta, and month dimensions+variables to the file
     call add_time_dimension_to_file(  filename, ncid)
-    ! call add_zeta_dimension_to_file(  filename, ncid, region%mesh%zeta)
     call add_month_dimension_to_file( filename, ncid)
-    ! call add_depth_dimension_to_file( filename, ncid, C%z_ocean)
 
     ! Add the default data fields to the file
     call create_main_regional_output_file_grid_field( filename, ncid, 'lithk')
@@ -2012,8 +1994,8 @@ contains
     call create_main_regional_output_file_grid_field( filename, ncid, 'litempbotgr')
     call create_main_regional_output_file_grid_field( filename, ncid, 'litempbotfl')
     call create_main_regional_output_file_grid_field( filename, ncid, 'strbasemag')
-    call create_main_regional_output_file_grid_field( filename, ncid, 'licalvf')
-    call create_main_regional_output_file_grid_field( filename, ncid, 'lifmassbf')
+    ! call create_main_regional_output_file_grid_field( filename, ncid, 'licalvf' ) ! TODO: flux computation routine crashes when run in parallel
+    ! call create_main_regional_output_file_grid_field( filename, ncid, 'lifmassbf') ! TODO: when front melt is computed
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftgif')
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftgrf')
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftflf')
@@ -2077,8 +2059,8 @@ contains
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotgr')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotfl')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'strbasemag')
-    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'licalvf')
-    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lifmassbf')
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lifmassbf') ! TODO: when front melt is computed
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgif')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgrf')
     call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftflf')
