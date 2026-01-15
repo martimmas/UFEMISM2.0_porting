@@ -11,7 +11,6 @@ module climate_matrix_utilities
   use grid_types                                             , only: type_grid
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
-  use SMB_main, only: type_SMB_model
   use netcdf_io_main
   use mesh_disc_apply_operators, only: ddx_a_a_2D, ddy_a_a_2D
   use erf_mod, only: error_function

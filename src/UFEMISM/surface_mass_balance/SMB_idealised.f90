@@ -25,10 +25,10 @@ contains
     ! use an idealised SMB scheme
 
     ! In/output variables:
-    type(type_mesh),                        intent(in   ) :: mesh
-    type(type_ice_model),                   intent(in   ) :: ice
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
-    real(dp),                               intent(in   ) :: time
+    type(type_mesh),                                          intent(in   ) :: mesh
+    type(type_ice_model),                                     intent(in   ) :: ice
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
+    real(dp),                                                 intent(in   ) :: time
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'run_SMB_model_idealised'
@@ -59,9 +59,9 @@ contains
     ! SMB for the EISMINT1 experiments (Huybrechts et al., 1996)
 
     ! In/output variables
-    type(type_mesh),                        intent(in   ) :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
-    real(dp),                               intent(in   ) :: time
+    type(type_mesh),                                          intent(in   ) :: mesh
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
+    real(dp),                                                 intent(in   ) :: time
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'run_SMB_model_idealised_EISMINT1'
@@ -172,8 +172,8 @@ contains
     ! Calculate the surface mass balance
 
     ! In/output variables
-    type(type_mesh),                        intent(in)    :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: SMB
+    type(type_mesh),                                          intent(in)    :: mesh
+    real(dp), dimension(mesh%pai_V%i1_nih:mesh%pai_V%i2_nih), intent(  out) :: SMB
 
     ! Local variables:
     character(len=256), parameter :: routine_name = 'run_SMB_model_idealised_Halfar_static'

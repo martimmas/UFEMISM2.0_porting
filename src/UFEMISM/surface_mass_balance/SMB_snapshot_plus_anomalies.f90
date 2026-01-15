@@ -8,7 +8,8 @@ module SMB_snapshot_plus_anomalies
   use parameters, only: NaN
   use model_configuration, only: C
   use netcdf_io_main
-  use mpi_f08, only: MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD
+  use mpi_f08, only: MPI_WIN, MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD
+  use allocate_dist_shared_mod, only: allocate_dist_shared
 
   implicit none
 
@@ -23,25 +24,30 @@ module SMB_snapshot_plus_anomalies
   type type_SMB_model_snapshot_plus_anomalies
 
     ! Baseline climate
-    real(dp), dimension(:,:), allocatable :: T2m_baseline
-    real(dp), dimension(:  ), allocatable :: SMB_baseline
+    real(dp), dimension(:,:), contiguous, pointer :: T2m_baseline
+    real(dp), dimension(:  ), contiguous, pointer :: SMB_baseline
+    type(MPI_WIN) :: wT2m_baseline, wSMB_baseline
 
     ! Two anomaly timeframes enveloping the current model time
     real(dp)                              :: anomaly_t0
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly_0
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly_0
+    real(dp), dimension(:  ), contiguous, pointer :: T2m_anomaly_0
+    real(dp), dimension(:  ), contiguous, pointer :: SMB_anomaly_0
+    type(MPI_WIN) :: wT2m_anomaly_0, wSMB_anomaly_0
 
     real(dp)                              :: anomaly_t1
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly_1
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly_1
+    real(dp), dimension(:  ), contiguous, pointer :: T2m_anomaly_1
+    real(dp), dimension(:  ), contiguous, pointer :: SMB_anomaly_1
+    type(MPI_WIN) :: wT2m_anomaly_1, wSMB_anomaly_1
 
     ! Time-weighted anomaly
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly
+    real(dp), dimension(:  ), contiguous, pointer :: T2m_anomaly
+    real(dp), dimension(:  ), contiguous, pointer :: SMB_anomaly
+    type(MPI_WIN) :: wT2m_anomaly, wSMB_anomaly
 
     ! Applied climate
-    real(dp), dimension(:,:), allocatable :: T2m    ! = baseline + anomaly
-    real(dp), dimension(:  ), allocatable :: SMB
+    real(dp), dimension(:,:), contiguous, pointer :: T2m    ! = baseline + anomaly
+    real(dp), dimension(:  ), contiguous, pointer :: SMB
+    type(MPI_WIN) :: wT2m, wSMB
 
   end type type_SMB_model_snapshot_plus_anomalies
 
@@ -120,14 +126,14 @@ contains
          (snapshot_plus_anomalies%anomaly_t1 - snapshot_plus_anomalies%anomaly_t0)
     w1 = 1._dp - w0
 
-    snapshot_plus_anomalies%SMB_anomaly = &
-      w0 * snapshot_plus_anomalies%SMB_anomaly_0 + &
-      w1 * snapshot_plus_anomalies%SMB_anomaly_1
+    snapshot_plus_anomalies%SMB_anomaly( mesh%vi1: mesh%vi2) = &
+      w0 * snapshot_plus_anomalies%SMB_anomaly_0( mesh%vi1: mesh%vi2) + &
+      w1 * snapshot_plus_anomalies%SMB_anomaly_1( mesh%vi1: mesh%vi2)
 
     ! Add anomaly to snapshot to find the applied SMB
-    snapshot_plus_anomalies%SMB = &
-      snapshot_plus_anomalies%SMB_baseline + &
-      snapshot_plus_anomalies%SMB_anomaly
+    snapshot_plus_anomalies%SMB( mesh%vi1: mesh%vi2) = &
+      snapshot_plus_anomalies%SMB_baseline( mesh%vi1: mesh%vi2) + &
+      snapshot_plus_anomalies%SMB_anomaly( mesh%vi1: mesh%vi2)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -149,23 +155,32 @@ contains
     ! Allocate memory
 
     ! Baseline climate
-    allocate( snapshot_plus_anomalies%T2m_baseline( mesh%vi1:mesh%vi2, 12), source = NaN)
-    allocate( snapshot_plus_anomalies%SMB_baseline( mesh%vi1:mesh%vi2    ), source = NaN)
+    call allocate_dist_shared( snapshot_plus_anomalies%T2m_baseline, snapshot_plus_anomalies%wT2m_baseline, mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( snapshot_plus_anomalies%SMB_baseline, snapshot_plus_anomalies%wSMB_baseline, mesh%pai_V%n_nih    )
+    snapshot_plus_anomalies%T2m_baseline( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => snapshot_plus_anomalies%T2m_baseline
+    snapshot_plus_anomalies%SMB_baseline( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => snapshot_plus_anomalies%SMB_baseline
 
     ! Two anomaly snapshots enveloping the current model time
-    allocate( snapshot_plus_anomalies%T2m_anomaly_0( mesh%vi1:mesh%vi2), source = NaN)
-    allocate( snapshot_plus_anomalies%SMB_anomaly_0( mesh%vi1:mesh%vi2), source = NaN)
-
-    allocate( snapshot_plus_anomalies%T2m_anomaly_1( mesh%vi1:mesh%vi2), source = NaN)
-    allocate( snapshot_plus_anomalies%SMB_anomaly_1( mesh%vi1:mesh%vi2), source = NaN)
+    call allocate_dist_shared( snapshot_plus_anomalies%T2m_anomaly_0, snapshot_plus_anomalies%wT2m_anomaly_0, mesh%pai_V%n_nih)
+    call allocate_dist_shared( snapshot_plus_anomalies%SMB_anomaly_0, snapshot_plus_anomalies%wSMB_anomaly_0, mesh%pai_V%n_nih)
+    call allocate_dist_shared( snapshot_plus_anomalies%T2m_anomaly_1, snapshot_plus_anomalies%wT2m_anomaly_1, mesh%pai_V%n_nih)
+    call allocate_dist_shared( snapshot_plus_anomalies%SMB_anomaly_1, snapshot_plus_anomalies%wSMB_anomaly_1, mesh%pai_V%n_nih)
+    snapshot_plus_anomalies%T2m_anomaly_0( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%T2m_anomaly_0
+    snapshot_plus_anomalies%SMB_anomaly_0( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%SMB_anomaly_0
+    snapshot_plus_anomalies%T2m_anomaly_1( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%T2m_anomaly_1
+    snapshot_plus_anomalies%SMB_anomaly_1( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%SMB_anomaly_1
 
     ! Time-weighted anomaly
-    allocate( snapshot_plus_anomalies%T2m_anomaly( mesh%vi1:mesh%vi2), source = NaN)
-    allocate( snapshot_plus_anomalies%SMB_anomaly( mesh%vi1:mesh%vi2), source = NaN)
+    call allocate_dist_shared( snapshot_plus_anomalies%T2m_anomaly, snapshot_plus_anomalies%wT2m_anomaly, mesh%pai_V%n_nih)
+    call allocate_dist_shared( snapshot_plus_anomalies%SMB_anomaly, snapshot_plus_anomalies%wSMB_anomaly, mesh%pai_V%n_nih)
+    snapshot_plus_anomalies%T2m_anomaly( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%T2m_anomaly
+    snapshot_plus_anomalies%SMB_anomaly( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => snapshot_plus_anomalies%SMB_anomaly
 
     ! Applied climate
-    allocate( snapshot_plus_anomalies%T2m( mesh%vi1:mesh%vi2, 12), source = NaN)
-    allocate( snapshot_plus_anomalies%SMB( mesh%vi1:mesh%vi2    ), source = NaN)
+    call allocate_dist_shared( snapshot_plus_anomalies%T2m, snapshot_plus_anomalies%wT2m, mesh%pai_V%n_nih, 12)
+    call allocate_dist_shared( snapshot_plus_anomalies%SMB, snapshot_plus_anomalies%wSMB, mesh%pai_V%n_nih    )
+    snapshot_plus_anomalies%T2m( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih, 1:12) => snapshot_plus_anomalies%T2m
+    snapshot_plus_anomalies%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih      ) => snapshot_plus_anomalies%SMB
 
     ! Read baseline snapshot
     call read_field_from_file_2D_monthly( C%SMB_snp_p_anml_filename_snapshot_T2m, 'T2m', &
