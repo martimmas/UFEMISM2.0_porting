@@ -13,7 +13,7 @@ module SMB_main
   use ice_model_types, only: type_ice_model
   use climate_model_types, only: type_climate_model
   use SMB_idealised, only: type_SMB_model_idealised
-  use SMB_prescribed, only: initialise_SMB_model_prescribed, run_SMB_model_prescribed
+  use SMB_prescribed, only: type_SMB_model_prescribed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies
   use allocate_dist_shared_mod, only: allocate_dist_shared
@@ -34,6 +34,7 @@ module SMB_main
 
     ! Sub-models
     type(type_SMB_model_idealised)               :: idealised
+    type(type_SMB_model_prescribed)              :: prescribed
     type(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
@@ -122,7 +123,10 @@ contains
       end do
 
     CASE ('prescribed')
-      CALL run_SMB_model_prescribed( mesh, ice, SMB%SMB, region_name, time)
+      call SMB%prescribed%run( mesh, ice, region_name, time)
+      do vi = mesh%vi1, mesh%vi2
+        SMB%SMB( vi) = SMB%prescribed%SMB( vi)
+      end do
 
     CASE ('reconstructed')
       CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
@@ -197,7 +201,7 @@ contains
     CASE ('idealised')
       call SMB%idealised%init( mesh)
     CASE ('prescribed')
-      CALL initialise_SMB_model_prescribed( mesh, SMB%SMB, region_name)
+      call SMB%prescribed%init( mesh, region_name)
     CASE ('reconstructed')
       CALL initialise_SMB_model_reconstructed( mesh, SMB, region_name)
     CASE ('IMAU-ITM')
@@ -463,7 +467,7 @@ contains
       CASE ('idealised')
         call SMB%idealised%remap( mesh_new)
       CASE ('prescribed')
-        CALL initialise_SMB_model_prescribed( mesh_new, SMB%SMB, region_name)
+        call SMB%prescribed%remap( mesh_new)
       CASE ('IMAU-ITM')
         call SMB%IMAUITM%remap( mesh_old, mesh_new)
       CASE ('reconstructed')
