@@ -12,7 +12,7 @@ module SMB_main
   use grid_basic, only: type_grid
   use ice_model_types, only: type_ice_model
   use climate_model_types, only: type_climate_model
-  use SMB_idealised, only: run_SMB_model_idealised
+  use SMB_idealised, only: type_SMB_model_idealised
   use SMB_prescribed, only: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snapshot_plus_anomalies
@@ -33,6 +33,7 @@ module SMB_main
     type(MPI_WIN) :: wSMB
 
     ! Sub-models
+    type(type_SMB_model_idealised)               :: idealised
     type(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
@@ -110,19 +111,28 @@ contains
     SELECT CASE (choice_SMB_model)
     CASE DEFAULT
       CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
+
     CASE ('uniform')
       SMB%SMB( mesh%vi1: mesh%vi2) = C%uniform_SMB
+
     CASE ('idealised')
-      CALL run_SMB_model_idealised( mesh, ice, SMB%SMB, time)
+      call SMB%idealised%run( mesh, ice, time)
+      do vi = mesh%vi1, mesh%vi2
+        SMB%SMB( vi) = SMB%idealised%SMB( vi)
+      end do
+
     CASE ('prescribed')
       CALL run_SMB_model_prescribed( mesh, ice, SMB%SMB, region_name, time)
+
     CASE ('reconstructed')
       CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
+
     CASE ('IMAU-ITM')
       call SMB%IMAUITM%run( mesh, ice, climate)
       do vi = mesh%vi1, mesh%vi2
         SMB%SMB( vi) = sum( SMB%IMAUITM%SMB_monthly( vi,:))
       end do
+
     case ('snapshot_plus_anomalies')
       call SMB%snapshot_plus_anomalies%run( mesh, time)
       do vi = mesh%vi1, mesh%vi2
@@ -185,7 +195,7 @@ contains
     CASE ('uniform')
       SMB%SMB( mesh%vi1: mesh%vi2) = C%uniform_SMB
     CASE ('idealised')
-      ! No need to do anything
+      call SMB%idealised%init( mesh)
     CASE ('prescribed')
       CALL initialise_SMB_model_prescribed( mesh, SMB%SMB, region_name)
     CASE ('reconstructed')
@@ -451,7 +461,7 @@ contains
       CASE ('uniform')
         ! No need to do anything
       CASE ('idealised')
-        ! No need to do anything
+        call SMB%idealised%remap( mesh_new)
       CASE ('prescribed')
         CALL initialise_SMB_model_prescribed( mesh_new, SMB%SMB, region_name)
       CASE ('IMAU-ITM')

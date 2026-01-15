@@ -26,8 +26,6 @@ module SMB_basic
 
       private
 
-
-
   end type atype_SMB_model
 
 contains
