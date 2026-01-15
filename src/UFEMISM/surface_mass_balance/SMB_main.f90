@@ -424,7 +424,7 @@ contains
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
-    TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
+    TYPE(type_SMB_model),                   INTENT(inout) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
     ! Local variables:
