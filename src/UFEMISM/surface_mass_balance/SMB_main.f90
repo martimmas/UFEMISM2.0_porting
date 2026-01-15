@@ -14,8 +14,7 @@ module SMB_main
   use climate_model_types, only: type_climate_model
   use SMB_idealised, only: run_SMB_model_idealised
   use SMB_prescribed, only: initialise_SMB_model_prescribed, run_SMB_model_prescribed
-  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM, initialise_SMB_model_IMAUITM, &
-    run_SMB_model_IMAUITM, remap_SMB_model_IMAUITM
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
@@ -53,8 +52,6 @@ contains
 
   SUBROUTINE run_SMB_model( mesh, grid_smooth, ice, climate, SMB, region_name, time)
     ! Calculate the surface mass balance
-
-    IMPLICIT NONE
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
@@ -123,7 +120,7 @@ contains
     CASE ('reconstructed')
       CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
     CASE ('IMAU-ITM')
-      CALL run_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, climate)
+      call SMB%IMAUITM%run( mesh, ice, climate)
       do vi = mesh%vi1, mesh%vi2
         SMB%SMB( vi) = sum( SMB%IMAUITM%SMB_monthly( vi,:))
       end do
@@ -142,8 +139,6 @@ contains
 
   SUBROUTINE initialise_SMB_model( mesh, ice, climate, SMB, region_name)
     ! Initialise the SMB model
-
-    IMPLICIT NONE
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
@@ -197,7 +192,7 @@ contains
     CASE ('reconstructed')
       CALL initialise_SMB_model_reconstructed( mesh, SMB, region_name)
     CASE ('IMAU-ITM')
-      CALL initialise_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, region_name)
+      call SMB%IMAUITM%init( mesh, ice, region_name)
     case ('snapshot_plus_anomalies')
       call initialise_SMB_model_snapshot_plus_anomalies( mesh, SMB%snapshot_plus_anomalies)
     CASE DEFAULT
@@ -419,8 +414,6 @@ contains
   SUBROUTINE remap_SMB_model( mesh_old, mesh_new, SMB, region_name)
     ! Remap the SMB model
 
-    IMPLICIT NONE
-
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
@@ -463,7 +456,7 @@ contains
       CASE ('prescribed')
         CALL initialise_SMB_model_prescribed( mesh_new, SMB%SMB, region_name)
       CASE ('IMAU-ITM')
-        call remap_SMB_model_IMAUITM( mesh_old, mesh_new, SMB%IMAUITM)
+        call SMB%IMAUITM%remap( mesh_old, mesh_new)
       CASE ('reconstructed')
         CALL crash('Remapping after mesh update not implemented yet for reconstructed SMB')
       CASE DEFAULT
