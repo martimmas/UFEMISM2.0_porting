@@ -524,7 +524,7 @@ CONTAINS
     ! ===== Surface mass balance =====
     ! ================================
 
-    CALL initialise_SMB_model( region%mesh, region%ice, region%climate, region%SMB, region%name)
+    CALL initialise_SMB_model( region%mesh, region%ice, region%SMB, region%name)
 
     ! ===== Basal mass balance =====
     ! ==============================
@@ -1133,7 +1133,7 @@ CONTAINS
       filename_base = TRIM( C%output_dir) // 'scalar_output_' // region%name // '_ROI_' // TRIM( name_ROI)
       call generate_filename_XXXXXdotnc(filename_base, filename)
       region%output_filenames_scalar_ROI(region%nROI) = filename
-      
+
 
       ! Clean up after yourself
       DEALLOCATE( poly_ROI)
