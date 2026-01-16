@@ -132,6 +132,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    call self%set_name('SMB_reconstructed')
     call self%init_common( mesh)
 
     ! Finalise routine path

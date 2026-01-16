@@ -46,6 +46,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    call self%set_grid( mesh)
+
     call self%create_field( self%SMB, self%wSMB, &
       mesh, Arakawa_grid%a(), &
       name      = 'SMB', &

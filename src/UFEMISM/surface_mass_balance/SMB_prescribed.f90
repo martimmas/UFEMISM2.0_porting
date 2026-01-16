@@ -90,6 +90,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    call self%set_name('SMB_prescribed')
     call self%init_common( mesh)
 
     ! Determine the type of prescribed SMB forcing for this region

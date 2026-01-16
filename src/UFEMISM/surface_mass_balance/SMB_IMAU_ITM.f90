@@ -185,6 +185,7 @@ contains
     ! Add routine to path
     CALL init_routine( routine_name)
 
+    call self%set_name('SMB_IMAUITM')
     call self%init_common( mesh)
 
     ! Determine which constants to use for this region

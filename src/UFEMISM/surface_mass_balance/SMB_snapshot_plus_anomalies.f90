@@ -111,6 +111,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    call self%set_name('SMB_snapshot_plus_anomalies')
     call self%init_common( mesh)
 
     ! Baseline climate
