@@ -50,7 +50,7 @@ contains
     call init_routine( routine_name)
 
     call model%flds_reg%create_field( d_nih, w, field_grid, &
-      field_Arakawa_grid, name, long_name, units)
+      field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -105,7 +105,7 @@ contains
     call init_routine( routine_name)
 
     call model%flds_reg%create_field( d_nih, w, field_grid, &
-      field_Arakawa_grid, name, long_name, units)
+      field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -160,7 +160,7 @@ contains
     call init_routine( routine_name)
 
     call model%flds_reg%create_field( d_nih, w, field_grid, &
-      field_Arakawa_grid, name, long_name, units)
+      field_Arakawa_grid, field_third_dimension, name, long_name, units)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

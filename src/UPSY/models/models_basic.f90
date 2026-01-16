@@ -8,6 +8,7 @@ module models_basic
   use fields_main, only: type_fields_registry
   use Arakawa_grid_mod, only: type_Arakawa_grid
   use fields_dimensions, only: type_third_dimension
+  use mpi_f08, only: MPI_WIN
 
   implicit none
 
@@ -27,13 +28,19 @@ module models_basic
       class(*), pointer, private :: grid_val
 
       ! Fields registry
-      type(type_fields_registry), public :: flds_reg
+      type(type_fields_registry), private :: flds_reg
 
     contains
 
       generic,   public  :: create_field => &
         create_field_logical_2D, create_field_int_2D, create_field_dp_2D, &
         create_field_logical_3D, create_field_int_3D, create_field_dp_3D
+      procedure, private :: create_field_logical_2D
+      procedure, private :: create_field_int_2D
+      procedure, private :: create_field_dp_2D
+      procedure, private :: create_field_logical_3D
+      procedure, private :: create_field_int_3D
+      procedure, private :: create_field_dp_3D
 
       generic,   public  :: operator(==) => eq
       procedure, private :: eq => test_model_equality
