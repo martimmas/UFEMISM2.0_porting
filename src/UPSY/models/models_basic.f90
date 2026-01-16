@@ -33,6 +33,7 @@ module models_basic
     procedure, private :: eq => test_model_equality
 
     procedure, public  :: remap_common => remap
+    procedure(set_bounds_ifc), deferred, public :: set_bounds
 
     ! ===== Set/get functions
 
@@ -119,6 +120,16 @@ module models_basic
       character(len=*),   intent(in   ) :: filename
     end subroutine read_from_restart_file
 
+  end interface
+
+  ! Abstract interfaces for deferred procedures
+  ! ===========================================
+
+  abstract interface
+    subroutine set_bounds_ifc( self)
+      import atype_model
+      class(atype_model), intent(inout) :: self
+    end subroutine set_bounds_ifc
   end interface
 
 end module models_basic
