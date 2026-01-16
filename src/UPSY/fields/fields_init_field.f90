@@ -38,7 +38,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,            intent(  out) :: field
     logical, dimension(:), contiguous, pointer, intent(in   ) :: d_nih
-    type(MPI_WIN),                              intent(in   ) :: w
+    type(MPI_WIN),                     target,  intent(in   ) :: w
     class(*), target,                           intent(in   ) :: field_grid
     type(type_Arakawa_grid),                    intent(in   ) :: field_Arakawa_grid
     character(len=*),                           intent(in   ) :: name
@@ -65,7 +65,7 @@ contains
       lb = lbound( d_nih,1)
       ub = ubound( d_nih,1)
       f%d_nih( lb: ub) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack
@@ -79,7 +79,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,              intent(  out) :: field
     logical, dimension(:,:), contiguous, pointer, intent(in   ) :: d_nih
-    type(MPI_WIN),                                intent(in   ) :: w
+    type(MPI_WIN),                       target,  intent(in   ) :: w
     class(*), target,                             intent(in   ) :: field_grid
     type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
     type(type_third_dimension),                   intent(in   ) :: field_third_dimension
@@ -110,7 +110,7 @@ contains
       lb2 = lbound( d_nih,2)
       ub2 = ubound( d_nih,2)
       f%d_nih( lb1: ub1, lb2: ub2) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack
@@ -124,7 +124,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,             intent(  out) :: field
     integer, dimension(:), contiguous, pointer,  intent(in   ) :: d_nih
-    type(MPI_WIN),                               intent(in   ) :: w
+    type(MPI_WIN),                      target,  intent(in   ) :: w
     class(*), target,                            intent(in   ) :: field_grid
     type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
     character(len=*),                            intent(in   ) :: name
@@ -151,7 +151,7 @@ contains
       lb = lbound( d_nih,1)
       ub = ubound( d_nih,1)
       f%d_nih( lb: ub) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack
@@ -165,7 +165,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,              intent(  out) :: field
     integer, dimension(:,:), contiguous, pointer, intent(in   ) :: d_nih
-    type(MPI_WIN),                                intent(in   ) :: w
+    type(MPI_WIN),                       target,  intent(in   ) :: w
     class(*), target,                             intent(in   ) :: field_grid
     type(type_Arakawa_grid),                      intent(in   ) :: field_Arakawa_grid
     type(type_third_dimension),                   intent(in   ) :: field_third_dimension
@@ -196,7 +196,7 @@ contains
       lb2 = lbound( d_nih,2)
       ub2 = ubound( d_nih,2)
       f%d_nih( lb1: ub1, lb2: ub2) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack
@@ -210,7 +210,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,             intent(  out) :: field
     real(dp), dimension(:), contiguous, pointer, intent(in   ) :: d_nih
-    type(MPI_WIN),                               intent(in   ) :: w
+    type(MPI_WIN),                      target,  intent(in   ) :: w
     class(*), target,                            intent(in   ) :: field_grid
     type(type_Arakawa_grid),                     intent(in   ) :: field_Arakawa_grid
     character(len=*),                            intent(in   ) :: name
@@ -237,7 +237,7 @@ contains
       lb = lbound( d_nih,1)
       ub = ubound( d_nih,1)
       f%d_nih( lb: ub) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack
@@ -251,7 +251,7 @@ contains
     ! In/output variables:
     class(atype_field), allocatable,               intent(  out) :: field
     real(dp), dimension(:,:), contiguous, pointer, intent(in   ) :: d_nih
-    type(MPI_WIN),                                 intent(in   ) :: w
+    type(MPI_WIN),                        target,  intent(in   ) :: w
     class(*), target,                              intent(in   ) :: field_grid
     type(type_Arakawa_grid),                       intent(in   ) :: field_Arakawa_grid
     type(type_third_dimension),                    intent(in   ) :: field_third_dimension
@@ -282,7 +282,7 @@ contains
       lb2 = lbound( d_nih,2)
       ub2 = ubound( d_nih,2)
       f%d_nih( lb1: ub1, lb2: ub2) => d_nih
-      f%w = w
+      f%w => w
     end select
 
     ! Remove routine from call stack

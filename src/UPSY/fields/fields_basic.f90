@@ -38,7 +38,7 @@ module fields_basic
 
     ! Pointer to array containing the actual field data
     ! class(*), dimension(:), pointer, public :: d
-    type(MPI_WIN),                   public :: w
+    type(MPI_WIN), pointer, public :: w
 
     contains
 
