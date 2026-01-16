@@ -111,11 +111,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call self%create_field( self%SMB, self%wSMB, &
-      mesh, Arakawa_grid%a(), &
-      name      = 'SMB', &
-      long_name = 'surface mass balance', &
-      units     = 'm yr^-1')
+    call self%init_common( mesh)
 
     ! Baseline climate
     call self%create_field( self%T2m_baseline, self%wT2m_baseline, &

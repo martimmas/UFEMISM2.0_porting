@@ -185,6 +185,8 @@ contains
     ! Add routine to path
     CALL init_routine( routine_name)
 
+    call self%init_common( mesh)
+
     ! Determine which constants to use for this region
     IF     (region_name == 'NAM') THEN
       self%C_abl_constant           = C%SMB_IMAUITM_C_abl_constant_NAM
@@ -213,12 +215,6 @@ contains
     self%albedo_soil         = C%SMB_IMAUITM_albedo_soil
     self%albedo_ice          = C%SMB_IMAUITM_albedo_ice
     self%albedo_snow         = C%SMB_IMAUITM_albedo_snow
-
-    call self%create_field( self%SMB, self%wSMB, &
-      mesh, Arakawa_grid%a(), &
-      name      = 'SMB', &
-      long_name = 'surface mass balance', &
-      units     = 'm yr^-1')
 
     call self%create_field( self%AlbedoSurf, self%wAlbedoSurf, &
       mesh, Arakawa_grid%a(), &
