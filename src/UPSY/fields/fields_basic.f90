@@ -29,6 +29,7 @@ module fields_basic
     character(len=1024), private :: name_val
     character(len=1024), private :: long_name_val
     character(len=1024), private :: units_val
+    character(len=1024), private :: remap_method_val
 
     ! Grid
     class(*), pointer,       private :: grid_val
@@ -44,6 +45,9 @@ module fields_basic
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_field_equality
 
+    procedure, public  :: remap
+    procedure, public  :: reallocate
+
     procedure, public :: lbound => field_lbound
     procedure, public :: ubound => field_ubound
     procedure, public :: print_info
@@ -54,14 +58,17 @@ module fields_basic
     procedure, public :: set_name
     procedure, public :: set_long_name
     procedure, public :: set_units
+    procedure, public :: set_remap_method
 
-    procedure, public :: name      => get_name
-    procedure, public :: long_name => get_long_name
-    procedure, public :: units     => get_units
+    procedure, public :: name         => get_name
+    procedure, public :: long_name    => get_long_name
+    procedure, public :: units        => get_units
+    procedure, public :: remap_method => get_remap_method
 
     procedure, public :: is_name
     procedure, public :: is_long_name
     procedure, public :: is_units
+    procedure, public :: is_remap_method
 
     ! Grid
     procedure, public :: set_grid
@@ -126,6 +133,16 @@ module fields_basic
 
   interface
 
+    module subroutine remap( self, mesh_new)
+      class(atype_field),    intent(inout) :: self
+      type(type_mesh), target, intent(in   ) :: mesh_new
+    end subroutine remap
+
+    module subroutine reallocate( self, mesh_new)
+      class(atype_field),    intent(inout) :: self
+      type(type_mesh), target, intent(in   ) :: mesh_new
+    end subroutine reallocate
+
     module function test_field_equality( field1, field2) result( res)
       class(atype_field), intent(in) :: field1, field2
       logical                        :: res
@@ -166,6 +183,11 @@ module fields_basic
       character(len=*),   intent(in   ) :: units
     end subroutine set_units
 
+    module subroutine set_remap_method( field, remap_method)
+      class(atype_field), intent(inout) :: field
+      character(len=*),   intent(in   ) :: remap_method
+    end subroutine set_remap_method
+
     module function get_name( field) result( name)
       class(atype_field), intent(in) :: field
       character(:), allocatable      :: name
@@ -180,6 +202,11 @@ module fields_basic
       class(atype_field), intent(in) :: field
       character(:), allocatable      :: units
     end function get_units
+
+    module function get_remap_method( field) result( remap_method)
+      class(atype_field), intent(in) :: field
+      character(:), allocatable      :: remap_method
+    end function get_remap_method
 
     module function is_name( field, name) result( res)
       class(atype_field), intent(in) :: field
@@ -198,6 +225,12 @@ module fields_basic
       character(len=*),   intent(in) :: units
       logical                        :: res
     end function is_units
+
+    module function is_remap_method( field, remap_method) result( res)
+      class(atype_field), intent(in) :: field
+      character(len=*),   intent(in) :: remap_method
+      logical                        :: res
+    end function is_remap_method
 
     ! Grid
 
