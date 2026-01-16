@@ -45,6 +45,11 @@ module fields_registry
     procedure, private :: create_field_int_3D
     procedure, private :: create_field_dp_3D
 
+    procedure, public  :: remap
+
+    procedure, public  :: write_to_netcdf
+    procedure, public  :: read_from_netcdf
+
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_fields_registry_equality
     procedure, private :: add => add_field_to_registry
@@ -52,42 +57,10 @@ module fields_registry
     procedure, public  :: find => find_field_by_name
     procedure, public  :: print_info
 
-    procedure, public  :: write_to_netcdf
-    procedure, public  :: read_from_netcdf
-
   end type type_fields_registry
 
   ! Interfaces to type-bound procedures defined in submodules
   ! =========================================================
-
-  ! basics
-  interface
-
-    module function test_fields_registry_equality( flds_reg1, flds_reg2) result( res)
-      class(type_fields_registry), intent(in) :: flds_reg1, flds_reg2
-      logical                                 :: res
-    end function test_fields_registry_equality
-
-    module subroutine add_field_to_registry( flds_reg, field)
-      class(type_fields_registry), intent(inout) :: flds_reg
-      class(atype_field),          intent(in   ) :: field
-    end subroutine add_field_to_registry
-
-    module subroutine extend_field_registry( flds_reg)
-      class(type_fields_registry), intent(inout) :: flds_reg
-    end subroutine extend_field_registry
-
-    module subroutine print_info( flds_reg)
-      class(type_fields_registry), intent(in) :: flds_reg
-    end subroutine print_info
-
-    module function find_field_by_name( flds_reg, name) result(i)
-      class(type_fields_registry), intent(in) :: flds_reg
-      character(len=*),            intent(in) :: name
-      integer                                 :: i
-    end function find_field_by_name
-
-  end interface
 
   ! create_field
   interface
@@ -187,6 +160,16 @@ module fields_registry
 
   end interface
 
+  ! remapping
+  interface
+
+    module subroutine remap( flds_reg, mesh_new)
+      class(type_fields_registry), intent(inout) :: flds_reg
+      type(type_mesh),             intent(in   ) :: mesh_new
+    end subroutine remap
+
+  end interface
+
   ! i/o
   interface
 
@@ -204,6 +187,33 @@ module fields_registry
 
   end interface
 
-contains
+  ! basics
+  interface
+
+    module function test_fields_registry_equality( flds_reg1, flds_reg2) result( res)
+      class(type_fields_registry), intent(in) :: flds_reg1, flds_reg2
+      logical                                 :: res
+    end function test_fields_registry_equality
+
+    module subroutine add_field_to_registry( flds_reg, field)
+      class(type_fields_registry), intent(inout) :: flds_reg
+      class(atype_field),          intent(in   ) :: field
+    end subroutine add_field_to_registry
+
+    module subroutine extend_field_registry( flds_reg)
+      class(type_fields_registry), intent(inout) :: flds_reg
+    end subroutine extend_field_registry
+
+    module function find_field_by_name( flds_reg, name) result(i)
+      class(type_fields_registry), intent(in) :: flds_reg
+      character(len=*),            intent(in) :: name
+      integer                                 :: i
+    end function find_field_by_name
+
+    module subroutine print_info( flds_reg)
+      class(type_fields_registry), intent(in) :: flds_reg
+    end subroutine print_info
+
+  end interface
 
 end module fields_registry
