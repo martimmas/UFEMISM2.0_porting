@@ -88,7 +88,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -166,7 +166,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -244,7 +244,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -322,7 +322,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -403,7 +403,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -486,7 +486,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -569,7 +569,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)
@@ -652,7 +652,7 @@ contains
     ! ==================================================================================
 
     ! Distribute data
-    call distribute_from_primary( d_mesh, d_mesh_partial)
+    call distribute_from_primary( d_mesh_partial, d_mesh)
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_mesh)

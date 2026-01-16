@@ -14,7 +14,7 @@ MODULE BMB_main
   USE ice_model_types                                        , ONLY: type_ice_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
   USE reference_geometry_types                               , ONLY: type_reference_geometry
-  USE SMB_model_types                                        , ONLY: type_SMB_model
+  use SMB_main, only: type_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE laddie_model_types                                     , ONLY: type_laddie_model
   USE laddie_forcing_types                                   , ONLY: type_laddie_forcing
@@ -27,6 +27,7 @@ MODULE BMB_main
   use laddie_main_utils, only: remap_laddie_model
   use laddie_utilities, only: allocate_laddie_forcing
   use laddie_forcing_main, only: calculate_coriolis_parameter
+  use laddie_hydrology, only: initialise_transects_SGD
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use ice_geometry_basics, only: is_floating
   USE mesh_utilities                                         , ONLY: extrapolate_Gaussian
@@ -310,6 +311,7 @@ CONTAINS
       CASE ('laddie')
         call allocate_laddie_forcing( mesh, BMB%forcing)
         call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
+        call initialise_transects_SGD( mesh, BMB%forcing)
         CALL initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .FALSE.)
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
@@ -722,7 +724,7 @@ CONTAINS
   subroutine update_laddie_forcing( mesh, ice, ocean, forcing, region_name)
 
     ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh 
+    type(type_mesh),           intent(in   ) :: mesh
     type(type_ice_model),      intent(in   ) :: ice
     type(type_ocean_model),    intent(in   ) :: ocean
     type(type_laddie_forcing), intent(inout) :: forcing
@@ -748,7 +750,7 @@ CONTAINS
     forcing%mask_gl_fl        ( mesh%vi1:mesh%vi2  ) = ice%mask_gl_fl        ( mesh%vi1:mesh%vi2  )
     forcing%mask_SGD          ( mesh%vi1:mesh%vi2  ) = ice%mask_SGD          ( mesh%vi1:mesh%vi2  )
     forcing%mask              ( mesh%vi1:mesh%vi2  ) = ice%mask              ( mesh%vi1:mesh%vi2  )
-    
+
     forcing%Ti                ( mesh%vi1:mesh%vi2,:) = ice%Ti                ( mesh%vi1:mesh%vi2,:) - 273.15 ! [degC]
     forcing%T_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%T               ( mesh%vi1:mesh%vi2,:)
     forcing%S_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%S               ( mesh%vi1:mesh%vi2,:)

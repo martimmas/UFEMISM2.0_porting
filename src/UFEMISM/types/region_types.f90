@@ -12,7 +12,7 @@ MODULE region_types
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
-  USE SMB_model_types                                        , ONLY: type_SMB_model
+  use SMB_main, only: type_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE LMB_model_types                                        , ONLY: type_LMB_model
   USE AMB_model_types                                        , ONLY: type_AMB_model

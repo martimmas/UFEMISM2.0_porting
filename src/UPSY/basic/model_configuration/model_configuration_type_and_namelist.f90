@@ -110,6 +110,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: r_smooth_geometry_config                     = 0.5_dp                           ! [m]             Geometry smoothing radius
     logical             :: remove_Lake_Vostok_config                    = .true.                           ! Whether or not to replace subglacial Lake Vostok in Antarctica with ice (recommended to set to TRUE, otherwise it will really slow down your model for the first few hundred years...)
 
+    ! Remapping method for gridded geometry input
+    character(len=1024) :: choice_refgeo_remapping_method_config        = '2nd_order_conservative'         ! Remapping method to apply to gridded geometry input. Default is 2nd_order_conservative, though for high resolution, 1st_order_conservative may be better.
 
     ! == Initial geometry
     ! ===================
@@ -729,6 +731,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: ocean_linear_deep_temperature_config         = -2.3_dp                          ! [degC] Deep ocean temperature when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_deep_salinity_config            = 34.8_dp                          ! [psu] Deep ocean salinity when using 'LINEAR' forcing
     real(dp)            :: ocean_linear_reference_depth_config          = 2000.0_dp                        ! [m] Depth where deep values are prescribed
+    real(dp)            :: ocean_lin_therm_surf_salinity_config         = 34.0_dp                          ! [psu] Surface salinity when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_deep_salinity_config         = 34.7_dp                          ! [psu] Deep salinity when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_surf_temperature_config      = -1.0_dp                          ! [degC] Surface temperature when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_deep_temperature_config      = 1.2_dp                           ! [degC] Deep temperature when using 'LINEAR_THERMOCLINE' 
+    real(dp)            :: ocean_lin_therm_thermocline_top_config       = 200.0_dp                         ! [m] Top of thermocline depth when using 'LINEAR_THERMOCLINE'
+    real(dp)            :: ocean_lin_therm_thermocline_bottom_config    = 600.0_dp                         ! [m] Bottom of thermocline depth when using 'LINEAR_THERMOCLINE'
 
     ! Choice of realistic ocean model
     character(len=1024) :: choice_ocean_model_realistic_config          = ''
@@ -772,6 +780,10 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_ocean_GI_EAS_config                 = ''
     character(len=1024) :: filename_ocean_GI_GRL_config                 = ''
     character(len=1024) :: filename_ocean_GI_ANT_config                 = ''
+
+    ! Settings for the snapshot_plus_anomalies ocean model
+    character(len=1024) :: ocean_snp_p_anml_filename_snapshot_config    = ''                               ! File containing the ocean snapshot (e.g. World Ocean Atlas)
+    character(len=1024) :: ocean_snp_p_anml_filename_anomalies_config   = ''                               ! File containing the ocean anomalies (e.g. from a GCM projection)
 
   ! == Surface mass balance
   ! =======================
@@ -850,6 +862,10 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_ice_config                = 0.5_dp
     real(dp)            :: SMB_IMAUITM_albedo_snow_config               = 0.85_dp
 
+    ! Settings for the snapshot_plus_anomalies SMB model
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m_config  = ''                               ! File containing the T2m snapshot (e.g. from a RACMO historical simulation)
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB_config  = ''                               ! File containing the SMB snapshot (e.g. from a RACMO historical simulation)
+    character(len=1024) :: SMB_snp_p_anml_filename_anomalies_config     = ''                               ! File containing the SMB+T2m anomalies (e.g. from a GCM projection)
 
   ! == Basal mass balance
   ! =====================
@@ -1005,6 +1021,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: laddie_SGD_flux_config                       = 50._dp                           ! [m^3 s^-1] Total subglacial discharge flux
     character(len=1024) :: filename_laddie_mask_SGD_config              = ''                               ! Gridded file containing the subglacial discharge mask
     real(dp)            :: start_time_of_applying_SGD_config            = -9E9_dp                          ! [yr] Start time of applying SGD when choice_laddie_SGD_config is 'idealised' or 'read_from_file'
+    character(len=1024) :: transects_SGD_config                         = ''                               ! List of transects to use for applying SGD. Format: [file:file_path1,F=10 || file:file_path2,F=20]
+    character(len=1024) :: distribute_SGD_config                        = 'single_cell'                    ! How to apply SGD from transect; single cell ('single_cell'), or distribute over 2 neighbours ('distribute_2neighbours')
 
   ! == Lateral mass balance
   ! =======================
@@ -1279,6 +1297,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: r_smooth_geometry
     logical             :: remove_Lake_Vostok
 
+    ! Remapping method for gridded geometry input
+    character(len=1024) :: choice_refgeo_remapping_method
 
     ! == Initial geometry
     ! ===================
@@ -1898,6 +1918,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: ocean_linear_deep_temperature
     real(dp)            :: ocean_linear_deep_salinity
     real(dp)            :: ocean_linear_reference_depth
+    real(dp)            :: ocean_lin_therm_surf_salinity
+    real(dp)            :: ocean_lin_therm_deep_salinity
+    real(dp)            :: ocean_lin_therm_surf_temperature
+    real(dp)            :: ocean_lin_therm_deep_temperature
+    real(dp)            :: ocean_lin_therm_thermocline_top
+    real(dp)            :: ocean_lin_therm_thermocline_bottom
 
     ! Choice of realistic ocean model
     character(len=1024) :: choice_ocean_model_realistic
@@ -1941,6 +1967,10 @@ module model_configuration_type_and_namelist
     character(len=1024) :: filename_ocean_GI_EAS
     character(len=1024) :: filename_ocean_GI_GRL
     character(len=1024) :: filename_ocean_GI_ANT
+
+    ! Settings for the snapshot_plus_anomalies ocean model
+    character(len=1024) :: ocean_snp_p_anml_filename_snapshot
+    character(len=1024) :: ocean_snp_p_anml_filename_anomalies
 
   ! == Surface mass balance
   ! =======================
@@ -2020,7 +2050,10 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_ice
     real(dp)            :: SMB_IMAUITM_albedo_snow
 
-
+    ! Settings for the snapshot_plus_anomalies SMB model
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m
+    character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB
+    character(len=1024) :: SMB_snp_p_anml_filename_anomalies
 
   ! == Basal mass balance
   ! =====================
@@ -2176,6 +2209,8 @@ module model_configuration_type_and_namelist
     real(dp)            :: laddie_SGD_flux
     character(len=1024) :: filename_laddie_mask_SGD
     real(dp)            :: start_time_of_applying_SGD
+    character(len=1024) :: transects_SGD
+    character(len=1024) :: distribute_SGD
 
   ! == Lateral mass balance
   ! =======================
@@ -2444,6 +2479,7 @@ contains
       do_smooth_geometry_config                                   , &
       r_smooth_geometry_config                                    , &
       remove_Lake_Vostok_config                                   , &
+      choice_refgeo_remapping_method_config                       , &
       choice_refgeo_init_NAM_config                               , &
       choice_refgeo_init_EAS_config                               , &
       choice_refgeo_init_GRL_config                               , &
@@ -2850,6 +2886,12 @@ contains
       ocean_linear_deep_temperature_config                        , &
       ocean_linear_deep_salinity_config                           , &
       ocean_linear_reference_depth_config                         , &
+      ocean_lin_therm_surf_salinity_config                        , &
+      ocean_lin_therm_deep_salinity_config                        , &
+      ocean_lin_therm_surf_temperature_config                     , &
+      ocean_lin_therm_deep_temperature_config                     , &
+      ocean_lin_therm_thermocline_top_config                      , &
+      ocean_lin_therm_thermocline_bottom_config                   , &
       choice_ocean_model_realistic_config                         , &
       filename_ocean_snapshot_NAM_config                          , &
       filename_ocean_snapshot_EAS_config                          , &
@@ -2877,6 +2919,8 @@ contains
       filename_ocean_GI_EAS_config                                , &
       filename_ocean_GI_GRL_config                                , &
       filename_ocean_GI_ANT_config                                , &
+      ocean_snp_p_anml_filename_snapshot_config                   , &
+      ocean_snp_p_anml_filename_anomalies_config                  , &
       do_asynchronous_SMB_config                                  , &
       dt_SMB_config                                               , &
       choice_SMB_model_NAM_config                                 , &
@@ -2930,6 +2974,9 @@ contains
       SMB_IMAUITM_albedo_soil_config                              , &
       SMB_IMAUITM_albedo_ice_config                               , &
       SMB_IMAUITM_albedo_snow_config                              , &
+      SMB_snp_p_anml_filename_snapshot_T2m_config                 , &
+      SMB_snp_p_anml_filename_snapshot_SMB_config                 , &
+      SMB_snp_p_anml_filename_anomalies_config                    , &
       do_asynchronous_BMB_config                                  , &
       dt_BMB_config                                               , &
       dt_BMB_reinit_config                                        , &
@@ -3014,6 +3061,8 @@ contains
       laddie_SGD_flux_config                                      , &
       filename_laddie_mask_SGD_config                             , &
       start_time_of_applying_SGD_config                           , &
+      transects_SGD_config                                        , &
+      distribute_SGD_config                                       , &
       choice_laddie_tides_config                                  , &
       uniform_laddie_tidal_velocity_config                        , &
       dt_LMB_config                                               , &
@@ -3277,6 +3326,9 @@ contains
     C%do_smooth_geometry                                     = do_smooth_geometry_config
     C%r_smooth_geometry                                      = r_smooth_geometry_config
     C%remove_Lake_Vostok                                     = remove_Lake_Vostok_config
+
+    ! Remapping method for gridded geometry input
+    C%choice_refgeo_remapping_method                         = choice_refgeo_remapping_method_config
 
     ! == Initial geometry
     ! ===================
@@ -3892,6 +3944,12 @@ contains
     C%ocean_linear_deep_temperature                          = ocean_linear_deep_temperature_config
     C%ocean_linear_deep_salinity                             = ocean_linear_deep_salinity_config
     C%ocean_linear_reference_depth                           = ocean_linear_reference_depth_config
+    C%ocean_lin_therm_surf_salinity                          = ocean_lin_therm_surf_salinity_config
+    C%ocean_lin_therm_deep_salinity                          = ocean_lin_therm_deep_salinity_config
+    C%ocean_lin_therm_surf_temperature                       = ocean_lin_therm_surf_temperature_config
+    C%ocean_lin_therm_deep_temperature                       = ocean_lin_therm_deep_temperature_config
+    C%ocean_lin_therm_thermocline_top                        = ocean_lin_therm_thermocline_top_config
+    C%ocean_lin_therm_thermocline_bottom                     = ocean_lin_therm_thermocline_bottom_config
 
     ! Choice of realistic ocean model
     C%choice_ocean_model_realistic                           = choice_ocean_model_realistic_config
@@ -3935,6 +3993,10 @@ contains
     C%filename_ocean_GI_EAS                                  = filename_ocean_GI_EAS_config
     C%filename_ocean_GI_GRL                                  = filename_ocean_GI_GRL_config
     C%filename_ocean_GI_ANT                                  = filename_ocean_GI_ANT_config
+
+    ! Settings for the snapshot_plus_anomalies ocean model
+    C%ocean_snp_p_anml_filename_snapshot                     = ocean_snp_p_anml_filename_snapshot_config
+    C%ocean_snp_p_anml_filename_anomalies                    = ocean_snp_p_anml_filename_anomalies_config
 
     ! == Surface mass balance
     ! =======================
@@ -4013,6 +4075,11 @@ contains
     C%SMB_IMAUITM_albedo_soil                                = SMB_IMAUITM_albedo_soil_config
     C%SMB_IMAUITM_albedo_ice                                 = SMB_IMAUITM_albedo_ice_config
     c%SMB_IMAUITM_albedo_snow                                = SMB_IMAUITM_albedo_snow_config
+
+    ! Settings for the snapshot_plus_anomalies SMB model
+    C%SMB_snp_p_anml_filename_snapshot_T2m                   = SMB_snp_p_anml_filename_snapshot_T2m_config
+    C%SMB_snp_p_anml_filename_snapshot_SMB                   = SMB_snp_p_anml_filename_snapshot_SMB_config
+    C%SMB_snp_p_anml_filename_anomalies                      = SMB_snp_p_anml_filename_anomalies_config
 
     ! == Basal mass balance
     ! =====================
@@ -4166,6 +4233,8 @@ contains
     C%laddie_SGD_flux                                        = laddie_SGD_flux_config
     C%filename_laddie_mask_SGD                               = filename_laddie_mask_SGD_config
     C%start_time_of_applying_SGD                             = start_time_of_applying_SGD_config
+    C%transects_SGD                                          = transects_SGD_config
+    C%distribute_SGD                                         = distribute_SGD_config
 
     ! == Lateral mass balance
     ! =======================

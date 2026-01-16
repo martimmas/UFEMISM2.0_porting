@@ -3,7 +3,6 @@ module netcdf_read_field_from_series_file
   use precisions, only: dp
   use mpi_basic, only: par
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, insert_val_into_string_int
-  use mpi_distributed_memory, only: distribute_from_primary
   use netcdf_determine_indexing
   use netcdf_basic
   use grid_lonlat_basic
