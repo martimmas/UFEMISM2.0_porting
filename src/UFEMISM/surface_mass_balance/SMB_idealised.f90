@@ -13,6 +13,8 @@ module SMB_idealised
   use SMB_basic, only: atype_SMB_model
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
+  use Arakawa_grid_mod, only: Arakawa_grid
+  use fields_main, only: third_dimension
 
   implicit none
 
@@ -45,8 +47,11 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
-    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
+    call self%create_field( self%SMB, self%wSMB, &
+      mesh, Arakawa_grid%a(), &
+      name      = 'SMB', &
+      long_name = 'surface mass balance', &
+      units     = 'm yr^-1')
 
     ! Finalise routine path
     call finalise_routine( routine_name)
