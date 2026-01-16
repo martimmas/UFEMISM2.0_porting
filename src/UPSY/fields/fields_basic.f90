@@ -1,6 +1,7 @@
 module fields_basic
 
   use precisions, only: dp
+  use parameters, only: NaN
   use mpi_basic, only: par, sync
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
     warning, crash, colour_string
@@ -10,6 +11,9 @@ module fields_basic
   use fields_dimensions, only: third_dimension, type_third_dimension
   use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_WIN
+  use remapping_main, only: map_from_mesh_to_mesh_2D, map_from_mesh_tri_to_mesh_tri_2D
+  use reallocate_dist_shared_mod, only: reallocate_dist_shared
+  use model_configuration, only: C
 
   implicit none
 
