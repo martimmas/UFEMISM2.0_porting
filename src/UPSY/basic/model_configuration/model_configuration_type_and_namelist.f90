@@ -109,7 +109,6 @@ module model_configuration_type_and_namelist
     logical             :: do_smooth_geometry_config                    = .false.                          ! Whether or not to smooth the reference bedrock
     real(dp)            :: r_smooth_geometry_config                     = 0.5_dp                           ! [m]             Geometry smoothing radius
     logical             :: remove_Lake_Vostok_config                    = .true.                           ! Whether or not to replace subglacial Lake Vostok in Antarctica with ice (recommended to set to TRUE, otherwise it will really slow down your model for the first few hundred years...)
-
     ! Remapping method for gridded geometry input
     character(len=1024) :: choice_refgeo_remapping_method_config        = '2nd_order_conservative'         ! Remapping method to apply to gridded geometry input. Default is 2nd_order_conservative, though for high resolution, 1st_order_conservative may be better.
 
@@ -659,6 +658,15 @@ module model_configuration_type_and_namelist
     real(dp)            :: precip_CC_correction_GRL_config              = 1.068_dp                        !
     real(dp)            :: precip_CC_correction_ANT_config              = 1.068_dp                        !
 
+    ! == Climate - snapshot plus a transient deltaT
+    character(len=1024) :: filename_climate_snapshot_trans_dT_NAM_config = ''
+    character(len=1024) :: filename_climate_snapshot_trans_dT_EAS_config = ''
+    character(len=1024) :: filename_climate_snapshot_trans_dT_GRL_config = ''
+    character(len=1024) :: filename_climate_snapshot_trans_dT_ANT_config = ''
+    character(len=1024) :: filename_atmosphere_dT_NAM_config             = ''
+    character(len=1024) :: filename_atmosphere_dT_EAS_config             = ''
+    character(len=1024) :: filename_atmosphere_dT_GRL_config             = ''
+    character(len=1024) :: filename_atmosphere_dT_ANT_config             = ''
 
     ! == Climate - Insolation
     character(len=1024) :: choice_insolation_forcing_config             = 'none'                           ! 'none', 'static' or 'realistic'
@@ -857,6 +865,7 @@ module model_configuration_type_and_namelist
     character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m_config  = ''                               ! File containing the T2m snapshot (e.g. from a RACMO historical simulation)
     character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB_config  = ''                               ! File containing the SMB snapshot (e.g. from a RACMO historical simulation)
     character(len=1024) :: SMB_snp_p_anml_filename_anomalies_config     = ''                               ! File containing the SMB+T2m anomalies (e.g. from a GCM projection)
+
 
   ! == Basal mass balance
   ! =====================
@@ -1119,6 +1128,7 @@ module model_configuration_type_and_namelist
 
     ! Basic settings
     logical             :: do_create_netcdf_output_config               = .true.                          !     Whether or not NetCDF output files should be created at all
+    logical             :: do_create_ismip_output_config                = .false.                          !     Whether or not ISMIP-specific output files should be created at all
     CHARACTER(LEN=1024) :: output_precision_config                      = 'double'                        !     Precision of floating-point output fields ('single' [32-bit], 'double' [64-bit])
     logical             :: do_compress_output_config                    = .false.                         !     Whether or not to use the NetCDF 'shuffle' and 'deflate' options to (losslessly) compress output
     real(dp)            :: dt_output_config                             = 1000._dp                        !     Time step for writing output
@@ -1289,7 +1299,6 @@ module model_configuration_type_and_namelist
 
     ! Remapping method for gridded geometry input
     character(len=1024) :: choice_refgeo_remapping_method
-
     ! == Initial geometry
     ! ===================
 
@@ -1836,6 +1845,15 @@ module model_configuration_type_and_namelist
     real(dp)            :: precip_CC_correction_GRL
     real(dp)            :: precip_CC_correction_ANT
 
+    ! == Climate - snapshot plus a transient deltaT
+    character(len=1024) :: filename_climate_snapshot_trans_dT_NAM
+    character(len=1024) :: filename_climate_snapshot_trans_dT_EAS
+    character(len=1024) :: filename_climate_snapshot_trans_dT_GRL
+    character(len=1024) :: filename_climate_snapshot_trans_dT_ANT
+    character(len=1024) :: filename_atmosphere_dT_NAM
+    character(len=1024) :: filename_atmosphere_dT_EAS
+    character(len=1024) :: filename_atmosphere_dT_GRL
+    character(len=1024) :: filename_atmosphere_dT_ANT
 
     ! == Climate - Insolation
     character(len=1024) :: choice_insolation_forcing
@@ -2291,6 +2309,7 @@ module model_configuration_type_and_namelist
 
     ! Basic settings
     logical             :: do_create_netcdf_output
+    logical             :: do_create_ismip_output
     CHARACTER(LEN=1024) :: output_precision
     logical             :: do_compress_output
     real(dp)            :: dt_output
@@ -2821,6 +2840,14 @@ contains
       precip_CC_correction_EAS_config                             , &
       precip_CC_correction_GRL_config                             , &
       precip_CC_correction_ANT_config                             , &
+      filename_climate_snapshot_trans_dT_NAM_config               , &
+      filename_climate_snapshot_trans_dT_EAS_config               , &
+      filename_climate_snapshot_trans_dT_GRL_config               , &
+      filename_climate_snapshot_trans_dT_ANT_config               , &
+      filename_atmosphere_dT_NAM_config                           , &
+      filename_atmosphere_dT_EAS_config                           , &
+      filename_atmosphere_dT_GRL_config                           , &
+      filename_atmosphere_dT_ANT_config                           , &
       choice_insolation_forcing_config                            , &
       filename_insolation_config                                  , &
       static_insolation_time_config                               , &
@@ -3094,6 +3121,7 @@ contains
       tractrackpart_write_raw_output_config                       , &
       tractrackpart_dt_raw_output_config                          , &
       do_create_netcdf_output_config                              , &
+      do_create_ismip_output_config                               , &
       output_precision_config                                     , &
       do_compress_output_config                                   , &
       dt_output_config                                            , &
@@ -3845,6 +3873,16 @@ contains
     C%precip_CC_correction_GRL                               = precip_CC_correction_GRL_config
     C%precip_CC_correction_ANT                               = precip_CC_correction_ANT_config
 
+    ! == Climate - snapshot plus a transient deltaT
+    c%filename_climate_snapshot_trans_dT_NAM                 = filename_climate_snapshot_trans_dT_NAM_config
+    c%filename_climate_snapshot_trans_dT_EAS                 = filename_climate_snapshot_trans_dT_EAS_config
+    c%filename_climate_snapshot_trans_dT_GRL                 = filename_climate_snapshot_trans_dT_GRL_config
+    c%filename_climate_snapshot_trans_dT_ANT                 = filename_climate_snapshot_trans_dT_ANT_config
+    C%filename_atmosphere_dT_NAM                             = filename_atmosphere_dT_NAM_config
+    C%filename_atmosphere_dT_EAS                             = filename_atmosphere_dT_EAS_config
+    C%filename_atmosphere_dT_GRL                             = filename_atmosphere_dT_GRL_config
+    C%filename_atmosphere_dT_ANT                             = filename_atmosphere_dT_ANT_config
+
     C%choice_insolation_forcing                              = choice_insolation_forcing_config
     C%filename_insolation                                    = filename_insolation_config
     C%static_insolation_time                                 = static_insolation_time_config
@@ -4295,6 +4333,7 @@ contains
 
     ! Basic settings
     C%do_create_netcdf_output                                = do_create_netcdf_output_config
+    C%do_create_ismip_output                                 = do_create_ismip_output_config
     C%output_precision                                       = output_precision_config
     C%do_compress_output                                     = do_compress_output_config
     C%dt_output                                              = dt_output_config
