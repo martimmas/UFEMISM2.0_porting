@@ -194,6 +194,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -256,6 +260,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -316,6 +324,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -379,6 +391,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -439,6 +455,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -502,6 +522,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -562,6 +586,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -625,6 +653,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -685,6 +717,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -748,6 +784,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -808,6 +848,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -870,6 +914,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -935,6 +983,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -997,6 +1049,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1057,6 +1113,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1120,6 +1180,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1180,6 +1244,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1243,6 +1311,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1303,6 +1375,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1366,6 +1442,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1426,6 +1506,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1489,6 +1573,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1549,6 +1637,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1611,6 +1703,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1676,6 +1772,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1738,6 +1838,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1798,6 +1902,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1861,6 +1969,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1921,6 +2033,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1984,6 +2100,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2044,6 +2164,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2107,6 +2231,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2167,6 +2295,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2230,6 +2362,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2290,6 +2426,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2352,6 +2492,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2417,6 +2561,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2479,6 +2627,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2539,6 +2691,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2602,6 +2758,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2662,6 +2822,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2725,6 +2889,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2785,6 +2953,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2848,6 +3020,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2908,6 +3084,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2971,6 +3151,10 @@ contains
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
 
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -3031,6 +3215,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -3093,6 +3281,10 @@ contains
     call close_netcdf_file( ncid)
 
     call unit_test( flds_reg1%items(1)%p == flds_reg2%items(1)%p, test_name)
+
+    ! Clean up after yourself
+    call flds_reg1%destroy
+    call flds_reg2%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

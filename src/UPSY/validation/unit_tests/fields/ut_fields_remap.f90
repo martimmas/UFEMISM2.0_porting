@@ -176,6 +176,9 @@ contains
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -265,6 +268,9 @@ contains
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -352,6 +358,9 @@ contains
       test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -442,6 +451,9 @@ contains
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -520,6 +532,9 @@ contains
       test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -610,6 +625,9 @@ contains
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -697,6 +715,9 @@ contains
       test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -786,6 +807,9 @@ contains
       test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
       test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
       trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

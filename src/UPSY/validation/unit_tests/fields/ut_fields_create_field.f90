@@ -323,6 +323,9 @@ contains
       d_3D_ocean( grid%n1+1,3) .eqv. test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -566,6 +569,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( grid%n1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -811,6 +817,9 @@ contains
       d_3D_ocean( grid%n1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1054,6 +1063,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( mesh%vi1+1,3) .eqv. test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1299,6 +1311,9 @@ contains
       d_3D_ocean( mesh%vi1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -1542,6 +1557,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( mesh%vi1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -1787,6 +1805,9 @@ contains
       d_3D_ocean( mesh%ti1+1,3) .eqv. test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2030,6 +2051,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( mesh%ti1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2275,6 +2299,9 @@ contains
       d_3D_ocean( mesh%ti1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -2518,6 +2545,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( mesh%ei1+1,3) .eqv. test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -2763,6 +2793,9 @@ contains
       d_3D_ocean( mesh%ei1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
 
+    ! Clean up after yourself
+    call flds_reg%destroy
+
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
@@ -3006,6 +3039,9 @@ contains
       ub2_f == nz .and. &
       d_3D_ocean( mesh%ei1+1,3) == test_val), &
       trim( test_name) // '_3D_ocean')
+
+    ! Clean up after yourself
+    call flds_reg%destroy
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
