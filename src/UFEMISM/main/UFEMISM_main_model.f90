@@ -1103,7 +1103,7 @@ CONTAINS
             CASE ('Wilkes')
               CALL calc_polygon_Wilkes_basins( poly_ROI)
             CASE ('Antarctic_Peninsula')
--              CALL calc_polygon_Antarctic_Peninsula( poly_ROI)
+              CALL calc_polygon_Antarctic_Peninsula( poly_ROI)
             CASE ('Institute')
               CALL calc_polygon_Institute_basin( poly_ROI)
             CASE DEFAULT
