@@ -9,7 +9,7 @@ module ice_mass_and_fluxes_ROI
   use mesh_types, only: type_mesh
   use scalar_types, only: type_regional_scalars
   use ice_model_types, only: type_ice_model
-  use SMB_model_types, only: type_SMB_model
+  use SMB_main, only: type_SMB_model
   use BMB_model_types, only: type_BMB_model
   use LMB_model_types, only: type_LMB_model
   use reference_geometry_types, only: type_reference_geometry

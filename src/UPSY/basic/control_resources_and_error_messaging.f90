@@ -10,7 +10,7 @@ MODULE control_resources_and_error_messaging
 
   use basic_program_info, only: program_name
   use mpi_f08, only: MPI_WTIME
-  USE precisions                                             , ONLY: dp
+  use precisions, only: dp
   use mpi_basic, only: par, sync
 
   IMPLICIT NONE
@@ -46,14 +46,12 @@ CONTAINS
 #if (DO_RESOURCE_TRACKING)
 
     ! Local variables:
-    INTEGER                                                            :: i,n
+    INTEGER :: i
 
-    ! Allocate space to track up to 2,000 subroutines, that should be enough for a while...
-    n = 5000
-    ALLOCATE( resource_tracker( n))
+    ALLOCATE( resource_tracker( 7000))
 
     ! Initialise values
-    DO i = 1, n
+    DO i = 1, size( resource_tracker,1)
       resource_tracker( i)%routine_path = 'subroutine_placeholder'
       resource_tracker( i)%tstart       = 0._dp
       resource_tracker( i)%tcomp        = 0._dp
