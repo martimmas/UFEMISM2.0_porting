@@ -32,7 +32,7 @@ module models_basic
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_model_equality
 
-    procedure, public  :: remap_common => remap
+    ! procedure, public  :: remap_common => remap
     procedure(set_bounds_ifc), deferred, public :: set_bounds
 
     ! ===== Set/get functions
@@ -59,10 +59,10 @@ module models_basic
 
   interface
 
-    module subroutine remap( self, mesh_new)
-      class(atype_model), intent(inout) :: self
-      type(type_mesh),    intent(in   ) :: mesh_new
-    end subroutine remap
+    ! module subroutine remap( self, mesh_new)
+    !   class(atype_model), intent(inout) :: self
+    !   type(type_mesh),    intent(in   ) :: mesh_new
+    ! end subroutine remap
 
     module function test_model_equality( model1, model2) result( res)
       class(atype_model), intent(in) :: model1, model2

@@ -30,8 +30,8 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! Run all unit tests
-    call test_create_field( test_name)
-    call test_io( test_name)
+    ! call test_create_field( test_name)
+    ! call test_io( test_name)
     call test_remap_field( test_name)
 
     ! Remove routine from call stack

@@ -48,7 +48,7 @@ module fields_registry
     procedure, private :: create_field_int_3D
     procedure, private :: create_field_dp_3D
 
-    procedure, public  :: remap
+    ! procedure, public  :: remap
 
     procedure, public  :: write_to_netcdf
     procedure, public  :: read_from_netcdf
@@ -164,15 +164,15 @@ module fields_registry
 
   end interface
 
-  ! remapping
-  interface
+  ! ! remapping
+  ! interface
 
-    module subroutine remap( flds_reg, mesh_new)
-      class(type_fields_registry), intent(inout) :: flds_reg
-      type(type_mesh),             intent(in   ) :: mesh_new
-    end subroutine remap
+  !   module subroutine remap( flds_reg, mesh_new)
+  !     class(type_fields_registry), intent(inout) :: flds_reg
+  !     type(type_mesh),             intent(in   ) :: mesh_new
+  !   end subroutine remap
 
-  end interface
+  ! end interface
 
   ! i/o
   interface
