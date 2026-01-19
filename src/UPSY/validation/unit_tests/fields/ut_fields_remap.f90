@@ -471,7 +471,7 @@ contains
     character(len=1024)                           :: name, long_name, units
     real(dp), dimension(:  ), contiguous, pointer :: d => null()
     type(MPI_WIN)                                 :: wd
-    integer                                       :: i, vi, ierr
+    integer                                       :: i, ti, ierr
     integer                                       :: lb_a, ub_a
     integer                                       :: lb_f, ub_f
     real(dp)                                      :: dmin, dmax
@@ -495,9 +495,9 @@ contains
 
     i = flds_reg%find( name)
 
-    do vi = mesh_src%ti1, mesh_src%ti2
-      d( vi) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
-        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    do ti = mesh_src%ti1, mesh_src%ti2
+      d( ti) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
     call flds_reg%remap( mesh_dst, 'd', d)
@@ -551,7 +551,7 @@ contains
     integer, parameter                            :: nz = 10
     real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                 :: wd
-    integer                                       :: i, vi, ierr
+    integer                                       :: i, ti, ierr
     integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
     integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
     real(dp)                                      :: dmin, dmax
@@ -575,9 +575,9 @@ contains
 
     i = flds_reg%find( name)
 
-    do vi = mesh_src%ti1, mesh_src%ti2
-      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
-        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    do ti = mesh_src%ti1, mesh_src%ti2
+      d( ti,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
     call flds_reg%remap( mesh_dst, 'd', d)
@@ -641,7 +641,7 @@ contains
     character(len=1024)                           :: name, long_name, units
     real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                 :: wd
-    integer                                       :: i, vi, ierr
+    integer                                       :: i, ti, ierr
     integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
     integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
     real(dp)                                      :: dmin, dmax
@@ -665,9 +665,9 @@ contains
 
     i = flds_reg%find( name)
 
-    do vi = mesh_src%ti1, mesh_src%ti2
-      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
-        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    do ti = mesh_src%ti1, mesh_src%ti2
+      d( ti,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
     call flds_reg%remap( mesh_dst, 'd', d)
@@ -732,7 +732,7 @@ contains
     integer, parameter                            :: nz = 15
     real(dp), dimension(:,:), contiguous, pointer :: d => null()
     type(MPI_WIN)                                 :: wd
-    integer                                       :: i, vi, ierr
+    integer                                       :: i, ti, ierr
     integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
     integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
     real(dp)                                      :: dmin, dmax
@@ -756,9 +756,9 @@ contains
 
     i = flds_reg%find( name)
 
-    do vi = mesh_src%ti1, mesh_src%ti2
-      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
-        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    do ti = mesh_src%ti1, mesh_src%ti2
+      d( ti,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
     call flds_reg%remap( mesh_dst, 'd', d)
