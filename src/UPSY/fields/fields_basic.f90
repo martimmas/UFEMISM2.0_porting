@@ -54,12 +54,25 @@ module fields_basic
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_field_equality
 
+    generic,   public  :: reallocate => &
+      reallocate_logical_2D, &
+      reallocate_logical_3D, &
+      reallocate_int_2D, &
+      reallocate_int_3D, &
+      reallocate_dp_2D, &
+      reallocate_dp_3D
+    procedure, private :: reallocate_logical_2D
+    procedure, private :: reallocate_logical_3D
+    procedure, private :: reallocate_int_2D
+    procedure, private :: reallocate_int_3D
+    procedure, private :: reallocate_dp_2D
+    procedure, private :: reallocate_dp_3D
+
     generic,   public  :: remap => &
       remap_dp_2D, &
       remap_dp_3D
     procedure, private :: remap_dp_2D
     procedure, private :: remap_dp_3D
-    ! procedure, public  :: reallocate
 
     procedure, public :: lbound => field_lbound
     procedure, public :: ubound => field_ubound
@@ -304,7 +317,45 @@ module fields_basic
       logical                                :: res
     end function is_third_dimension
 
-    ! ===== Remapping/reallocation
+    ! ===== Reallocate
+
+    module subroutine reallocate_logical_2D( self, mesh_new, d_nih)
+      class(atype_field),                         intent(inout) :: self
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_logical_2D
+
+    module subroutine reallocate_logical_3D( self, mesh_new, d_nih)
+      class(atype_field),                           intent(inout) :: self
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_logical_3D
+
+    module subroutine reallocate_int_2D( self, mesh_new, d_nih)
+      class(atype_field),                         intent(inout) :: self
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_int_2D
+
+    module subroutine reallocate_int_3D( self, mesh_new, d_nih)
+      class(atype_field),                           intent(inout) :: self
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_int_3D
+
+    module subroutine reallocate_dp_2D( self, mesh_new, d_nih)
+      class(atype_field),                          intent(inout) :: self
+      type(type_mesh),                             intent(in   ) :: mesh_new
+      real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_dp_2D
+
+    module subroutine reallocate_dp_3D( self, mesh_new, d_nih)
+      class(atype_field),                            intent(inout) :: self
+      type(type_mesh),                               intent(in   ) :: mesh_new
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_dp_3D
+
+    ! ===== Remap
 
     module subroutine remap_dp_2D( self, mesh_new, d_nih)
       class(atype_field),                          intent(inout) :: self

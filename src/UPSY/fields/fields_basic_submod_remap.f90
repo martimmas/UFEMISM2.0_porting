@@ -15,6 +15,12 @@ contains
       ! Add routine to call stack
       call init_routine( routine_name)
 
+      if (self%remap_method() == 'reallocate') then
+        call self%reallocate( mesh_new, d_nih)
+        call finalise_routine( routine_name)
+        return
+      end if
+
       ! Downcast field and grid
       select type (f => self)
       class default
@@ -137,6 +143,12 @@ contains
 
       ! Add routine to call stack
       call init_routine( routine_name)
+
+      if (self%remap_method() == 'reallocate') then
+        call self%reallocate( mesh_new, d_nih)
+        call finalise_routine( routine_name)
+        return
+      end if
 
       ! Downcast field and grid
       select type (f => self)
