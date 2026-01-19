@@ -89,13 +89,13 @@ contains
 
     call test_remap_field_mesh_dp_a_2D      ( test_name, mesh_src, mesh_dst)
     call test_remap_field_mesh_dp_a_3D_zeta ( test_name, mesh_src, mesh_dst)
-    ! call test_remap_field_mesh_dp_a_3D_month( test_name, mesh_src, mesh_dst)
-    ! call test_remap_field_mesh_dp_a_3D_ocean( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_a_3D_month( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_a_3D_ocean( test_name, mesh_src, mesh_dst)
 
-    ! call test_remap_field_mesh_dp_b_2D      ( test_name, mesh_src, mesh_dst)
-    ! call test_remap_field_mesh_dp_b_3D_zeta ( test_name, mesh_src, mesh_dst)
-    ! call test_remap_field_mesh_dp_b_3D_month( test_name, mesh_src, mesh_dst)
-    ! call test_remap_field_mesh_dp_b_3D_ocean( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_b_2D      ( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_b_3D_zeta ( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_b_3D_month( test_name, mesh_src, mesh_dst)
+    call test_remap_field_mesh_dp_b_3D_ocean( test_name, mesh_src, mesh_dst)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -252,6 +252,7 @@ contains
       flds_reg%items(i)%p%units()     == units .and. &
       flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
       flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz,'regular')) .and. &
       flds_reg%items(i)%p%is_pai( mesh_dst%pai_V) .and. &
       lb1_a == mesh_dst%pai_V%i1_nih .and. &
       ub1_a == mesh_dst%pai_V%i2_nih .and. &
@@ -272,6 +273,540 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_remap_field_mesh_dp_a_3D_zeta
+
+  subroutine test_remap_field_mesh_dp_a_3D_month( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_a_3D_month'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_a_3D_month'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%a(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%vi1, mesh_src%vi2
+      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb1_a = lbound( d,1)
+    ub1_a = ubound( d,1)
+
+    lb2_a = lbound( d,2)
+    ub2_a = ubound( d,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    dmin = minval( d( mesh_dst%vi1: mesh_dst%vi2,:))
+    dmax = maxval( d( mesh_dst%vi1: mesh_dst%vi2,:))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_V) .and. &
+      lb1_a == mesh_dst%pai_V%i1_nih .and. &
+      ub1_a == mesh_dst%pai_V%i2_nih .and. &
+      lb1_f == mesh_dst%pai_V%i1_nih .and. &
+      ub1_f == mesh_dst%pai_V%i2_nih .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_a_3D_month
+
+  subroutine test_remap_field_mesh_dp_a_3D_ocean( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_a_3D_ocean'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_a_3D_ocean'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer, parameter                            :: nz = 15
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%a(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%vi1, mesh_src%vi2
+      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb1_a = lbound( d,1)
+    ub1_a = ubound( d,1)
+
+    lb2_a = lbound( d,2)
+    ub2_a = ubound( d,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    dmin = minval( d( mesh_dst%vi1: mesh_dst%vi2,:))
+    dmax = maxval( d( mesh_dst%vi1: mesh_dst%vi2,:))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%a()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_V) .and. &
+      lb1_a == mesh_dst%pai_V%i1_nih .and. &
+      ub1_a == mesh_dst%pai_V%i2_nih .and. &
+      lb1_f == mesh_dst%pai_V%i1_nih .and. &
+      ub1_f == mesh_dst%pai_V%i2_nih .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_a_3D_ocean
+
+
+
+  subroutine test_remap_field_mesh_dp_b_2D( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_b_2D'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_b_2D'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    real(dp), dimension(:  ), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb_a, ub_a
+    integer                                       :: lb_f, ub_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%b(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%ti1, mesh_src%ti2
+      d( vi) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb_a = lbound( d,1)
+    ub_a = ubound( d,1)
+
+    lb_f = flds_reg%items(i)%p%lbound( 1)
+    ub_f = flds_reg%items(i)%p%ubound( 1)
+
+    dmin = minval( d( mesh_dst%ti1: mesh_dst%ti2))
+    dmax = maxval( d( mesh_dst%ti1: mesh_dst%ti2))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_Tri) .and. &
+      lb_a == mesh_dst%pai_Tri%i1_nih .and. &
+      ub_a == mesh_dst%pai_Tri%i2_nih .and. &
+      lb_f == mesh_dst%pai_Tri%i1_nih .and. &
+      ub_f == mesh_dst%pai_Tri%i2_nih .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_b_2D
+
+  subroutine test_remap_field_mesh_dp_b_3D_zeta( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_b_3D_zeta'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_b_3D_zeta'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer, parameter                            :: nz = 10
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%ti1, mesh_src%ti2
+      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb1_a = lbound( d,1)
+    ub1_a = ubound( d,1)
+
+    lb2_a = lbound( d,2)
+    ub2_a = ubound( d,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    dmin = minval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    dmax = maxval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ice_zeta( nz,'regular')) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_Tri) .and. &
+      lb1_a == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_a == mesh_dst%pai_Tri%i2_nih .and. &
+      lb1_f == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_f == mesh_dst%pai_Tri%i2_nih .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_b_3D_zeta
+
+  subroutine test_remap_field_mesh_dp_b_3D_month( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_b_3D_month'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_b_3D_month'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%b(), third_dimension%month(), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%ti1, mesh_src%ti2
+      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb1_a = lbound( d,1)
+    ub1_a = ubound( d,1)
+
+    lb2_a = lbound( d,2)
+    ub2_a = ubound( d,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    dmin = minval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    dmax = maxval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%month()) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_Tri) .and. &
+      lb1_a == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_a == mesh_dst%pai_Tri%i2_nih .and. &
+      lb1_f == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_f == mesh_dst%pai_Tri%i2_nih .and. &
+      lb2_a == 1  .and. &
+      ub2_a == 12 .and. &
+      lb2_f == 1  .and. &
+      ub2_f == 12 .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_b_3D_month
+
+  subroutine test_remap_field_mesh_dp_b_3D_ocean( test_name_parent, mesh_src, mesh_dst)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh_src, mesh_dst
+
+    ! Local variables:
+    character(len=1024), parameter                :: routine_name = 'test_remap_field_mesh_dp_b_3D_ocean'
+    character(len=1024), parameter                :: test_name_local = 'mesh_dp_b_3D_ocean'
+    character(len=1024)                           :: test_name
+    type(type_fields_registry)                    :: flds_reg
+    character(len=1024)                           :: name, long_name, units
+    integer, parameter                            :: nz = 15
+    real(dp), dimension(:,:), contiguous, pointer :: d => null()
+    type(MPI_WIN)                                 :: wd
+    integer                                       :: i, vi, ierr
+    integer                                       :: lb1_a, ub1_a, lb2_a, ub2_a
+    integer                                       :: lb1_f, ub1_f, lb2_f, ub2_f
+    real(dp)                                      :: dmin, dmax
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    name      = 'd'
+    long_name = 'd_long_name'
+    units     = 'd_units'
+
+    call flds_reg%create_field( d, wd, &
+      mesh_src, Arakawa_grid%b(), third_dimension%ocean_depth( nz), &
+      name      = name, &
+      long_name = long_name, &
+      units     = units, &
+      remap_method = '2nd_order_conservative')
+
+    i = flds_reg%find( name)
+
+    do vi = mesh_src%ti1, mesh_src%ti2
+      d( vi,:) = test_function( mesh_src%xmin, mesh_src%xmax, mesh_src%ymin, mesh_src%ymax, &
+        mesh_src%V( vi,1), mesh_src%V( vi,2))
+    end do
+
+    call flds_reg%remap( mesh_dst, 'd', d)
+
+    lb1_a = lbound( d,1)
+    ub1_a = ubound( d,1)
+
+    lb2_a = lbound( d,2)
+    ub2_a = ubound( d,2)
+
+    lb1_f = flds_reg%items(i)%p%lbound( 1)
+    ub1_f = flds_reg%items(i)%p%ubound( 1)
+
+    lb2_f = flds_reg%items(i)%p%lbound( 2)
+    ub2_f = flds_reg%items(i)%p%ubound( 2)
+
+    dmin = minval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    dmax = maxval( d( mesh_dst%ti1: mesh_dst%ti2,:))
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmin, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, dmax, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
+
+    call unit_test( (&
+      flds_reg%items(i)%p%name()      == name .and. &
+      flds_reg%items(i)%p%long_name() == long_name .and. &
+      flds_reg%items(i)%p%units()     == units .and. &
+      flds_reg%items(i)%p%is_grid( mesh_dst) .and. &
+      flds_reg%items(i)%p%is_Arakawa_grid( Arakawa_grid%b()) .and. &
+      flds_reg%items(i)%p%is_third_dimension( third_dimension%ocean_depth( nz)) .and. &
+      flds_reg%items(i)%p%is_pai( mesh_dst%pai_Tri) .and. &
+      lb1_a == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_a == mesh_dst%pai_Tri%i2_nih .and. &
+      lb1_f == mesh_dst%pai_Tri%i1_nih .and. &
+      ub1_f == mesh_dst%pai_Tri%i2_nih .and. &
+      lb2_a == 1  .and. &
+      ub2_a == nz .and. &
+      lb2_f == 1  .and. &
+      ub2_f == nz .and. &
+      test_ge_le( dmin, -1.15_dp, -0.85_dp) .and. &
+      test_ge_le( dmax,  0.85_dp,  1.15_dp)), &
+      trim( test_name))
+
+    ! Clean up after yourself
+    call flds_reg%destroy
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remap_field_mesh_dp_b_3D_ocean
 
 
 

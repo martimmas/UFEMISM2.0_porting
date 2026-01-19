@@ -13,7 +13,9 @@ module fields_basic
   use mpi_f08, only: MPI_WIN
   use remapping_main, only: &
     map_from_mesh_to_mesh_with_reallocation_2D, &
-    map_from_mesh_to_mesh_with_reallocation_3D
+    map_from_mesh_to_mesh_with_reallocation_3D, &
+    map_from_mesh_tri_to_mesh_tri_with_reallocation_2D, &
+    map_from_mesh_tri_to_mesh_tri_with_reallocation_3D
   use model_configuration, only: C
   use mpi_distributed_shared_memory, only: hybrid_to_dist, dist_to_hybrid
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
