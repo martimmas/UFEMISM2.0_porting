@@ -11,7 +11,9 @@ module fields_basic
   use fields_dimensions, only: third_dimension, type_third_dimension
   use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_WIN
-  use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D
+  use remapping_main, only: &
+    map_from_mesh_to_mesh_with_reallocation_2D, &
+    map_from_mesh_to_mesh_with_reallocation_3D
   use model_configuration, only: C
   use mpi_distributed_shared_memory, only: hybrid_to_dist, dist_to_hybrid
   use reallocate_dist_shared_mod, only: reallocate_dist_shared
@@ -51,8 +53,10 @@ module fields_basic
     procedure, private :: eq => test_field_equality
 
     generic,   public  :: remap => &
-      remap_dp_2D
+      remap_dp_2D, &
+      remap_dp_3D
     procedure, private :: remap_dp_2D
+    procedure, private :: remap_dp_3D
     ! procedure, public  :: reallocate
 
     procedure, public :: lbound => field_lbound
@@ -305,6 +309,12 @@ module fields_basic
       type(type_mesh),                             intent(in   ) :: mesh_new
       real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
     end subroutine remap_dp_2D
+
+    module subroutine remap_dp_3D( self, mesh_new, d_nih)
+      class(atype_field),                            intent(inout) :: self
+      type(type_mesh),                               intent(in   ) :: mesh_new
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_dp_3D
 
     ! ===== i/o
 

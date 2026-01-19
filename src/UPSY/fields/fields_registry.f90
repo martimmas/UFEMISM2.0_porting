@@ -48,7 +48,10 @@ module fields_registry
     procedure, private :: create_field_int_3D
     procedure, private :: create_field_dp_3D
 
-    ! procedure, public  :: remap
+    generic,   public  :: remap => &
+      remap_dp_2D, &
+      remap_dp_3D
+    procedure, private :: remap_dp_2D, remap_dp_3D
 
     procedure, public  :: write_to_netcdf
     procedure, public  :: read_from_netcdf
@@ -164,15 +167,24 @@ module fields_registry
 
   end interface
 
-  ! ! remapping
-  ! interface
+  ! remapping
+  interface
 
-  !   module subroutine remap( flds_reg, mesh_new)
-  !     class(type_fields_registry), intent(inout) :: flds_reg
-  !     type(type_mesh),             intent(in   ) :: mesh_new
-  !   end subroutine remap
+    module subroutine remap_dp_2D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                 intent(inout) :: self
+      character(len=*),                            intent(in   ) :: field_name
+      type(type_mesh),                             intent(in   ) :: mesh_new
+      real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_dp_2D
 
-  ! end interface
+    module subroutine remap_dp_3D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                   intent(inout) :: self
+      character(len=*),                              intent(in   ) :: field_name
+      type(type_mesh),                               intent(in   ) :: mesh_new
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_dp_3D
+
+  end interface
 
   ! i/o
   interface
