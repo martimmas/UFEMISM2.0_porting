@@ -18,17 +18,25 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_logical_2D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb, ub, n
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
-    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
+      name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -53,19 +61,26 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_logical_3D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb1, ub1, n1, lb2, ub2, n2
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
     call allocate_dist_shared( d_nih, w, n1, n2)
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
-      field_third_dimension, name, long_name, units, remap_method)
+      field_third_dimension, name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -89,17 +104,25 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_int_2D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb, ub, n
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
-    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
+      name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -124,19 +147,26 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_int_3D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb1, ub1, n1, lb2, ub2, n2
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
     call allocate_dist_shared( d_nih, w, n1, n2)
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
-      field_third_dimension, name, long_name, units, remap_method)
+      field_third_dimension, name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -160,17 +190,25 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_dp_2D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb, ub, n
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
-    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
+    call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
+      name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -195,19 +233,26 @@ contains
 
     ! Local variables:
     character(len=1024), parameter  :: routine_name = 'create_field_dp_3D'
+    character(:), allocatable       :: remap_method_
     integer                         :: lb1, ub1, n1, lb2, ub2, n2
     class(atype_field), allocatable :: field
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    if (present( remap_method)) then
+      remap_method_ = remap_method
+    else
+      remap_method_ = '2nd_order_conservative'
+    end if
+
+    call check_nonoptional_optionals( name, long_name, units)
     call determine_bounds_2D( field_grid, field_Arakawa_grid, lb1, ub1, n1)
     call determine_bounds_3D( field_third_dimension, lb2, ub2, n2)
     call allocate_dist_shared( d_nih, w, n1, n2)
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
-      field_third_dimension, name, long_name, units, remap_method)
+      field_third_dimension, name, long_name, units, remap_method_)
     call self%add( field)
 
     ! Remove routine from call stack
@@ -217,15 +262,13 @@ contains
 
   ! Utilities
 
-  subroutine check_nonoptional_optionals( name, long_name, units, remap_method)
+  subroutine check_nonoptional_optionals( name, long_name, units)
     character(len=*),  optional, intent(in   ) :: name
     character(len=*),  optional, intent(in   ) :: long_name
     character(len=*),  optional, intent(in   ) :: units
-    character(len=*),  optional, intent(in   ) :: remap_method
     if (.not. present( name        )) call crash('missing input argument "name"')
     if (.not. present( long_name   )) call crash('missing input argument "long_name"')
-    if (.not. present( units       )) call crash('missing input argument "a units"')
-    if (.not. present( remap_method)) call crash('missing input argument "remap_method"')
+    if (.not. present( units       )) call crash('missing input argument "units"')
   end subroutine check_nonoptional_optionals
 
   subroutine determine_bounds_2D( field_grid, field_Arakawa_grid, lb, ub, n)

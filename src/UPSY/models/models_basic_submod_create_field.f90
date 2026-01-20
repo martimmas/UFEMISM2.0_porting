@@ -22,7 +22,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
@@ -53,7 +53,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
@@ -83,7 +83,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
@@ -114,7 +114,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
@@ -144,7 +144,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
@@ -175,7 +175,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call check_nonoptional_optionals( name, long_name, units, remap_method)
+    call check_nonoptional_optionals( name, long_name, units)
 
     call self%flds_reg%create_field( d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
@@ -185,15 +185,13 @@ contains
 
   end subroutine create_field_dp_3D
 
-  subroutine check_nonoptional_optionals( name, long_name, units, remap_method)
+  subroutine check_nonoptional_optionals( name, long_name, units)
     character(len=*),  optional, intent(in   ) :: name
     character(len=*),  optional, intent(in   ) :: long_name
     character(len=*),  optional, intent(in   ) :: units
-    character(len=*),  optional, intent(in   ) :: remap_method
     if (.not. present( name        )) call crash('missing input argument "name"')
     if (.not. present( long_name   )) call crash('missing input argument "long_name"')
-    if (.not. present( units       )) call crash('missing input argument "a units"')
-    if (.not. present( remap_method)) call crash('missing input argument "remap_method"')
+    if (.not. present( units       )) call crash('missing input argument "units"')
   end subroutine check_nonoptional_optionals
 
 end submodule models_basic_submod_create_field
