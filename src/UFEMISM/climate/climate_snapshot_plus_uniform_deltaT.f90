@@ -56,7 +56,7 @@ CONTAINS
 
     ! Update temperature and precipitation fields based on the mismatch between
     ! the ice sheet surface elevation in the forcing climate and the model's ice sheet surface elevation
-    CALL apply_geometry_downscaling_corrections( mesh, ice, climate)
+    call apply_geometry_downscaling_corrections( mesh, ice, climate, climate%snapshot_unif_dT%snapshot, climate%snapshot_unif_dT%deltaT)
 
     ! if needed for IMAU-ITM or climate matrix, we need to update insolation
     IF (climate%snapshot%has_insolation) THEN
@@ -102,33 +102,33 @@ CONTAINS
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
-        filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_NAM
-        climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_NAM
-        climate%snapshot_unif_dT%snapshot%do_lapse_rates  = C%do_lapse_rate_corrections_NAM
-        climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
-        climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_NAM
-        climate%snapshot_unif_dT%snapshot%has_insolation  = C%choice_SMB_model_NAM == 'IMAU-ITM'
+        filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_NAM
+        climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_NAM
+        climate%snapshot_unif_dT%snapshot%do_lapse_rates       = C%do_lapse_rate_corrections_NAM
+        climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_NAM
+        climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_NAM
+        climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_NAM == 'IMAU-ITM'
     ELSEIF (region_name == 'EAS') THEN
-        filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_EAS
-        climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_EAS
-        climate%snapshot_unif_dT%snapshot%do_lapse_rates  = C%do_lapse_rate_corrections_EAS
-        climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
-        climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_EAS
-        climate%snapshot_unif_dT%snapshot%has_insolation  = C%choice_SMB_model_EAS == 'IMAU-ITM'
+        filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_EAS
+        climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_EAS
+        climate%snapshot_unif_dT%snapshot%do_lapse_rates       = C%do_lapse_rate_corrections_EAS
+        climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_EAS
+        climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_EAS
+        climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_EAS == 'IMAU-ITM'
     ELSEIF (region_name == 'GRL') THEN
-        filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_GRL
-        climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_GRL
-        climate%snapshot_unif_dT%snapshot%do_lapse_rates  = C%do_lapse_rate_corrections_GRL
-        climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
-        climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_GRL
-        climate%snapshot_unif_dT%snapshot%has_insolation  = C%choice_SMB_model_GRL == 'IMAU-ITM'
+        filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_GRL
+        climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_GRL
+        climate%snapshot_unif_dT%snapshot%do_lapse_rates       = C%do_lapse_rate_corrections_GRL
+        climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_GRL
+        climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_GRL
+        climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_GRL == 'IMAU-ITM'
     ELSEIF (region_name == 'ANT') THEN
-        filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_ANT
-        climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_ANT
-        climate%snapshot_unif_dT%snapshot%do_lapse_rates  = C%do_lapse_rate_corrections_ANT
-        climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
-        climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_ANT
-        climate%snapshot_unif_dT%snapshot%has_insolation  = C%choice_SMB_model_ANT == 'IMAU-ITM'
+        filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_ANT
+        climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_ANT
+        climate%snapshot_unif_dT%snapshot%do_lapse_rates       = C%do_lapse_rate_corrections_ANT
+        climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_ANT
+        climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_ANT
+        climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_ANT == 'IMAU-ITM'
     ELSE
       CALL crash('unknown region_name "' // region_name // '"')
     END IF
@@ -147,8 +147,8 @@ CONTAINS
     end do
 
     ! apply corrections (increase in Precip due to deltaT, plus downscaling correction)
-    call apply_precipitation_CC_correction(mesh, climate, climate%snapshot_plus_unif_deltaT%snapshot%precip_CC_correction, climate%snapshot_plus_unif_deltaT%deltaT)
-    call apply_geometry_downscaling_corrections( mesh, ice, climate, climate%snapshot_plus_unif_deltaT%snapshot, climate%snapshot_plus_unif_deltaT%deltaT)
+    call apply_precipitation_CC_correction(mesh, climate, climate%snapshot_unif_dT%snapshot%precip_CC_correction, climate%snapshot_unif_dT%deltaT)
+    call apply_geometry_downscaling_corrections( mesh, ice, climate, climate%snapshot_unif_dT%snapshot, climate%snapshot_unif_dT%deltaT)
 
     ! Initialises the insolation (if needed)
     IF (climate%snapshot_unif_dT%snapshot%has_insolation) THEN
@@ -193,37 +193,29 @@ CONTAINS
     ! Determine which climate model to initialise for this region
     select case( region_name)
     case ('NAM')
-      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_NAM
-      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_NAM
-      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_NAM
-      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_NAM
-      IF (C%choice_SMB_model_NAM == 'IMAU-ITM') THEN
-          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
-      END IF
+      filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_NAM
+      climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_NAM
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_NAM
+      climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_NAM
+      climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_NAM == 'IMAU-ITM'
     case ('EAS')
-      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_EAS
-      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_EAS
-      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_EAS
-      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_EAS
-      IF (C%choice_SMB_model_EAS == 'IMAU-ITM') THEN
-          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
-      END IF
+      filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_EAS
+      climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_EAS
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_EAS
+      climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_EAS
+      climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_EAS == 'IMAU-ITM'
     case ('GRL')
-      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_GRL
-      climate%snapshot_unif_dT%precip_CC_correction     = C%precip_CC_correction_GRL
-      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_GRL
-      climate%snapshot_unif_dT%deltaT                   = C%uniform_deltaT_GRL
-      IF (C%choice_SMB_model_GRL == 'IMAU-ITM') THEN
-          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
-      END IF
+      filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_GRL
+      climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_GRL
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_GRL
+      climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_GRL
+      climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_GRL == 'IMAU-ITM'
     case ('ANT')
-      filename_climate_snapshot                         = C%filename_climate_snapshot_unif_dT_ANT
-      climate%snapshot_unif_dT%precip_CC_correction    = C%precip_CC_correction_ANT
-      climate%snapshot_unif_dT%snapshot%lapse_rate_temp = C%lapse_rate_temp_ANT
-      climate%snapshot_unif_dT%deltaT                  = C%uniform_deltaT_ANT
-      IF (C%choice_SMB_model_ANT == 'IMAU-ITM') THEN
-          climate%snapshot_unif_dT%snapshot%has_insolation = .TRUE.
-      END IF
+      filename_climate_snapshot                              = C%filename_climate_snapshot_unif_dT_ANT
+      climate%snapshot_unif_dT%snapshot%precip_CC_correction = C%precip_CC_correction_ANT
+      climate%snapshot_unif_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_ANT
+      climate%snapshot_unif_dT%deltaT                        = C%uniform_deltaT_ANT
+      climate%snapshot_unif_dT%snapshot%has_insolation       = C%choice_SMB_model_ANT == 'IMAU-ITM'
     case default
       call crash('unknown region_name "' // region_name // '"')
     end select
@@ -247,8 +239,8 @@ CONTAINS
     end do
 
     ! apply corrections (increase in Precip due to deltaT, plus downscaling correction)
-    call apply_precipitation_CC_correction(mesh_new, climate, climate%snapshot_plus_unif_deltaT%snapshot%precip_CC_correction, climate%snapshot_plus_unif_deltaT%deltaT)
-    call apply_geometry_downscaling_corrections( mesh_new, ice, climate, climate%snapshot_plus_unif_deltaT%snapshot, climate%snapshot_plus_unif_deltaT%deltaT)
+    call apply_precipitation_CC_correction(mesh_new, climate, climate%snapshot_unif_dT%snapshot%precip_CC_correction, climate%snapshot_unif_dT%deltaT)
+    call apply_geometry_downscaling_corrections( mesh_new, ice, climate, climate%snapshot_unif_dT%snapshot, climate%snapshot_unif_dT%deltaT)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
