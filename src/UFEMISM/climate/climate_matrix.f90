@@ -20,7 +20,7 @@ module climate_matrix
   use netcdf_io_main
   use mesh_data_smoothing, only: smooth_Gaussian
   use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
-  use climate_matrix_utilities, only: allocate_climate_snapshot, read_climate_snapshot, adapt_precip_CC, adapt_precip_Roe, get_insolation_at_time
+  use climate_model_utilities                                , only: allocate_climate_snapshot, read_climate_snapshot, adapt_precip_CC, adapt_precip_Roe, get_insolation_at_time
   use assertions_basic, only: assert
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
