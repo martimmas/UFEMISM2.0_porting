@@ -228,7 +228,7 @@ CONTAINS
       ! Resource use for this subroutine should not be tracked
 
       ! Find where in the string exactly the current routine name is located
-      i = INDEX( routine_path, TRIM( routine_name) // '_NOTRACK')
+      i = INDEX( routine_path, TRIM( routine_name) // '_NOTRACK', back = .true.)
 
       IF (i == 0) THEN
         CALL crash('finalise_routine - ERROR: routine_name = "' // TRIM( routine_name) // '" not found in routine_path = "' // TRIM( routine_path) // '"!')
