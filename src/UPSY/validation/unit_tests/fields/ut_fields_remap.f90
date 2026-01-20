@@ -147,7 +147,7 @@ contains
         mesh_src%V( vi,1), mesh_src%V( vi,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb_a = lbound( d,1)
     ub_a = ubound( d,1)
@@ -227,7 +227,7 @@ contains
         mesh_src%V( vi,1), mesh_src%V( vi,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
@@ -317,7 +317,7 @@ contains
         mesh_src%V( vi,1), mesh_src%V( vi,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
@@ -408,7 +408,7 @@ contains
         mesh_src%V( vi,1), mesh_src%V( vi,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
@@ -500,7 +500,7 @@ contains
         mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb_a = lbound( d,1)
     ub_a = ubound( d,1)
@@ -580,7 +580,7 @@ contains
         mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
@@ -670,7 +670,7 @@ contains
         mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
@@ -761,7 +761,7 @@ contains
         mesh_src%TriGC( ti,1), mesh_src%TriGC( ti,2))
     end do
 
-    call flds_reg%remap( mesh_dst, 'd', d)
+    call flds_reg%remap_field( mesh_dst, 'd', d)
 
     lb1_a = lbound( d,1)
     ub1_a = ubound( d,1)
