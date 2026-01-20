@@ -164,50 +164,50 @@ module models_basic
 
     ! Metadata
 
-    module subroutine set_name( model, name)
-      class(atype_model), intent(inout) :: model
+    module subroutine set_name( self, name)
+      class(atype_model), intent(inout) :: self
       character(len=*),   intent(in   ) :: name
     end subroutine set_name
 
-    module function get_name( model) result( name)
-      class(atype_model), intent(in) :: model
+    module function get_name( self) result( name)
+      class(atype_model), intent(in) :: self
       character(:), allocatable      :: name
     end function get_name
 
-    module function is_name( model, name) result( res)
-      class(atype_model), intent(in) :: model
+    module function is_name( self, name) result( res)
+      class(atype_model), intent(in) :: self
       character(len=*),   intent(in) :: name
       logical                        :: res
     end function is_name
 
     ! Grid
 
-    module subroutine set_grid( model, grid)
-      class(atype_model), intent(inout) :: model
+    module subroutine set_grid( self, grid)
+      class(atype_model), intent(inout) :: self
       class(*), target,   intent(in   ) :: grid
     end subroutine set_grid
 
-    module function get_grid( model) result( grid)
-      class(atype_model), intent(in) :: model
+    module function get_grid( self) result( grid)
+      class(atype_model), intent(in) :: self
       class(*), pointer              :: grid
     end function get_grid
 
-    module function is_grid( model, grid) result( res)
-      class(atype_model), intent(in) :: model
+    module function is_grid( self, grid) result( res)
+      class(atype_model), intent(in) :: self
       class(*),           intent(in) :: grid
       logical                        :: res
     end function is_grid
 
     ! ===== NetCDF output
 
-    module subroutine write_to_restart_file( model, output_dir, filename)
-      class(atype_model),                  intent(in   ) :: model
+    module subroutine write_to_restart_file( self, output_dir, filename)
+      class(atype_model),                  intent(in   ) :: self
       character(len=*),                    intent(in   ) :: output_dir
       character(:), allocatable, optional, intent(  out) :: filename
     end subroutine write_to_restart_file
 
-    module subroutine read_from_restart_file( model, filename)
-      class(atype_model), intent(inout) :: model
+    module subroutine read_from_restart_file( self, filename)
+      class(atype_model), intent(inout) :: self
       character(len=*),   intent(in   ) :: filename
     end subroutine read_from_restart_file
 
