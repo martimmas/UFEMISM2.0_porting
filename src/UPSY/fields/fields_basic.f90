@@ -1,6 +1,7 @@
 module fields_basic
 
   use precisions, only: dp
+  use parameters, only: NaN
   use mpi_basic, only: par, sync
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
     warning, crash, colour_string
@@ -10,6 +11,14 @@ module fields_basic
   use fields_dimensions, only: third_dimension, type_third_dimension
   use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_WIN
+  use remapping_main, only: &
+    map_from_mesh_to_mesh_with_reallocation_2D, &
+    map_from_mesh_to_mesh_with_reallocation_3D, &
+    map_from_mesh_tri_to_mesh_tri_with_reallocation_2D, &
+    map_from_mesh_tri_to_mesh_tri_with_reallocation_3D
+  use model_configuration, only: C
+  use mpi_distributed_shared_memory, only: hybrid_to_dist, dist_to_hybrid
+  use reallocate_dist_shared_mod, only: reallocate_dist_shared
 
   implicit none
 
@@ -29,6 +38,7 @@ module fields_basic
     character(len=1024), private :: name_val
     character(len=1024), private :: long_name_val
     character(len=1024), private :: units_val
+    character(len=1024), private :: remap_method_val
 
     ! Grid
     class(*), pointer,       private :: grid_val
@@ -37,12 +47,32 @@ module fields_basic
 
     ! Pointer to array containing the actual field data
     ! class(*), dimension(:), pointer, public :: d
-    type(MPI_WIN),                   public :: w
+    type(MPI_WIN), pointer, public :: w
 
     contains
 
     generic,   public  :: operator(==) => eq
     procedure, private :: eq => test_field_equality
+
+    generic,   public  :: reallocate => &
+      reallocate_logical_2D, &
+      reallocate_logical_3D, &
+      reallocate_int_2D, &
+      reallocate_int_3D, &
+      reallocate_dp_2D, &
+      reallocate_dp_3D
+    procedure, private :: reallocate_logical_2D
+    procedure, private :: reallocate_logical_3D
+    procedure, private :: reallocate_int_2D
+    procedure, private :: reallocate_int_3D
+    procedure, private :: reallocate_dp_2D
+    procedure, private :: reallocate_dp_3D
+
+    generic,   public  :: remap => &
+      remap_dp_2D, &
+      remap_dp_3D
+    procedure, private :: remap_dp_2D
+    procedure, private :: remap_dp_3D
 
     procedure, public :: lbound => field_lbound
     procedure, public :: ubound => field_ubound
@@ -54,14 +84,17 @@ module fields_basic
     procedure, public :: set_name
     procedure, public :: set_long_name
     procedure, public :: set_units
+    procedure, public :: set_remap_method
 
-    procedure, public :: name      => get_name
-    procedure, public :: long_name => get_long_name
-    procedure, public :: units     => get_units
+    procedure, public :: name         => get_name
+    procedure, public :: long_name    => get_long_name
+    procedure, public :: units        => get_units
+    procedure, public :: remap_method => get_remap_method
 
     procedure, public :: is_name
     procedure, public :: is_long_name
     procedure, public :: is_units
+    procedure, public :: is_remap_method
 
     ! Grid
     procedure, public :: set_grid
@@ -126,6 +159,8 @@ module fields_basic
 
   interface
 
+    ! ===== Basics
+
     module function test_field_equality( field1, field2) result( res)
       class(atype_field), intent(in) :: field1, field2
       logical                        :: res
@@ -166,6 +201,11 @@ module fields_basic
       character(len=*),   intent(in   ) :: units
     end subroutine set_units
 
+    module subroutine set_remap_method( field, remap_method)
+      class(atype_field), intent(inout) :: field
+      character(len=*),   intent(in   ) :: remap_method
+    end subroutine set_remap_method
+
     module function get_name( field) result( name)
       class(atype_field), intent(in) :: field
       character(:), allocatable      :: name
@@ -180,6 +220,11 @@ module fields_basic
       class(atype_field), intent(in) :: field
       character(:), allocatable      :: units
     end function get_units
+
+    module function get_remap_method( field) result( remap_method)
+      class(atype_field), intent(in) :: field
+      character(:), allocatable      :: remap_method
+    end function get_remap_method
 
     module function is_name( field, name) result( res)
       class(atype_field), intent(in) :: field
@@ -198,6 +243,12 @@ module fields_basic
       character(len=*),   intent(in) :: units
       logical                        :: res
     end function is_units
+
+    module function is_remap_method( field, remap_method) result( res)
+      class(atype_field), intent(in) :: field
+      character(len=*),   intent(in) :: remap_method
+      logical                        :: res
+    end function is_remap_method
 
     ! Grid
 
@@ -265,6 +316,58 @@ module fields_basic
       type(type_third_dimension), intent(in) :: field_third_dimension
       logical                                :: res
     end function is_third_dimension
+
+    ! ===== Reallocate
+
+    module subroutine reallocate_logical_2D( self, mesh_new, d_nih)
+      class(atype_field),                         intent(inout) :: self
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_logical_2D
+
+    module subroutine reallocate_logical_3D( self, mesh_new, d_nih)
+      class(atype_field),                           intent(inout) :: self
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_logical_3D
+
+    module subroutine reallocate_int_2D( self, mesh_new, d_nih)
+      class(atype_field),                         intent(inout) :: self
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_int_2D
+
+    module subroutine reallocate_int_3D( self, mesh_new, d_nih)
+      class(atype_field),                           intent(inout) :: self
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_int_3D
+
+    module subroutine reallocate_dp_2D( self, mesh_new, d_nih)
+      class(atype_field),                          intent(inout) :: self
+      type(type_mesh),                             intent(in   ) :: mesh_new
+      real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_dp_2D
+
+    module subroutine reallocate_dp_3D( self, mesh_new, d_nih)
+      class(atype_field),                            intent(inout) :: self
+      type(type_mesh),                               intent(in   ) :: mesh_new
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine reallocate_dp_3D
+
+    ! ===== Remap
+
+    module subroutine remap_dp_2D( self, mesh_new, d_nih)
+      class(atype_field),                          intent(inout) :: self
+      type(type_mesh),                             intent(in   ) :: mesh_new
+      real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_dp_2D
+
+    module subroutine remap_dp_3D( self, mesh_new, d_nih)
+      class(atype_field),                            intent(inout) :: self
+      type(type_mesh),                               intent(in   ) :: mesh_new
+      real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_dp_3D
 
     ! ===== i/o
 
