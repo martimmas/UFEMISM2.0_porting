@@ -13,8 +13,6 @@ module SMB_IMAU_ITM
   use parameters, only: T0, L_fusion, sec_per_year, pi, ice_density
   use netcdf_io_main
   use global_forcing_types
-  use allocate_dist_shared_mod, only: allocate_dist_shared
-  use reallocate_dist_shared_mod, only: reallocate_dist_shared
   use mpi_f08, only: MPI_WIN
   use SMB_basic, only: atype_SMB_model
   use Arakawa_grid_mod, only: Arakawa_grid
@@ -414,33 +412,19 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call reallocate_dist_shared( self%AlbedoSurf      , self%wAlbedoSurf      , mesh_new%pai_V%n_nih    )
-    call reallocate_dist_shared( self%MeltPreviousYear, self%wMeltPreviousYear, mesh_new%pai_V%n_nih    )
-    call reallocate_dist_shared( self%Refreezing_year , self%wRefreezing_year , mesh_new%pai_V%n_nih    )
-    call reallocate_dist_shared( self%Albedo_year     , self%wAlbedo_year     , mesh_new%pai_V%n_nih    )
-    call reallocate_dist_shared( self%FirnDepth       , self%wFirnDepth       , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Rainfall        , self%wRainfall        , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Snowfall        , self%wSnowfall        , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%AddedFirn       , self%wAddedFirn       , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Melt            , self%wMelt            , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Refreezing      , self%wRefreezing      , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Runoff          , self%wRunoff          , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%Albedo          , self%wAlbedo          , mesh_new%pai_V%n_nih, 12)
-    call reallocate_dist_shared( self%SMB_monthly     , self%wSMB_monthly     , mesh_new%pai_V%n_nih, 12)
-
-    self%AlbedoSurf      ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => self%AlbedoSurf
-    self%Rainfall        ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Rainfall
-    self%Snowfall        ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Snowfall
-    self%AddedFirn       ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%AddedFirn
-    self%Melt            ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Melt
-    self%Refreezing      ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Refreezing
-    self%Refreezing_year ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => self%Refreezing_year
-    self%Runoff          ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Runoff
-    self%Albedo          ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%Albedo
-    self%Albedo_year     ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => self%Albedo_year
-    self%SMB_monthly     ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%SMB_monthly
-    self%FirnDepth       ( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih, 1:12) => self%FirnDepth
-    self%MeltPreviousYear( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih      ) => self%MeltPreviousYear
+    call self%remap_field( mesh_new, 'AlbedoSurf'      , self%AlbedoSurf      )
+    call self%remap_field( mesh_new, 'MeltPreviousYear', self%MeltPreviousYear)
+    call self%remap_field( mesh_new, 'Refreezing_year' , self%Refreezing_year )
+    call self%remap_field( mesh_new, 'Albedo_year'     , self%Albedo_year     )
+    call self%remap_field( mesh_new, 'FirnDepth'       , self%FirnDepth       )
+    call self%remap_field( mesh_new, 'Rainfall'        , self%Rainfall        )
+    call self%remap_field( mesh_new, 'Snowfall'        , self%Snowfall        )
+    call self%remap_field( mesh_new, 'AddedFirn'       , self%AddedFirn       )
+    call self%remap_field( mesh_new, 'Melt'            , self%Melt            )
+    call self%remap_field( mesh_new, 'Refreezing'      , self%Refreezing      )
+    call self%remap_field( mesh_new, 'Runoff'          , self%Runoff          )
+    call self%remap_field( mesh_new, 'Albedo'          , self%Albedo          )
+    call self%remap_field( mesh_new, 'SMB_monthly'     , self%SMB_monthly     )
 
     ! Finalise routine path
     call finalise_routine( routine_name)

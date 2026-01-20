@@ -11,8 +11,6 @@ module SMB_prescribed
   use climate_model_types, only: type_climate_model
   use netcdf_io_main
   use SMB_basic, only: atype_SMB_model
-  use allocate_dist_shared_mod, only: allocate_dist_shared
-  use deallocate_dist_shared_mod, only: deallocate_dist_shared
 
   implicit none
 
@@ -26,8 +24,8 @@ module SMB_prescribed
 
       procedure, public  :: init, run, remap
 
-      procedure, private ::  run_SMB_model_prescribed_notime
-      procedure, private ::  initialise_SMB_model_prescribed_notime
+      procedure, private :: run_SMB_model_prescribed_notime
+      procedure, private :: fill_initialised_fields
 
   end type type_SMB_model_prescribed
 
@@ -43,7 +41,7 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_SMB_model_prescribed'
-    character(len=1024)            :: choice_SMB_prescribed
+    character(:), allocatable      :: choice_SMB_prescribed
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -53,13 +51,13 @@ contains
     case default
       call crash('unknown region_name "' // trim( region_name) // '"!')
     case ('NAM')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_NAM
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_NAM)
     case ('EAS')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_EAS
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_EAS)
     case ('GRL')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_GRL
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_GRL)
     case ('ANT')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_ANT
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_ANT)
     end select
 
     ! Run the chosen type of prescribed SMB forcing
@@ -85,35 +83,13 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_SMB_model_prescribed'
-    character(len=1024)            :: choice_SMB_prescribed
 
     ! Add routine to path
     call init_routine( routine_name)
 
     call self%set_name('SMB_prescribed')
     call self%init_common( mesh)
-
-    ! Determine the type of prescribed SMB forcing for this region
-    select case (region_name)
-    case default
-      call crash('unknown region_name "' // trim( region_name) // '"!')
-    case ('NAM')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_NAM
-    case ('EAS')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_EAS
-    case ('GRL')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_GRL
-    case ('ANT')
-      choice_SMB_prescribed  = C%choice_SMB_prescribed_ANT
-    end select
-
-    ! Initialised the chosen type of prescribed SMB forcing
-    select case (choice_SMB_prescribed)
-    case default
-      call crash('unknown choice_SMB_prescribed "' // trim( choice_SMB_prescribed) // '"!')
-    case ('SMB_no_time')
-      call self%initialise_SMB_model_prescribed_notime( mesh, region_name)
-    end select
+    call self%fill_initialised_fields( mesh, region_name)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -133,8 +109,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call deallocate_dist_shared( self%SMB, self%wSMB)
-    call self%init( mesh_new, region_name)
+    call self%remap_field( mesh_new, 'SMB', self%SMB)
+    call self%fill_initialised_fields( mesh_new, region_name)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -163,7 +139,7 @@ contains
 
   end subroutine run_SMB_model_prescribed_notime
 
-  subroutine initialise_SMB_model_prescribed_notime( self, mesh, region_name)
+  subroutine fill_initialised_fields( self, mesh, region_name)
 
     ! In- and output variables
     class(type_SMB_model_prescribed), intent(inout) :: self
@@ -171,12 +147,34 @@ contains
     character(len=3),                 intent(in   ) :: region_name
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'initialise_SMB_model_prescribed_notime'
+    character(len=1024), parameter :: routine_name = 'fill_initialised_fields'
+    character(:), allocatable      :: choice_SMB_prescribed
     character(len=1024)            :: filename_SMB_prescribed
     real(dp)                       :: timeframe_SMB_prescribed
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    ! Determine the type of prescribed SMB forcing for this region
+    select case (region_name)
+    case default
+      call crash('unknown region_name "' // trim( region_name) // '"!')
+    case ('NAM')
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_NAM)
+    case ('EAS')
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_EAS)
+    case ('GRL')
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_GRL)
+    case ('ANT')
+      choice_SMB_prescribed  = trim( C%choice_SMB_prescribed_ANT)
+    end select
+
+    ! Safety
+    select case (choice_SMB_prescribed)
+    case default
+      call crash('unknown choice_SMB_prescribed "' // trim( choice_SMB_prescribed) // '"!')
+    case ('SMB_no_time')
+    end select
 
     ! Determine filename for this model region
     select case (region_name)
@@ -214,6 +212,6 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine initialise_SMB_model_prescribed_notime
+  end subroutine fill_initialised_fields
 
 end module SMB_prescribed
