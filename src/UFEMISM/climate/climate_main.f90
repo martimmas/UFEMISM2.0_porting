@@ -113,7 +113,7 @@ CONTAINS
 
   END SUBROUTINE run_climate_model
 
-  SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name)
+  SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name, start_time_of_run)
     ! Initialise the climate model
 
     IMPLICIT NONE
