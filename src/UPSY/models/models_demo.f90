@@ -28,7 +28,6 @@ module models_demo
   contains
 
     procedure, public :: init => initialise_demo_model
-    procedure, public :: set_bounds => set_bounds
 
   end type type_demo_model
 
@@ -90,8 +89,6 @@ contains
       units     = 'K', &
       remap_method = '2nd_order_conservative')
 
-    call model%set_bounds
-
     ! Initialise fields with simple analytical functions
 
     cx = mesh%xmax - mesh%xmin
@@ -127,35 +124,5 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine initialise_demo_model
-
-  subroutine set_bounds( self)
-    !< Set the bounds of this model's actual arrays
-    !< to match the process-local mesh domains
-
-    ! In/output variables:
-    class(type_demo_model), intent(inout) :: self
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'set_bounds_demo'
-    integer                        :: nz
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    select type (mesh => self%grid())
-    class is (type_mesh)
-
-      self%H       ( mesh%vi1: mesh%vi2                       ) => self%H
-      self%u_3D    ( mesh%ti1: mesh%ti2, 1: size( self%u_3D,2)) => self%u_3D
-      self%v_3D    ( mesh%ti1: mesh%ti2, 1: size( self%u_3D,2)) => self%v_3D
-      self%mask_ice( mesh%vi1: mesh%vi2                       ) => self%mask_ice
-      self%T2m     ( mesh%vi1: mesh%vi2, 1: size( self%T2m ,2)) => self%T2m
-
-    end select
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine set_bounds
 
 end module models_demo
