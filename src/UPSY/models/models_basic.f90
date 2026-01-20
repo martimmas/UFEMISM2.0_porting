@@ -161,11 +161,6 @@ module models_basic
 
   interface
 
-    module function create_field( model1, model2) result( res)
-      class(atype_model), intent(in) :: model1, model2
-      logical                        :: res
-    end function create_field
-
     module function test_model_equality( model1, model2) result( res)
       class(atype_model), intent(in) :: model1, model2
       logical                        :: res
