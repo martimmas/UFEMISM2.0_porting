@@ -2,7 +2,7 @@ submodule( fields_registry) fields_registry_submod_remap
 
 contains
 
-  subroutine remap_dp_2D( self, mesh_new, field_name, d_nih)
+  subroutine remap_field_dp_2D( self, mesh_new, field_name, d_nih)
 
     ! In/output variables:
     class(type_fields_registry),                 intent(inout) :: self
@@ -11,7 +11,7 @@ contains
     real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
 
     ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_dp_2D'
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_dp_2D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -21,9 +21,9 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine remap_dp_2D
+  end subroutine remap_field_dp_2D
 
-  subroutine remap_dp_3D( self, mesh_new, field_name, d_nih)
+  subroutine remap_field_dp_3D( self, mesh_new, field_name, d_nih)
 
     ! In/output variables:
     class(type_fields_registry),                   intent(inout) :: self
@@ -32,7 +32,7 @@ contains
     real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
 
     ! Local variables:
-    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_dp_3D'
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_dp_3D'
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -42,6 +42,6 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine remap_dp_3D
+  end subroutine remap_field_dp_3D
 
 end submodule fields_registry_submod_remap
