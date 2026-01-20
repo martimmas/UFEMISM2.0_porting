@@ -62,7 +62,7 @@ module fields_registry
     procedure, private :: reallocate_dp_2D
     procedure, private :: reallocate_dp_3D
 
-    generic,   public  :: remap => &
+    generic,   public  :: remap_field => &
       reallocate_logical_2D, &
       reallocate_logical_3D, &
       reallocate_int_2D, &
