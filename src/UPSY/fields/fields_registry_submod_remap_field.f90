@@ -1,4 +1,4 @@
-submodule( fields_registry) fields_registry_submod_remap
+submodule( fields_registry) fields_registry_submod_remap_field
 
 contains
 
@@ -128,4 +128,4 @@ contains
 
   end subroutine remap_field_dp_3D
 
-end submodule fields_registry_submod_remap
+end submodule fields_registry_submod_remap_field
