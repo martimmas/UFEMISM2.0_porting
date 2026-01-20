@@ -1,4 +1,4 @@
-submodule( fields_registry) fields_registry_submod_reallocate
+submodule( fields_registry) fields_registry_submod_reallocate_field
 
 contains
 
@@ -128,4 +128,4 @@ contains
 
   end subroutine reallocate_field_dp_3D
 
-end submodule fields_registry_submod_reallocate
+end submodule fields_registry_submod_reallocate_field
