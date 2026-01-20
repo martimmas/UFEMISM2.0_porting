@@ -15,6 +15,7 @@ module climate_model_utilities
   use mesh_disc_apply_operators, only: ddx_a_a_2D, ddy_a_a_2D
   use erf_mod, only: error_function
   use assertions_basic, only: assert
+  use series_utilities
 
  implicit none
 
@@ -531,10 +532,13 @@ module climate_model_utilities
   subroutine fill_in_transient_dT_snapshot_fields(filename_climate_snapshot, mesh, climate, time)
   ! Read in snapshot variables
 
-    CHARACTER(:),             ALLOCATABLE, INTENT(IN)    :: filename_climate_snapshot
+    CHARACTER(LEN=1024),      ALLOCATABLE, INTENT(IN)    :: filename_climate_snapshot
     TYPE(type_mesh),                       INTENT(IN)    :: mesh
     TYPE(type_climate_model),              INTENT(INOUT) :: climate
     REAL(dp),                              INTENT(IN)    :: time
+
+    ! Local Variables
+    CHARACTER(LEN=256), PARAMETER                        :: routine_name = 'fill_in_transient_dT_snapshot_fields'
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -552,6 +556,6 @@ module climate_model_utilities
     ! Finalise routine path
     CALL finalise_routine( routine_name)
 
-end subroutine fill_in_snapshot_fields
+end subroutine fill_in_transient_dT_snapshot_fields
 
 end module
