@@ -166,153 +166,153 @@ module fields_basic
       logical                        :: res
     end function test_field_equality
 
-    module function field_lbound( field, dim) result( lb)
-      class(atype_field), intent(in) :: field
+    module function field_lbound( self, dim) result( lb)
+      class(atype_field), intent(in) :: self
       integer,            intent(in) :: dim
       integer                        :: lb
     end function field_lbound
 
-    module function field_ubound( field, dim) result( ub)
-      class(atype_field), intent(in) :: field
+    module function field_ubound( self, dim) result( ub)
+      class(atype_field), intent(in) :: self
       integer,            intent(in) :: dim
       integer                        :: ub
     end function field_ubound
 
-    module subroutine print_info( field)
-      class(atype_field), intent(in) :: field
+    module subroutine print_info( self)
+      class(atype_field), intent(in) :: self
     end subroutine print_info
 
     ! ===== Set/get functions
 
     ! Metadata
 
-    module subroutine set_name( field, name)
-      class(atype_field), intent(inout) :: field
+    module subroutine set_name( self, name)
+      class(atype_field), intent(inout) :: self
       character(len=*),   intent(in   ) :: name
     end subroutine set_name
 
-    module subroutine set_long_name( field, long_name)
-      class(atype_field), intent(inout) :: field
+    module subroutine set_long_name( self, long_name)
+      class(atype_field), intent(inout) :: self
       character(len=*),   intent(in   ) :: long_name
     end subroutine set_long_name
 
-    module subroutine set_units( field, units)
-      class(atype_field), intent(inout) :: field
+    module subroutine set_units( self, units)
+      class(atype_field), intent(inout) :: self
       character(len=*),   intent(in   ) :: units
     end subroutine set_units
 
-    module subroutine set_remap_method( field, remap_method)
-      class(atype_field), intent(inout) :: field
+    module subroutine set_remap_method( self, remap_method)
+      class(atype_field), intent(inout) :: self
       character(len=*),   intent(in   ) :: remap_method
     end subroutine set_remap_method
 
-    module function get_name( field) result( name)
-      class(atype_field), intent(in) :: field
+    module function get_name( self) result( name)
+      class(atype_field), intent(in) :: self
       character(:), allocatable      :: name
     end function get_name
 
-    module function get_long_name( field) result( long_name)
-      class(atype_field), intent(in) :: field
+    module function get_long_name( self) result( long_name)
+      class(atype_field), intent(in) :: self
       character(:), allocatable      :: long_name
     end function get_long_name
 
-    module function get_units( field) result( units)
-      class(atype_field), intent(in) :: field
+    module function get_units( self) result( units)
+      class(atype_field), intent(in) :: self
       character(:), allocatable      :: units
     end function get_units
 
-    module function get_remap_method( field) result( remap_method)
-      class(atype_field), intent(in) :: field
+    module function get_remap_method( self) result( remap_method)
+      class(atype_field), intent(in) :: self
       character(:), allocatable      :: remap_method
     end function get_remap_method
 
-    module function is_name( field, name) result( res)
-      class(atype_field), intent(in) :: field
+    module function is_name( self, name) result( res)
+      class(atype_field), intent(in) :: self
       character(len=*),   intent(in) :: name
       logical                        :: res
     end function is_name
 
-    module function is_long_name( field, long_name) result( res)
-      class(atype_field), intent(in) :: field
+    module function is_long_name( self, long_name) result( res)
+      class(atype_field), intent(in) :: self
       character(len=*),   intent(in) :: long_name
       logical                        :: res
     end function is_long_name
 
-    module function is_units( field, units) result( res)
-      class(atype_field), intent(in) :: field
+    module function is_units( self, units) result( res)
+      class(atype_field), intent(in) :: self
       character(len=*),   intent(in) :: units
       logical                        :: res
     end function is_units
 
-    module function is_remap_method( field, remap_method) result( res)
-      class(atype_field), intent(in) :: field
+    module function is_remap_method( self, remap_method) result( res)
+      class(atype_field), intent(in) :: self
       character(len=*),   intent(in) :: remap_method
       logical                        :: res
     end function is_remap_method
 
     ! Grid
 
-    module subroutine set_grid( field, grid)
-      class(atype_field), intent(inout) :: field
+    module subroutine set_grid( self, grid)
+      class(atype_field), intent(inout) :: self
       class(*), target,   intent(in   ) :: grid
     end subroutine set_grid
 
-    module subroutine set_Arakawa_grid( field, field_Arakawa_grid)
-      class(atype_field),      intent(inout) :: field
+    module subroutine set_Arakawa_grid( self, field_Arakawa_grid)
+      class(atype_field),      intent(inout) :: self
       type(type_Arakawa_grid), intent(in   ) :: field_Arakawa_grid
     end subroutine set_Arakawa_grid
 
-    module subroutine set_pai( field, field_pai)
-      class(atype_field),      intent(inout) :: field
+    module subroutine set_pai( self, field_pai)
+      class(atype_field),      intent(inout) :: self
       type(type_par_arr_info), intent(in   ) :: field_pai
     end subroutine set_pai
 
-    module subroutine set_third_dimension( field, field_third_dimension)
-      class(atype_field_3D),      intent(inout) :: field
+    module subroutine set_third_dimension( self, field_third_dimension)
+      class(atype_field_3D),      intent(inout) :: self
       type(type_third_dimension), intent(in   ) :: field_third_dimension
     end subroutine set_third_dimension
 
-    module function get_grid( field) result( grid)
-      class(atype_field), intent(in) :: field
+    module function get_grid( self) result( grid)
+      class(atype_field), intent(in) :: self
       class(*), pointer              :: grid
     end function get_grid
 
-    module function get_Arakawa_grid( field) result( field_Arakawa_grid)
-      class(atype_field), intent(in) :: field
+    module function get_Arakawa_grid( self) result( field_Arakawa_grid)
+      class(atype_field), intent(in) :: self
       type(type_Arakawa_grid)        :: field_Arakawa_grid
     end function get_Arakawa_grid
 
-    module function get_pai( field) result( field_pai)
-      class(atype_field), intent(in) :: field
+    module function get_pai( self) result( field_pai)
+      class(atype_field), intent(in) :: self
       type(type_par_arr_info)        :: field_pai
     end function get_pai
 
-    module function get_third_dimension( field) result( field_third_dimension)
-      class(atype_field_3D), intent(in) :: field
+    module function get_third_dimension( self) result( field_third_dimension)
+      class(atype_field_3D), intent(in) :: self
       type(type_third_dimension)        :: field_third_dimension
     end function get_third_dimension
 
-    module function is_grid( field, grid) result( res)
-      class(atype_field), intent(in) :: field
+    module function is_grid( self, grid) result( res)
+      class(atype_field), intent(in) :: self
       class(*),           intent(in) :: grid
       logical                        :: res
     end function is_grid
 
-    module function is_Arakawa_grid( field, field_Arakawa_grid) result( res)
-      class(atype_field),      intent(in) :: field
+    module function is_Arakawa_grid( self, field_Arakawa_grid) result( res)
+      class(atype_field),      intent(in) :: self
       type(type_Arakawa_grid), intent(in) :: field_Arakawa_grid
       logical                             :: res
     end function is_Arakawa_grid
 
-    module function is_pai( field, field_pai) result( res)
-      class(atype_field),      intent(in) :: field
+    module function is_pai( self, field_pai) result( res)
+      class(atype_field),      intent(in) :: self
       type(type_par_arr_info), intent(in) :: field_pai
       logical                             :: res
     end function is_pai
 
-    module function is_third_dimension( field, field_third_dimension) result( res)
+    module function is_third_dimension( self, field_third_dimension) result( res)
       ! ..except for this one, which also works on type_field_2D - it just always returns .false. there
-      class(atype_field),         intent(in) :: field
+      class(atype_field),         intent(in) :: self
       type(type_third_dimension), intent(in) :: field_third_dimension
       logical                                :: res
     end function is_third_dimension
@@ -371,14 +371,14 @@ module fields_basic
 
     ! ===== i/o
 
-    module subroutine write_to_netcdf( field, filename, ncid)
-      class(atype_field), intent(in) :: field
+    module subroutine write_to_netcdf( self, filename, ncid)
+      class(atype_field), intent(in) :: self
       character(len=*),   intent(in) :: filename
       integer,            intent(in) :: ncid
     end subroutine write_to_netcdf
 
-    module subroutine read_from_netcdf( field, filename, ncid)
-      class(atype_field), intent(inout) :: field
+    module subroutine read_from_netcdf( self, filename, ncid)
+      class(atype_field), intent(inout) :: self
       character(len=*),   intent(in   ) :: filename
       integer,            intent(in   ) :: ncid
     end subroutine read_from_netcdf
