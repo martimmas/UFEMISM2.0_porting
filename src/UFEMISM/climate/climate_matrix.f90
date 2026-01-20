@@ -15,7 +15,7 @@ module climate_matrix
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
   use SMB_main, only: type_SMB_model
-  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_snapshot
+  use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_insolation
   use reallocate_mod                                         , only: reallocate_bounds
   use netcdf_io_main
   use mesh_data_smoothing, only: smooth_Gaussian
@@ -884,7 +884,7 @@ contains
     call remap_climate_matrix_snapshot( mesh_new, climate%matrix%GCM_cold)
 
     ! reallocate main variables of climate%snapshot
-    call remap_snapshot( climate%snapshot, mesh_new)
+    call remap_insolation( climate%snapshot, mesh_new)
     call reallocate_bounds( climate%Q_TOA, mesh_new%vi1, mesh_new%vi2,12)
 
     call reallocate_bounds(climate%matrix%I_abs, mesh_new%vi1, mesh_new%vi2)
