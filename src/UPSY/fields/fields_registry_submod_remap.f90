@@ -2,6 +2,90 @@ submodule( fields_registry) fields_registry_submod_remap
 
 contains
 
+  subroutine remap_field_logical_2D( self, mesh_new, field_name, d_nih)
+
+    ! In/output variables:
+    class(type_fields_registry),                intent(inout) :: self
+    character(len=*),                           intent(in   ) :: field_name
+    type(type_mesh),                            intent(in   ) :: mesh_new
+    logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_logical_2D'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call self%items( self%find( field_name))%p%remap( mesh_new, d_nih)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_field_logical_2D
+
+  subroutine remap_field_logical_3D( self, mesh_new, field_name, d_nih)
+
+    ! In/output variables:
+    class(type_fields_registry),                  intent(inout) :: self
+    character(len=*),                             intent(in   ) :: field_name
+    type(type_mesh),                              intent(in   ) :: mesh_new
+    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_logical_3D'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call self%items( self%find( field_name))%p%remap( mesh_new, d_nih)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_field_logical_3D
+
+  subroutine remap_field_int_2D( self, mesh_new, field_name, d_nih)
+
+    ! In/output variables:
+    class(type_fields_registry),                intent(inout) :: self
+    character(len=*),                           intent(in   ) :: field_name
+    type(type_mesh),                            intent(in   ) :: mesh_new
+    integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_int_2D'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call self%items( self%find( field_name))%p%remap( mesh_new, d_nih)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_field_int_2D
+
+  subroutine remap_field_int_3D( self, mesh_new, field_name, d_nih)
+
+    ! In/output variables:
+    class(type_fields_registry),                  intent(inout) :: self
+    character(len=*),                             intent(in   ) :: field_name
+    type(type_mesh),                              intent(in   ) :: mesh_new
+    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+
+    ! Local variables:
+    character(len=1024), parameter  :: routine_name = 'type_fields_registry_remap_field_int_3D'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call self%items( self%find( field_name))%p%remap( mesh_new, d_nih)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_field_int_3D
+
   subroutine remap_field_dp_2D( self, mesh_new, field_name, d_nih)
 
     ! In/output variables:

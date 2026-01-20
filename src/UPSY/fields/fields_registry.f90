@@ -63,12 +63,16 @@ module fields_registry
     procedure, private :: reallocate_field_dp_3D
 
     generic,   public  :: remap_field => &
-      reallocate_field_logical_2D, &
-      reallocate_field_logical_3D, &
-      reallocate_field_int_2D, &
-      reallocate_field_int_3D, &
+      remap_field_logical_2D, &
+      remap_field_logical_3D, &
+      remap_field_int_2D, &
+      remap_field_int_3D, &
       remap_field_dp_2D, &
       remap_field_dp_3D
+    procedure, private :: remap_field_logical_2D
+    procedure, private :: remap_field_logical_3D
+    procedure, private :: remap_field_int_2D
+    procedure, private :: remap_field_int_3D
     procedure, private :: remap_field_dp_2D
     procedure, private :: remap_field_dp_3D
 
@@ -235,6 +239,34 @@ module fields_registry
 
   ! remap
   interface
+
+    module subroutine remap_field_logical_2D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                intent(inout) :: self
+      character(len=*),                           intent(in   ) :: field_name
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_field_logical_2D
+
+    module subroutine remap_field_logical_3D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                  intent(inout) :: self
+      character(len=*),                             intent(in   ) :: field_name
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_field_logical_3D
+
+    module subroutine remap_field_int_2D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                intent(inout) :: self
+      character(len=*),                           intent(in   ) :: field_name
+      type(type_mesh),                            intent(in   ) :: mesh_new
+      integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_field_int_2D
+
+    module subroutine remap_field_int_3D( self, mesh_new, field_name, d_nih)
+      class(type_fields_registry),                  intent(inout) :: self
+      character(len=*),                             intent(in   ) :: field_name
+      type(type_mesh),                              intent(in   ) :: mesh_new
+      integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
+    end subroutine remap_field_int_3D
 
     module subroutine remap_field_dp_2D( self, mesh_new, field_name, d_nih)
       class(type_fields_registry),                 intent(inout) :: self
