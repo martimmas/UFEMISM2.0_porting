@@ -42,10 +42,13 @@ module models_basic
       procedure, private :: create_field_int_3D
       procedure, private :: create_field_dp_3D
 
+      procedure, public :: write_to_restart_file
+      procedure, public :: read_from_restart_file
+
+      ! ===== Basics
+
       generic,   public  :: operator(==) => eq
       procedure, private :: eq => test_model_equality
-
-      ! ===== Set/get functions
 
       ! Metadata
       procedure, public :: set_name
@@ -56,11 +59,6 @@ module models_basic
       procedure, public :: set_grid
       procedure, public :: grid => get_grid
       procedure, public :: is_grid
-
-      ! ===== NetCDF output
-
-      procedure, public :: write_to_restart_file
-      procedure, public :: read_from_restart_file
 
   end type atype_model
 
@@ -153,6 +151,23 @@ module models_basic
 
   end interface
 
+  ! NetCDF i/o
+  interface
+
+    module subroutine write_to_restart_file( self, output_dir, filename)
+      class(atype_model),                  intent(in   ) :: self
+      character(len=*),                    intent(in   ) :: output_dir
+      character(:), allocatable, optional, intent(  out) :: filename
+    end subroutine write_to_restart_file
+
+    module subroutine read_from_restart_file( self, filename)
+      class(atype_model), intent(inout) :: self
+      character(len=*),   intent(in   ) :: filename
+    end subroutine read_from_restart_file
+
+  end interface
+
+  ! Basics
   interface
 
     module function test_model_equality( model1, model2) result( res)
@@ -197,19 +212,6 @@ module models_basic
       class(*),           intent(in) :: grid
       logical                        :: res
     end function is_grid
-
-    ! ===== NetCDF output
-
-    module subroutine write_to_restart_file( self, output_dir, filename)
-      class(atype_model),                  intent(in   ) :: self
-      character(len=*),                    intent(in   ) :: output_dir
-      character(:), allocatable, optional, intent(  out) :: filename
-    end subroutine write_to_restart_file
-
-    module subroutine read_from_restart_file( self, filename)
-      class(atype_model), intent(inout) :: self
-      character(len=*),   intent(in   ) :: filename
-    end subroutine read_from_restart_file
 
   end interface
 
