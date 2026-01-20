@@ -79,7 +79,7 @@ MODULE climate_model_types
     ! deltaT
     REAL(dp), DIMENSION(:    ), ALLOCATABLE   :: dT_series_time
     REAL(dp), DIMENSION(:    ), ALLOCATABLE   :: dT_series 
-    REAL(dp),                                 :: dT_t0, dT_t1, dT_at_t0, dT_at_t1
+    REAL(dp)                                  :: dT_t0, dT_t1, dT_at_t0, dT_at_t1
     REAL(dp)                                  :: deltaT
 
   END TYPE type_climate_model_snapshot_plus_transient_dT

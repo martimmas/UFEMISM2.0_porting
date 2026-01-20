@@ -370,7 +370,7 @@ CONTAINS
       case default
         call crash('remap climate for choice_climate_model_realistic = "' // TRIM( C%choice_climate_model_realistic) // '" and choice_SMB_model = "' // TRIM( choice_SMB_model) // '" not implemented yet!')
       case ('IMAU-ITM')
-        ! Reallocate the IMAU-ITM fields
+        ! Reallocate the insolation fields
         call remap_insolation( climate%snapshot, mesh_new)
       case( 'prescribed')
         ! Nothing extra to do
