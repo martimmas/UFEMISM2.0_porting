@@ -92,22 +92,22 @@ CONTAINS
 
     ! Run the chosen climate model
     SELECT CASE (choice_climate_model)
-      CASE ('none')
-        ! No need to do anything
-      CASE ('idealised')
-        CALL run_climate_model_idealised( mesh, ice, climate, time)
-      CASE ('realistic')
-        CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
-      CASE ('snapshot_plus_uniform_deltaT')
-        CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)  
-      CASE ('snapshot_plus_transient_deltaT')
-        CALL run_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, time)
-      CASE ('matrix')
-        call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
-      case ('SMB_snapshot_plus_anomalies')
-        call SMB%snapshot_plus_anomalies%run_climate( mesh, climate, time)  
-      CASE DEFAULT
-        CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
+    CASE ('none')
+      ! No need to do anything
+    CASE ('idealised')
+      CALL run_climate_model_idealised( mesh, ice, climate, time)
+    CASE ('realistic')
+      CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
+    CASE ('snapshot_plus_uniform_deltaT')
+      CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)  
+    CASE ('snapshot_plus_transient_deltaT')
+      CALL run_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, time)
+    CASE ('matrix')
+      call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
+    case ('SMB_snapshot_plus_anomalies')
+      call SMB%snapshot_plus_anomalies%run_climate( mesh, climate, time)  
+    CASE DEFAULT
+      CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
     END SELECT
 
     ! Finalise routine path
@@ -116,7 +116,7 @@ CONTAINS
   END SUBROUTINE run_climate_model
   
   
-  SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name, start_time_of_run)
+  SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name)
     ! Initialise the climate model
 
     IMPLICIT NONE
@@ -128,7 +128,6 @@ CONTAINS
     TYPE(type_climate_model),               INTENT(OUT)   :: climate
     TYPE(type_global_forcing),              INTENT(IN)    :: forcing
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-    REAL(dp),                               INTENT(IN)    :: start_time_of_run
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_climate_model'
@@ -186,7 +185,7 @@ CONTAINS
     case ('snapshot_plus_uniform_deltaT')
       call initialise_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, region_name)
     case ('snapshot_plus_transient_deltaT')
-      call initialise_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, region_name, start_time_of_run)  
+      call initialise_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, region_name, C%start_time_of_run)  
     case ('matrix')
       if (par%primary)  write(*,"(A)") '   Initialising climate matrix model...'
       call initialise_climate_matrix( mesh, grid, ice, climate, region_name, forcing)

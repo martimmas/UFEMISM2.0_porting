@@ -514,7 +514,7 @@ CONTAINS
     ! ===== Climate =====
     ! ===================
 
-    CALL initialise_climate_model( region%mesh, region%grid_smooth, region%ice, region%climate, regional_forcing, region%name, start_time_of_run)
+    CALL initialise_climate_model( region%mesh, region%grid_smooth, region%ice, region%climate, regional_forcing, region%name)
 
     ! ===== Ocean =====
     ! =================
