@@ -87,10 +87,10 @@ module fields_registry
   ! create_field
   interface
 
-    module subroutine create_field_logical_2D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_logical_2D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                intent(inout) :: flds_reg
+      class(type_fields_registry),                intent(inout) :: self
       logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                              intent(inout) :: w
       class(*), target,                           intent(in   ) :: field_grid
@@ -102,10 +102,10 @@ module fields_registry
 
     end subroutine create_field_logical_2D
 
-    module subroutine create_field_logical_3D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_logical_3D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                  intent(inout) :: flds_reg
+      class(type_fields_registry),                  intent(inout) :: self
       logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                                intent(inout) :: w
       class(*), target,                             intent(in   ) :: field_grid
@@ -118,10 +118,10 @@ module fields_registry
 
     end subroutine create_field_logical_3D
 
-    module subroutine create_field_int_2D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_int_2D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                intent(inout) :: flds_reg
+      class(type_fields_registry),                intent(inout) :: self
       integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                              intent(inout) :: w
       class(*), target,                           intent(in   ) :: field_grid
@@ -133,10 +133,10 @@ module fields_registry
 
     end subroutine create_field_int_2D
 
-    module subroutine create_field_int_3D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_int_3D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                  intent(inout) :: flds_reg
+      class(type_fields_registry),                  intent(inout) :: self
       integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                                intent(inout) :: w
       class(*), target,                             intent(in   ) :: field_grid
@@ -149,10 +149,10 @@ module fields_registry
 
     end subroutine create_field_int_3D
 
-    module subroutine create_field_dp_2D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_dp_2D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                 intent(inout) :: flds_reg
+      class(type_fields_registry),                 intent(inout) :: self
       real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                               intent(inout) :: w
       class(*), target,                            intent(in   ) :: field_grid
@@ -164,10 +164,10 @@ module fields_registry
 
     end subroutine create_field_dp_2D
 
-    module subroutine create_field_dp_3D( flds_reg, d_nih, w, field_grid, &
+    module subroutine create_field_dp_3D( self, d_nih, w, field_grid, &
       field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
-      class(type_fields_registry),                   intent(inout) :: flds_reg
+      class(type_fields_registry),                   intent(inout) :: self
       real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
       type(MPI_WIN),                                 intent(inout) :: w
       class(*), target,                              intent(in   ) :: field_grid
@@ -251,14 +251,14 @@ module fields_registry
   ! i/o
   interface
 
-    module subroutine write_to_netcdf( flds_reg, filename, ncid)
-      class(type_fields_registry), intent(in) :: flds_reg
+    module subroutine write_to_netcdf( self, filename, ncid)
+      class(type_fields_registry), intent(in) :: self
       character(len=*),            intent(in) :: filename
       integer,                     intent(in) :: ncid
     end subroutine write_to_netcdf
 
-    module subroutine read_from_netcdf( flds_reg, filename, ncid)
-      class(type_fields_registry), intent(inout) :: flds_reg
+    module subroutine read_from_netcdf( self, filename, ncid)
+      class(type_fields_registry), intent(inout) :: self
       character(len=*),            intent(in   ) :: filename
       integer,                     intent(in   ) :: ncid
     end subroutine read_from_netcdf
@@ -273,27 +273,27 @@ module fields_registry
       logical                                 :: res
     end function test_fields_registry_equality
 
-    module subroutine add_field_to_registry( flds_reg, field)
-      class(type_fields_registry), intent(inout) :: flds_reg
+    module subroutine add_field_to_registry( self, field)
+      class(type_fields_registry), intent(inout) :: self
       class(atype_field),          intent(in   ) :: field
     end subroutine add_field_to_registry
 
-    module subroutine extend_field_registry( flds_reg)
-      class(type_fields_registry), intent(inout) :: flds_reg
+    module subroutine extend_field_registry( self)
+      class(type_fields_registry), intent(inout) :: self
     end subroutine extend_field_registry
 
-    module function find_field_by_name( flds_reg, name) result(i)
-      class(type_fields_registry), intent(in) :: flds_reg
+    module function find_field_by_name( self, name) result(i)
+      class(type_fields_registry), intent(in) :: self
       character(len=*),            intent(in) :: name
       integer                                 :: i
     end function find_field_by_name
 
-    module subroutine print_info( flds_reg)
-      class(type_fields_registry), intent(in) :: flds_reg
+    module subroutine print_info( self)
+      class(type_fields_registry), intent(in) :: self
     end subroutine print_info
 
-    module subroutine destroy( flds_reg)
-      class(type_fields_registry), intent(inout) :: flds_reg
+    module subroutine destroy( self)
+      class(type_fields_registry), intent(inout) :: self
     end subroutine destroy
 
   end interface

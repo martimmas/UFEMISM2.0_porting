@@ -2,11 +2,11 @@ submodule( fields_registry) fields_registry_submod_create_field
 
 contains
 
-  subroutine create_field_logical_2D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_logical_2D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                 intent(inout) :: flds_reg
+    class(type_fields_registry),                 intent(inout) :: self
     logical, dimension(:), contiguous, pointer,  intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
@@ -29,18 +29,18 @@ contains
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine create_field_logical_2D
 
-  subroutine create_field_logical_3D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_logical_3D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                  intent(inout) :: flds_reg
+    class(type_fields_registry),                  intent(inout) :: self
     logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                intent(inout) :: w
     class(*), target,                             intent(in   ) :: field_grid
@@ -66,18 +66,18 @@ contains
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine create_field_logical_3D
 
-  subroutine create_field_int_2D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_int_2D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                 intent(inout) :: flds_reg
+    class(type_fields_registry),                 intent(inout) :: self
     integer, dimension(:), contiguous, pointer,  intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
@@ -100,18 +100,18 @@ contains
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine create_field_int_2D
 
-  subroutine create_field_int_3D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_int_3D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                  intent(inout) :: flds_reg
+    class(type_fields_registry),                  intent(inout) :: self
     integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                intent(inout) :: w
     class(*), target,                             intent(in   ) :: field_grid
@@ -137,18 +137,18 @@ contains
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine create_field_int_3D
 
-  subroutine create_field_dp_2D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_dp_2D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                 intent(inout) :: flds_reg
+    class(type_fields_registry),                 intent(inout) :: self
     real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                               intent(inout) :: w
     class(*), target,                            intent(in   ) :: field_grid
@@ -171,18 +171,18 @@ contains
     call allocate_dist_shared( d_nih, w, n)
     d_nih( lb: ub) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine create_field_dp_2D
 
-  subroutine create_field_dp_3D( flds_reg, d_nih, w, field_grid, &
+  subroutine create_field_dp_3D( self, d_nih, w, field_grid, &
     field_Arakawa_grid, field_third_dimension, name, long_name, units, remap_method)
 
     ! In/output variables:
-    class(type_fields_registry),                   intent(inout) :: flds_reg
+    class(type_fields_registry),                   intent(inout) :: self
     real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
     type(MPI_WIN),                                 intent(inout) :: w
     class(*), target,                              intent(in   ) :: field_grid
@@ -208,7 +208,7 @@ contains
     d_nih( lb1: ub1, lb2: ub2) => d_nih
     call initialise_field( field, d_nih, w, field_grid, field_Arakawa_grid, &
       field_third_dimension, name, long_name, units, remap_method)
-    call flds_reg%add( field)
+    call self%add( field)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
