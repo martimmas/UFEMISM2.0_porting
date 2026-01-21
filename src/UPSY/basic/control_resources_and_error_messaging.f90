@@ -48,7 +48,7 @@ CONTAINS
     ! Local variables:
     INTEGER :: i
 
-    ALLOCATE( resource_tracker( 7000))
+    ALLOCATE( resource_tracker( 2000))
 
     ! Initialise values
     DO i = 1, size( resource_tracker,1)
@@ -110,6 +110,18 @@ CONTAINS
     ELSE
       do_track_resource_use_loc = .TRUE.
     END IF
+
+    ! Don't use the resource tracker for the test programs
+    ! (as those use wayyy more combinations than the actual model,
+    !  quickly overflowing the tracker)
+    if (index( routine_path, 'UPSY_unit_tests') /= 0 .or. &
+        index( routine_path, 'UPSY_multinode_unit_tests') /= 0 .or. &
+        index( routine_path, 'UPSY_component_tests') /= 0 .or. &
+        index( routine_path, 'UFEMISM_program/run_all_unit_tests') /= 0.or. &
+        index( routine_path, 'UFEMISM_program/run_all_component_tests') /= 0.or. &
+        index( routine_path, 'LADDIE/run_laddie_unit_tests') /= 0) then
+      do_track_resource_use_loc = .false.
+    end if
 
     IF (do_track_resource_use_loc) THEN
 
@@ -216,7 +228,7 @@ CONTAINS
       ! Resource use for this subroutine should not be tracked
 
       ! Find where in the string exactly the current routine name is located
-      i = INDEX( routine_path, TRIM( routine_name) // '_NOTRACK')
+      i = INDEX( routine_path, TRIM( routine_name) // '_NOTRACK', back = .true.)
 
       IF (i == 0) THEN
         CALL crash('finalise_routine - ERROR: routine_name = "' // TRIM( routine_name) // '" not found in routine_path = "' // TRIM( routine_path) // '"!')

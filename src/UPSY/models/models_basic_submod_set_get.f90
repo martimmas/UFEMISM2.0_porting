@@ -4,31 +4,31 @@ contains
 
   ! Metadata
 
-  subroutine set_name( model, name)
-    class(atype_model), intent(inout) :: model
+  subroutine set_name( self, name)
+    class(atype_model), intent(inout) :: self
     character(len=*),   intent(in   ) :: name
-    model%name_val = name
+    self%name_val = name
   end subroutine set_name
 
-  function get_name( model) result( name)
-    class(atype_model), intent(in) :: model
+  function get_name( self) result( name)
+    class(atype_model), intent(in) :: self
     character(:), allocatable      :: name
-    name = model%name_val
+    name = self%name_val
   end function get_name
 
-  function is_name( model, name) result( res)
-    class(atype_model), intent(in) :: model
+  function is_name( self, name) result( res)
+    class(atype_model), intent(in) :: self
     character(len=*),   intent(in) :: name
     logical                        :: res
-    res = model%name_val == name
+    res = self%name_val == name
   end function is_name
 
   ! Grid
 
-  subroutine set_grid( model, grid)
+  subroutine set_grid( self, grid)
 
     ! In/output variables:
-    class(atype_model), intent(inout) :: model
+    class(atype_model), intent(inout) :: self
     class(*), target,   intent(in   ) :: grid
 
     ! Local variables:
@@ -41,9 +41,9 @@ contains
     class default
       call crash('invalid grid class')
     class is (type_grid)
-      model%grid_val => grid
+      self%grid_val => grid
     class is (type_mesh)
-      model%grid_val => grid
+      self%grid_val => grid
     end select
 
     ! Remove routine from call stack
@@ -51,10 +51,10 @@ contains
 
   end subroutine set_grid
 
-  function get_grid( model) result( grid)
+  function get_grid( self) result( grid)
 
     ! In/output variables:
-    class(atype_model), intent(in) :: model
+    class(atype_model), intent(in) :: self
     class(*), pointer              :: grid
 
     ! Local variables:
@@ -63,13 +63,13 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type (p => model%grid_val)
+    select type (p => self%grid_val)
     class default
       call crash('invalid grid class')
     class is (type_grid)
-      grid => model%grid_val
+      grid => self%grid_val
     class is (type_mesh)
-      grid => model%grid_val
+      grid => self%grid_val
     end select
 
     ! Remove routine from call stack
@@ -77,10 +77,10 @@ contains
 
   end function get_grid
 
-  function is_grid( model, grid) result( res)
+  function is_grid( self, grid) result( res)
 
     ! In/output variables:
-    class(atype_model), intent(in) :: model
+    class(atype_model), intent(in) :: self
     class(*),           intent(in) :: grid
     logical                        :: res
 
@@ -91,7 +91,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    select type (p => model%grid_val)
+    select type (p => self%grid_val)
     class default
       call crash('invalid model%grid class')
     class is (type_grid)

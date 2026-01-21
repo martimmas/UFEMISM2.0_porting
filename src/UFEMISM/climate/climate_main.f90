@@ -99,11 +99,13 @@ CONTAINS
     CASE ('realistic')
       CALL run_climate_model_realistic( mesh, ice, climate, forcing, time)
     CASE ('snapshot_plus_uniform_deltaT')
-      CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)
+      CALL run_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, time)  
+    CASE ('snapshot_plus_transient_deltaT')
+      CALL run_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, time)
     CASE ('matrix')
       call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
     case ('SMB_snapshot_plus_anomalies')
-      call SMB%snapshot_plus_anomalies%run_climate( mesh, climate, time)
+      call SMB%snapshot_plus_anomalies%run_climate( mesh, climate, time)  
     CASE DEFAULT
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
     END SELECT
@@ -112,7 +114,8 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE run_climate_model
-
+  
+  
   SUBROUTINE initialise_climate_model( mesh, grid, ice, climate, forcing, region_name)
     ! Initialise the climate model
 
@@ -183,7 +186,7 @@ CONTAINS
     case ('snapshot_plus_uniform_deltaT')
       call initialise_climate_model_snapshot_plus_uniform_deltaT( mesh, ice, climate, region_name)
     case ('snapshot_plus_transient_deltaT')
-      call initialise_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, region_name, start_time_of_run)  
+      call initialise_climate_model_snapshot_plus_transient_deltaT( mesh, ice, climate, region_name, C%start_time_of_run)  
     case ('matrix')
       if (par%primary)  write(*,"(A)") '   Initialising climate matrix model...'
       call initialise_climate_matrix( mesh, grid, ice, climate, region_name, forcing)
@@ -238,6 +241,7 @@ CONTAINS
       ! No need to do anything
     case ('realistic', &
           'snapshot_plus_uniform_deltaT', &
+          'snapshot_plus_transient_deltaT', &
           'matrix')
       call write_to_restart_file_climate_model_region( mesh, climate, region_name, time)
     end select
@@ -334,6 +338,7 @@ CONTAINS
       ! No need to do anything
     case ('realistic', &
           'snapshot_plus_uniform_deltaT', &
+          'snapshot_plus_transient_deltaT', &
           'matrix')
       call create_restart_file_climate_model_region( mesh, climate, region_name)
     end select
