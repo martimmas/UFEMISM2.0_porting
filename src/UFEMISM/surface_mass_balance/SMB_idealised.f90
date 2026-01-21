@@ -11,8 +11,6 @@ module SMB_idealised
   use ice_model_types, only: type_ice_model
   use Halfar_SIA_solution, only: Halfar
   use SMB_basic, only: atype_SMB_model
-  use allocate_dist_shared_mod, only: allocate_dist_shared
-  use reallocate_dist_shared_mod, only: reallocate_dist_shared
 
   implicit none
 
@@ -45,8 +43,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call allocate_dist_shared( self%SMB, self%wSMB, mesh%pai_V%n_nih)
-    self%SMB( mesh%pai_V%i1_nih: mesh%pai_V%i2_nih) => self%SMB
+    call self%set_name('SMB_idealised')
+    call self%init_common( mesh)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -94,8 +92,7 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    call reallocate_dist_shared( self%SMB, self%wSMB, mesh_new%pai_V%n_nih)
-    self%SMB( mesh_new%pai_V%i1_nih: mesh_new%pai_V%i2_nih) => self%SMB
+    call self%remap_field( mesh_new, 'SMB', self%SMB)
 
     ! Finalise routine path
     call finalise_routine( routine_name)

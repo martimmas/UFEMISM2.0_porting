@@ -43,6 +43,7 @@ MODULE climate_model_types
     LOGICAL                                   :: do_lapse_rates     ! whether or not to apply the lapse rates below
     REAL(dp)                                  :: lapse_rate_precip  ! single-value per region (precipitation)
     REAL(dp)                                  :: lapse_rate_temp    ! single-value per region (precipitation)
+    REAL(dp)                                  :: precip_CC_correction
 
     ! Insolation variables
     LOGICAL                                     :: has_insolation          ! whether or not this instance of the climate model needs insolation data
@@ -65,9 +66,9 @@ MODULE climate_model_types
 
     TYPE(type_climate_model_snapshot)         :: snapshot
 
-    ! deltaT and precipitation correction
+    ! deltaT
     REAL(dp)                                  :: deltaT
-    REAL(dp)                                  :: precip_CC_correction
+
 
   END TYPE type_climate_model_snapshot_plus_unif_dT
 
@@ -75,11 +76,10 @@ MODULE climate_model_types
 
     TYPE(type_climate_model_snapshot)         :: snapshot
 
-    ! deltaT and precipitation correction
+    ! deltaT
     REAL(dp), DIMENSION(:    ), ALLOCATABLE   :: dT_series_time
     REAL(dp), DIMENSION(:    ), ALLOCATABLE   :: dT_series 
-    REAL(dp),                   ALLOCATABLE   :: dT_t0, dT_t1, dT_at_t0, dT_at_t1
-    REAL(dp)                                  :: precip_CC_correction
+    REAL(dp)                                  :: dT_t0, dT_t1, dT_at_t0, dT_at_t1
     REAL(dp)                                  :: deltaT
 
   END TYPE type_climate_model_snapshot_plus_transient_dT

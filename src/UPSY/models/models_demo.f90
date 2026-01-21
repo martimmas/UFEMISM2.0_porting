@@ -2,7 +2,7 @@ module models_demo
 
   use precisions, only: dp
   use parameters, only: pi, NaN
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
@@ -54,35 +54,40 @@ contains
 
     ! Create model fields
 
-    call model%flds_reg%create_field( model%H, model%wH, &
+    call model%create_field( model%H, model%wH, &
       mesh, Arakawa_grid%a(), &
       name      = 'H', &
       long_name = 'ice thickness', &
-      units     = 'm')
+      units     = 'm', &
+      remap_method = '2nd_order_conservative')
 
-    call model%flds_reg%create_field( model%u_3D, model%wu_3D, &
+    call model%create_field( model%u_3D, model%wu_3D, &
       mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = 'u_3D', &
       long_name = 'depth-dependent horizontal ice velocity in x-direction', &
-      units     = 'm yr^-1')
+      units     = 'm yr^-1', &
+      remap_method = '2nd_order_conservative')
 
-    call model%flds_reg%create_field( model%v_3D, model%wv_3D, &
+    call model%create_field( model%v_3D, model%wv_3D, &
       mesh, Arakawa_grid%b(), third_dimension%ice_zeta( nz, 'regular'), &
       name      = 'v_3D', &
       long_name = 'depth-dependent horizontal ice velocity in y-direction', &
-      units     = 'm yr^-1')
+      units     = 'm yr^-1', &
+      remap_method = '2nd_order_conservative')
 
-    call model%flds_reg%create_field( model%mask_ice, model%wmask_ice, &
+    call model%create_field( model%mask_ice, model%wmask_ice, &
       mesh, Arakawa_grid%a(), &
       name      = 'mask_ice', &
       long_name = 'ice mask', &
-      units     = '-')
+      units     = '-', &
+      remap_method = 'reallocate')
 
-    call model%flds_reg%create_field( model%T2m, model%wT2m, &
+    call model%create_field( model%T2m, model%wT2m, &
       mesh, Arakawa_grid%a(), third_dimension%month(), &
       name      = 'T2m', &
       long_name = 'Monthly 2-m air temperature', &
-      units     = 'K')
+      units     = 'K', &
+      remap_method = '2nd_order_conservative')
 
     ! Initialise fields with simple analytical functions
 
