@@ -36,9 +36,9 @@ contains
   subroutine initialise_demo_model( model, mesh, nz)
 
     ! In/output variables:
-    class(type_demo_model), intent(  out) :: model
-    type(type_mesh),        intent(in   ) :: mesh
-    integer,                intent(in   ) :: nz
+    class(type_demo_model),  intent(  out) :: model
+    type(type_mesh), target, intent(in   ) :: mesh
+    integer,                 intent(in   ) :: nz
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_demo_model'
@@ -50,7 +50,7 @@ contains
 
     ! Set model metadata and grid
     call model%set_name('demo_model')
-    call model%set_grid( mesh)
+    model%mesh => mesh
 
     ! Create model fields
 
