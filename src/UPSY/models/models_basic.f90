@@ -23,6 +23,7 @@ module models_basic
 
       ! Metadata
       character(len=1024), private :: name_val
+      character(len=3),    private :: region_name_val
 
       ! Mesh
       type(type_mesh), pointer :: mesh
@@ -82,6 +83,10 @@ module models_basic
       procedure, public :: set_name
       procedure, public :: name => get_name
       procedure, public :: is_name
+
+      procedure, public :: set_region_name
+      procedure, public :: region_name => get_region_name
+      procedure, public :: is_region_name
 
   end type atype_model
 
@@ -311,6 +316,22 @@ module models_basic
       character(len=*),   intent(in) :: name
       logical                        :: res
     end function is_name
+
+    module subroutine set_region_name( self, region_name)
+      class(atype_model), intent(inout) :: self
+      character(len=*),   intent(in   ) :: region_name
+    end subroutine set_region_name
+
+    module function get_region_name( self) result( region_name)
+      class(atype_model), intent(in) :: self
+      character(:), allocatable      :: region_name
+    end function get_region_name
+
+    module function is_region_name( self, region_name) result( res)
+      class(atype_model), intent(in) :: self
+      character(len=*),   intent(in) :: region_name
+      logical                        :: res
+    end function is_region_name
 
   end interface
 
