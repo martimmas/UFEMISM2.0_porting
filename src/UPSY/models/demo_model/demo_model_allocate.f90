@@ -47,13 +47,16 @@ contains
     type(type_demo_model_context_allocate), target, intent(in   ) :: context
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'allocate_model'
+    character(len=1024), parameter :: routine_name = 'atype_demo_model_allocate_model'
 
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call allocate_model_common( self, context)  !< Part common to all models of type demo_model
-    call self%allocate_demo_model( context)     !< Part specific to a model class inheriting from type_demo_model
+    ! Part common to all models of atype_demo_model
+    call allocate_model_common( self, context)
+
+    ! Part specific to the model classes inheriting from atype_demo_model
+    call self%allocate_demo_model( context)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
