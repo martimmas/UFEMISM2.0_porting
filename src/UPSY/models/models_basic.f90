@@ -33,6 +33,13 @@ module models_basic
 
     contains
 
+      procedure, public  :: allocate
+
+      procedure(allocate_model_ifc), deferred :: allocate_model
+
+      procedure, public :: write_to_restart_file
+      procedure, public :: read_from_restart_file
+
       generic,   public  :: create_field => &
         create_field_logical_2D, create_field_int_2D, create_field_dp_2D, &
         create_field_logical_3D, create_field_int_3D, create_field_dp_3D
@@ -71,9 +78,6 @@ module models_basic
       procedure, private :: remap_field_dp_2D
       procedure, private :: remap_field_dp_3D
 
-      procedure, public :: write_to_restart_file
-      procedure, public :: read_from_restart_file
-
       ! ===== Basics
 
       generic,   public  :: operator(==) => eq
@@ -90,8 +94,39 @@ module models_basic
 
   end type atype_model
 
+  ! Context classes for allocate/initialise/run/remap
+  ! =================================================
+
+  type, abstract :: atype_model_context
+  end type atype_model_context
+
+  type, abstract, extends(atype_model_context) :: atype_model_context_allocate
+    character(:), allocatable :: name
+    character(len=3)          :: region_name
+    type(type_mesh), pointer  :: mesh
+  end type atype_model_context_allocate
+
+  ! Abstract interfaces for deferred procedures
+  ! ===========================================
+
+  abstract interface
+    subroutine allocate_model_ifc( self, context)
+      import atype_model, atype_model_context_allocate
+      class(atype_model),                          intent(inout) :: self
+      class(atype_model_context_allocate), target, intent(in   ) :: context
+    end subroutine allocate_model_ifc
+  end interface
+
   ! Interfaces to type-bound procedures defined in submodules
   ! =========================================================
+
+  ! allocate
+  interface
+    module subroutine allocate( self, context)
+      class(atype_model),                          intent(inout) :: self
+      class(atype_model_context_allocate), target, intent(in   ) :: context
+    end subroutine allocate
+  end interface
 
   ! create_field
   interface
