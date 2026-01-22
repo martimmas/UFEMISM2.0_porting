@@ -14,7 +14,7 @@ module models_basic
 
   private
 
-  public :: atype_model
+  public :: atype_model, atype_model_context_allocate
 
   ! Abstract basic model type
   ! =========================
@@ -110,22 +110,25 @@ module models_basic
   ! ===========================================
 
   abstract interface
+
     subroutine allocate_model_ifc( self, context)
       import atype_model, atype_model_context_allocate
       class(atype_model),                          intent(inout) :: self
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_model_ifc
+
   end interface
 
   ! Interfaces to type-bound procedures defined in submodules
   ! =========================================================
 
-  ! allocate
   interface
+
     module subroutine allocate( self, context)
       class(atype_model),                          intent(inout) :: self
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate
+
   end interface
 
   ! create_field
