@@ -33,6 +33,10 @@ module models_basic
 
     contains
 
+      ! These routines all consist of two parts: a 'common' part that is executed for
+      ! all models inheriting from atype_model, and a 'specific' part that is
+      ! only executed for each specific model class. The specific parts are defined
+      ! in the deferred procedures 'allocate_model', 'initialise_model', etc.
       procedure, public  :: allocate
 
       procedure(allocate_model_ifc), deferred :: allocate_model
