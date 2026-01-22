@@ -18,11 +18,11 @@ module demo_model
   type, abstract, extends(atype_model) :: atype_demo_model
 
       ! Some ice-model-esque data fields
-      real(dp), dimension(:  ), contiguous, pointer :: H
-      real(dp), dimension(:,:), contiguous, pointer :: u_3D
-      real(dp), dimension(:,:), contiguous, pointer :: v_3D
-      logical,  dimension(:  ), contiguous, pointer :: mask_ice
-      real(dp), dimension(:,:), contiguous, pointer :: T2m
+      real(dp), dimension(:  ), contiguous, pointer :: H        => null()
+      real(dp), dimension(:,:), contiguous, pointer :: u_3D     => null()
+      real(dp), dimension(:,:), contiguous, pointer :: v_3D     => null()
+      logical,  dimension(:  ), contiguous, pointer :: mask_ice => null()
+      real(dp), dimension(:,:), contiguous, pointer :: T2m      => null()
       type(MPI_WIN) :: wH, wu_3D, wv_3D, wmask_ice, wT2m
 
     contains

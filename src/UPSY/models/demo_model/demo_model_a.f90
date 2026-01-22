@@ -18,7 +18,7 @@ module demo_model_a
   type, extends(atype_demo_model) :: type_demo_model_a
 
       ! Some additional ice-model-esque data fields specific to demo_model_a
-      real(dp), dimension(:  ), contiguous, pointer :: till_friction_angle
+      real(dp), dimension(:  ), contiguous, pointer :: till_friction_angle => null()
       type(MPI_WIN) :: wtill_friction_angle
 
     contains
