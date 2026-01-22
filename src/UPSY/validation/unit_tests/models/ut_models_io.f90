@@ -8,7 +8,7 @@ module ut_models_io
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform
   use mesh_secondary, only: calc_all_secondary_mesh_data
-  use models_demo, only: type_demo_model
+  ! use models_demo, only: type_demo_model
   use ut_basic, only: unit_test, foldername_unit_tests_output
 
   implicit none

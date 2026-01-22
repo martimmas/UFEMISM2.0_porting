@@ -1,7 +1,7 @@
 module ut_models
 
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
-  use ut_models_io, only: test_models_io
+  ! use ut_models_io, only: test_models_io
 
   implicit none
 
