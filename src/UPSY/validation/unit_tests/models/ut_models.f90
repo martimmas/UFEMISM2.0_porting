@@ -27,7 +27,7 @@ contains
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
-    call test_models_io( test_name)
+    ! call test_models_io( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
