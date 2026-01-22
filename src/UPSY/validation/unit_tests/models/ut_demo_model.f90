@@ -1,0 +1,76 @@
+module ut_demo_model
+
+  use precisions, only: dp
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
+  use mesh_types, only: type_mesh
+  use demo_model_a, only: type_demo_model_a
+  use ut_basic, only: unit_test, foldername_unit_tests_output
+
+  implicit none
+
+  private
+
+  public :: test_demo_model
+
+contains
+
+  subroutine test_demo_model( test_name_parent, mesh1, mesh2)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh1, mesh2
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_demo_model'
+    character(len=1024), parameter :: test_name_local = 'demo_model'
+    character(len=1024)            :: test_name
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    call test_demo_model_a( test_name, mesh1, mesh2)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_demo_model
+
+  subroutine test_demo_model_a( test_name_parent, mesh1, mesh2)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh1, mesh2
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'test_demo_model_a'
+    character(len=1024), parameter :: test_name_local = 'a'
+    character(len=1024)            :: test_name
+    integer, parameter             :: nz = 10
+    type(type_demo_model_a)        :: a1
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    call a1%allocate( a1%ct_allocate( 'demo_model_a1', 'aaa', mesh1, nz))
+
+    call unit_test( (&
+      a1%name()        == 'demo_model_a1' .and. &
+      a1%region_name() == 'aaa' .and. &
+      a1%mesh%name     == mesh1%name .and. &
+      size( a1%H   ,1) == mesh1%pai_V%n_nih .and. &
+      size( a1%u_3D,1) == mesh1%pai_Tri%n_nih .and. &
+      size( a1%u_3D,2) == nz &
+      ), trim(test_name) // '/allocate')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_demo_model_a
+
+end module ut_demo_model

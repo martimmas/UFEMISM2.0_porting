@@ -23,97 +23,23 @@ contains
     res = self%name_val == name
   end function is_name
 
-  ! Grid
-
-  subroutine set_grid( self, grid)
-
-    ! In/output variables:
+  subroutine set_region_name( self, region_name)
     class(atype_model), intent(inout) :: self
-    class(*), target,   intent(in   ) :: grid
+    character(len=*),   intent(in   ) :: region_name
+    self%region_name_val = region_name
+  end subroutine set_region_name
 
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'set_grid'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    select type (p => grid)
-    class default
-      call crash('invalid grid class')
-    class is (type_grid)
-      self%grid_val => grid
-    class is (type_mesh)
-      self%grid_val => grid
-    end select
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine set_grid
-
-  function get_grid( self) result( grid)
-
-    ! In/output variables:
+  function get_region_name( self) result( region_name)
     class(atype_model), intent(in) :: self
-    class(*), pointer              :: grid
+    character(:), allocatable      :: region_name
+    region_name = self%region_name_val
+  end function get_region_name
 
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'get_grid'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    select type (p => self%grid_val)
-    class default
-      call crash('invalid grid class')
-    class is (type_grid)
-      grid => self%grid_val
-    class is (type_mesh)
-      grid => self%grid_val
-    end select
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end function get_grid
-
-  function is_grid( self, grid) result( res)
-
-    ! In/output variables:
+  function is_region_name( self, region_name) result( res)
     class(atype_model), intent(in) :: self
-    class(*),           intent(in) :: grid
+    character(len=*),   intent(in) :: region_name
     logical                        :: res
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'is_grid'
-    character(len=1024)            :: name1, name2
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    select type (p => self%grid_val)
-    class default
-      call crash('invalid model%grid class')
-    class is (type_grid)
-      name1 = p%name
-    class is (type_mesh)
-      name1 = p%name
-    end select
-
-    select type (p => grid)
-    class default
-      call crash('invalid grid class')
-    class is (type_grid)
-      name2 = p%name
-    class is (type_mesh)
-      name2 = p%name
-    end select
-
-    res = name1 == name2
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end function is_grid
+    res = self%region_name_val == region_name
+  end function is_region_name
 
 end submodule models_basic_submod_set_get

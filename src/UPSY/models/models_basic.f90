@@ -14,7 +14,7 @@ module models_basic
 
   private
 
-  public :: atype_model
+  public :: atype_model, atype_model_context_allocate
 
   ! Abstract basic model type
   ! =========================
@@ -23,14 +23,27 @@ module models_basic
 
       ! Metadata
       character(len=1024), private :: name_val
+      character(len=3),    private :: region_name_val
 
-      ! Grid
-      class(*), pointer, private :: grid_val
+      ! Mesh
+      type(type_mesh), pointer :: mesh
 
       ! Fields registry
       type(type_fields_registry), private :: flds_reg
 
     contains
+
+      ! These routines all consist of two parts: a 'common' part that is executed for
+      ! all models inheriting from atype_model, and a 'specific' part that is
+      ! only executed for each specific model class. The specific parts are defined
+      ! in the deferred procedures 'allocate_model', 'initialise_model', etc.
+
+      procedure, public  :: allocate
+
+      procedure(allocate_model_ifc), deferred :: allocate_model
+
+      procedure, public :: write_to_restart_file
+      procedure, public :: read_from_restart_file
 
       generic,   public  :: create_field => &
         create_field_logical_2D, create_field_int_2D, create_field_dp_2D, &
@@ -70,9 +83,6 @@ module models_basic
       procedure, private :: remap_field_dp_2D
       procedure, private :: remap_field_dp_3D
 
-      procedure, public :: write_to_restart_file
-      procedure, public :: read_from_restart_file
-
       ! ===== Basics
 
       generic,   public  :: operator(==) => eq
@@ -83,15 +93,48 @@ module models_basic
       procedure, public :: name => get_name
       procedure, public :: is_name
 
-      ! Grid
-      procedure, public :: set_grid
-      procedure, public :: grid => get_grid
-      procedure, public :: is_grid
+      procedure, public :: set_region_name
+      procedure, public :: region_name => get_region_name
+      procedure, public :: is_region_name
 
   end type atype_model
 
+  ! Context classes for allocate/initialise/run/remap
+  ! =================================================
+
+  type, abstract :: atype_model_context
+  end type atype_model_context
+
+  type, abstract, extends(atype_model_context) :: atype_model_context_allocate
+    character(:), allocatable :: name
+    character(len=3)          :: region_name
+    type(type_mesh), pointer  :: mesh
+  end type atype_model_context_allocate
+
+  ! Abstract interfaces for deferred procedures
+  ! ===========================================
+
+  abstract interface
+
+    subroutine allocate_model_ifc( self, context)
+      import atype_model, atype_model_context_allocate
+      class(atype_model),                          intent(inout) :: self
+      class(atype_model_context_allocate), target, intent(in   ) :: context
+    end subroutine allocate_model_ifc
+
+  end interface
+
   ! Interfaces to type-bound procedures defined in submodules
   ! =========================================================
+
+  interface
+
+    module subroutine allocate( self, context)
+      class(atype_model),                          intent(inout) :: self
+      class(atype_model_context_allocate), target, intent(in   ) :: context
+    end subroutine allocate
+
+  end interface
 
   ! create_field
   interface
@@ -317,23 +360,21 @@ module models_basic
       logical                        :: res
     end function is_name
 
-    ! Grid
-
-    module subroutine set_grid( self, grid)
+    module subroutine set_region_name( self, region_name)
       class(atype_model), intent(inout) :: self
-      class(*), target,   intent(in   ) :: grid
-    end subroutine set_grid
+      character(len=*),   intent(in   ) :: region_name
+    end subroutine set_region_name
 
-    module function get_grid( self) result( grid)
+    module function get_region_name( self) result( region_name)
       class(atype_model), intent(in) :: self
-      class(*), pointer              :: grid
-    end function get_grid
+      character(:), allocatable      :: region_name
+    end function get_region_name
 
-    module function is_grid( self, grid) result( res)
+    module function is_region_name( self, region_name) result( res)
       class(atype_model), intent(in) :: self
-      class(*),           intent(in) :: grid
+      character(len=*),   intent(in) :: region_name
       logical                        :: res
-    end function is_grid
+    end function is_region_name
 
   end interface
 
