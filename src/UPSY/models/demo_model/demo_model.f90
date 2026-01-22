@@ -13,7 +13,7 @@ module demo_model
 
   private
 
-  public :: atype_demo_model
+  public :: atype_demo_model, type_demo_model_context_allocate
 
   type, abstract, extends(atype_model) :: atype_demo_model
 
@@ -31,14 +31,16 @@ module demo_model
 
       procedure(allocate_demo_model_ifc), deferred :: allocate_demo_model
 
+      procedure, nopass, public :: ct_allocate
+
   end type atype_demo_model
 
   ! Context classes for allocate/initialise/run/remap
   ! =================================================
 
-  type, abstract, extends(atype_model_context_allocate) :: atype_demo_model_context_allocate
-    integer :: nz
-  end type atype_demo_model_context_allocate
+  type, extends(atype_model_context_allocate) :: type_demo_model_context_allocate
+    integer  :: nz
+  end type type_demo_model_context_allocate
 
   ! Abstract interfaces for deferred procedures
   ! ===========================================
@@ -46,9 +48,9 @@ module demo_model
   abstract interface
 
     subroutine allocate_demo_model_ifc( self, context)
-      import atype_demo_model, atype_demo_model_context_allocate
-      class(atype_demo_model),                          intent(inout) :: self
-      class(atype_demo_model_context_allocate), target, intent(in   ) :: context
+      import atype_demo_model, type_demo_model_context_allocate
+      class(atype_demo_model),                         intent(inout) :: self
+      class(type_demo_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_demo_model_ifc
 
   end interface
@@ -62,6 +64,11 @@ module demo_model
       class(atype_demo_model),                     intent(inout) :: self
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_model_abs
+
+    module function ct_allocate( nz) result( context)
+      integer,                    intent(in) :: nz
+      type(type_demo_model_context_allocate) :: context
+    end function ct_allocate
 
   end interface
 

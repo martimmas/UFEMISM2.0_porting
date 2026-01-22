@@ -2,6 +2,13 @@ submodule(demo_model) demo_model_allocate
 
 contains
 
+  function ct_allocate( nz) result( context)
+    !< Create a contect object for demo_model%allocate
+    integer,                    intent(in) :: nz
+    type(type_demo_model_context_allocate) :: context
+    context%nz = nz
+  end function ct_allocate
+
   subroutine allocate_model_abs( self, context)
 
     ! In/output variables:
@@ -18,7 +25,7 @@ contains
     select type (ct => context)
     class default
       call crash('invalid context class; should be atype_demo_model_context_allocate')
-    class is (atype_demo_model_context_allocate)
+    class is (type_demo_model_context_allocate)
       call allocate_model( self, ct)
     end select
 
@@ -30,8 +37,8 @@ contains
   subroutine allocate_model( self, context)
 
     ! In/output variables:
-    class(atype_demo_model),                          intent(inout) :: self
-    class(atype_demo_model_context_allocate), target, intent(in   ) :: context
+    class(atype_demo_model),                        intent(inout) :: self
+    type(type_demo_model_context_allocate), target, intent(in   ) :: context
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'allocate_model'
@@ -50,8 +57,8 @@ contains
   subroutine allocate_model_common( self, context)
 
     ! In/output variables:
-    class(atype_demo_model),                          intent(inout) :: self
-    class(atype_demo_model_context_allocate), target, intent(in   ) :: context
+    class(atype_demo_model),                        intent(inout) :: self
+    type(type_demo_model_context_allocate), target, intent(in   ) :: context
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'allocate_model_common'
