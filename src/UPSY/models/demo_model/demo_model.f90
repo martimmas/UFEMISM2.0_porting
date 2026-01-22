@@ -27,9 +27,16 @@ module demo_model
 
     contains
 
+      ! These routines all consist of two parts: a 'common' part that is executed for
+      ! all models inheriting from atype_demo_model, and a 'specific' part that is
+      ! only executed for each specific model class. The specific parts are defined
+      ! in the deferred procedures 'allocate_demo_model', 'initialise_demo_model', etc.
+
       procedure, public :: allocate_model => allocate_model_abs
 
       procedure(allocate_demo_model_ifc), deferred :: allocate_demo_model
+
+      ! Factory functions to create model context objects
 
       procedure, nopass, public :: ct_allocate
 

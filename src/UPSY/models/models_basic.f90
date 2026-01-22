@@ -37,6 +37,7 @@ module models_basic
       ! all models inheriting from atype_model, and a 'specific' part that is
       ! only executed for each specific model class. The specific parts are defined
       ! in the deferred procedures 'allocate_model', 'initialise_model', etc.
+
       procedure, public  :: allocate
 
       procedure(allocate_model_ifc), deferred :: allocate_model
