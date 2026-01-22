@@ -2,11 +2,17 @@ submodule(demo_model) demo_model_allocate
 
 contains
 
-  function ct_allocate( nz) result( context)
+  function ct_allocate( name, region_name, mesh, nz) result( context)
     !< Create a contect object for demo_model%allocate
+    character(len=*),           intent(in) :: name
+    character(len=*),           intent(in) :: region_name
+    type(type_mesh), target,    intent(in) :: mesh
     integer,                    intent(in) :: nz
     type(type_demo_model_context_allocate) :: context
-    context%nz = nz
+    context%name        =  name
+    context%region_name =  region_name
+    context%mesh        => mesh
+    context%nz          =  nz
   end function ct_allocate
 
   subroutine allocate_model_abs( self, context)

@@ -65,7 +65,10 @@ module demo_model
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_model_abs
 
-    module function ct_allocate( nz) result( context)
+    module function ct_allocate( name, region_name, mesh, nz) result( context)
+      character(len=*),           intent(in) :: name
+      character(len=*),           intent(in) :: region_name
+      type(type_mesh), target,    intent(in) :: mesh
       integer,                    intent(in) :: nz
       type(type_demo_model_context_allocate) :: context
     end function ct_allocate
