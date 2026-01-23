@@ -7,7 +7,8 @@ module demo_model_a
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
   use demo_model, only: atype_demo_model, type_demo_model_context_allocate, &
-    type_demo_model_context_initialise, type_demo_model_context_run
+    type_demo_model_context_initialise, type_demo_model_context_run, &
+    type_demo_model_context_remap
   use mpi_f08, only: MPI_WIN
 
   implicit none
@@ -28,6 +29,7 @@ module demo_model_a
       procedure, public :: deallocate_demo_model => deallocate_demo_model_a
       procedure, public :: initialise_demo_model => initialise_demo_model_a_abs
       procedure, public :: run_demo_model        => run_demo_model_a_abs
+      procedure, public :: remap_demo_model      => remap_demo_model_a_abs
 
   end type type_demo_model_a
 
@@ -174,5 +176,44 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine run_demo_model_a
+
+  subroutine remap_demo_model_a_abs( self, context)
+
+    ! In/output variables:
+    class(type_demo_model_a),                    intent(inout) :: self
+    type(type_demo_model_context_remap), target, intent(in   ) :: context
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'remap_demo_model_a_abs'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Retrieve input variables from context object
+    call remap_demo_model_a( self, context%mesh_new)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_demo_model_a_abs
+
+  subroutine remap_demo_model_a( self, mesh_new)
+
+    ! In/output variables:
+    type(type_demo_model_a), intent(inout) :: self
+    type(type_mesh),         intent(in   ) :: mesh_new
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'remap_demo_model_a'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    call self%remap_field( mesh_new, 'till_friction_angle', self%till_friction_angle)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_demo_model_a
 
 end module demo_model_a

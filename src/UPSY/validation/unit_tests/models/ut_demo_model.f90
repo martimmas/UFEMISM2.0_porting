@@ -63,7 +63,6 @@ contains
 
     ! Allocate the demo model and test if that worked
     call a1%allocate( a1%ct_allocate( 'demo_model_a1', 'aaa', mesh1, nz))
-
     call unit_test( ( &
       a1%name()        == 'demo_model_a1' .and. &
       a1%region_name() == 'aaa' .and. &
@@ -86,6 +85,15 @@ contains
     call unit_test( (&
       minval( a1%H) == H0 + dH &
       ), trim( test_name) // '/run')
+
+    ! Remap the demo model and test if that worked
+    call a1%remap( a1%ct_remap( mesh2))
+    call unit_test( ( &
+      a1%mesh%name     == mesh2%name .and. &
+      size( a1%H   ,1) == mesh2%pai_V%n_nih .and. &
+      size( a1%u_3D,1) == mesh2%pai_Tri%n_nih .and. &
+      size( a1%u_3D,2) == nz &
+      ), trim( test_name) // '/remap')
 
     ! Deallocate the demo model and test if that worked
     call a1%deallocate
