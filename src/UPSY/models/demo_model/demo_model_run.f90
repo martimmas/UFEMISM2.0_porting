@@ -1,4 +1,4 @@
-submodule(demo_model) demo_model_run
+submodule(demo_model_basic) demo_model_run
 
 contains
 
