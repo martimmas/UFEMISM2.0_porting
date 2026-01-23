@@ -53,7 +53,8 @@ contains
     real(dp), parameter            :: till_friction_angle_uniform = 0.1_dp
     real(dp), parameter            :: H_new = 0.2_dp
     real(dp), parameter            :: dH = 1._dp
-    type(type_demo_model_a)        :: a1
+    type(type_demo_model_a)        :: a1, a2
+    character(:), allocatable      :: filename_a1
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -94,6 +95,14 @@ contains
       size( a1%u_3D,1) == mesh2%pai_Tri%n_nih .and. &
       size( a1%u_3D,2) == nz &
       ), trim( test_name) // '/remap')
+
+    ! Write the demo model to a restart file,
+    ! then allocate a new demo model and initialise it from that
+    ! restart file; test if all of that worked
+    call a1%write_to_restart_file( foldername_unit_tests_output, filename_a1)
+    call a2%allocate( a2%ct_allocate( 'demo_model_a2', 'aaa', mesh2, nz))
+    call a2%read_from_restart_file( filename_a1)
+    call unit_test( a1 == a2, trim( test_name) // '/restart')
 
     ! Deallocate the demo model and test if that worked
     call a1%deallocate
