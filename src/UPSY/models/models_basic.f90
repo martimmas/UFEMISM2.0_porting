@@ -15,7 +15,7 @@ module models_basic
   private
 
   public :: atype_model, atype_model_context_allocate, &
-    atype_model_context_initialise
+    atype_model_context_initialise, atype_model_context_run
 
   ! Abstract basic model type
   ! =========================
@@ -42,10 +42,12 @@ module models_basic
       procedure, public :: allocate
       procedure, public :: deallocate
       procedure, public :: initialise
+      procedure, public :: run
 
       procedure(allocate_model_ifc),   deferred :: allocate_model
       procedure(deallocate_model_ifc), deferred :: deallocate_model
       procedure(initialise_model_ifc), deferred :: initialise_model
+      procedure(run_model_ifc),        deferred :: run_model
 
       ! i/o
 
@@ -120,6 +122,10 @@ module models_basic
   type, abstract :: atype_model_context_initialise
   end type atype_model_context_initialise
 
+  type, abstract :: atype_model_context_run
+    real(dp) :: time
+  end type atype_model_context_run
+
   ! Abstract interfaces for deferred procedures
   ! ===========================================
 
@@ -142,6 +148,12 @@ module models_basic
       class(atype_model_context_initialise), target, intent(in   ) :: context
     end subroutine initialise_model_ifc
 
+    subroutine run_model_ifc( self, context)
+      import atype_model, atype_model_context_run
+      class(atype_model),                     intent(inout) :: self
+      class(atype_model_context_run), target, intent(in   ) :: context
+    end subroutine run_model_ifc
+
   end interface
 
   ! Interfaces to type-bound procedures defined in submodules
@@ -162,6 +174,11 @@ module models_basic
       class(atype_model),                            intent(inout) :: self
       class(atype_model_context_initialise), target, intent(in   ) :: context
     end subroutine initialise
+
+    module subroutine run( self, context)
+      class(atype_model),                     intent(inout) :: self
+      class(atype_model_context_run), target, intent(in   ) :: context
+    end subroutine run
 
   end interface
 

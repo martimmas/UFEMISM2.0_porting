@@ -51,6 +51,8 @@ contains
     integer, parameter             :: nz = 10
     real(dp), parameter            :: H0 = 0.1_dp
     real(dp), parameter            :: till_friction_angle_uniform = 0.1_dp
+    real(dp), parameter            :: H_new = 0.2_dp
+    real(dp), parameter            :: dH = 1._dp
     type(type_demo_model_a)        :: a1
 
     ! Add routine to call stack
@@ -78,6 +80,12 @@ contains
       minval( a1%till_friction_angle) == till_friction_angle_uniform .and. &
       maxval( a1%till_friction_angle) == till_friction_angle_uniform &
       ), trim( test_name) // '/initialise')
+
+    ! Run the demo model and test if that worked
+    call a1%run( a1%ct_run( H_new, dH))
+    call unit_test( (&
+      minval( a1%H) == H0 + dH &
+      ), trim( test_name) // '/run')
 
     ! Deallocate the demo model and test if that worked
     call a1%deallocate

@@ -7,7 +7,7 @@ module demo_model
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
   use models_basic, only: atype_model, atype_model_context_allocate, &
-    atype_model_context_initialise
+    atype_model_context_initialise, atype_model_context_run
   use mpi_f08, only: MPI_WIN
 
   implicit none
@@ -15,7 +15,7 @@ module demo_model
   private
 
   public :: atype_demo_model, type_demo_model_context_allocate, &
-    type_demo_model_context_initialise
+    type_demo_model_context_initialise, type_demo_model_context_run
 
   type, abstract, extends(atype_model) :: atype_demo_model
 
@@ -37,15 +37,18 @@ module demo_model
       procedure, public :: allocate_model   => allocate_model_abs
       procedure, public :: deallocate_model => deallocate_model
       procedure, public :: initialise_model => initialise_model_abs
+      procedure, public :: run_model        => run_model_abs
 
       procedure(allocate_demo_model_ifc),   deferred :: allocate_demo_model
       procedure(deallocate_demo_model_ifc), deferred :: deallocate_demo_model
       procedure(initialise_demo_model_ifc), deferred :: initialise_demo_model
+      procedure(run_demo_model_ifc),        deferred :: run_demo_model
 
       ! Factory functions to create model context objects
 
       procedure, nopass, public :: ct_allocate
       procedure, nopass, public :: ct_initialise
+      procedure, nopass, public :: ct_run
 
   end type atype_demo_model
 
@@ -60,6 +63,11 @@ module demo_model
     real(dp) :: H0
     real(dp) :: till_friction_angle_uniform
   end type type_demo_model_context_initialise
+
+  type, extends(atype_model_context_run) :: type_demo_model_context_run
+    real(dp) :: H_new
+    real(dp) :: dH
+  end type type_demo_model_context_run
 
   ! Abstract interfaces for deferred procedures
   ! ===========================================
@@ -83,6 +91,12 @@ module demo_model
       type(type_demo_model_context_initialise), target, intent(in   ) :: context
     end subroutine initialise_demo_model_ifc
 
+    subroutine run_demo_model_ifc( self, context)
+      import atype_demo_model, type_demo_model_context_run
+      class(atype_demo_model),                   intent(inout) :: self
+      type(type_demo_model_context_run), target, intent(in   ) :: context
+    end subroutine run_demo_model_ifc
+
   end interface
 
   ! Interfaces to type-bound procedures defined in submodules
@@ -104,6 +118,11 @@ module demo_model
       class(atype_model_context_initialise), target, intent(in   ) :: context
     end subroutine initialise_model_abs
 
+    module subroutine run_model_abs( self, context)
+      class(atype_demo_model),                intent(inout) :: self
+      class(atype_model_context_run), target, intent(in   ) :: context
+    end subroutine run_model_abs
+
     module function ct_allocate( name, region_name, mesh, nz) result( context)
       character(len=*),           intent(in) :: name
       character(len=*),           intent(in) :: region_name
@@ -117,6 +136,12 @@ module demo_model
       real(dp),                     intent(in) :: till_friction_angle_uniform
       type(type_demo_model_context_initialise) :: context
     end function ct_initialise
+
+    module function ct_run( H_new, dH) result( context)
+      real(dp),              intent(in) :: H_new
+      real(dp),              intent(in) :: dH
+      type(type_demo_model_context_run) :: context
+    end function ct_run
 
   end interface
 
