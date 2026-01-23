@@ -6,7 +6,7 @@ module demo_model_b
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
-  use demo_model, only: atype_demo_model, type_demo_model_context_allocate, &
+  use demo_model_basic, only: atype_demo_model, type_demo_model_context_allocate, &
     type_demo_model_context_initialise, type_demo_model_context_run, &
     type_demo_model_context_remap
   use mpi_f08, only: MPI_WIN

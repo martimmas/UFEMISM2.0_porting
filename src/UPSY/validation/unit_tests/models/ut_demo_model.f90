@@ -4,10 +4,9 @@ module ut_demo_model
   use mpi_basic, only: par, sync
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
   use mesh_types, only: type_mesh
-  use demo_model, only: atype_demo_model
+  use demo_model, only: atype_demo_model, create_demo_model
   use demo_model_a, only: type_demo_model_a
   use demo_model_b, only: type_demo_model_b
-  use create_demo_model_mod, only: create_demo_model
   use ut_basic, only: unit_test, foldername_unit_tests_output
 
   implicit none
