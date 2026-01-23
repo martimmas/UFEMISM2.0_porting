@@ -6,6 +6,7 @@ module demo_model_a
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
+  use demo_model_state, only: type_demo_model_state
   use demo_model_basic, only: atype_demo_model, type_demo_model_context_allocate, &
     type_demo_model_context_initialise, type_demo_model_context_run, &
     type_demo_model_context_remap
@@ -150,19 +151,19 @@ contains
     call init_routine( routine_name)
 
     ! Retrieve input variables from context object
-    call run_demo_model_a( self%mesh, self, context%dH)
+    call run_demo_model_a( self%mesh, self%s, context%dH)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine run_demo_model_a_abs
 
-  subroutine run_demo_model_a( mesh, self, dH)
+  subroutine run_demo_model_a( mesh, demo, dH)
 
     ! In/output variables:
-    type(type_mesh),         intent(in   ) :: mesh
-    type(type_demo_model_a), intent(inout) :: self
-    real(dp),                intent(in   ) :: dH
+    type(type_mesh),             intent(in   ) :: mesh
+    type(type_demo_model_state), intent(inout) :: demo
+    real(dp),                    intent(in   ) :: dH
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'run_demo_model_a'
@@ -170,7 +171,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    self%H( mesh%vi1: mesh%vi2) = self%H( mesh%vi1: mesh%vi2) + dH
+    demo%H( mesh%vi1: mesh%vi2) = demo%H( mesh%vi1: mesh%vi2) + dH
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
