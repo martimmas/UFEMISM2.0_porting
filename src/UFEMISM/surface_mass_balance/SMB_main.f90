@@ -15,7 +15,7 @@ MODULE SMB_main
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
   USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
-  USE SMB_idealised                                          , ONLY: initialise_SMB_model_idealised, run_SMB_model_idealised
+  use SMB_idealised, only: type_SMB_model_idealised
   USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
   USE SMB_IMAU_ITM                                           , ONLY: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
@@ -38,9 +38,9 @@ CONTAINS
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_grid),                        INTENT(IN)    :: grid_smooth
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_climate_model),               INTENT(IN)    :: climate
+    TYPE(type_grid),            target,     INTENT(IN)    :: grid_smooth
+    TYPE(type_ice_model),       target,     INTENT(IN)    :: ice
+    TYPE(type_climate_model),   target,     INTENT(IN)    :: climate
     TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
@@ -94,7 +94,8 @@ CONTAINS
       CASE ('uniform')
         SMB%SMB = C%uniform_SMB
       CASE ('idealised')
-        CALL run_SMB_model_idealised( mesh, ice, SMB, time)
+        call SMB%idealised%run( SMB%idealised%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%idealised%s%SMB( mesh%vi1:mesh%vi2)
       CASE ('prescribed')
         !IF (par%primary)  WRITE(*,"(A)") '   Running prescribed SMB...'
         CALL run_SMB_model_prescribed( mesh, ice, SMB, region_name, time)
@@ -119,7 +120,7 @@ CONTAINS
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
+    TYPE(type_ice_model),      target,      INTENT(IN)    :: ice
     TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
@@ -159,7 +160,8 @@ CONTAINS
       CASE ('uniform')
         SMB%SMB = C%uniform_SMB
       CASE ('idealised')
-        CALL initialise_SMB_model_idealised( mesh, SMB)
+        call SMB%idealised%allocate  ( SMB%idealised%ct_allocate( 'SMB_idealised', region_name, mesh))
+        call SMB%idealised%initialise( SMB%idealised%ct_initialise( ice))
       CASE ('prescribed')
         IF (par%primary)  WRITE(*,"(A)") '   Initialising prescribed SMB...'
         CALL initialise_SMB_model_prescribed( mesh, SMB, region_name)
@@ -430,7 +432,7 @@ CONTAINS
       CASE ('uniform')
         ! No need to do anything
       CASE ('idealised')
-        ! No need to do anything
+        call SMB%idealised%remap( SMB%idealised%ct_remap( mesh_new))
       CASE ('prescribed')
         CALL initialise_SMB_model_prescribed( mesh_new, SMB, region_name)
       CASE ('IMAU-ITM')

@@ -6,6 +6,7 @@ MODULE SMB_model_types
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use SMB_idealised, only: type_SMB_model_idealised
 
   IMPLICIT NONE
 
@@ -77,6 +78,7 @@ MODULE SMB_model_types
 
     ! Sub-models
     REAL(dp), DIMENSION(:    ), ALLOCATABLE      :: SMB_correction            ! [m.i.e./yr] Surface mass balance
+    type(type_SMB_model_idealised)               :: idealised
     TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
     type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
 
