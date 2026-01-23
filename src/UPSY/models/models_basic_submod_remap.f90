@@ -1,53 +1,48 @@
-submodule( models_basic) models_basic_submod_remap_field
+submodule(models_basic) models_basic_submod_remap
 
 contains
 
-  subroutine remap_field_logical_2D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                         intent(inout) :: self
-    character(len=*),                           intent(in   ) :: field_name
-    type(type_mesh),                            intent(in   ) :: mesh_new
-    logical, dimension(:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_logical_2D
+  subroutine remap( self, context)
+    !< Remap an instance of a model
 
-  subroutine remap_field_logical_3D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                           intent(inout) :: self
-    character(len=*),                             intent(in   ) :: field_name
-    type(type_mesh),                              intent(in   ) :: mesh_new
-    logical, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_logical_3D
+    ! In/output variables:
+    class(atype_model),                       intent(inout) :: self
+    class(atype_model_context_remap), target, intent(in   ) :: context
 
-  subroutine remap_field_int_2D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                         intent(inout) :: self
-    character(len=*),                           intent(in   ) :: field_name
-    type(type_mesh),                            intent(in   ) :: mesh_new
-    integer, dimension(:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_int_2D
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'atype_model_remap'
 
-  subroutine remap_field_int_3D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                           intent(inout) :: self
-    character(len=*),                             intent(in   ) :: field_name
-    type(type_mesh),                              intent(in   ) :: mesh_new
-    integer, dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_int_3D
+    ! Add routine to call stack
+    call init_routine( routine_name)
 
-  subroutine remap_field_dp_2D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                          intent(inout) :: self
-    character(len=*),                            intent(in   ) :: field_name
-    type(type_mesh),                             intent(in   ) :: mesh_new
-    real(dp), dimension(:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_dp_2D
+    ! Part common to all models of atype_model
+    call remap_common( self, context)
 
-  subroutine remap_field_dp_3D( self, mesh_new, field_name, d_nih)
-    class(atype_model),                            intent(inout) :: self
-    character(len=*),                              intent(in   ) :: field_name
-    type(type_mesh),                               intent(in   ) :: mesh_new
-    real(dp), dimension(:,:), contiguous, pointer, intent(inout) :: d_nih
-    call self%flds_reg%remap_field( mesh_new, field_name, d_nih)
-  end subroutine remap_field_dp_3D
+    ! Part specific to the model classes inheriting from atype_model
+    call self%remap_model( context)
 
-end submodule models_basic_submod_remap_field
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap
+
+  subroutine remap_common( self, context)
+
+    ! In/output variables:
+    class(atype_model),                       intent(inout) :: self
+    class(atype_model_context_remap), target, intent(in   ) :: context
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'remap_common'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    self%mesh => context%mesh_new
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine remap_common
+
+end submodule models_basic_submod_remap
