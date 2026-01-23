@@ -66,6 +66,7 @@ module demo_model
   type, extends(atype_model_context_initialise) :: type_demo_model_context_initialise
     real(dp) :: H0
     real(dp) :: till_friction_angle_uniform
+    real(dp) :: beta_sq_uniform
   end type type_demo_model_context_initialise
 
   type, extends(atype_model_context_run) :: type_demo_model_context_run
@@ -149,9 +150,10 @@ module demo_model
       type(type_demo_model_context_allocate) :: context
     end function ct_allocate
 
-    module function ct_initialise( H0, till_friction_angle_uniform) result( context)
+    module function ct_initialise( H0, till_friction_angle_uniform, beta_sq_uniform) result( context)
       real(dp),                     intent(in) :: H0
       real(dp),                     intent(in) :: till_friction_angle_uniform
+      real(dp),                     intent(in) :: beta_sq_uniform
       type(type_demo_model_context_initialise) :: context
     end function ct_initialise
 

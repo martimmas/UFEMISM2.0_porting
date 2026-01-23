@@ -2,13 +2,15 @@ submodule(demo_model) demo_model_initialise
 
 contains
 
-  function ct_initialise( H0, till_friction_angle_uniform) result( context)
+  function ct_initialise( H0, till_friction_angle_uniform, beta_sq_uniform) result( context)
     !< Create a contect object for demo_model%initialise
     real(dp),                     intent(in) :: H0
     real(dp),                     intent(in) :: till_friction_angle_uniform
+    real(dp),                     intent(in) :: beta_sq_uniform
     type(type_demo_model_context_initialise) :: context
     context%H0                          =  H0
     context%till_friction_angle_uniform = till_friction_angle_uniform
+    context%beta_sq_uniform             = beta_sq_uniform
   end function ct_initialise
 
   subroutine initialise_model_abs( self, context)
