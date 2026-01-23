@@ -69,7 +69,7 @@ contains
       size( a1%H   ,1) == mesh1%pai_V%n_nih .and. &
       size( a1%u_3D,1) == mesh1%pai_Tri%n_nih .and. &
       size( a1%u_3D,2) == nz &
-      ), trim(test_name) // '/allocate')
+      ), trim( test_name) // '/allocate')
 
     ! Initialise the demo model and test if that worked
     call a1%initialise( a1%ct_initialise( H0, till_friction_angle_uniform))
@@ -77,7 +77,21 @@ contains
       minval( a1%H) == H0 .and. &
       minval( a1%till_friction_angle) == till_friction_angle_uniform .and. &
       maxval( a1%till_friction_angle) == till_friction_angle_uniform &
-      ), trim(test_name) // '/initialise')
+      ), trim( test_name) // '/initialise')
+
+    ! Deallocate the demo model and test if that worked
+    call a1%deallocate
+    call unit_test( ( &
+      a1%name() == 'empty_model' .and. &
+      a1%region_name() == '!!!' .and. &
+      .not. associated( a1%mesh) .and. &
+      .not. associated( a1%H) .and. &
+      .not. associated( a1%u_3D) .and. &
+      .not. associated( a1%v_3D) .and. &
+      .not. associated( a1%mask_ice) .and. &
+      .not. associated( a1%T2m) .and. &
+      .not. associated( a1%till_friction_angle) &
+      ), trim( test_name) // '/deallocate')
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

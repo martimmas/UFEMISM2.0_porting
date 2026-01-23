@@ -35,9 +35,11 @@ module demo_model
       ! in the deferred procedures 'allocate_demo_model', 'initialise_demo_model', etc.
 
       procedure, public :: allocate_model   => allocate_model_abs
+      procedure, public :: deallocate_model => deallocate_model
       procedure, public :: initialise_model => initialise_model_abs
 
       procedure(allocate_demo_model_ifc),   deferred :: allocate_demo_model
+      procedure(deallocate_demo_model_ifc), deferred :: deallocate_demo_model
       procedure(initialise_demo_model_ifc), deferred :: initialise_demo_model
 
       ! Factory functions to create model context objects
@@ -70,6 +72,11 @@ module demo_model
       type(type_demo_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_demo_model_ifc
 
+    subroutine deallocate_demo_model_ifc( self)
+      import atype_demo_model
+      class(atype_demo_model), intent(inout) :: self
+    end subroutine deallocate_demo_model_ifc
+
     subroutine initialise_demo_model_ifc( self, context)
       import atype_demo_model, type_demo_model_context_initialise
       class(atype_demo_model),                          intent(inout) :: self
@@ -87,6 +94,10 @@ module demo_model
       class(atype_demo_model),                     intent(inout) :: self
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_model_abs
+
+    module subroutine deallocate_model( self)
+      class(atype_demo_model), intent(inout) :: self
+    end subroutine deallocate_model
 
     module subroutine initialise_model_abs( self, context)
       class(atype_demo_model),                       intent(inout) :: self
@@ -108,25 +119,5 @@ module demo_model
     end function ct_initialise
 
   end interface
-
-  ! subroutine initialise_demo_model( model, mesh, nz)
-
-  !   ! In/output variables:
-  !   class(type_demo_model),  intent(  out) :: model
-  !   type(type_mesh), target, intent(in   ) :: mesh
-  !   integer,                 intent(in   ) :: nz
-
-  !   ! Local variables:
-  !   character(len=1024), parameter :: routine_name = 'initialise_demo_model'
-  !   integer                        :: vi,ti,k,m
-  !   real(dp)                       :: x,y,cx,cy
-
-  !   ! Add routine to call stack
-  !   call init_routine( routine_name)
-
-  !   ! Remove routine from call stack
-  !   call finalise_routine( routine_name)
-
-  ! end subroutine initialise_demo_model
 
 end module demo_model

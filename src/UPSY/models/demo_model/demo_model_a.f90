@@ -25,6 +25,7 @@ module demo_model_a
     contains
 
       procedure, public :: allocate_demo_model   => allocate_demo_model_a_abs
+      procedure, public :: deallocate_demo_model => deallocate_demo_model_a
       procedure, public :: initialise_demo_model => initialise_demo_model_a_abs
 
   end type type_demo_model_a
@@ -74,6 +75,24 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine allocate_demo_model_a
+
+  subroutine deallocate_demo_model_a( self)
+
+    ! In/output variables:
+    class(type_demo_model_a), intent(inout) :: self
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'deallocate_demo_model_a'
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    nullify( self%till_friction_angle)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine deallocate_demo_model_a
 
   subroutine initialise_demo_model_a_abs( self, context)
 

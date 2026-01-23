@@ -40,9 +40,11 @@ module models_basic
       ! in the deferred procedures 'allocate_model', 'initialise_model', etc.
 
       procedure, public :: allocate
+      procedure, public :: deallocate
       procedure, public :: initialise
 
       procedure(allocate_model_ifc),   deferred :: allocate_model
+      procedure(deallocate_model_ifc), deferred :: deallocate_model
       procedure(initialise_model_ifc), deferred :: initialise_model
 
       ! i/o
@@ -129,6 +131,11 @@ module models_basic
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate_model_ifc
 
+    subroutine deallocate_model_ifc( self)
+      import atype_model
+      class(atype_model), intent(inout) :: self
+    end subroutine deallocate_model_ifc
+
     subroutine initialise_model_ifc( self, context)
       import atype_model, atype_model_context_initialise
       class(atype_model),                            intent(inout) :: self
@@ -146,6 +153,10 @@ module models_basic
       class(atype_model),                          intent(inout) :: self
       class(atype_model_context_allocate), target, intent(in   ) :: context
     end subroutine allocate
+
+    module subroutine deallocate( self)
+      class(atype_model), intent(inout) :: self
+    end subroutine deallocate
 
     module subroutine initialise( self, context)
       class(atype_model),                            intent(inout) :: self
