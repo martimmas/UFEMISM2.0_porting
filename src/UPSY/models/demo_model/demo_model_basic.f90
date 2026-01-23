@@ -8,6 +8,7 @@ module demo_model_basic
   use fields_main, only: third_dimension
   use models_basic, only: atype_model, atype_model_context_allocate, &
     atype_model_context_initialise, atype_model_context_run, atype_model_context_remap
+  use demo_model_state, only: type_demo_model_state
   use mpi_f08, only: MPI_WIN
 
   implicit none
@@ -20,13 +21,7 @@ module demo_model_basic
 
   type, abstract, extends(atype_model) :: atype_demo_model
 
-      ! Some ice-model-esque data fields
-      real(dp), dimension(:  ), contiguous, pointer :: H        => null()
-      real(dp), dimension(:,:), contiguous, pointer :: u_3D     => null()
-      real(dp), dimension(:,:), contiguous, pointer :: v_3D     => null()
-      logical,  dimension(:  ), contiguous, pointer :: mask_ice => null()
-      real(dp), dimension(:,:), contiguous, pointer :: T2m      => null()
-      type(MPI_WIN) :: wH, wu_3D, wv_3D, wmask_ice, wT2m
+      type(type_demo_model_state) :: s
 
     contains
 
