@@ -16,7 +16,7 @@ MODULE SMB_main
   USE climate_model_types                                    , ONLY: type_climate_model
   USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
   use SMB_idealised, only: type_SMB_model_idealised
-  USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
+  use SMB_prescribed, only: type_SMB_model_prescribed
   USE SMB_IMAU_ITM                                           , ONLY: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
@@ -97,8 +97,8 @@ CONTAINS
         call SMB%idealised%run( SMB%idealised%ct_run( time, ice, climate, grid_smooth))
         SMB%SMB( mesh%vi1:mesh%vi2) = SMB%idealised%s%SMB( mesh%vi1:mesh%vi2)
       CASE ('prescribed')
-        !IF (par%primary)  WRITE(*,"(A)") '   Running prescribed SMB...'
-        CALL run_SMB_model_prescribed( mesh, ice, SMB, region_name, time)
+        call SMB%prescribed%run( SMB%prescribed%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%prescribed%s%SMB( mesh%vi1:mesh%vi2)
       CASE ('reconstructed')
         CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
       CASE ('IMAU-ITM')
@@ -163,8 +163,8 @@ CONTAINS
         call SMB%idealised%allocate  ( SMB%idealised%ct_allocate( 'SMB_idealised', region_name, mesh))
         call SMB%idealised%initialise( SMB%idealised%ct_initialise( ice))
       CASE ('prescribed')
-        IF (par%primary)  WRITE(*,"(A)") '   Initialising prescribed SMB...'
-        CALL initialise_SMB_model_prescribed( mesh, SMB, region_name)
+        call SMB%prescribed%allocate  ( SMB%prescribed%ct_allocate( 'SMB_prescribed', region_name, mesh))
+        call SMB%prescribed%initialise( SMB%prescribed%ct_initialise( ice))
       CASE ('reconstructed')
         CALL initialise_SMB_model_reconstructed( mesh, SMB, region_name)
       CASE ('IMAU-ITM')
@@ -434,7 +434,7 @@ CONTAINS
       CASE ('idealised')
         call SMB%idealised%remap( SMB%idealised%ct_remap( mesh_new))
       CASE ('prescribed')
-        CALL initialise_SMB_model_prescribed( mesh_new, SMB, region_name)
+        call SMB%prescribed%remap( SMB%prescribed%ct_remap( mesh_new))
       CASE ('IMAU-ITM')
         !CALL initialise_SMB_model_parameterised( mesh, ice, SMB, climate, region_name)
         CALL reallocate_bounds( SMB%SMB                    , mesh_new%vi1, mesh_new%vi2)

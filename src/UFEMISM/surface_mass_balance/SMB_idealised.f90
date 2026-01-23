@@ -10,7 +10,6 @@ module SMB_idealised
     type_SMB_model_context_initialise, type_SMB_model_context_run, &
     type_SMB_model_context_remap
   use Halfar_SIA_solution, only: Halfar
-  use netcdf_io_main
 
   implicit none
 
