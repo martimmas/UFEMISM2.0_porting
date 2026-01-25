@@ -71,6 +71,7 @@ module SMB_model_basic
   end type type_SMB_model_context_run
 
   type, extends(atype_model_context_remap) :: type_SMB_model_context_remap
+    real(dp) :: time
   end type type_SMB_model_context_remap
 
   ! Abstract interfaces for deferred procedures
@@ -158,8 +159,9 @@ module SMB_model_basic
       type(type_SMB_model_context_run)              :: context
     end function ct_run
 
-    module function ct_remap( mesh_new) result( context)
+    module function ct_remap( mesh_new, time) result( context)
       type(type_mesh), target, intent(in) :: mesh_new
+      real(dp),                intent(in) :: time
       type(type_SMB_model_context_remap) :: context
     end function ct_remap
 

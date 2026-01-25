@@ -2,11 +2,13 @@ submodule(SMB_model_basic) SMB_model_remap
 
 contains
 
-  function ct_remap( mesh_new) result( context)
+  function ct_remap( mesh_new, time) result( context)
     !< Create a contect object for SMB_model%remap
     type(type_mesh), target, intent(in) :: mesh_new
+    real(dp),                intent(in) :: time
     type(type_SMB_model_context_remap) :: context
     context%mesh_new => mesh_new
+    context%time     =  time
   end function ct_remap
 
   subroutine remap_model_abs( self, context)

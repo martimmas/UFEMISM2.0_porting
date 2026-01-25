@@ -102,6 +102,9 @@ CONTAINS
       CASE ('reconstructed')
         call SMB%reconstructed%run( SMB%reconstructed%ct_run( time, ice, climate, grid_smooth))
         SMB%SMB( mesh%vi1:mesh%vi2) = SMB%reconstructed%s%SMB( mesh%vi1:mesh%vi2)
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%run( SMB%snapshot_plus_anomalies%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%snapshot_plus_anomalies%s%SMB( mesh%vi1:mesh%vi2)
       CASE ('IMAU-ITM')
         !IF (par%primary)  WRITE(*,"(A)") '   Running IMAU-ITM SMB model...'
         CALL run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
@@ -169,6 +172,9 @@ CONTAINS
       CASE ('reconstructed')
         call SMB%reconstructed%allocate  ( SMB%reconstructed%ct_allocate( 'SMB_reconstructed', region_name, mesh))
         call SMB%reconstructed%initialise( SMB%reconstructed%ct_initialise( ice))
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%allocate  ( SMB%snapshot_plus_anomalies%ct_allocate( 'SMB_snapshot_plus_anomalies', region_name, mesh))
+        call SMB%snapshot_plus_anomalies%initialise( SMB%snapshot_plus_anomalies%ct_initialise( ice))
       CASE ('IMAU-ITM')
         IF (par%primary)  WRITE(*,"(A)") '   Initialising IMAU-ITM SMB...'
         CALL initialise_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, region_name)
@@ -391,7 +397,7 @@ CONTAINS
 
   END SUBROUTINE create_restart_file_SMB_model_region
 
-  SUBROUTINE remap_SMB_model( mesh_old, mesh_new, SMB, region_name)
+  SUBROUTINE remap_SMB_model( mesh_old, mesh_new, SMB, time, region_name)
     ! Remap the SMB model
 
     IMPLICIT NONE
@@ -399,7 +405,8 @@ CONTAINS
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
-    TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
+    TYPE(type_SMB_model),                   INTENT(inout) :: SMB
+    real(dp),                               intent(in)    :: time
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
     ! Local variables:
@@ -434,11 +441,13 @@ CONTAINS
       CASE ('uniform')
         ! No need to do anything
       CASE ('idealised')
-        call SMB%idealised%remap( SMB%idealised%ct_remap( mesh_new))
+        call SMB%idealised%remap( SMB%idealised%ct_remap( mesh_new, time))
       CASE ('prescribed')
-        call SMB%prescribed%remap( SMB%prescribed%ct_remap( mesh_new))
+        call SMB%prescribed%remap( SMB%prescribed%ct_remap( mesh_new, time))
       CASE ('reconstructed')
-        call SMB%reconstructed%remap( SMB%reconstructed%ct_remap( mesh_new))
+        call SMB%reconstructed%remap( SMB%reconstructed%ct_remap( mesh_new, time))
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%remap( SMB%snapshot_plus_anomalies%ct_remap( mesh_new, time))
       CASE ('IMAU-ITM')
         !CALL initialise_SMB_model_parameterised( mesh, ice, SMB, climate, region_name)
         CALL reallocate_bounds( SMB%SMB                    , mesh_new%vi1, mesh_new%vi2)

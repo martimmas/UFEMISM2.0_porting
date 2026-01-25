@@ -144,9 +144,6 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    ! Retrieve input variables from context object
-    ! call remap_SMB_model_reconstructed( self, context%mesh_new)
-
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 

@@ -9,6 +9,7 @@ MODULE SMB_model_types
   use SMB_idealised, only: type_SMB_model_idealised
   use SMB_prescribed, only: type_SMB_model_prescribed
   use SMB_reconstructed, only: type_SMB_model_reconstructed
+  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
 
   IMPLICIT NONE
 
@@ -47,31 +48,6 @@ MODULE SMB_model_types
 
   END TYPE type_SMB_model_IMAU_ITM
 
-  type type_SMB_model_snapshot_plus_anomalies
-
-    ! Baseline climate
-    real(dp), dimension(:,:), allocatable :: T2m_baseline
-    real(dp), dimension(:  ), allocatable :: SMB_baseline
-
-    ! Two anomaly timeframes enveloping the current model time
-    real(dp)                              :: anomaly_t0
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly_0
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly_0
-
-    real(dp)                              :: anomaly_t1
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly_1
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly_1
-
-    ! Time-weighted anomaly
-    real(dp), dimension(:  ), allocatable :: T2m_anomaly
-    real(dp), dimension(:  ), allocatable :: SMB_anomaly
-
-    ! Applied climate
-    real(dp), dimension(:,:), allocatable :: T2m    ! = baseline + anomaly
-    real(dp), dimension(:  ), allocatable :: SMB
-
-  end type type_SMB_model_snapshot_plus_anomalies
-
   TYPE type_SMB_model
     ! The SMB model data structure.
 
@@ -84,7 +60,7 @@ MODULE SMB_model_types
     type(type_SMB_model_prescribed)              :: prescribed
     type(type_SMB_model_reconstructed)           :: reconstructed
     TYPE(type_SMB_model_IMAU_ITM)                :: IMAUITM
-    type(type_SMB_model_snapshot_plus_anomalies) :: snapshot_plus_anomalies
+    type(type_SMB_model_snp_p_anml)              :: snapshot_plus_anomalies
 
     ! Timestepping
     REAL(dp)                                     :: t_next
