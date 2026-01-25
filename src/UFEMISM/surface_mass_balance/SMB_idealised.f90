@@ -10,7 +10,6 @@ module SMB_idealised
     type_SMB_model_context_initialise, type_SMB_model_context_run, &
     type_SMB_model_context_remap
   use Halfar_SIA_solution, only: Halfar
-  use netcdf_io_main
 
   implicit none
 
@@ -164,9 +163,6 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
-
-    ! Retrieve input variables from context object
-    ! call remap_SMB_model_idealised( self, context%mesh_new)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
