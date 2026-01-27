@@ -228,7 +228,7 @@ CONTAINS
     ! Buffer scalar output data
     call buffer_scalar_output( region)
     call buffer_ISMIP_scalar_output( region)
-    
+
     if (region%nROI > 0) then
       call buffer_scalar_output_ROI( region)
       call buffer_ISMIP_scalar_output_ROI( region)
@@ -525,7 +525,7 @@ CONTAINS
     ! ===== Climate =====
     ! ===================
 
-    CALL initialise_climate_model( region%mesh, region%grid_smooth, region%ice, region%climate, regional_forcing, region%name, start_time_of_run)
+    CALL initialise_climate_model( region%mesh, region%grid_smooth, region%ice, region%climate, regional_forcing, region%name)
 
     ! ===== Ocean =====
     ! =================
@@ -1142,7 +1142,7 @@ CONTAINS
       ! Create an output file for this region of interest
       region%output_filenames_grid_ROI( region%nROI) = TRIM( C%output_dir) // 'main_output_' // region%name // '_grid_ROI_' // TRIM( name_ROI) // '.nc'
       region%output_filenames_ismip_grid_ROI( region%nROI) = TRIM( C%output_dir) // 'ismip_output_' // region%name // '_grid_ROI_' // TRIM( name_ROI) // '.nc'
-      
+
       CALL create_main_regional_output_file_grid_ROI( region, region%output_grids_ROI( region%nROI), region%output_filenames_grid_ROI( region%nROI))
       CALL create_ISMIP_regional_output_file_grid_ROI( region, region%output_grids_ROI( region%nROI), region%output_filenames_ismip_grid_ROI( region%nROI))
 

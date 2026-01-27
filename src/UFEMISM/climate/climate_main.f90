@@ -126,7 +126,6 @@ CONTAINS
     TYPE(type_climate_model),               INTENT(OUT)   :: climate
     TYPE(type_global_forcing),              INTENT(IN)    :: forcing
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-    REAL(dp),                               INTENT(IN)    :: start_time_of_run
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_climate_model'
