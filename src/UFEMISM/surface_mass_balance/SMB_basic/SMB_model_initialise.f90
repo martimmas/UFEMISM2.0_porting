@@ -47,7 +47,7 @@ contains
     call init_routine( routine_name)
 
     ! Part common to all models of atype_SMB_model
-    call initialise_model_common( self%mesh, self%s)
+    call initialise_model_common( self)
 
     ! Part specific to the model classes inheriting from atype_SMB_model
     call self%initialise_SMB_model( context)
@@ -57,11 +57,10 @@ contains
 
   end subroutine initialise_model
 
-  subroutine initialise_model_common( mesh, SMB)
+  subroutine initialise_model_common( self)
 
     ! In/output variables:
-    type(type_mesh),             intent(in   ) :: mesh
-    class(type_SMB_model_state), intent(inout) :: SMB
+    class(atype_SMB_model), intent(inout) :: self
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'initialise_model_common'

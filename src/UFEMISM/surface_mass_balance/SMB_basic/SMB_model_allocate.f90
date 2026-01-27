@@ -51,7 +51,7 @@ contains
     call init_routine( routine_name)
 
     ! Part common to all models of atype_SMB_model
-    call allocate_model_common( self%mesh, self, self%s, context)
+    call allocate_model_common( self, context)
 
     ! Part specific to the model classes inheriting from atype_SMB_model
     call self%allocate_SMB_model( context)
@@ -61,12 +61,10 @@ contains
 
   end subroutine allocate_model
 
-  subroutine allocate_model_common( mesh, self, SMB, context)
+  subroutine allocate_model_common( self, context)
 
     ! In/output variables:
-    type(type_mesh),                               intent(in   ) :: mesh
     class(atype_SMB_model),                        intent(inout) :: self
-    type(type_SMB_model_state),                    intent(inout) :: SMB
     type(type_SMB_model_context_allocate), target, intent(in   ) :: context
 
     ! Local variables:
@@ -75,8 +73,8 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call self%create_field( SMB%SMB, SMB%wSMB, &
-      mesh, Arakawa_grid%a(), &
+    call self%create_field( self%SMB, self%wSMB, &
+      self%mesh, Arakawa_grid%a(), &
       name      = 'SMB', &
       long_name = 'surface mass balance', &
       units     = 'm yr^-1', &
@@ -99,7 +97,7 @@ contains
     call init_routine( routine_name)
 
     ! Part common to all models of atype_SMB_model
-    call deallocate_model_common( self%s)
+    call deallocate_model_common( self)
 
     ! Part specific to the model classes inheriting from atype_SMB_model
     call self%deallocate_SMB_model
@@ -109,10 +107,10 @@ contains
 
   end subroutine deallocate_model
 
-  subroutine deallocate_model_common( SMB)
+  subroutine deallocate_model_common( self)
 
     ! In/output variables:
-    type(type_SMB_model_state), intent(inout) :: SMB
+    class(atype_SMB_model), intent(inout) :: self
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'deallocate_model_common'
@@ -120,7 +118,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    nullify( SMB%SMB)
+    nullify( self%SMB)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

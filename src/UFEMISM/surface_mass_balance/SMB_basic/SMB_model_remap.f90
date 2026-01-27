@@ -49,7 +49,7 @@ contains
     call init_routine( routine_name)
 
     ! Part common to all models of atype_SMB_model
-    call remap_model_common( self, self%s, context%mesh_new)
+    call remap_model_common( self, context%mesh_new)
 
     ! Part specific to the model classes inheriting from atype_SMB_model
     call self%remap_SMB_model( context)
@@ -59,12 +59,11 @@ contains
 
   end subroutine remap_model
 
-  subroutine remap_model_common( self, SMB, mesh_new)
+  subroutine remap_model_common( self, mesh_new)
 
     ! In/output variables:
-    class(atype_SMB_model),     intent(inout) :: self
-    type(type_SMB_model_state), intent(inout) :: SMB
-    type(type_mesh),            intent(in   ) :: mesh_new
+    class(atype_SMB_model), intent(inout) :: self
+    type(type_mesh),        intent(in   ) :: mesh_new
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'remap_model_common'
@@ -72,7 +71,7 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    call self%remap_field( mesh_new, 'SMB', SMB%SMB)
+    call self%remap_field( mesh_new, 'SMB', self%SMB)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

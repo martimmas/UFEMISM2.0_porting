@@ -2,6 +2,10 @@ module SMB_model
 
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use SMB_model_basic, only: atype_SMB_model
+  use SMB_idealised, only: type_SMB_model_idealised
+  use SMB_prescribed, only: type_SMB_model_prescribed
+  use SMB_reconstructed, only: type_SMB_model_reconstructed
+  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
 
   implicit none
 
@@ -27,8 +31,14 @@ contains
     select case (choice_SMB_model)
     case default
       call crash('invalid choice_SMB_model "' // trim( choice_SMB_model) // '"')
-    ! case ('idealised')
-    !   allocate( type_SMB_model_idealised :: SMB)
+    case ('idealised')
+      allocate( type_SMB_model_idealised :: SMB)
+    case ('prescribed')
+      allocate( type_SMB_model_prescribed :: SMB)
+    case ('reconstructed')
+      allocate( type_SMB_model_reconstructed :: SMB)
+    case ('snapshot_plus_anomalies')
+      allocate( type_SMB_model_snp_p_anml :: SMB)
     end select
 
     ! Remove routine from call stack

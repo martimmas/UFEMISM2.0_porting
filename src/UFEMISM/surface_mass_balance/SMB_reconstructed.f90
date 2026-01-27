@@ -6,7 +6,6 @@ module SMB_reconstructed
   use model_configuration, only: C
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use mesh_types, only: type_mesh
-  use SMB_model_state, only: type_SMB_model_state
   use SMB_model_basic, only: atype_SMB_model, type_SMB_model_context_allocate, &
     type_SMB_model_context_initialise, type_SMB_model_context_run, &
     type_SMB_model_context_remap
@@ -27,10 +26,12 @@ module SMB_reconstructed
     contains
 
       procedure, public :: allocate_SMB_model   => allocate_SMB_model_reconstructed_abs
-      procedure, public :: deallocate_SMB_model => deallocate_SMB_model_reconstructed
+      procedure, public :: deallocate_SMB_model => deallocate_SMB_model_reconstructed_abs
       procedure, public :: initialise_SMB_model => initialise_SMB_model_reconstructed_abs
       procedure, public :: run_SMB_model        => run_SMB_model_reconstructed_abs
       procedure, public :: remap_SMB_model      => remap_SMB_model_reconstructed_abs
+
+      procedure, private :: run_SMB_model_reconstructed
 
   end type type_SMB_model_reconstructed
 
@@ -48,38 +49,18 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
-    ! Retrieve input variables from context object
-    call allocate_SMB_model_reconstructed( self%mesh, self)
-
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
   end subroutine allocate_SMB_model_reconstructed_abs
 
-  subroutine allocate_SMB_model_reconstructed( mesh, self)
-
-    ! In/output variables:
-    type(type_mesh),                intent(in   ) :: mesh
-    type(type_SMB_model_reconstructed), intent(inout) :: self
-
-    ! Local variables:
-    character(len=1024), parameter :: routine_name = 'allocate_SMB_model_reconstructed'
-
-    ! Add routine to call stack
-    call init_routine( routine_name)
-
-    ! Remove routine from call stack
-    call finalise_routine( routine_name)
-
-  end subroutine allocate_SMB_model_reconstructed
-
-  subroutine deallocate_SMB_model_reconstructed( self)
+  subroutine deallocate_SMB_model_reconstructed_abs( self)
 
     ! In/output variables:
     class(type_SMB_model_reconstructed), intent(inout) :: self
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'deallocate_SMB_model_reconstructed'
+    character(len=1024), parameter :: routine_name = 'deallocate_SMB_model_reconstructed_abs'
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -87,7 +68,7 @@ contains
     ! Remove routine from call stack
     call finalise_routine( routine_name)
 
-  end subroutine deallocate_SMB_model_reconstructed
+  end subroutine deallocate_SMB_model_reconstructed_abs
 
   subroutine initialise_SMB_model_reconstructed_abs( self, context)
 
@@ -100,11 +81,6 @@ contains
 
     ! Add routine to call stack
     call init_routine( routine_name)
-
-    if (par%primary) write(*,"(A)") '     Initialising reconstructed SMB model...'
-
-    ! Retrieve input variables from context object
-    ! call initialise_SMB_model_reconstructed( self%mesh, self, context%till_friction_angle_uniform)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -124,8 +100,8 @@ contains
     call init_routine( routine_name)
 
     ! Retrieve input variables from context object
-    call run_SMB_model_reconstructed( self%mesh, context%grid_smooth, context%ice, &
-      self%s, self%region_name(), context%time)
+    call self%run_SMB_model_reconstructed( self%mesh, context%grid_smooth, context%ice, &
+      self%region_name(), context%time)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -149,15 +125,17 @@ contains
 
   end subroutine remap_SMB_model_reconstructed_abs
 
-  subroutine run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
+
+
+  subroutine run_SMB_model_reconstructed( self, mesh, grid_smooth, ice, region_name, time)
 
     ! In/output variables:
-    type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid_smooth
-    type(type_ice_model),       intent(in   ) :: ice
-    type(type_SMB_model_state), intent(inout) :: SMB
-    character(len=3),           intent(in   ) :: region_name
-    real(dp),                   intent(in   ) :: time
+    class(type_SMB_model_reconstructed), intent(inout) :: self
+    type(type_mesh),                     intent(in   ) :: mesh
+    type(type_grid),                     intent(in   ) :: grid_smooth
+    type(type_ice_model),                intent(in   ) :: ice
+    character(len=3),                    intent(in   ) :: region_name
+    real(dp),                            intent(in   ) :: time
 
     ! Local variables:
     character(len=1024), parameter         :: routine_name = 'run_SMB_model_reconstructed'
@@ -193,21 +171,21 @@ contains
         ! If yes, check whether point lies above or below estimated transitional line altitude
         if (ice%Hs( vi) <= Hs_tla) then
           ! If below, SMB goes from 0 at the ELA to its estimated maximum at the TLA
-          SMB%SMB( vi) = SMB_max * max( 0._dp, min( 1._dp, (ice%Hs( vi) - Hs_ela)/(Hs_tla - Hs_ela)))
+          self%SMB( vi) = SMB_max * max( 0._dp, min( 1._dp, (ice%Hs( vi) - Hs_ela)/(Hs_tla - Hs_ela)))
         else
           ! If above, SMB goes from estimated maximum at the TLA to 0 at the DLA
-          SMB%SMB( vi) = SMB_max * (1._dp - max( 0._dp, min( 1._dp, (ice%Hs( vi) - Hs_tla)/(Hs_dla - Hs_tla))))
+          self%SMB( vi) = SMB_max * (1._dp - max( 0._dp, min( 1._dp, (ice%Hs( vi) - Hs_tla)/(Hs_dla - Hs_tla))))
         end if
       else
         ! If vertex lies outside of the reconstructed polygon, assume a negative
         ! SMB that counters (and then some) the flux convergence there
-        SMB%SMB( vi) = min( 0._dp, max( SMB_min, ice%divQ( vi) - .5_dp))
+        self%SMB( vi) = min( 0._dp, max( SMB_min, ice%divQ( vi) - .5_dp))
       end if
 
     end do
 
     ! Smooth the reconstructed field
-    SMB_smoothed = SMB%SMB
+    SMB_smoothed = self%SMB( mesh%vi1:mesh%vi2)
     call smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
 
     ! Only apply the smoothed field inside the reconstructed area
@@ -220,19 +198,19 @@ contains
         ! Compute a weight based on Hs: the higher, the less smoothing
         w_smooth = max( 0._dp, min( 1._dp, ice%Hs( vi) / Hs_dla))
         ! Apply weighed smoothing
-        SMB%SMB( vi) = w_smooth * SMB%SMB( vi) + (1._dp - w_smooth) * SMB_smoothed( vi)
+        self%SMB( vi) = w_smooth * self%SMB( vi) + (1._dp - w_smooth) * SMB_smoothed( vi)
       end if
     end do
 
     ! Smooth the field once more
-    SMB_smoothed = SMB%SMB
+    SMB_smoothed = self%SMB( mesh%vi1:mesh%vi2)
     call smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
 
     ! Apply this second smoothing only outside of the reconstructed area
     ! to conserve the power of negative SMB there
     do vi = mesh%vi1, mesh%vi2
       p = mesh%V( vi,:)
-      if (.not. is_in_polygon(poly_ROI, p)) SMB%SMB( vi) = SMB_smoothed( vi)
+      if (.not. is_in_polygon(poly_ROI, p)) self%SMB( vi) = SMB_smoothed( vi)
     end do
 
     ! Finalise routine path
