@@ -15,8 +15,8 @@ MODULE SMB_main
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
   USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
-  USE SMB_idealised                                          , ONLY: initialise_SMB_model_idealised, run_SMB_model_idealised
-  USE SMB_prescribed                                         , ONLY: initialise_SMB_model_prescribed, run_SMB_model_prescribed
+  use SMB_idealised, only: type_SMB_model_idealised
+  use SMB_prescribed, only: type_SMB_model_prescribed
   USE SMB_IMAU_ITM                                           , ONLY: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
@@ -38,9 +38,9 @@ CONTAINS
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_grid),                        INTENT(IN)    :: grid_smooth
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_climate_model),               INTENT(IN)    :: climate
+    TYPE(type_grid),            target,     INTENT(IN)    :: grid_smooth
+    TYPE(type_ice_model),       target,     INTENT(IN)    :: ice
+    TYPE(type_climate_model),   target,     INTENT(IN)    :: climate
     TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
@@ -94,12 +94,17 @@ CONTAINS
       CASE ('uniform')
         SMB%SMB = C%uniform_SMB
       CASE ('idealised')
-        CALL run_SMB_model_idealised( mesh, ice, SMB, time)
+        call SMB%idealised%run( SMB%idealised%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%idealised%SMB( mesh%vi1:mesh%vi2)
       CASE ('prescribed')
-        !IF (par%primary)  WRITE(*,"(A)") '   Running prescribed SMB...'
-        CALL run_SMB_model_prescribed( mesh, ice, SMB, region_name, time)
+        call SMB%prescribed%run( SMB%prescribed%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%prescribed%SMB( mesh%vi1:mesh%vi2)
       CASE ('reconstructed')
-        CALL run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
+        call SMB%reconstructed%run( SMB%reconstructed%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%reconstructed%SMB( mesh%vi1:mesh%vi2)
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%run( SMB%snapshot_plus_anomalies%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%snapshot_plus_anomalies%SMB( mesh%vi1:mesh%vi2)
       CASE ('IMAU-ITM')
         !IF (par%primary)  WRITE(*,"(A)") '   Running IMAU-ITM SMB model...'
         CALL run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
@@ -119,7 +124,7 @@ CONTAINS
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
+    TYPE(type_ice_model),      target,      INTENT(IN)    :: ice
     TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
@@ -159,12 +164,17 @@ CONTAINS
       CASE ('uniform')
         SMB%SMB = C%uniform_SMB
       CASE ('idealised')
-        CALL initialise_SMB_model_idealised( mesh, SMB)
+        call SMB%idealised%allocate  ( SMB%idealised%ct_allocate( 'SMB_idealised', region_name, mesh))
+        call SMB%idealised%initialise( SMB%idealised%ct_initialise( ice))
       CASE ('prescribed')
-        IF (par%primary)  WRITE(*,"(A)") '   Initialising prescribed SMB...'
-        CALL initialise_SMB_model_prescribed( mesh, SMB, region_name)
+        call SMB%prescribed%allocate  ( SMB%prescribed%ct_allocate( 'SMB_prescribed', region_name, mesh))
+        call SMB%prescribed%initialise( SMB%prescribed%ct_initialise( ice))
       CASE ('reconstructed')
-        CALL initialise_SMB_model_reconstructed( mesh, SMB, region_name)
+        call SMB%reconstructed%allocate  ( SMB%reconstructed%ct_allocate( 'SMB_reconstructed', region_name, mesh))
+        call SMB%reconstructed%initialise( SMB%reconstructed%ct_initialise( ice))
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%allocate  ( SMB%snapshot_plus_anomalies%ct_allocate( 'SMB_snapshot_plus_anomalies', region_name, mesh))
+        call SMB%snapshot_plus_anomalies%initialise( SMB%snapshot_plus_anomalies%ct_initialise( ice))
       CASE ('IMAU-ITM')
         IF (par%primary)  WRITE(*,"(A)") '   Initialising IMAU-ITM SMB...'
         CALL initialise_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, region_name)
@@ -387,7 +397,7 @@ CONTAINS
 
   END SUBROUTINE create_restart_file_SMB_model_region
 
-  SUBROUTINE remap_SMB_model( mesh_old, mesh_new, SMB, region_name)
+  SUBROUTINE remap_SMB_model( mesh_old, mesh_new, SMB, time, region_name)
     ! Remap the SMB model
 
     IMPLICIT NONE
@@ -395,7 +405,8 @@ CONTAINS
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_old
     TYPE(type_mesh),                        INTENT(IN)    :: mesh_new
-    TYPE(type_SMB_model),                   INTENT(OUT)   :: SMB
+    TYPE(type_SMB_model),                   INTENT(inout) :: SMB
+    real(dp),                               intent(in)    :: time
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
 
     ! Local variables:
@@ -430,9 +441,13 @@ CONTAINS
       CASE ('uniform')
         ! No need to do anything
       CASE ('idealised')
-        ! No need to do anything
+        call SMB%idealised%remap( SMB%idealised%ct_remap( mesh_new, time))
       CASE ('prescribed')
-        CALL initialise_SMB_model_prescribed( mesh_new, SMB, region_name)
+        call SMB%prescribed%remap( SMB%prescribed%ct_remap( mesh_new, time))
+      CASE ('reconstructed')
+        call SMB%reconstructed%remap( SMB%reconstructed%ct_remap( mesh_new, time))
+      CASE ('snapshot_plus_anomalies')
+        call SMB%snapshot_plus_anomalies%remap( SMB%snapshot_plus_anomalies%ct_remap( mesh_new, time))
       CASE ('IMAU-ITM')
         !CALL initialise_SMB_model_parameterised( mesh, ice, SMB, climate, region_name)
         CALL reallocate_bounds( SMB%SMB                    , mesh_new%vi1, mesh_new%vi2)
@@ -450,8 +465,6 @@ CONTAINS
         CALL reallocate_bounds(SMB%IMAUITM%Albedo      , mesh_new%vi1, mesh_new%vi2, 12)
         CALL reallocate_bounds(SMB%IMAUITM%SMB_monthly , mesh_new%vi1, mesh_new%vi2, 12)
 
-      CASE ('reconstructed')
-        CALL crash('Remapping after mesh update not implemented yet for reconstructed SMB')
       CASE DEFAULT
         CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT
@@ -460,133 +473,5 @@ CONTAINS
     CALL finalise_routine( routine_name)
 
   END SUBROUTINE remap_SMB_model
-
-! ===== Inversion =====
-! =====================
-
-  SUBROUTINE run_SMB_model_reconstructed( mesh, grid_smooth, ice, SMB, region_name, time)
-    ! Calculate the surface mass balance
-    !
-    ! Use a reconstructed SMB approach
-
-    IMPLICIT NONE
-
-    ! In/output variables:
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_grid),                        INTENT(IN)    :: grid_smooth
-    TYPE(type_ice_model),                   INTENT(IN)    :: ice
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-    REAL(dp),                               INTENT(IN)    :: time
-
-    ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_SMB_model_reconstructed'
-    INTEGER                                               :: vi
-    REAL(dp), DIMENSION(:,:  ), ALLOCATABLE               :: poly_ROI             ! Polygon defining reconstructed area
-    REAL(dp), DIMENSION(2)                                :: p                    ! Coordinates of a vertex
-    REAL(dp), DIMENSION(mesh%vi1:mesh%vi2)                :: SMB_smoothed         ! Smoothed SMB field
-    REAL(dp)                                              :: w_smooth             ! Weight of the smoothed SMB field
-    REAL(dp), PARAMETER                                   :: r_smooth =  2.E4_dp  ! Radius used to smooth the SMB field
-    REAL(dp), PARAMETER                                   :: Hs_ela   =  500._dp  ! Equilibrium line altitud: SMB becomes positive here
-    REAL(dp), PARAMETER                                   :: Hs_tla   =  1500._dp ! Transitional line altitud: SMB reaches maximum here
-    REAL(dp), PARAMETER                                   :: Hs_dla   =  2500._dp ! Desertification line altitude: SMB becomes zero here
-    REAL(dp), PARAMETER                                   :: SMB_max  =  2._dp    ! Maximum SMB value allowed
-    REAL(dp), PARAMETER                                   :: SMB_min  = -10._dp   ! Minimum SMB value allowed
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    IF (.NOT. C%choice_regions_of_interest == 'Patagonia') THEN
-      CALL crash('reconstructed SMB method only implemented for C%choice_regions_of_interest == Patagonia')
-    END IF
-
-    ! Compute polygon for reconstruction
-    CALL calc_polygon_Patagonia( poly_ROI)
-
-    DO vi = mesh%vi1, mesh%vi2
-
-      ! Get x and y coordinates of this vertex
-      p = mesh%V( vi,:)
-
-      ! Check if point lies within our reconstruction polygon
-      IF (is_in_polygon(poly_ROI, p)) THEN
-        ! If yes, check whether point lies above or below estimated transitional line altitude
-        IF (ice%Hs( vi) <= Hs_tla) THEN
-          ! If below, SMB goes from 0 at the ELA to its estimated maximum at the TLA
-          SMB%SMB( vi) = SMB_max * MAX( 0._dp, MIN( 1._dp, (ice%Hs( vi) - Hs_ela)/(Hs_tla - Hs_ela)))
-        ELSE
-          ! If above, SMB goes from estimated maximum at the TLA to 0 at the DLA
-          SMB%SMB( vi) = SMB_max * (1._dp - MAX( 0._dp, MIN( 1._dp, (ice%Hs( vi) - Hs_tla)/(Hs_dla - Hs_tla))))
-        END IF
-      ELSE
-        ! If vertex lies outside of the reconstructed polygon, assume a negative
-        ! SMB that counters (and then some) the flux convergence there
-        SMB%SMB( vi) = MIN( 0._dp, MAX( SMB_min, ice%divQ( vi) - .5_dp))
-      END IF
-
-    END DO
-
-    ! Smooth the reconstructed field
-    SMB_smoothed = SMB%SMB
-    CALL smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
-
-    ! Only apply the smoothed field inside the reconstructed area
-    ! to reduce the power of positive SMB there
-    DO vi = mesh%vi1, mesh%vi2
-      ! Our vextex coordinates
-      p = mesh%V( vi,:)
-      ! Check if point lies inside polygon
-      IF (is_in_polygon(poly_ROI, p)) THEN
-        ! Compute a weight based on Hs: the higher, the less smoothing
-        w_smooth = MAX( 0._dp, MIN( 1._dp, ice%Hs( vi) / Hs_dla))
-        ! Apply weighed smoothing
-        SMB%SMB( vi) = w_smooth * SMB%SMB( vi) + (1._dp - w_smooth) * SMB_smoothed( vi)
-      END IF
-    END DO
-
-    ! Smooth the field once more
-    SMB_smoothed = SMB%SMB
-    CALL smooth_Gaussian( mesh, grid_smooth, C%output_dir, SMB_smoothed, r_smooth)
-
-    ! Apply this second smoothing only outside of the reconstructed area
-    ! to conserve the power of negative SMB there
-    DO vi = mesh%vi1, mesh%vi2
-      p = mesh%V( vi,:)
-      IF (.NOT. is_in_polygon(poly_ROI, p)) SMB%SMB( vi) = SMB_smoothed( vi)
-    END DO
-
-    ! Clean up after yourself
-    DEALLOCATE( poly_ROI)
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE run_SMB_model_reconstructed
-
-  SUBROUTINE initialise_SMB_model_reconstructed( mesh, SMB, region_name)
-    ! Initialise the SMB model
-    !
-    ! Use a reconstructed SMB approach
-
-    IMPLICIT NONE
-
-    ! In- and output variables
-    TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_SMB_model),                   INTENT(INOUT) :: SMB
-    CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-
-    ! Local variables:
-    CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_SMB_model_reconstructed'
-
-    ! Add routine to path
-    CALL init_routine( routine_name)
-
-    ! Print to terminal
-    IF (par%primary)  WRITE(*,"(A)") '     Initialising reconstructed SMB model...'
-
-    ! Finalise routine path
-    CALL finalise_routine( routine_name)
-
-  END SUBROUTINE initialise_SMB_model_reconstructed
 
 END MODULE SMB_main
