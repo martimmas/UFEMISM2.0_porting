@@ -104,7 +104,7 @@ CONTAINS
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_climate_model_snapshot_plus_transient_deltaT'
     INTEGER                                               :: vi, m
-    CHARACTER(LEN=1024),                    ALLOCATABLE   :: filename_climate_snapshot, filename_atm_dT
+    CHARACTER(LEN=256)                                    :: filename_climate_snapshot, filename_atm_dT
     LOGICAL                                               :: do_lapse_rates
     REAL(dp)                                              :: timeframe_init_insolation
 
@@ -114,10 +114,8 @@ CONTAINS
     ALLOCATE( climate%snapshot_trans_dT%snapshot%Hs(     mesh%vi1:mesh%vi2))
     ALLOCATE( climate%snapshot_trans_dT%snapshot%T2m(    mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_trans_dT%snapshot%Precip( mesh%vi1:mesh%vi2,12))
-    ! allocate(climate%snapshot_trans_dT%dT_t0)
-    ! allocate(climate%snapshot_trans_dT%dT_t1)
-    ! allocate(climate%snapshot_trans_dT%dT_at_t0)
-    ! allocate(climate%snapshot_trans_dT%dT_at_t1)
+    ! Run the chosen realistic climate model
+    climate%snapshot_trans_dT%snapshot%has_insolation = .FALSE.
     
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region

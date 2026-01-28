@@ -1128,6 +1128,7 @@ module model_configuration_type_and_namelist
 
     ! Basic settings
     logical             :: do_create_netcdf_output_config               = .true.                          !     Whether or not NetCDF output files should be created at all
+    logical             :: do_create_ismip_output_config                = .false.                          !     Whether or not ISMIP-specific output files should be created at all
     CHARACTER(LEN=1024) :: output_precision_config                      = 'double'                        !     Precision of floating-point output fields ('single' [32-bit], 'double' [64-bit])
     logical             :: do_compress_output_config                    = .false.                         !     Whether or not to use the NetCDF 'shuffle' and 'deflate' options to (losslessly) compress output
     real(dp)            :: dt_output_config                             = 1000._dp                        !     Time step for writing output
@@ -2310,6 +2311,7 @@ module model_configuration_type_and_namelist
 
     ! Basic settings
     logical             :: do_create_netcdf_output
+    logical             :: do_create_ismip_output
     CHARACTER(LEN=1024) :: output_precision
     logical             :: do_compress_output
     real(dp)            :: dt_output
@@ -3121,6 +3123,7 @@ contains
       tractrackpart_write_raw_output_config                       , &
       tractrackpart_dt_raw_output_config                          , &
       do_create_netcdf_output_config                              , &
+      do_create_ismip_output_config                               , &
       output_precision_config                                     , &
       do_compress_output_config                                   , &
       dt_output_config                                            , &
@@ -4332,6 +4335,7 @@ contains
 
     ! Basic settings
     C%do_create_netcdf_output                                = do_create_netcdf_output_config
+    C%do_create_ismip_output                                 = do_create_ismip_output_config
     C%output_precision                                       = output_precision_config
     C%do_compress_output                                     = do_compress_output_config
     C%dt_output                                              = dt_output_config
