@@ -5,7 +5,8 @@ module ct_mesh_focussing
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_CHAR
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, strrep
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use string_module, only: colour_string, strrep
   use mesh_types, only: type_mesh
   use assertions_basic, only: assert
   use tests_main, only: test_mesh_is_self_consistent

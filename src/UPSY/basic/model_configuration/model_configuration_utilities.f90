@@ -2,7 +2,8 @@ module model_configuration_utilities
 
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
-    crash, warning, capitalise_string, remove_leading_spaces
+    crash, warning
+  use string_module, only: capitalise_string, remove_leading_spaces
 
   implicit none
 

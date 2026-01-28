@@ -7,9 +7,8 @@ module LADDIE_main_model
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM, MPI_WTIME
   use precisions, only: dp
-  use mpi_basic, only: par, sync 
-  use control_resources_and_error_messaging, only: happy, warning, crash, init_routine, finalise_routine, &
-    colour_string, str2int, int2str, insert_val_into_string_dp
+  use mpi_basic, only: par, sync
+  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
   use model_configuration                                    , ONLY: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry
@@ -52,10 +51,10 @@ contains
     ! Integrate the model until t_end
 
     ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh 
+    type(type_mesh),           intent(in   ) :: mesh
     type(type_laddie_model),   intent(inout) :: laddie
     type(type_laddie_forcing), intent(inout) :: forcing
-    real(dp),                  intent(in   ) :: time 
+    real(dp),                  intent(in   ) :: time
     logical,                   intent(in   ) :: is_initial
     logical,                   intent(in   ) :: is_standalone
 
@@ -138,7 +137,7 @@ contains
       case ('none')
         ! Do nothing
       case ('idealised','read_from_file')
-        if (time >= C%start_time_of_applying_SGD) then 
+        if (time >= C%start_time_of_applying_SGD) then
           ! Compute SGD
           call compute_subglacial_discharge( mesh, laddie, forcing)
         else
@@ -237,7 +236,7 @@ contains
       if (is_standalone) then
         ! Always include scalar output
         call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-  
+
         ! Write scalars if required
         if (tl > time_to_write * sec_per_day) then
           call write_to_laddie_scalar_output_file( laddie)
@@ -268,10 +267,10 @@ contains
             time_to_write_mesh = time_to_write_mesh + C%dt_output
           end if
         end if
-  
+
         if (C%do_write_laddie_output_scalar) then
           call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-  
+
           ! Write if required
           if (tl > time_to_write * sec_per_day) then
             call write_to_laddie_scalar_output_file( laddie)
