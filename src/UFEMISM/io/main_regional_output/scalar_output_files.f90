@@ -9,7 +9,7 @@ module scalar_output_files
   use reallocate_mod
   use netcdf_basic
   use netcdf, only: NF90_DOUBLE, NF90_UNLIMITED
-  
+
   implicit none
 
   private
@@ -602,7 +602,7 @@ contains
       call add_field_dp_0D( filename, ncid, 'tendlicalvf',     long_name = 'tendency_of_land_ice_mass_due_to_calving',                       units = 'kg s-1')
       call add_field_dp_0D( filename, ncid, 'tendlifmassbf',   long_name = 'tendency_of_land_ice_mass_due_to_calving_and_ice_front_melting', units = 'kg s-1')
 
-      
+
       ! Allocate memory to buffer scalar output data between output writing intervals
       call allocate_ISMIP_scalar_output_buffer( region)
 
@@ -678,7 +678,7 @@ contains
       n = region%scalars%buffer%ismip%n
 
       ! Extend buffer memory if necessary
-      if (n > region%scalars%buffer%ismip%n_mem - 10) call extend_scalar_output_buffer( region)
+      if (n > region%scalars%buffer%ismip%n_mem - 10) call extend_ISMIP_scalar_output_buffer( region)
 
       ! Store new timeframe in buffer
       region%scalars%buffer%ismip%time    ( n) = region%time * 360._dp ! need to convert to number of days for ISMIP
