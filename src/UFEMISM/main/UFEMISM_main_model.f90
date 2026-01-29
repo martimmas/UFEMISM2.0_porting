@@ -29,8 +29,7 @@ MODULE UFEMISM_main_model
                                                                      create_restart_file_climate_model, write_to_restart_file_climate_model
   USE ocean_main                                             , ONLY: initialise_ocean_model, run_ocean_model, remap_ocean_model, &
                                                                      create_restart_file_ocean_model, write_to_restart_file_ocean_model
-  USE SMB_main                                               , ONLY: initialise_SMB_model, run_SMB_model, remap_SMB_model, &
-                                                                     create_restart_file_SMB_model, write_to_restart_file_SMB_model
+  use SMB_model, only: create_SMB_model
   USE BMB_main                                               , ONLY: initialise_BMB_model, run_BMB_model, remap_BMB_model, &
                                                                      create_restart_file_BMB_model, write_to_restart_file_BMB_model
   USE LMB_main                                               , ONLY: initialise_LMB_model, run_LMB_model, remap_LMB_model
@@ -73,7 +72,7 @@ CONTAINS
     IMPLICIT NONE
 
     ! In/output variables:
-    TYPE(type_model_region)                            , INTENT(INOUT) :: region
+    TYPE(type_model_region), target                    , INTENT(INOUT) :: region
     REAL(dp)                                           , INTENT(IN)    :: t_end    ! [yr]
     TYPE(type_global_forcing)                          , INTENT(IN)    :: forcing
 
@@ -147,7 +146,7 @@ CONTAINS
       CALL run_ocean_model( region%mesh, region%grid_smooth, region%ice, region%ocean, region%name, region%time)
 
       ! Calculate the surface mass balance
-      CALL run_SMB_model( region%mesh, region%grid_smooth, region%ice, region%climate, region%SMB, region%name, region%time)
+      call region%SMB%run( region%SMB%ct_run( region%time, region%ice, region%climate, region%grid_smooth))
 
       ! Calculate the basal mass balance
       CALL run_BMB_model( region%mesh, region%ice, region%ocean, region%refgeo_PD, region%SMB, region%BMB, region%name, region%time, is_initial=.FALSE.)
@@ -282,7 +281,6 @@ CONTAINS
       CALL create_restart_file_thermo       ( region%mesh, region%ice)
       CALL create_restart_file_climate_model( region%mesh, region%climate, region%name)
       CALL create_restart_file_ocean_model  ( region%mesh, region%ocean  , region%name)
-      CALL create_restart_file_SMB_model    ( region%mesh, region%SMB    , region%name)
       CALL create_restart_file_BMB_model    ( region%mesh, region%BMB    , region%name)
       CALL create_restart_file_GIA_model    ( region%mesh, region%GIA    , region%name)
 
@@ -319,7 +317,7 @@ CONTAINS
       CALL write_to_restart_file_thermo       ( region%mesh, region%ice                 , region%time)
       CALL write_to_restart_file_climate_model( region%mesh, region%climate, region%name, region%time)
       CALL write_to_restart_file_ocean_model  ( region%mesh, region%ocean  , region%name, region%time)
-      CALL write_to_restart_file_SMB_model    ( region%mesh, region%SMB    , region%name, region%time)
+      call region%SMB%write_to_restart_file( trim( C%output_dir))
       CALL write_to_restart_file_BMB_model    ( region%mesh, region%BMB    , region%name, region%time)
       CALL write_to_restart_file_GIA_model    ( region%mesh, region%GIA    , region%name, region%time)
     END IF
@@ -435,7 +433,7 @@ CONTAINS
     IMPLICIT NONE
 
     ! In/output variables:
-    TYPE(type_model_region)                            , INTENT(OUT)   :: region
+    TYPE(type_model_region), target                    , INTENT(OUT)   :: region
     CHARACTER(LEN=3),                                    INTENT(IN)    :: region_name
     TYPE(type_global_forcing)                          , INTENT(IN)    :: forcing
     REAL(dp)                                           , INTENT(IN)    :: start_time_of_run
@@ -535,7 +533,21 @@ CONTAINS
     ! ===== Surface mass balance =====
     ! ================================
 
-    CALL initialise_SMB_model( region%mesh, region%ice, region%SMB, region%name)
+    select case (region%name)
+    case default
+      call crash('unknown region name "' // region%name // '"')
+    case ('NAM')
+      call create_SMB_model( region%SMB, C%choice_SMB_model_NAM)
+    case ('EAS')
+      call create_SMB_model( region%SMB, C%choice_SMB_model_EAS)
+    case ('GRL')
+      call create_SMB_model( region%SMB, C%choice_SMB_model_GRL)
+    case ('ANT')
+      call create_SMB_model( region%SMB, C%choice_SMB_model_ANT)
+    end select
+
+    call region%SMB%allocate  ( region%SMB%ct_allocate( 'SMB_model', region%name, region%mesh))
+    call region%SMB%initialise( region%SMB%ct_initialise( region%ice))
 
     ! ===== Basal mass balance =====
     ! ==============================
@@ -563,7 +575,7 @@ CONTAINS
     ! Run the models
     CALL run_climate_model( region%mesh, region%grid_smooth, region%ice, region%climate, regional_forcing, region%name, C%start_time_of_run, region%SMB)
     CALL run_ocean_model( region%mesh, region%grid_smooth, region%ice, region%ocean, region%name, C%start_time_of_run)
-    CALL run_SMB_model( region%mesh, region%grid_smooth, region%ice, region%climate, region%SMB, region%name, C%start_time_of_run)
+    call region%SMB%run( region%SMB%ct_run( C%start_time_of_run, region%ice, region%climate, region%grid_smooth))
     CALL run_BMB_model( region%mesh, region%ice, region%ocean, region%refgeo_PD, region%SMB, region%BMB, region%name, C%start_time_of_run, is_initial=.TRUE.)
     CALL run_LMB_model( region%mesh, region%ice, region%LMB, region%name, region%time)
 
@@ -645,7 +657,6 @@ CONTAINS
     CALL create_restart_file_thermo       ( region%mesh, region%ice)
     CALL create_restart_file_climate_model( region%mesh, region%climate, region%name)
     CALL create_restart_file_ocean_model  ( region%mesh, region%ocean  , region%name)
-    CALL create_restart_file_SMB_model    ( region%mesh, region%SMB    , region%name)
     CALL create_restart_file_BMB_model    ( region%mesh, region%BMB    , region%name)
     CALL create_restart_file_GIA_model    ( region%mesh, region%GIA    , region%name)
 
@@ -1177,7 +1188,7 @@ CONTAINS
     IMPLICIT NONE
 
     ! In/output variables:
-    TYPE(type_model_region),                             INTENT(INOUT) :: region
+    TYPE(type_model_region), target,                     INTENT(INOUT) :: region
     TYPE(type_global_forcing),                           INTENT(IN)    :: forcing
 
     ! Local variables:
@@ -1272,7 +1283,7 @@ CONTAINS
     CALL remap_ice_dynamics_model(    region%mesh, mesh_new, region%ice, region%bed_roughness, region%refgeo_PD, region%SMB, region%BMB, region%LMB, region%AMB, region%GIA, region%time, region%name, forcing)
     CALL remap_climate_model(         region%mesh, mesh_new,             region%climate, region%name, region%time, region%grid_smooth, region%ice, forcing)
     CALL remap_ocean_model(           region%mesh, mesh_new, region%ice, region%ocean  , region%name, region%time)
-    CALL remap_SMB_model(             region%mesh, mesh_new,             region%SMB    , region%time, region%name)
+    call region%SMB%remap( region%SMB%ct_remap( mesh_new, region%time))
     CALL remap_BMB_model(             region%mesh, mesh_new, region%ice, region%ocean, region%BMB    , region%name, region%time)
     CALL remap_LMB_model(             region%mesh, mesh_new,             region%LMB    , region%name)
     CALL remap_AMB_model(             region%mesh, mesh_new,             region%AMB                 )
