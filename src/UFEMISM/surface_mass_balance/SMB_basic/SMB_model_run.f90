@@ -52,6 +52,29 @@ contains
     ! Add routine to call stack
     call init_routine( routine_name)
 
+    ! Check if we need to calculate a new SMB
+    if (C%do_asynchronous_SMB) then
+      ! Asynchronous coupling: do not calculate a new SMB in
+      ! every model loop, but only at its own separate time step
+
+      ! Check if this is the next SMB time step
+      if (time == self%t_next) then
+        ! Go on to calculate a new SMB
+        self%t_next = time + C%dt_SMB
+      elseif (time > self%t_next) then
+        ! This should not be possible
+        call crash('overshot the SMB time step')
+      else
+        ! It is not yet time to calculate a new SMB
+        call finalise_routine( routine_name)
+        return
+      end if
+
+    else
+      ! Synchronous coupling: calculate a new SMB in every model loop
+      self%t_next = time + C%dt_SMB
+    end if
+
     ! Part common to all models of atype_SMB_model
     call run_model_common( self, context)
 

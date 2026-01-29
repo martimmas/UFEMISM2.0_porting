@@ -2,6 +2,7 @@ module SMB_model_basic
 
   use precisions, only: dp
   use parameters, only: pi, NaN
+  use model_configuration, only: C
   use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
@@ -23,6 +24,8 @@ module SMB_model_basic
     type_SMB_model_context_remap
 
   type, abstract, extends(type_SMB_model_common) :: atype_SMB_model
+
+    real(dp) :: t_next   !< Time when the SMB model should be run next
 
     contains
 
