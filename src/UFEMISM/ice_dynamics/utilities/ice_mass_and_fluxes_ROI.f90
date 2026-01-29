@@ -10,7 +10,7 @@ module ice_mass_and_fluxes_ROI
   use mesh_types, only: type_mesh
   use scalar_types, only: type_regional_scalars
   use ice_model_types, only: type_ice_model
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
   use BMB_model_types, only: type_BMB_model
   use LMB_model_types, only: type_LMB_model
   use reference_geometry_types, only: type_reference_geometry
@@ -31,7 +31,7 @@ contains
     ! In/output variables:
     type(type_mesh),               intent(in   ) :: mesh
     type(type_ice_model),          intent(in   ) :: ice
-    type(type_SMB_model),          intent(in   ) :: SMB
+    class(atype_SMB_model),        intent(in   ) :: SMB
     type(type_BMB_model),          intent(in   ) :: BMB
     type(type_LMB_model),          intent(in   ) :: LMB
     type(type_reference_geometry), intent(in   ) :: refgeo_PD
@@ -197,7 +197,7 @@ contains
     ! In/output variables:
     type(type_mesh),             intent(in   ) :: mesh
     type(type_ice_model),        intent(in   ) :: ice
-    type(type_SMB_model),        intent(in   ) :: SMB
+    class(atype_SMB_model),      intent(in   ) :: SMB
     type(type_BMB_model),        intent(in   ) :: BMB
     type(type_LMB_model),        intent(in   ) :: LMB
     type(type_regional_scalars), intent(inout) :: scalars
@@ -469,12 +469,12 @@ contains
   end subroutine calc_ice_transitional_fluxes_ROI
 
   subroutine calc_ISMIP_scalars_ROI( mesh, ice, SMB, BMB, scalars, i_ROI)
-  !< Calculate all scalars in ISMIP format
+    !< Calculate all scalars in ISMIP format
 
     ! In/output variables:
     type(type_mesh),             intent(in   ) :: mesh
     type(type_ice_model),        intent(in   ) :: ice
-    type(type_SMB_model),        intent(in   ) :: SMB
+    class(atype_SMB_model),      intent(in   ) :: SMB
     type(type_BMB_model),        intent(in   ) :: BMB
     type(type_regional_scalars), intent(inout) :: scalars
     integer,                     intent(in   ) :: i_ROI
@@ -506,7 +506,7 @@ contains
     REAL(dp)                               :: total_BMB_shelf
     REAL(dp)                               :: total_calving_flux
     REAL(dp)                               :: total_calving_and_front_melt_flux
-    
+
     ! Add routine to path
     call init_routine( routine_name)
 
@@ -631,7 +631,7 @@ contains
 
       end if ! if (ice%mask_ROI( vi) == i_ROI) then
     END DO ! vi = mesh%vi1, mesh%vi2
-    
+
     scalars%ismip%lim             = land_ice_mass
     scalars%ismip%limnsw          = mass_above_floatation
     scalars%ismip%iareagr         = grounded_ice_sheet_area
@@ -641,7 +641,7 @@ contains
     scalars%ismip%tendlibmassbffl = total_BMB_shelf
     scalars%ismip%tendlicalvf     = total_calving_flux
     scalars%ismip%tendlifmassbf   = total_calving_and_front_melt_flux
-    
+
     ! Add together values from each process
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%lim,             1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
     call MPI_ALLREDUCE( MPI_IN_PLACE, scalars%ismip%limnsw,          1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, ierr)
@@ -661,7 +661,7 @@ contains
   subroutine calc_ice_margin_fluxes_ROI( mesh, ice, calving_flux, i_ROI)
       !< Calculate the ice flux through the ice margin using an upwind scheme
 
-      ! This is the same routine as calc_ice_transitional_fluxes, 
+      ! This is the same routine as calc_ice_transitional_fluxes,
       ! but does not integrate over all vertices, so the results are given
       ! in the mesh, with fluxes per cell
 
@@ -706,7 +706,7 @@ contains
       ! Initialise
       calving_flux                = 0._dp
       ! calving_and_front_melt_flux = 0._dp ! TODO: when front melt is computed
-      
+
 
       do vi = mesh%vi1, mesh%vi2
       if (ice%mask_ROI( vi) == i_ROI) then
