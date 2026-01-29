@@ -12,7 +12,8 @@ MODULE climate_main
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
   USE ice_model_types                                        , ONLY: type_ice_model
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
+  use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
   use grid_types                                             , ONLY: type_grid
   USE climate_model_types                                    , ONLY: type_climate_model
   USE global_forcing_types                                   , ONLY: type_global_forcing
@@ -44,7 +45,7 @@ CONTAINS
     TYPE(type_global_forcing),              INTENT(IN)    :: forcing
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
-    TYPE(type_SMB_model), optional,         INTENT(INOUT) :: SMB
+    class(atype_SMB_model), optional,       INTENT(INOUT) :: SMB
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_climate_model'
@@ -104,7 +105,12 @@ CONTAINS
     CASE ('matrix')
       call run_climate_model_matrix( mesh, grid, ice, SMB, climate, region_name, time, forcing)
     case ('SMB_snapshot_plus_anomalies')
-      call SMB%snapshot_plus_anomalies%run( SMB%snapshot_plus_anomalies%ct_run( time, ice, climate, grid))
+      select type (snapshot_plus_anomalies => SMB)
+      class default
+        call crash('choice_climate_model = SMB_snapshot_plus_anomalies only works when choice_SMB_model = snapshot_plus_anomalies')
+      class is (type_SMB_model_snp_p_anml)
+        call snapshot_plus_anomalies%run( snapshot_plus_anomalies%ct_run( time, ice, climate, grid))
+      end select
     CASE DEFAULT
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
     END SELECT
