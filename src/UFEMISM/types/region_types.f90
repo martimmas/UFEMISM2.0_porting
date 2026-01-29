@@ -12,7 +12,7 @@ MODULE region_types
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE LMB_model_types                                        , ONLY: type_LMB_model
   USE AMB_model_types                                        , ONLY: type_AMB_model
@@ -59,7 +59,7 @@ MODULE region_types
     TYPE(type_ocean_model)                  :: ocean
 
     ! The surface mass balance model
-    TYPE(type_SMB_model)                    :: SMB
+    class(atype_SMB_model), allocatable :: SMB
 
     ! The basal mass balance model
     TYPE(type_BMB_model)                    :: BMB
