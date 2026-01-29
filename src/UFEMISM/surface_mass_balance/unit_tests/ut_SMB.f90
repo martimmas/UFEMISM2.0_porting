@@ -3,10 +3,10 @@ module ut_SMB
   use precisions, only: dp
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use ut_basic, only: unit_test
-  use tests_main, only: test_tol
+  use tests_main, only: test_tol, test_ge_le
   use model_configuration, only: C
   use SMB_model, only: atype_SMB_model, create_SMB_model
-  use parameters, only: pi
+  use parameters, only: pi, T0
   use mesh_types, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
@@ -17,7 +17,8 @@ module ut_SMB
   use climate_model_types, only: type_climate_model
   use grid_types, only: type_grid
   use Halfar_SIA_solution, only: Halfar
-  use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, MPI_WIN
+  use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, &
+    MPI_WIN, MPI_MIN, MPI_MAX
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
   use netcdf_io_main, only: create_new_netcdf_file_for_writing, &
@@ -70,6 +71,7 @@ contains
     ! Run all unit tests
     call test_SMB_idealised ( test_name, mesh)
     call test_SMB_prescribed( test_name, mesh)
+    call test_SMB_IMAU_ITM  ( test_name, mesh)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -205,5 +207,85 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_SMB_prescribed
+
+  subroutine test_SMB_IMAU_ITM( test_name_parent, mesh)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+    type(type_mesh),  intent(in) :: mesh
+
+    ! Local variables:
+    character(len=1024), parameter              :: routine_name = 'test_SMB_IMAU_ITM'
+    character(len=1024), parameter              :: test_name_local = 'IMAU_ITM'
+    character(len=1024)                         :: test_name
+    integer                                     :: vi, m
+    real(dp)                                    :: rp
+    class(atype_SMB_model), allocatable         :: SMB
+    type(type_ice_model)     , target           :: ice
+    type(type_climate_model) , target           :: climate
+    type(type_grid)          , target           :: grid_smooth
+    real(dp)                                    :: SMB_min, SMB_max
+    integer                                     :: ierr
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    ! Set up simple climate fields
+    allocate( climate%T2m   ( mesh%vi1: mesh%vi2, 12))
+    allocate( climate%Precip( mesh%vi1: mesh%vi2, 12))
+    allocate( climate%Q_TOA ( mesh%vi1: mesh%vi2, 12))
+    do vi = mesh%vi1, mesh%vi2
+      rp = 1.5_dp * hypot( mesh%V( vi,1), mesh%V( vi,2)) / (mesh%xmax - mesh%xmin)
+      do m = 1, 12
+        climate%T2m   ( vi,m) = T0 - 20._dp  + rp * 20._dp + real( m,dp) * 2._dp
+        climate%Precip( vi,m) =      (0.2_dp + rp *  2._dp + real( m,dp) * 0.5_dp) / 12._dp
+        climate%Q_TOA ( vi,m) = max( 0._dp, 1000._dp * rp + 1500._dp * sin( real( m,dp) * 2._dp * pi / 12._dp))
+      end do
+    end do
+
+    ! Set up simple ice model fields
+    allocate( ice%Hi( mesh%vi1: mesh%vi2), source = 0._dp)
+    allocate( ice%Hb( mesh%vi1: mesh%vi2), source = 10._dp)
+    allocate( ice%Hs( mesh%vi1: mesh%vi2), source = 10._dp)
+    allocate( ice%mask_icefree_ocean( mesh%vi1: mesh%vi2), source = .false.)
+    allocate( ice%mask_floating_ice ( mesh%vi1: mesh%vi2), source = .false.)
+    allocate( ice%mask_noice        ( mesh%vi1: mesh%vi2), source = .false.)
+    allocate( ice%mask_grounded_ice ( mesh%vi1: mesh%vi2), source = .false.)
+
+    do vi = mesh%vi1, mesh%vi2
+      rp = 1.5_dp * hypot( mesh%V( vi,1), mesh%V( vi,2)) / (mesh%xmax - mesh%xmin)
+      if (rp < 0.5_dp) then
+        ice%mask_grounded_ice( vi) = .true.
+        ice%Hi( vi) = max( 0._dp, 1000._dp - 2000._dp * rp)
+        ice%Hs( vi) = ice%Hb( vi) + ice% Hi( vi)
+        climate%T2m( vi,:) = climate%T2m( vi,:) - ice%Hs( vi) * 0.008_dp
+      end if
+    end do
+
+    ! Create and run IMAU-ITM SMB model
+    call create_SMB_model( SMB, 'IMAU-ITM')
+    call SMB%allocate  ( SMB%ct_allocate( 'SMB_IMAU_ITM', 'ANT', mesh))
+    call SMB%initialise( SMB%ct_initialise( ice))
+    call SMB%run       ( SMB%ct_run( 0._dp, ice, climate, grid_smooth))
+
+    ! Verify that it worked
+    SMB_min = minval( SMB%SMB)
+    SMB_max = maxval( SMB%SMB)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, SMB_min, 1, MPI_LOGICAL, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_ALLREDUCE( MPI_IN_PLACE, SMB_max, 1, MPI_LOGICAL, MPI_MAX, MPI_COMM_WORLD, ierr)
+    call unit_test(&
+      test_ge_le( SMB_min, -23._dp, -21._dp) .and. &
+      test_ge_le( SMB_max,  3.4_dp,  3.7_dp), test_name)
+
+    ! Clean up after yourself
+    call SMB%deallocate
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_SMB_IMAU_ITM
 
 end module ut_SMB
