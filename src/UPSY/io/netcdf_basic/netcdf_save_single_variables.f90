@@ -364,21 +364,4 @@ contains
 
   end subroutine save_variable_as_netcdf_dp_2D
 
-  subroutine delete_existing_file( filename)
-
-    ! In/output variables:
-    character(len=*), intent(in) :: filename
-
-    ! Local variables:
-    logical :: file_exists
-
-    if (par%primary) then
-      inquire( exist = file_exists, file = trim( filename))
-      if (file_exists) then
-        call system('rm -f ' // filename)
-      end if
-    end if
-
-  end subroutine delete_existing_file
-
 end module netcdf_save_single_variables

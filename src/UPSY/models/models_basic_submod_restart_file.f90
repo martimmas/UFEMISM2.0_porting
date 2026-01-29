@@ -22,6 +22,7 @@ contains
     filename_loc = trim(  output_dir) // '/restart_file_' // trim( self%name()) // '.nc'
     if (present( filename)) filename = filename_loc
 
+    call delete_existing_file( filename_loc)
     call create_new_netcdf_file_for_writing( filename_loc, ncid)
     call setup_mesh_in_netcdf_file( filename_loc, ncid, self%mesh)
     call self%flds_reg%write_to_netcdf( filename_loc, ncid)
