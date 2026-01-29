@@ -13,6 +13,7 @@ module mesh_output_files
   use netcdf, only: NF90_DOUBLE
   use mesh_contour, only: calc_mesh_contour
   use parameters, only: NaN
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
 
   implicit none
 
@@ -601,11 +602,26 @@ contains
       case ('SMB')
         call write_to_field_multopt_mesh_dp_2D( region%mesh, filename, ncid, 'SMB', region%SMB%SMB)
       case ('Albedo')
-        call write_to_field_multopt_mesh_dp_2D_monthly( region%mesh, filename, ncid, 'Albedo', region%SMB%IMAUITM%Albedo)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('Albedo only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call write_to_field_multopt_mesh_dp_2D_monthly( region%mesh, filename, ncid, 'Albedo', IMAU_ITM%Albedo)
+        end select
       CASE ('FirnDepth')
-        call write_to_field_multopt_mesh_dp_2D_monthly( region%mesh, filename, ncid, 'FirnDepth', region%SMB%IMAUITM%FirnDepth)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('FirnDepth only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call write_to_field_multopt_mesh_dp_2D_monthly( region%mesh, filename, ncid, 'FirnDepth', IMAU_ITM%FirnDepth)
+        end select
       CASE ('MeltPreviousYear')
-        call write_to_field_multopt_mesh_dp_2D( region%mesh, filename, ncid, 'MeltPreviousYear', region%SMB%IMAUITM%MeltPreviousYear)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('MeltPreviousYear only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call write_to_field_multopt_mesh_dp_2D( region%mesh, filename, ncid, 'MeltPreviousYear', IMAU_ITM%MeltPreviousYear)
+        end select
 
     ! == Basal mass balance ==
     ! ========================
