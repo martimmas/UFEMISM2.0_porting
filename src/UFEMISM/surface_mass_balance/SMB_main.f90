@@ -14,10 +14,7 @@ MODULE SMB_main
   USE grid_basic                                             , ONLY: type_grid
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  USE SMB_model_types                                        , ONLY: type_SMB_model, type_SMB_model_IMAU_ITM
-  use SMB_idealised, only: type_SMB_model_idealised
-  use SMB_prescribed, only: type_SMB_model_prescribed
-  USE SMB_IMAU_ITM                                           , ONLY: initialise_SMB_model_IMAUITM, run_SMB_model_IMAUITM
+  USE SMB_model_types                                        , ONLY: type_SMB_model
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use mesh_ROI_polygons, only: calc_polygon_Patagonia
   use plane_geometry, only: is_in_polygon
@@ -106,8 +103,8 @@ CONTAINS
         call SMB%snapshot_plus_anomalies%run( SMB%snapshot_plus_anomalies%ct_run( time, ice, climate, grid_smooth))
         SMB%SMB( mesh%vi1:mesh%vi2) = SMB%snapshot_plus_anomalies%SMB( mesh%vi1:mesh%vi2)
       CASE ('IMAU-ITM')
-        !IF (par%primary)  WRITE(*,"(A)") '   Running IMAU-ITM SMB model...'
-        CALL run_SMB_model_IMAUITM( mesh, ice, SMB, climate)
+        call SMB%IMAUITM%run( SMB%IMAUITM%ct_run( time, ice, climate, grid_smooth))
+        SMB%SMB( mesh%vi1:mesh%vi2) = SMB%IMAUITM%SMB( mesh%vi1:mesh%vi2)
       CASE DEFAULT
         CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT
@@ -176,8 +173,8 @@ CONTAINS
         call SMB%snapshot_plus_anomalies%allocate  ( SMB%snapshot_plus_anomalies%ct_allocate( 'SMB_snapshot_plus_anomalies', region_name, mesh))
         call SMB%snapshot_plus_anomalies%initialise( SMB%snapshot_plus_anomalies%ct_initialise( ice))
       CASE ('IMAU-ITM')
-        IF (par%primary)  WRITE(*,"(A)") '   Initialising IMAU-ITM SMB...'
-        CALL initialise_SMB_model_IMAUITM( mesh, ice, SMB%IMAUITM, region_name)
+        call SMB%IMAUITM%allocate  ( SMB%IMAUITM%ct_allocate( 'SMB_IMAU_ITM', region_name, mesh))
+        call SMB%IMAUITM%initialise( SMB%IMAUITM%ct_initialise( ice))
       CASE DEFAULT
         CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT
@@ -449,22 +446,7 @@ CONTAINS
       CASE ('snapshot_plus_anomalies')
         call SMB%snapshot_plus_anomalies%remap( SMB%snapshot_plus_anomalies%ct_remap( mesh_new, time))
       CASE ('IMAU-ITM')
-        !CALL initialise_SMB_model_parameterised( mesh, ice, SMB, climate, region_name)
-        CALL reallocate_bounds( SMB%SMB                    , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%AlbedoSurf      , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%MeltPreviousYear, mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%Refreezing_year , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%Albedo_year     , mesh_new%vi1, mesh_new%vi2)
-        CALL reallocate_bounds(SMB%IMAUITM%FirnDepth   , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Rainfall    , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Snowfall    , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%AddedFirn   , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Melt        , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Refreezing  , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Runoff      , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%Albedo      , mesh_new%vi1, mesh_new%vi2, 12)
-        CALL reallocate_bounds(SMB%IMAUITM%SMB_monthly , mesh_new%vi1, mesh_new%vi2, 12)
-
+        call SMB%IMAUITM%remap( SMB%IMAUITM%ct_remap( mesh_new, time))
       CASE DEFAULT
         CALL crash('unknown choice_SMB_model "' // TRIM( choice_SMB_model) // '"')
     END SELECT

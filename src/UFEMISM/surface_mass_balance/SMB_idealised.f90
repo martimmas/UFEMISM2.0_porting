@@ -295,12 +295,6 @@ contains
       end if
     end do
 
-    ! d( mesh%vi1:mesh%vi2) => SMB%SMB( mesh%vi1:mesh%vi2)
-    ! call save_mesh_as_netcdf( 'mesh.nc', mesh)
-    ! call save_variable_as_netcdf_dp_1D( trim( C%output_dir), d, 'SMB')
-
-    ! call crash('whoopsiedaisy')
-
     ! Finalise routine path
     call finalise_routine( routine_name)
 

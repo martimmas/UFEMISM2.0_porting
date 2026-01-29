@@ -6,6 +6,7 @@ module SMB_model
   use SMB_prescribed, only: type_SMB_model_prescribed
   use SMB_reconstructed, only: type_SMB_model_reconstructed
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
 
   implicit none
 
@@ -39,6 +40,8 @@ contains
       allocate( type_SMB_model_reconstructed :: SMB)
     case ('snapshot_plus_anomalies')
       allocate( type_SMB_model_snp_p_anml :: SMB)
+    case ('IMAU-ITM')
+      allocate( type_SMB_model_IMAU_ITM :: SMB)
     end select
 
     ! Remove routine from call stack
