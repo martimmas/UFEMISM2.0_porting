@@ -14,12 +14,12 @@ module climate_matrix
   use grid_types                                             , only: type_grid
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use climate_realistic                                      , only: initialise_climate_model_realistic, initialise_insolation_forcing, remap_insolation
   use reallocate_mod                                         , only: reallocate_bounds
   use netcdf_io_main
   use mesh_data_smoothing, only: smooth_Gaussian
-  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use climate_model_utilities                                , only: allocate_climate_snapshot, read_climate_snapshot, adapt_precip_CC, adapt_precip_Roe, get_insolation_at_time
   use assertions_basic, only: assert
 
@@ -45,7 +45,7 @@ contains
     type(type_mesh),                     intent(in)    :: mesh
     type(type_grid),                     intent(in)    :: grid
     type(type_ice_model),                intent(in)    :: ice
-    type(type_SMB_model),                intent(in)    :: SMB
+    class(atype_SMB_model),              intent(in)    :: SMB
     type(type_climate_model),            intent(inout) :: climate
     character(LEN=3),                    intent(in)    :: region_name
     real(dp),                            intent(in)    :: time
@@ -68,7 +68,12 @@ contains
     !CALL update_CO2_at_model_time( time, forcing)
 
     ! Use the (CO2 + absorbed insolation)-based interpolation scheme for temperature
-    call run_climate_model_matrix_temperature( mesh, grid, ice, SMB, climate, region_name, forcing)
+    select type (IMAU_ITM => SMB)
+    class default
+      call crash('climate matrix can only be run with IMAU-ITM as the SMB model')
+    class is (type_SMB_model_IMAU_ITM)
+      call run_climate_model_matrix_temperature( mesh, grid, ice, IMAU_ITM, climate, region_name, forcing)
+    end select
 
     ! Use the (CO2 + ice-sheet geometry)-based interpolation scheme for precipitation
     call run_climate_model_matrix_precipitation( mesh, grid, ice, climate, region_name, forcing)
@@ -92,14 +97,14 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine run_climate_model_matrix
-  subroutine run_climate_model_matrix_temperature( mesh, grid, ice, SMB, climate, region_name, forcing)
+  subroutine run_climate_model_matrix_temperature( mesh, grid, ice, IMAU_ITM, climate, region_name, forcing)
     ! The (CO2 + absorbed insolation)-based matrix interpolation for temperature, from Berends et al. (2018)
 
     ! In/output variables:
     type(type_mesh),                     intent(in)    :: mesh
     type(type_grid),                     intent(in)    :: grid
     type(type_ice_model),                intent(in)    :: ice
-    type(type_SMB_model),                intent(in)    :: SMB
+    type(type_SMB_model_IMAU_ITM),       intent(in)    :: IMAU_ITM
     type(type_climate_model),            intent(inout) :: climate
     character(LEN=3),                    intent(in)    :: region_name
     type(type_global_forcing),           intent(in)    :: forcing
@@ -160,7 +165,7 @@ contains
     do m = 1, 12
       ! Calculate modelled absorbed insolation. Berends et al., 2018 - Eq. 2
       climate%matrix%I_abs( vi) = climate%matrix%I_abs( vi) + &
-                                  climate%Q_TOA( vi,m) * (1._dp - SMB%IMAUITM%Albedo( vi, m))
+                                  climate%Q_TOA( vi,m) * (1._dp - IMAU_ITM%Albedo( vi, m))
     end do
     end do
     call sync
@@ -746,8 +751,8 @@ contains
     integer                                             :: vi,m,i
     type(type_ice_model)      , target                  :: ice_dummy
     type(type_climate_model)  , target                  :: climate_dummy
-    type(type_SMB_model)      , target                  :: SMB_dummy
     type(type_grid)           , target                  :: grid_dummy
+    type(type_SMB_model_IMAU_ITM)                       :: SMB_dummy
     character(LEN=256)                                  :: choice_SMB_IMAUITM_init_firn_dummy
 
     ! Add routine to path
@@ -814,8 +819,8 @@ contains
 
     ! SMB
     ! ===
-    call SMB_dummy%IMAUITM%allocate  ( SMB_dummy%IMAUITM%ct_allocate( 'SMB_IMAU_ITM_dummy', region_name, mesh))
-    call SMB_dummy%IMAUITM%initialise( SMB_dummy%IMAUITM%ct_initialise( ice_dummy))
+    call SMB_dummy%allocate  ( SMB_dummy%ct_allocate( 'SMB_IMAU_ITM_dummy', region_name, mesh))
+    call SMB_dummy%initialise( SMB_dummy%ct_initialise( ice_dummy))
 
     ! Initialisation choice
     if     (region_name == 'NAM') then
@@ -837,19 +842,19 @@ contains
     ! Run the SMB model for 10 years for this particular climate
     ! (experimentally determined to be long enough to converge)
     do i = 1, 10
-      call SMB_dummy%IMAUITM%run( SMB_dummy%IMAUITM%ct_run( C%start_time_of_run, ice_dummy, climate_dummy, grid_dummy))
+      call SMB_dummy%run( SMB_dummy%ct_run( C%start_time_of_run, ice_dummy, climate_dummy, grid_dummy))
     end do
 
     ! Calculate yearly total absorbed insolation
     snapshot%I_abs( mesh%vi1:mesh%vi2) = 0._dp
     do vi = mesh%vi1, mesh%vi2
     do m = 1, 12
-      snapshot%I_abs( vi) = snapshot%I_abs( vi) + snapshot%Q_TOA( vi,m) * (1._dp - SMB_dummy%IMAUITM%Albedo( vi,m))
+      snapshot%I_abs( vi) = snapshot%I_abs( vi) + snapshot%Q_TOA( vi,m) * (1._dp - SMB_dummy%Albedo( vi,m))
     end do
     end do
 
     ! Clean up after yourself
-    call SMB_dummy%IMAUITM%deallocate
+    call SMB_dummy%deallocate
 
     ! Finalise routine path
     call finalise_routine( routine_name)
