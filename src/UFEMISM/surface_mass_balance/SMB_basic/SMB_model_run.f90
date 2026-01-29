@@ -58,10 +58,10 @@ contains
       ! every model loop, but only at its own separate time step
 
       ! Check if this is the next SMB time step
-      if (time == self%t_next) then
+      if (context%time == self%t_next) then
         ! Go on to calculate a new SMB
-        self%t_next = time + C%dt_SMB
-      elseif (time > self%t_next) then
+        self%t_next = context%time + C%dt_SMB
+      elseif (context%time > self%t_next) then
         ! This should not be possible
         call crash('overshot the SMB time step')
       else
@@ -72,7 +72,7 @@ contains
 
     else
       ! Synchronous coupling: calculate a new SMB in every model loop
-      self%t_next = time + C%dt_SMB
+      self%t_next = context%time + C%dt_SMB
     end if
 
     ! Part common to all models of atype_SMB_model
