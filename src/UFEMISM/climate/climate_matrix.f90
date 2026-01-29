@@ -19,7 +19,7 @@ module climate_matrix
   use reallocate_mod                                         , only: reallocate_bounds
   use netcdf_io_main
   use mesh_data_smoothing, only: smooth_Gaussian
-  use SMB_IMAU_ITM, only: run_SMB_model_IMAUITM, initialise_SMB_model_IMAUITM
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
   use climate_model_utilities                                , only: allocate_climate_snapshot, read_climate_snapshot, adapt_precip_CC, adapt_precip_Roe, get_insolation_at_time
   use assertions_basic, only: assert
 
@@ -744,9 +744,10 @@ contains
     ! Local variables:
     character(LEN=256), parameter                       :: routine_name = 'initialise_matrix_calc_absorbed_insolation'
     integer                                             :: vi,m,i
-    type(type_ice_model)                                :: ice_dummy
-    type(type_climate_model)                            :: climate_dummy
-    type(type_SMB_model)                                :: SMB_dummy
+    type(type_ice_model)      , target                  :: ice_dummy
+    type(type_climate_model)  , target                  :: climate_dummy
+    type(type_SMB_model)      , target                  :: SMB_dummy
+    type(type_grid)           , target                  :: grid_dummy
     character(LEN=256)                                  :: choice_SMB_IMAUITM_init_firn_dummy
 
     ! Add routine to path
@@ -813,9 +814,8 @@ contains
 
     ! SMB
     ! ===
-    call initialise_SMB_model_IMAUITM( mesh, ice, SMB_dummy%IMAUITM, region_name)
-    allocate( SMB_dummy%SMB             (mesh%vi1:mesh%vi2))
-    SMB_dummy%SMB = 0._dp
+    call SMB_dummy%IMAUITM%allocate  ( SMB_dummy%IMAUITM%ct_allocate( 'SMB_IMAU_ITM_dummy', region_name, mesh))
+    call SMB_dummy%IMAUITM%initialise( SMB_dummy%IMAUITM%ct_initialise( ice_dummy))
 
     ! Initialisation choice
     if     (region_name == 'NAM') then
@@ -837,7 +837,7 @@ contains
     ! Run the SMB model for 10 years for this particular climate
     ! (experimentally determined to be long enough to converge)
     do i = 1, 10
-      call run_SMB_model_IMAUITM( mesh, ice_dummy, SMB_dummy, climate_dummy)
+      call SMB_dummy%IMAUITM%run( SMB_dummy%IMAUITM%ct_run( C%start_time_of_run, ice_dummy, climate_dummy, grid_dummy))
     end do
 
     ! Calculate yearly total absorbed insolation
@@ -847,6 +847,9 @@ contains
       snapshot%I_abs( vi) = snapshot%I_abs( vi) + snapshot%Q_TOA( vi,m) * (1._dp - SMB_dummy%IMAUITM%Albedo( vi,m))
     end do
     end do
+
+    ! Clean up after yourself
+    call SMB_dummy%IMAUITM%deallocate
 
     ! Finalise routine path
     call finalise_routine( routine_name)
