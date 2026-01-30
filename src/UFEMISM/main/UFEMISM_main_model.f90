@@ -708,6 +708,8 @@ CONTAINS
     ! Print to screen
     IF (par%primary) WRITE(0,'(A)') '   Setting up the first mesh for model region ' // colour_string( region%name,'light blue') // '...'
 
+    allocate( region%mesh)
+
     ! Get settings from config
     IF     (region%name == 'NAM') THEN
       choice_initial_mesh = C%choice_initial_mesh_NAM
@@ -1187,7 +1189,7 @@ CONTAINS
     INTEGER                                                            :: n_old, stat, n_new
     CHARACTER(LEN=5)                                                   :: n_new_str
     CHARACTER(LEN=256)                                                 :: new_mesh_name
-    TYPE(type_mesh)                                                    :: mesh_new
+    type(type_mesh), allocatable                                       :: mesh_new
     REAL(dp)                                                           :: tstart, tstop
     CHARACTER(LEN=256)                                                 :: str
 
@@ -1246,6 +1248,7 @@ CONTAINS
     new_mesh_name = 'model_mesh_' // TRIM( region%name) // '_' // n_new_str
 
     ! Create a mesh from the modelled ice geometry
+    allocate( mesh_new)
     CALL create_mesh_from_meshed_geometry( region%name, new_mesh_name, &
       region%mesh, &
       region%ice%Hi, &
@@ -1293,9 +1296,8 @@ CONTAINS
     ! Throw away the mapping operators involving the old mesh
     CALL clear_all_maps_involving_this_mesh( region%mesh)
 
-    ! Deallocate the old mesh, bind the region%mesh pointers to the new mesh.
-    CALL deallocate_mesh( region%mesh)
-    region%mesh = mesh_new
+    ! Move mesh allocation
+    call move_alloc( mesh_new, region%mesh)
     region%time_mesh_was_created = region%time
 
     ! We want to know how long this takes, just to show off...
