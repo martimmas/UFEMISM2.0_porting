@@ -37,7 +37,7 @@ MODULE region_types
     REAL(dp)                                :: time
 
     ! The mesh that all model components define their data on
-    TYPE(type_mesh)                         :: mesh
+    type(type_mesh),            allocatable :: mesh
     REAL(dp)                                :: time_mesh_was_created
     LOGICAL                                 :: output_files_match_current_mesh
 
