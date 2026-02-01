@@ -140,6 +140,8 @@ contains
     select case (C%choice_SMB_model_idealised)
     case default
       call crash('unknown choice_SMB_model_idealised "' // trim( C%choice_SMB_model_idealised) // '"')
+    case ('uniform')
+      self%SMB( mesh%vi1: mesh%vi2) = C%uniform_SMB
     case ('EISMINT1_A', 'EISMINT1_B', 'EISMINT1_C', 'EISMINT1_D', 'EISMINT1_E', 'EISMINT1_F')
       call self%run_SMB_model_idealised_EISMINT1( mesh, time)
     case ('Halfar_static')

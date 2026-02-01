@@ -14,7 +14,7 @@ MODULE thermodynamics_3D_heat_equation
   USE mesh_types                                             , ONLY: type_mesh
   USE ice_model_types                                        , ONLY: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   use zeta_gradients, only: calc_zeta_gradients
   USE thermodynamics_utilities                               , ONLY: calc_heat_capacity, calc_thermal_conductivity, calc_pressure_melting_point, &
@@ -46,7 +46,7 @@ CONTAINS
     TYPE(type_mesh),                      INTENT(INOUT) :: mesh
     TYPE(type_ice_model),                 INTENT(INOUT) :: ice
     TYPE(type_climate_model),             INTENT(IN)    :: climate
-    TYPE(type_SMB_model),                 INTENT(IN)    :: SMB
+    class(atype_SMB_model),               intent(in   ) :: SMB
     REAL(dp),                             INTENT(IN)    :: dt
 
     ! Local variables:

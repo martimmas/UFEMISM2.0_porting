@@ -8,7 +8,7 @@ module tracer_tracking_model_main
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
-  use SMB_main, only: type_SMB_model
+  use SMB_model, only: atype_SMB_model
   use tracer_tracking_model_types, only: type_tracer_tracking_model
   use tracer_tracking_model_particles_main, only: initialise_tracer_tracking_model_particles, &
     run_tracer_tracking_model_particles, remap_tracer_tracking_model_particles
@@ -29,7 +29,7 @@ contains
     ! In- and output variables
     type(type_mesh),                  intent(in   ) :: mesh
     type(type_ice_model),             intent(in   ) :: ice
-    type(type_SMB_model),             intent(in   ) :: SMB
+    class(atype_SMB_model),           intent(in   ) :: SMB
     type(type_tracer_tracking_model), intent(inout) :: tracer_tracking
     real(dp),                         intent(in   ) :: time
 

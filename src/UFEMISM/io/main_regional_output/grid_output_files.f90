@@ -13,6 +13,7 @@ module grid_output_files
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
   use mpi_distributed_memory, only: gather_to_all
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
 
   implicit none
 
@@ -724,14 +725,29 @@ contains
         call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
         call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'SMB', d_grid_vec_partial_2D)
       case ('Albedo')
-        call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%Albedo, d_grid_vec_partial_2D_monthly)
-        call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'Albedo', d_grid_vec_partial_2D_monthly)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('Albedo only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, IMAU_ITM%Albedo, d_grid_vec_partial_2D_monthly)
+          call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'Albedo', d_grid_vec_partial_2D_monthly)
+        end select
       case ('FirnDepth')
-        call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%FirnDepth, d_grid_vec_partial_2D_monthly)
-        call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'FirnDepth', d_grid_vec_partial_2D_monthly)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('FirnDepth only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, IMAU_ITM%FirnDepth, d_grid_vec_partial_2D_monthly)
+          call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'FirnDepth', d_grid_vec_partial_2D_monthly)
+        end select
       case ('MeltPreviousYear')
-        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%MeltPreviousYear, d_grid_vec_partial_2D)
-        call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'MeltPreviousYear', d_grid_vec_partial_2D)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('MeltPreviousYear only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, IMAU_ITM%MeltPreviousYear, d_grid_vec_partial_2D)
+          call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'MeltPreviousYear', d_grid_vec_partial_2D)
+        end select
 
     ! == Basal mass balance ==
     ! ========================
@@ -941,7 +957,7 @@ contains
       call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
       deallocate( Ti_base_gr)
     case ('litempbotfl')
-      allocate( Ti_base_fl            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)    
+      allocate( Ti_base_fl            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)
       do vi = region%mesh%vi1, region%mesh%vi2
         if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
           Ti_base_fl( vi) = region%ice%Ti(vi,region%mesh%nz)
@@ -1866,7 +1882,7 @@ contains
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgif')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgrf')
       call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftflf')
-      
+
       ! Close the file
       call close_netcdf_file( ncid)
 
@@ -1999,7 +2015,7 @@ contains
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftgif')
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftgrf')
     call create_main_regional_output_file_grid_field( filename, ncid, 'sftflf')
-    
+
     ! Close the file
     call close_netcdf_file( ncid)
 
