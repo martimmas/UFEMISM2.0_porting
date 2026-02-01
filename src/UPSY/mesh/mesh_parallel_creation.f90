@@ -14,7 +14,7 @@ MODULE mesh_parallel_creation
   USE reallocate_mod                                         , ONLY: reallocate
   use plane_geometry, only: cross2
   USE mesh_types                                             , ONLY: type_mesh
-  USE mesh_memory                                            , ONLY: allocate_mesh_primary, extend_mesh_primary, crop_mesh_primary, deallocate_mesh
+  USE mesh_memory                                            , ONLY: allocate_mesh_primary, extend_mesh_primary, crop_mesh_primary
   USE mesh_utilities                                         , ONLY: list_border_vertices_west, list_border_vertices_east, list_border_vertices_south, &
                                                                      list_border_vertices_north, find_containing_triangle
   use split_border_edges, only: split_border_edge
@@ -43,9 +43,6 @@ CONTAINS
 
     ! Add routine to path
     CALL init_routine( routine_name)
-
-    ! Deallocate meshes in other processes just to be sure
-    IF (.NOT. par%primary) CALL deallocate_mesh( mesh)
 
     ! Crop primary mesh just to be sure
     IF (par%primary) CALL crop_mesh_primary( mesh)
@@ -138,7 +135,7 @@ CONTAINS
     IF (par%i == p_left) THEN
       CALL merge_submesh( mesh, mesh_right, orientation)
     ELSEIF (par%i == p_right) THEN
-      CALL deallocate_mesh( mesh)
+      ! CALL deallocate_mesh( mesh)
     END IF
 
     ! Finalise routine path
@@ -453,12 +450,6 @@ CONTAINS
 
     ! Crop merged mesh_left
     CALL crop_mesh_primary( mesh_left)
-
-    ! Clean up after yourself
-    CALL deallocate_mesh( mesh_right)
-    DEALLOCATE( lvi_border_left)
-    DEALLOCATE( lvi_border_right)
-    DEALLOCATE( V_border)
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)

@@ -14,7 +14,6 @@ module read_and_remap_field_from_file
   use remapping_main
   use grid_basic, only: deallocate_grid
   use grid_lonlat_basic, only: deallocate_lonlat_grid, deallocate_lat_grid
-  use mesh_memory, only: deallocate_mesh
   use netcdf_basic
   use netcdf_setup_grid_mesh_from_file
   use netcdf_read_field_from_mesh_file
@@ -344,10 +343,6 @@ contains
       ! Remap data
       call map_from_mesh_to_mesh_2D( mesh_from_file, mesh, output_dir, d_mesh_partial_from_file, d_partial, method = method_mesh2mesh)
 
-      ! Clean up after yourself
-      call deallocate_mesh( mesh_from_file)
-      deallocate( d_mesh_partial_from_file)
-
     else
       call crash('file "' // trim( filename) // '" does not contain a recognised x/y-grid, lon/lat-grid, or mesh!')
     end if
@@ -447,10 +442,6 @@ contains
 
       ! Remap data
       call map_from_mesh_tri_to_mesh_tri_2D( mesh_from_file, mesh, output_dir, d_mesh_partial_from_file, d_partial, method = method_mesh2mesh)
-
-      ! Clean up after yourself
-      call deallocate_mesh( mesh_from_file)
-      deallocate( d_mesh_partial_from_file)
 
     else
       call crash('file "' // trim( filename) // '" does not contain a recognised x/y-grid, lon/lat-grid, or mesh!')
@@ -594,10 +585,6 @@ contains
       ! Remap data
       call map_from_mesh_to_mesh_3D( mesh_from_file, mesh, output_dir, d_mesh_partial_from_file, d_partial, method = method_mesh2mesh)
 
-      ! Clean up after yourself
-      call deallocate_mesh( mesh_from_file)
-      deallocate( d_mesh_partial_from_file)
-
     else
       call crash('file "' // trim( filename) // '" does not contain a recognised x/y-grid, lon/lat-grid, or mesh!')
     end if
@@ -724,10 +711,6 @@ contains
 
       ! Remap data
       call map_from_mesh_to_mesh_3D( mesh_from_file, mesh, output_dir, d_mesh_partial_from_file, d_partial, method = method_mesh2mesh)
-
-      ! Clean up after yourself
-      call deallocate_mesh( mesh_from_file)
-      deallocate( d_mesh_partial_from_file)
 
     else
       call crash('file "' // trim( filename) // '" does not contain a recognised x/y-grid, lon/lat-grid, or mesh!')
@@ -885,10 +868,6 @@ contains
 
       ! Remap data vertically
       call map_from_vertical_to_vertical_2D_ocean( mesh, depth_loc, z_ocean, d_partial_raw_layers, d_partial)
-
-      ! Clean up after yourself
-      call deallocate_mesh( mesh_from_file)
-      deallocate( d_mesh_partial_from_file)
       deallocate( d_partial_raw_layers)
 
     else

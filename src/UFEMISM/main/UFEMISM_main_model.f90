@@ -52,7 +52,6 @@ MODULE UFEMISM_main_model
   use mesh_ROI_polygons
   use plane_geometry, only: longest_triangle_leg
   use apply_maps, only: clear_all_maps_involving_this_mesh
-  USE mesh_memory                                            , ONLY: deallocate_mesh
   use ice_mass_and_fluxes, only: calc_ice_mass_and_fluxes
   use ice_mass_and_fluxes_ROI, only: calc_ice_mass_and_fluxes_ROI
   use tracer_tracking_model_main, only: initialise_tracer_tracking_model, run_tracer_tracking_model, &
