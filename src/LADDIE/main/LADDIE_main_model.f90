@@ -35,7 +35,6 @@ module LADDIE_main_model
   use scalar_output_files, only: create_scalar_regional_output_file, buffer_scalar_output, write_to_scalar_regional_output_file
   use mesh_ROI_polygons
   use apply_maps, only: clear_all_maps_involving_this_mesh
-  use mesh_memory, only: deallocate_mesh
   use mesh_halo_exchange, only: exchange_halos
   use mesh_repartitioning, only: repartition_mesh
   use checksum_mod, only: checksum
@@ -82,9 +81,6 @@ contains
       ! Run laddie on the original mesh
       call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, is_standalone)
     end if
-
-    ! Clean up after yourself
-    call deallocate_mesh( mesh_repartitioned)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
