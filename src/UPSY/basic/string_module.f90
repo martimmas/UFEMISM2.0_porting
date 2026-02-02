@@ -7,7 +7,8 @@ module string_module
 
   private
 
-  public :: type_string_utilities, colour_string, &
+  public :: type_string_utilities
+  public :: separate_strings_by_double_vertical_bars, colour_string, &
     insert_val_into_string_int, insert_val_into_string_dp, capitalise_string, &
     remove_leading_spaces, str2int, int2str, strrep
 
@@ -16,6 +17,7 @@ module string_module
     contains
       private
       procedure, public, nopass :: separate_strings_by_double_vertical_bars
+      procedure, public, nopass :: colour_string
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.
@@ -55,7 +57,7 @@ contains
 
   end subroutine separate_strings_by_double_vertical_bars
 
-  function colour_string( str, col) result( str_col)
+  pure function colour_string( str, col) result( str_col)
     !< Add colour to a string for writing to the terminal
 
     character(len=*),  intent(in) :: str, col
@@ -80,7 +82,7 @@ contains
       str_col = achar(27) // '[94m' // str // achar(27) // '[0m'
     case ( 'pink')
       str_col = achar(27) // '[95m' // str // achar(27) // '[0m'
-    case ('light blue')
+    case ('light blue','light_blue')
       str_col = achar(27) // '[96m' // str // achar(27) // '[0m'
     case default
       str_col = str

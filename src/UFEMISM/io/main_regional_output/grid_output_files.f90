@@ -1,9 +1,10 @@
 module grid_output_files
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_SUM
+  use UPSY_main, only: UPSY
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use grid_types, only: type_grid
@@ -46,7 +47,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // &
+       UPSY%stru%colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( region%output_filename_grid, ncid)
@@ -145,7 +147,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( filename, ncid)
@@ -1046,7 +1049,8 @@ contains
     region%output_filename_grid = trim( C%output_dir) // 'main_output_' // region%name // '_grid.nc'
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating grid output file "' // colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating grid output file "' // &
+      UPSY%stru%colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( region%output_filename_grid, ncid)
@@ -1151,7 +1155,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating ROI output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating ROI output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( filename, ncid)
@@ -1844,7 +1849,8 @@ contains
       region%output_filename_grid_ismip = trim( C%output_dir) // 'ismip_output_' // region%name // '_grid.nc'
 
       ! Print to terminal
-      if (par%primary) write(0,'(A)') '   Creating gridded ISMIP output file "' // colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
+      if (par%primary) write(0,'(A)') '   Creating gridded ISMIP output file "' // &
+        UPSY%stru%colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
 
       ! Create the NetCDF file
       call create_new_netcdf_file_for_writing( region%output_filename_grid_ismip, ncid)
@@ -1912,7 +1918,8 @@ contains
       end if
 
       ! Print to terminal
-      if (par%primary) write(0,'(A)') '   Writing to gridded ISMIP output file "' // colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
+      if (par%primary) write(0,'(A)') '   Writing to gridded ISMIP output file "' // &
+        UPSY%stru%colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
 
       ! Open the NetCDF file
       call open_existing_netcdf_file_for_writing( region%output_filename_grid_ismip, ncid)
@@ -1977,7 +1984,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating ROI ISMIP output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating ROI ISMIP output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( filename, ncid)
@@ -2046,7 +2054,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to ISMIP grid output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to ISMIP grid output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( filename, ncid)

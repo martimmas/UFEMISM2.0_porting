@@ -3,8 +3,9 @@ module mesh_creation_main
   ! Routines used to create a mesh.
 
   use precisions, only: dp
+  use UPSY_main, only: UPSY
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use grid_types, only: type_grid
   use mesh_types, only: type_mesh
   use reduce_ice_geometry, only: reduce_gridded_ice_geometry, reduce_meshed_ice_geometry
@@ -110,7 +111,8 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-    str = '     Set up ' // colour_string( TRIM( mesh%name),'light blue') // ' with {int_01} vertices and {int_02} triangles' // &
+    str = '     Set up ' // UPSY%stru%colour_string( TRIM( mesh%name),'light blue') // &
+      ' with {int_01} vertices and {int_02} triangles' // &
       ', with a resolution of {dp_01} to {dp_02} m'
     call insert_val_into_string_int( str, '{int_01}', mesh%nV)
     call insert_val_into_string_int( str, '{int_02}', mesh%nTri)

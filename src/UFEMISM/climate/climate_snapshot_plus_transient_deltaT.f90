@@ -7,7 +7,7 @@ MODULE climate_snapshot_plus_transient_deltaT
 
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string, warning, insert_val_into_string_int,insert_val_into_string_dp
+  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, warning, insert_val_into_string_int,insert_val_into_string_dp
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -116,7 +116,7 @@ CONTAINS
     ALLOCATE( climate%snapshot_trans_dT%snapshot%Precip( mesh%vi1:mesh%vi2,12))
     ! Run the chosen realistic climate model
     climate%snapshot_trans_dT%snapshot%has_insolation = .FALSE.
-    
+
     ! Read single-time data from external file
     ! Determine which climate model to initialise for this region
     IF     (region_name == 'NAM') THEN
@@ -154,7 +154,7 @@ CONTAINS
     CALL fill_in_transient_dT_snapshot_fields(filename_climate_snapshot, mesh, climate, start_time_of_run)
     climate%snapshot_trans_dT%snapshot%T2m    = climate%T2m
     climate%snapshot_trans_dT%snapshot%Precip = climate%Precip
-    
+
     ! Adding deltaT to the temperature field (uniform in space)
     do vi = mesh%vi1, mesh%vi2
     do m = 1, 12
@@ -198,7 +198,7 @@ CONTAINS
     real(dp),                               intent(in)    :: time
 
     ! Local variables
-    character(LEN=256), parameter                         :: routine_name = 'remap_climate_snapshot_plus_transient_deltaT' 
+    character(LEN=256), parameter                         :: routine_name = 'remap_climate_snapshot_plus_transient_deltaT'
     character(LEN=256)                                    :: choice_climate_model
     character(LEN=256)                                    :: filename_climate_snapshot,filename_atm_dT
     character(LEN=256)                                    :: choice_SMB_model
@@ -214,7 +214,7 @@ CONTAINS
       climate%snapshot_trans_dT%snapshot%precip_CC_correction = C%precip_CC_correction_NAM
       climate%snapshot_trans_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_NAM
       climate%snapshot_trans_dT%snapshot%has_insolation       = C%choice_SMB_model_NAM == 'IMAU-ITM'
-    case ('EAS') 
+    case ('EAS')
       filename_climate_snapshot                               = C%filename_climate_snapshot_trans_dT_EAS
       climate%snapshot_trans_dT%snapshot%precip_CC_correction = C%precip_CC_correction_EAS
       climate%snapshot_trans_dT%snapshot%lapse_rate_temp      = C%lapse_rate_temp_EAS
@@ -238,7 +238,7 @@ CONTAINS
     IF (climate%snapshot_trans_dT%snapshot%has_insolation .eqv. .TRUE.) THEN
       call remap_insolation( climate%snapshot, mesh_new)
     END IF
-      
+
     ! Read single-time data from external file
     CALL fill_in_transient_dT_snapshot_fields(filename_climate_snapshot, mesh_new, climate, time)
 

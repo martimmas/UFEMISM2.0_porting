@@ -5,7 +5,7 @@ module unit_tests
   use tests_main
   use assertions_basic
   use ut_basic
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use mpi_basic, only: par, sync
   ! use ut_tracer_tracking, only: unit_tests_tracer_tracking_main

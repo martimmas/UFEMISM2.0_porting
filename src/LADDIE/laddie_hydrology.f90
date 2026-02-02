@@ -2,7 +2,7 @@ MODULE laddie_hydrology
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string
+  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
   use model_configuration, only: C
   use parameters
   use mesh_types, only: type_mesh
@@ -84,7 +84,7 @@ contains
     transect%flux_strength   = flux_strength
 
     if (par%primary) write(0,*) '  Initialising SGD transect ', &
-      colour_string( trim( transect%name),'light blue'), '...'
+      UPSY%stru%colour_string( trim( transect%name),'light blue'), '...'
 
     select case (source)
     case default

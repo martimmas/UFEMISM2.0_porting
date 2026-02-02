@@ -6,8 +6,9 @@ MODULE climate_realistic
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string, warning, insert_val_into_string_int,insert_val_into_string_dp
+  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, warning, insert_val_into_string_int,insert_val_into_string_dp
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -106,7 +107,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary)  WRITE(*,"(A)") '     Initialising realistic climate model "' // &
-      colour_string( TRIM( C%choice_climate_model_realistic),'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( C%choice_climate_model_realistic),'light blue') // '"...'
 
     ! Run the chosen realistic climate model
     climate%snapshot%has_insolation = .FALSE.

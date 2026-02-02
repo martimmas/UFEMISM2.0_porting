@@ -7,7 +7,7 @@ module laddie_operators
 
   use precisions                                             , only: dp
   use mpi_basic                                              , only: par, sync
-  use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine, colour_string
+  use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine
   use parameters
   use mesh_types                                             , only: type_mesh
   use laddie_model_types                                     , only: type_laddie_model, type_laddie_timestep

@@ -2,10 +2,11 @@ module transects_main
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_ALLREDUCE, MPI_IN_PLACE, &
     MPI_INTEGER, MPI_SUM
+  use UPSY_main, only: UPSY
   use mpi_basic, only: par, sync
   use mpi_distributed_memory, only: partition_list
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, crash
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh
@@ -101,7 +102,7 @@ contains
     transect%dx   = dx
 
     if (par%primary) write(0,*) '  Initialising output transect ', &
-      colour_string( trim( transect%name),'light blue'), '...'
+      UPSY%stru%colour_string( trim( transect%name),'light blue'), '...'
 
     select case (source)
     case default
@@ -856,7 +857,7 @@ contains
     filename = transect%nc%filename
 
     if (par%primary) write(0,*) '  Writing to transect output file "', &
-      colour_string( trim( filename), 'light blue'), '"...'
+      UPSY%stru%colour_string( trim( filename), 'light blue'), '"...'
 
     ! Map ice model data to transect
     call map_from_mesh_vertices_to_transect_2D ( mesh, transect, ice%Hi,       tHi_partial,     'trilin')

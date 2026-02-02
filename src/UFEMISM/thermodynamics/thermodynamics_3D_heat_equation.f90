@@ -6,9 +6,10 @@ MODULE thermodynamics_3D_heat_equation
 ! ====================
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM
+  use UPSY_main, only: UPSY
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par
-  USE control_resources_and_error_messaging                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string
+  USE control_resources_and_error_messaging                  , ONLY: warning, crash, happy, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -503,7 +504,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Writing to thermodynamics restart file "' // &
-      colour_string( TRIM( ice%thermo_restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( ice%thermo_restart_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     CALL open_existing_netcdf_file_for_writing( ice%thermo_restart_filename, ncid)
@@ -552,7 +553,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Creating thermodynamics restart file "' // &
-      colour_string( TRIM( ice%thermo_restart_filename), 'light blue') // '"...'
+     UPSY%stru%colour_string( TRIM( ice%thermo_restart_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     CALL create_new_netcdf_file_for_writing( ice%thermo_restart_filename, ncid)

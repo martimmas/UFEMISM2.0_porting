@@ -1,9 +1,10 @@
 module SMB_IMAU_ITM
 
   use mpi_basic, only: par
+  use UPSY_main, only: UPSY
   use precisions, only: dp
   use model_configuration, only: C
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
   use mesh_types, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model, type_SMB_model_context_allocate, &
     type_SMB_model_context_initialise, type_SMB_model_context_run, &
@@ -398,7 +399,7 @@ contains
 
      ! Print to terminal
     if (par%primary)  write(*,"(A)") '   Initialising SMB-model firn layer from file "' &
-      // colour_string( trim( filename_restart_firn),'light blue') // '"...'
+      // UPSY%stru%colour_string( trim( filename_restart_firn),'light blue') // '"...'
 
     ! Read firn layer from then
     if (timeframe_restart_firn == 1E9_dp) THEN

@@ -2,7 +2,7 @@ module climate_model_utilities
   ! check which of these is needed!
   use precisions                                             , only: dp
   use mpi_basic                                              , only: par, sync
-  use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine, colour_string, warning
+  use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine, warning
   use model_configuration                                    , only: C
   use parameters
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER

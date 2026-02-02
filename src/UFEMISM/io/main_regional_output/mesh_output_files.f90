@@ -1,8 +1,9 @@
 module mesh_output_files
 
   use precisions, only: dp
+  use UPSY_main, only: UPSY
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning, colour_string
+  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
   use grid_basic, only: type_grid
   use region_types, only: type_model_region
@@ -43,7 +44,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // colour_string( trim( region%output_filename_mesh), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // &
+       UPSY%stru%colour_string( trim( region%output_filename_mesh), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( region%output_filename_mesh, ncid)
@@ -754,7 +756,8 @@ contains
     call generate_filename_XXXXXdotnc( filename_base, region%output_filename_mesh)
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating mesh output file "' // colour_string( trim( region%output_filename_mesh), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating mesh output file "' // &
+      UPSY%stru%colour_string( trim( region%output_filename_mesh), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( region%output_filename_mesh, ncid)
