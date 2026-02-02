@@ -1,7 +1,7 @@
 module ut_string
 
   use UPSY_main, only: UPSY
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use precisions, only: dp
   use ut_basic, only: unit_test
   use mpi_basic, only: par
