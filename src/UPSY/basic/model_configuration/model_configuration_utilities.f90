@@ -97,7 +97,8 @@ contains
         '" is not terminated with a forward slash!')
 
       ! Remove all leading spaces
-      call remove_leading_spaces( single_line_config)
+      temp_line_alloc = remove_leading_spaces( single_line_config)
+      single_line_config = temp_line_alloc
 
       ! The variable name is the part of the string left of the first (, =, or space.
       single_line_config = single_line_config( 1: scan( single_line_config, '( =')-1)
@@ -141,7 +142,8 @@ contains
           '" is not terminated with a forward slash!')
 
         ! Remove all leading spaces
-        call remove_leading_spaces( single_line_namelist)
+        temp_line_alloc = remove_leading_spaces( single_line_namelist)
+        single_line_namelist = temp_line_alloc
 
         ! The variable name is the part of the string left of the first (, =, or space.
         single_line_namelist = single_line_namelist( 1: scan( single_line_namelist, '( =')-1)
@@ -236,7 +238,8 @@ contains
         '" is not terminated with a forward slash!')
 
       ! Remove all leading spaces
-      call remove_leading_spaces( single_line_namelist)
+      temp_line_alloc = remove_leading_spaces( single_line_namelist)
+      single_line_namelist = temp_line_alloc
 
       ! The variable name is the part of the string left of the first (, =, or space.
       single_line_namelist = single_line_namelist( 1: scan( single_line_namelist, '( =')-1)
@@ -278,7 +281,8 @@ contains
           '" is not terminated with a forward slash!')
 
         ! Remove all leading spaces
-        call remove_leading_spaces( single_line_config)
+        temp_line_alloc = remove_leading_spaces( single_line_config)
+        single_line_config = temp_line_alloc
 
         ! The variable name is the part of the string left of the first (, =, or space.
         single_line_config = single_line_config( 1: scan( single_line_config, '( =')-1)

@@ -21,6 +21,7 @@ module string_module
       procedure, public, nopass :: insert_val_into_string_int
       procedure, public, nopass :: insert_val_into_string_dp
       procedure, public, nopass :: capitalise_string
+      procedure, public, nopass :: remove_leading_spaces
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.
@@ -211,19 +212,19 @@ contains
 
   end function capitalise_string
 
-  subroutine remove_leading_spaces( str)
+  pure function remove_leading_spaces( str) result( str_new)
     !< Remove leading spaces from a character string
 
-    character(len=*), intent(inout) :: str
-    integer :: lstr
+    character(len=*),  intent(in) :: str
+    character(len=:), allocatable :: str_new
 
-    do while (str( 1:1) == ' ' .and. len_trim( str) > 0)
-      lstr = len_trim( str)
-      str( 1:lstr-1) = str( 2:lstr)
-      str( lstr:lstr) = ' '
+    str_new = str
+    do while (str_new( 1:1) == ' ')
+      str_new = str_new( 2:len( str_new))
+      if (len( str_new) == 0) exit
     end do
 
-  end subroutine remove_leading_spaces
+  end function remove_leading_spaces
 
   subroutine str2int( str, int, stat)
     !< Convert a string containing an integer number to an actual integer
