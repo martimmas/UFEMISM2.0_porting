@@ -15,14 +15,14 @@ module string_module
 
 contains
 
-  subroutine separate_strings_by_double_vertical_bars( str_list, strs)
+  pure subroutine separate_strings_by_double_vertical_bars( str_list, strs)
     !< Take a list of items separated by double vertical bars ("||"),
     !< and return them as separate strings
 
     character(len=*),                            intent(in   ) :: str_list
     character(len=*), dimension(:), allocatable, intent(  out) :: strs
-    integer                           :: i, n_doublebars,ii
-    character(len=len_trim(str_list)) :: str_list_redux
+    integer                       :: i, n_doublebars,ii
+    character(len=:), allocatable :: str_list_redux
 
     ! Exception
     if (len_trim( str_list) == 0) then
@@ -32,19 +32,19 @@ contains
 
     ! Count number of instances of "||"
     n_doublebars = 0
-    do i = 1, len_trim(str_list)-1
-      if (str_list(i:i+1) == '||') n_doublebars = n_doublebars + 1
+    do i = 1, len_trim( str_list)-1
+      if (str_list( i:i+1) == '||') n_doublebars = n_doublebars + 1
     end do
 
-    allocate(strs(n_doublebars+1))
+    allocate( strs( n_doublebars+1))
 
     str_list_redux = str_list
     do i = 1, n_doublebars
       ii = index( str_list_redux,'||')
-      strs(i) = str_list_redux(1:ii-1)
-      str_list_redux = str_list_redux(ii+2:len_trim(str_list_redux))
+      strs(i) = str_list_redux( 1:ii-1)
+      str_list_redux = str_list_redux( ii+2:len_trim( str_list_redux))
     end do
-    strs(n_doublebars+1) = str_list_redux
+    strs( n_doublebars+1) = str_list_redux
 
   end subroutine separate_strings_by_double_vertical_bars
 
