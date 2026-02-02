@@ -247,7 +247,7 @@ contains
     character(len=*), intent(in) :: var_name
 
     ! Local variables:
-    character(len=1024) :: str
+    character(len=:), allocatable :: str
 
     str = trim( var_name) // ': sum = {int_01}, sum(abs) = {int_02}, min = {int_03}, max = {int_04} [' &
       // trim( routine_path) // ']'
@@ -267,14 +267,14 @@ contains
     character(len=*), intent(in) :: var_name
 
     ! Local variables:
-    character(len=1024) :: str
+    character(len=:), allocatable :: str
 
     str = trim( var_name) // ': sum = {dp_01}, sum(abs) = {dp_02}, min = {dp_03}, max = {dp_04} [' &
       // trim( routine_path) // ']'
-    call insert_val_into_string_dp( str, '{dp_01}', sum_d)
-    call insert_val_into_string_dp( str, '{dp_02}', sum_abs_d)
-    call insert_val_into_string_dp( str, '{dp_03}', min_d)
-    call insert_val_into_string_dp( str, '{dp_04}', max_d)
+    str = insert_val_into_string_dp( str, '{dp_01}', sum_d)
+    str = insert_val_into_string_dp( str, '{dp_02}', sum_abs_d)
+    str = insert_val_into_string_dp( str, '{dp_03}', min_d)
+    str = insert_val_into_string_dp( str, '{dp_04}', max_d)
 
     call log_checksum( str)
 

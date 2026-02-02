@@ -156,7 +156,7 @@ contains
 
   end function insert_val_into_string_int
 
-  subroutine insert_val_into_string_dp( str, marker, val)
+  pure function insert_val_into_string_dp( str, marker, val) result( str_new)
     !< Replace marker in str with val (where val is a double-precision number)
 
     ! Example: str    = 'Johnny weighs {dp_01} kg.'
@@ -165,12 +165,14 @@ contains
     !
     ! This returns: str = 'Johnny weighs 57.098 kg'
 
-    character(len=*), intent(inout) :: str
-    character(len=*), intent(in   ) :: marker
-    real(dp),         intent(in   ) :: val
-    integer                         :: ci
-    character(len=20)               :: val_str
-    integer                         :: len_str, len_marker
+    character(len=*),  intent(in) :: str
+    character(len=*),  intent(in) :: marker
+    real(dp),          intent(in) :: val
+    character(len=:), allocatable :: str_new
+
+    integer                       :: ci
+    character(len=20)             :: val_str
+    integer                       :: len_str, len_marker
 
     ! Find position ci in str where i_str occurs
     ci = index( str, marker)
@@ -187,9 +189,9 @@ contains
     len_marker = len( marker)
 
     ! Insert the integer string into the string
-    str = str(1:ci-1) // val_str // str(ci+len_marker:len_str)
+    str_new = str(1:ci-1) // val_str // str(ci+len_marker:len_str)
 
-  end subroutine insert_val_into_string_dp
+  end function insert_val_into_string_dp
 
   subroutine capitalise_string( str)
     !< Capitalise all letters in a string

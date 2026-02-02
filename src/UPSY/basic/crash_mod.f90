@@ -123,16 +123,16 @@ contains
     if (present( int_09)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_09}', int_09)
     if (present( int_10)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_10}', int_10)
 
-    if (present( dp_01 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_01}' , dp_01 )
-    if (present( dp_02 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_02}' , dp_02 )
-    if (present( dp_03 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_03}' , dp_03 )
-    if (present( dp_04 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_04}' , dp_04 )
-    if (present( dp_05 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_05}' , dp_05 )
-    if (present( dp_06 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_06}' , dp_06 )
-    if (present( dp_07 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_07}' , dp_07 )
-    if (present( dp_08 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_08}' , dp_08 )
-    if (present( dp_09 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_09}' , dp_09 )
-    if (present( dp_10 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_10}' , dp_10 )
+    if (present( dp_01 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_01}' , dp_01 )
+    if (present( dp_02 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_02}' , dp_02 )
+    if (present( dp_03 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_03}' , dp_03 )
+    if (present( dp_04 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_04}' , dp_04 )
+    if (present( dp_05 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_05}' , dp_05 )
+    if (present( dp_06 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_06}' , dp_06 )
+    if (present( dp_07 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_07}' , dp_07 )
+    if (present( dp_08 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_08}' , dp_08 )
+    if (present( dp_09 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_09}' , dp_09 )
+    if (present( dp_10 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_10}' , dp_10 )
 
     ! Write the error to the screen
     write(0,'(A,A,A,A,A,A)') colour_string(' ' // prefix // ': ' // trim( err_msg_loc), print_colour) // &

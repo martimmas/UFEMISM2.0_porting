@@ -10,7 +10,7 @@ MODULE UFEMISM_main_model
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
-  use string_module, only: colour_string, str2int, int2str, insert_val_into_string_dp
+  use string_module, only: str2int, int2str
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region
@@ -1322,7 +1322,7 @@ CONTAINS
 
     ! Print to screen
     str = '   Finished the mesh update in {dp_01} seconds'
-    CALL insert_val_into_string_dp( str, '{dp_01}', tstop-tstart)
+    str = UPSY%stru%insert_val_into_string_dp( str, '{dp_01}', tstop-tstart)
     IF (par%primary) WRITE(0,'(A)') str
 
     ! Finalise routine path

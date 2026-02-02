@@ -114,8 +114,8 @@ contains
       ', with a resolution of {dp_01} to {dp_02} m'
     str = UPSY%stru%insert_val_into_string_int( str, '{int_01}', mesh%nV)
     str = UPSY%stru%insert_val_into_string_int( str, '{int_02}', mesh%nTri)
-    call UPSY%stru%insert_val_into_string_dp(  str, '{dp_01}', MINVAL( mesh%R))
-    call UPSY%stru%insert_val_into_string_dp(  str, '{dp_02}', MAXVAL( mesh%R))
+    str = UPSY%stru%insert_val_into_string_dp(  str, '{dp_01}', MINVAL( mesh%R))
+    str = UPSY%stru%insert_val_into_string_dp(  str, '{dp_02}', MAXVAL( mesh%R))
 
     if (par%primary) WRITE(0,'(A)') trim( str)
 
