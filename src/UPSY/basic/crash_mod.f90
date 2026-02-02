@@ -140,8 +140,7 @@ contains
       ' on process ', colour_string( process_str,'light blue'), ' (0 = primary)'
 
     ! Stop the program
-    if (do_crash_program) call MPI_ABORT( MPI_COMM_WORLD, ierr)
-    error stop
+    if (do_crash_program) error stop
 
   end subroutine crash_warning_happy
 

@@ -23,10 +23,10 @@ MODULE call_stack_and_comp_time_tracking
   LOGICAL             :: do_display_path   = .FALSE.
 
   TYPE subroutine_resource_tracker
-    CHARACTER(LEN = 2048) :: routine_path
-    REAL(dp)              :: tstart, tcomp
-    integer               :: n_MPI_windows_used_initial
-    integer               :: n_MPI_windows_used_final
+    character(len=:), allocatable :: routine_path
+    real(dp)                      :: tstart, tcomp
+    integer                       :: n_MPI_windows_used_initial
+    integer                       :: n_MPI_windows_used_final
   END TYPE subroutine_resource_tracker
 
   TYPE( subroutine_resource_tracker), DIMENSION(:), ALLOCATABLE :: resource_tracker
@@ -78,25 +78,19 @@ CONTAINS
 #if (DO_RESOURCE_TRACKING)
 
     ! Local variables:
-    INTEGER                                                            :: len_path_tot, len_path_used, len_name
-    INTEGER                                                            :: i
-    LOGICAL                                                            :: do_track_resource_use_loc
+    INTEGER :: len_path, len_name
+    INTEGER :: i
+    LOGICAL :: do_track_resource_use_loc
 
-    ! Check if routine_name has enough memory
-    len_path_tot  = LEN(      routine_path)
-    len_path_used = LEN_TRIM( routine_path)
-    len_name      = LEN_TRIM( routine_name)
-
-    IF (len_path_used + 1 + len_name > len_path_tot) THEN
-      CALL crash('init_routine - ERROR: routine_path = "' // TRIM( routine_path) // '", no more space to append routine_name = "' // TRIM( routine_name) // '"!')
-    END IF
+    len_path = LEN(      routine_path)
+    len_name = LEN_TRIM( routine_name)
 
     ! Append this routine to the routine path
-    routine_path = TRIM( routine_path) // '/' // TRIM( routine_name)
+    routine_path = routine_path // '/' // trim( routine_name)
 
     ! If so specified, print the current routine path to the terminal (useful for debugging)
     IF (do_display_path) THEN
-      IF (par%primary) WRITE(0,'(A)') '   Initialising ' // TRIM( routine_path)
+      IF (par%primary) WRITE(0,'(A)') '   Initialising ' // routine_path
     END IF
 
     ! Check if resource use for this subroutine should be tracked
@@ -132,7 +126,7 @@ CONTAINS
 
     ELSE
 
-      routine_path = TRIM( routine_path) // '_NOTRACK'
+      routine_path = routine_path // '_NOTRACK'
 
     END IF
 
@@ -160,7 +154,7 @@ CONTAINS
 
     ! If so specified, print the current routine path to the terminal (useful for debugging)
     IF (do_display_path) THEN
-      IF (par%primary) WRITE(0,'(A)') '   Finalising   ' // TRIM( routine_path)
+      IF (par%primary) WRITE(0,'(A)') '   Finalising   ' // routine_path
     END IF
 
     ! Check if resource use should be tracked for this subroutine
@@ -212,15 +206,15 @@ CONTAINS
       end if
 
       ! Find where in the string exactly the current routine name is located
-      i = INDEX( routine_path, routine_name)
+      i = INDEX( routine_path, trim( routine_name), back = .true.)
 
       IF (i == 0) THEN
-        CALL crash('finalise_routine - ERROR: routine_name = "' // TRIM( routine_name) // '" not found in routine_path = "' // TRIM( routine_path) // '"!')
+        CALL crash('BEEP - finalise_routine - routine_name "' // TRIM( routine_name) // &
+          '" not found in routine_path = "' // routine_path // '"!')
       END IF
 
       ! Remove the current routine name from the routine path
-      len_path_tot = LEN( routine_path)
-      routine_path( i-1:len_path_tot) = ' '
+      routine_path = routine_path( 1:i-2)
 
     ELSE ! IF (do_track_resource_use) THEN
       ! Resource use for this subroutine should not be tracked
@@ -229,12 +223,12 @@ CONTAINS
       i = INDEX( routine_path, TRIM( routine_name) // '_NOTRACK', back = .true.)
 
       IF (i == 0) THEN
-        CALL crash('finalise_routine - ERROR: routine_name = "' // TRIM( routine_name) // '" not found in routine_path = "' // TRIM( routine_path) // '"!')
+        CALL crash('finalise_routine - routine_name "' // TRIM( routine_name) // &
+          '" not found in routine_path = "' // routine_path // '"!')
       END IF
 
       ! Remove the current routine name from the routine path
-      len_path_tot = LEN( routine_path)
-      routine_path( i-1:len_path_tot) = ' '
+      routine_path = routine_path( 1:i-2)
 
     END IF ! IF (do_track_resource_use) THEN
 
