@@ -7,9 +7,16 @@ module string_module
 
   private
 
-  public :: separate_strings_by_double_vertical_bars, colour_string, &
+  public :: type_string_utilities, colour_string, &
     insert_val_into_string_int, insert_val_into_string_dp, capitalise_string, &
     remove_leading_spaces, str2int, int2str, strrep
+
+  type type_string_utilities
+      private
+    contains
+      private
+      procedure, public, nopass :: separate_strings_by_double_vertical_bars
+  end type type_string_utilities
 
   logical :: do_colour_strings = .true.
 

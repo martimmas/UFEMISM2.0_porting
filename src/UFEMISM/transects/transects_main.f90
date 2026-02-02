@@ -11,7 +11,7 @@ module transects_main
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
   use transect_types, only: atype_transect, type_transect
-  use string_module, only: separate_strings_by_double_vertical_bars
+  use UPSY_main, only: UPSY
   use netcdf_io_main
   use netcdf, only: NF90_UNLIMITED
   use netcdf_write_field_transect
@@ -66,7 +66,7 @@ contains
       return
     end if
 
-    call separate_strings_by_double_vertical_bars( transects_str, transect_strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( transects_str, transect_strs)
 
     allocate( region%transects( size(transect_strs)))
 
@@ -296,7 +296,7 @@ contains
       allocate(waypoints(2,2))
       waypoints(1,:) = [-150000.0_dp,0._dp]
       waypoints(2,:) = [-150000.0_dp,-740000.0_dp]
-  
+
     case('HalbraneD')
       allocate(waypoints(2,2))
       waypoints(1,:) = [150000.0_dp,0._dp]
@@ -815,7 +815,7 @@ contains
     ! In/output variables:
     type(type_mesh),      intent(in   ) :: mesh
     type(type_ice_model), intent(in   ) :: ice
-    type(type_BMB_model), intent(in   ) :: BMB  
+    type(type_BMB_model), intent(in   ) :: BMB
     type(type_transect),  intent(in   ) :: transect
     real(dp),             intent(in   ) :: time
 

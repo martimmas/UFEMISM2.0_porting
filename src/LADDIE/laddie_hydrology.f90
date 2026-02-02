@@ -9,7 +9,7 @@ MODULE laddie_hydrology
   use mesh_utilities, only: find_containing_vertex
   use laddie_forcing_types, only: type_laddie_forcing, type_transect_SGD
   use transects_main
-  use string_module
+  use UPSY_main, only: UPSY
 
   implicit none
 
@@ -44,7 +44,7 @@ contains
     end if
 
     ! Separate by double vertical bars
-    call separate_strings_by_double_vertical_bars( transects_str, transect_strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( transects_str, transect_strs)
 
     ! Allocate the right size
     allocate( forcing%transects( size(transect_strs)))
@@ -103,9 +103,9 @@ contains
     do vi = 1, transect%nV
        p = transect%V(vi,:)
        call find_containing_vertex( mesh, p, index_point)
-       
+
        ! Save index_points of mesh to transect type
-       transect%index_point( vi) = index_point    
+       transect%index_point( vi) = index_point
 
     end do
 

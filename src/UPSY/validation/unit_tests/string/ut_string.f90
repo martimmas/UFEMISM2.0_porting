@@ -3,7 +3,7 @@ module ut_string
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use precisions, only: dp
   use ut_basic, only: unit_test
-  use string_module, only: separate_strings_by_double_vertical_bars
+  use UPSY_main, only: UPSY
 
   implicit none
 
@@ -56,7 +56,7 @@ contains
 
     ! Some test cases
     str = 'john||william||dede||a||ladida,di+da&  di|da'
-    call separate_strings_by_double_vertical_bars( str, strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( str, strs)
     call unit_test( &
       size(strs,1) == 5 .and. &
       strs(1)=='john' .and. &
@@ -67,14 +67,14 @@ contains
     deallocate( str, strs)
 
     str = 'pete'
-    call separate_strings_by_double_vertical_bars( str, strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( str, strs)
     call unit_test( &
       size(strs,1) == 1 .and. &
       strs(1)=='pete', test_name // '/single_string')
     deallocate( str, strs)
 
     str = ''
-    call separate_strings_by_double_vertical_bars( str, strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( str, strs)
     call unit_test( size(strs,1) == 0, test_name // '/empty_string')
     deallocate( str, strs)
 
