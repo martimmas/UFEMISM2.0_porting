@@ -5,6 +5,7 @@ module ut_string
   use precisions, only: dp
   use ut_basic, only: unit_test
   use mpi_basic, only: par
+  use parameters, only: pi, NaN
 
   implicit none
 
@@ -33,6 +34,7 @@ contains
     call test_separate_strings_by_double_vertical_bars( test_name)
     call test_colour_string                           ( test_name)
     call test_insert_val_into_string_int              ( test_name)
+    call test_insert_val_into_string_dp               ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -161,5 +163,39 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_insert_val_into_string_int
+
+  subroutine test_insert_val_into_string_dp( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_insert_val_into_string_dp'
+    character(len=*), parameter   :: test_name_local = 'insert_val_into_string_dp'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = 'Test: {int_01}' // &
+      ', {dp_02}' // &
+      ', john' // &
+      ', a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))'
+
+    str = UPSY%stru%insert_val_into_string_dp( str, '{int_01}', 1._dp)
+    str = UPSY%stru%insert_val_into_string_dp( str, '{dp_02}', pi)
+    str = UPSY%stru%insert_val_into_string_dp( str, 'john', 3e12_dp)
+    str = UPSY%stru%insert_val_into_string_dp( str, 'a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))', NaN)
+
+    call unit_test( str == 'Test: 0.10000000000000E+01, 0.31415926535898E+01, 0.30000000000000E+13,                  NaN', test_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_insert_val_into_string_dp
 
 end module ut_string
