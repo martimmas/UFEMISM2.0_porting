@@ -24,6 +24,7 @@ module string_module
       procedure, public, nopass :: remove_leading_spaces
       procedure, public, nopass :: str2int
       procedure, public, nopass :: int2str_with_leading_zeros
+      procedure, public, nopass :: strrep
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.
@@ -253,19 +254,19 @@ contains
 
   end function int2str_with_leading_zeros
 
-  function strrep( str, old, new) result( str_new)
+  pure function strrep( str, old, new) result( str_new)
     !< Replace all occurences in [str] of [old] with [new]
 
-    character(len=*), intent(inout) :: str
-    character(len=*), intent(in   ) :: old, new
-    character(len=len(str))         :: str_new
-    integer                         :: i, j, nit
+    character(len=*),  intent(in) :: str
+    character(len=*),  intent(in) :: old, new
+    character(len=:), allocatable :: str_new
+    integer                       :: i, j, nit
 
     str_new = str
     nit = 0
     do while (index( str_new, old) > 0 .and. nit < len( str))
       nit = nit + 1
-      i = index( str_new,old)
+      i = index( str_new, old)
       j = i + len( old)
       str_new = str_new( 1:i-1) // trim(new) // str( j: len_trim( str_new))
     end do
