@@ -35,6 +35,7 @@ contains
     call test_colour_string                           ( test_name)
     call test_insert_val_into_string_int              ( test_name)
     call test_insert_val_into_string_dp               ( test_name)
+    call test_capitalise_string                       ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -197,5 +198,31 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_insert_val_into_string_dp
+
+  subroutine test_capitalise_string( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_capitalise_string'
+    character(len=*), parameter   :: test_name_local = 'capitalise_string'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = 'This is a test STRING with mostly lowercase characters and also some numbers 1234567892#$%^&'
+    str = UPSY%stru%capitalise_string( str)
+    call unit_test( str == 'THIS IS A TEST STRING WITH MOSTLY LOWERCASE CHARACTERS AND ALSO SOME NUMBERS 1234567892#$%^&', test_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_capitalise_string
 
 end module ut_string
