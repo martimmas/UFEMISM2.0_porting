@@ -9,8 +9,8 @@ MODULE UFEMISM_main_model
   use UPSY_main, only: UPSY
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
-  use string_module, only: str2int, int2str, insert_val_into_string_dp
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
+  use string_module, only: colour_string, str2int, int2str, insert_val_into_string_dp
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region

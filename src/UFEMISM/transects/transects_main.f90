@@ -6,7 +6,7 @@ module transects_main
   use mpi_basic, only: par, sync
   use mpi_distributed_memory, only: partition_list
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh

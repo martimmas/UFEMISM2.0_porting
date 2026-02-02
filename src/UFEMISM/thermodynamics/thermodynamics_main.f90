@@ -8,7 +8,7 @@ MODULE thermodynamics_main
   USE precisions                                             , ONLY: dp
   use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par
-  USE control_resources_and_error_messaging                  , ONLY: warning, crash, happy, init_routine, finalise_routine
+  USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region

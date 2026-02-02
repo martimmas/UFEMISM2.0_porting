@@ -7,7 +7,7 @@ module BPA_main
   use precisions, only: dp
   use UPSY_main, only: UPSY
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine
   use model_configuration, only: C
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
   use mesh_types, only: type_mesh

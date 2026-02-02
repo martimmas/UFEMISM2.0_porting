@@ -2,7 +2,7 @@ module ct_basic
 
   use mpi_basic, only: par, sync
   use UPSY_main, only: UPSY
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
 
   implicit none
 

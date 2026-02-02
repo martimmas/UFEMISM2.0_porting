@@ -38,7 +38,7 @@ module bedrock_cumulative_density_functions
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_DOUBLE_PRECISION
   use mpi_basic, only: par
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use reference_geometry_types, only: type_reference_geometry

@@ -1,7 +1,7 @@
 module fields_registry
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use fields_basic, only: atype_field, &
     type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D

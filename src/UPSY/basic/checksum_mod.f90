@@ -1,7 +1,7 @@
 module checksum_mod
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: routine_path, crash, &
+  use call_stack_and_comp_time_tracking, only: routine_path, crash, &
     insert_val_into_string_int, insert_val_into_string_dp
   use mpi_basic, only: par
   use parallel_array_info_type, only: type_par_arr_info

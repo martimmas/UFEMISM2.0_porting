@@ -2,7 +2,7 @@ module BMB_inverted
 
   use precisions, only: dp
   use UPSY_main, only: UPSY
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_basic, only: par
   use model_configuration, only: C
   use mesh_types, only: type_mesh

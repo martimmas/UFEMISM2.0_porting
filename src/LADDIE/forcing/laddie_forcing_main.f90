@@ -9,7 +9,7 @@ module laddie_forcing_main
   use mpi_basic, only: par
   use precisions, only: dp
   use UPSY_main, only: UPSY
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, warning
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine, warning
   use model_configuration, only: C
   use reference_geometry_types, only: type_reference_geometry
   use mesh_types, only: type_mesh

@@ -3,7 +3,7 @@ module laddie_grid_output
   use precisions, only: dp
   use mpi_basic, only: par
   use UPSY_main, only: UPSY
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing

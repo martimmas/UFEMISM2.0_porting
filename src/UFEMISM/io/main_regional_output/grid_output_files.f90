@@ -4,7 +4,7 @@ module grid_output_files
   use UPSY_main, only: UPSY
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use grid_types, only: type_grid

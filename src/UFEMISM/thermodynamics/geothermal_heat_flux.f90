@@ -8,7 +8,7 @@ MODULE geothermal_heat_flux
   USE precisions                                             , ONLY: dp
   use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, warning, happy, init_routine, finalise_routine
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, warning, happy, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE mesh_types                                             , ONLY: type_mesh
   USE ice_model_types                                        , ONLY: type_ice_model

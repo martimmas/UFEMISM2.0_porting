@@ -1,6 +1,6 @@
 module demo_model
 
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use demo_model_basic, only: atype_demo_model
   use demo_model_a, only: type_demo_model_a
   use demo_model_b, only: type_demo_model_b

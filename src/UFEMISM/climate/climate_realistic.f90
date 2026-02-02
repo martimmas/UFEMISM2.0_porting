@@ -8,7 +8,7 @@ MODULE climate_realistic
   USE precisions                                             , ONLY: dp
   use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, warning, insert_val_into_string_int,insert_val_into_string_dp
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, warning
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh

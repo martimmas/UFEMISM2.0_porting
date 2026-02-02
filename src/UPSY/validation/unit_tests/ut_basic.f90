@@ -2,7 +2,7 @@ module ut_basic
 
   use UPSY_main, only: UPSY
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
 
   implicit none
 
