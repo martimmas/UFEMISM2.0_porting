@@ -74,7 +74,7 @@ CONTAINS
 
     ! In/output variables:
     ! REAL(dp), DIMENSION(:,:,:,:), ALLOCATABLE, OPTIONAL, INTENT(INOUT) :: i
-    CHARACTER(LEN=256)                                 , INTENT(IN)    :: routine_name
+    CHARACTER(LEN=*)                                   , INTENT(IN)    :: routine_name
     LOGICAL                                  , OPTIONAL, INTENT(IN)    :: do_track_resource_use
 
 #if (DO_RESOURCE_TRACKING)
@@ -149,7 +149,7 @@ CONTAINS
 
     ! In/output variables:
     ! REAL(dp), DIMENSION(:,:,:,:), ALLOCATABLE, OPTIONAL, INTENT(INOUT) :: i
-    CHARACTER(LEN=256)                                 , INTENT(IN)    :: routine_name
+    CHARACTER(LEN=*)                                 , INTENT(IN)    :: routine_name
     integer, optional, intent(in) :: n_extra_MPI_windows_expected
 
 #if (DO_RESOURCE_TRACKING)

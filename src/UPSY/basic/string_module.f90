@@ -24,9 +24,15 @@ contains
     integer                           :: i, n_doublebars,ii
     character(len=len_trim(str_list)) :: str_list_redux
 
+    ! Exception
+    if (len_trim( str_list) == 0) then
+      allocate( strs(0))
+      return
+    end if
+
     ! Count number of instances of "||"
     n_doublebars = 0
-    do i = 1, len_trim(str_list)
+    do i = 1, len_trim(str_list)-1
       if (str_list(i:i+1) == '||') n_doublebars = n_doublebars + 1
     end do
 

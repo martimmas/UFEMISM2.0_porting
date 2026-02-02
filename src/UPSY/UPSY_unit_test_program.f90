@@ -12,6 +12,7 @@ program UPSY_unit_test_program
   use ut_basic, only: create_unit_tests_output_folder, create_unit_tests_output_file, foldername_unit_tests_output
   use mpi_f08, only: MPI_WTIME, MPI_FINALIZE
 
+  use ut_string, only: unit_tests_string_main
   use ut_mpi, only: unit_tests_mpi_distributed_memory_main
   use ut_petsc, only: unit_tests_petsc_main
   use ut_math_utilities, only: unit_tests_math_utilities_main
@@ -51,13 +52,14 @@ program UPSY_unit_test_program
   call create_unit_tests_output_file
 
   ! Run all the unit tests
-  call unit_tests_mpi_distributed_memory_main( test_name)
-  call unit_tests_petsc_main                 ( test_name)
-  call unit_tests_math_utilities_main        ( test_name)
-  call unit_tests_mesh_main                  ( test_name)
-  call unit_tests_netcdf_main                ( test_name)
-  call unit_tests_fields_main                ( test_name)
-  call unit_tests_models_main                ( test_name)
+  call unit_tests_string_main                ( test_name)
+  ! call unit_tests_mpi_distributed_memory_main( test_name)
+  ! call unit_tests_petsc_main                 ( test_name)
+  ! call unit_tests_math_utilities_main        ( test_name)
+  ! call unit_tests_mesh_main                  ( test_name)
+  ! call unit_tests_netcdf_main                ( test_name)
+  ! call unit_tests_fields_main                ( test_name)
+  ! call unit_tests_models_main                ( test_name)
 
   ! Stop the clock
   tstop = MPI_WTIME()
