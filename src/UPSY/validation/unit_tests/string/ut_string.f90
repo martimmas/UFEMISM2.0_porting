@@ -36,6 +36,9 @@ contains
     call test_insert_val_into_string_int              ( test_name)
     call test_insert_val_into_string_dp               ( test_name)
     call test_capitalise_string                       ( test_name)
+    call test_remove_leading_spaces                   ( test_name)
+    call test_str2int                                 ( test_name)
+    call test_int2str_with_leading_zeros              ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -224,5 +227,102 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_capitalise_string
+
+  subroutine test_remove_leading_spaces( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_remove_leading_spaces'
+    character(len=*), parameter   :: test_name_local = 'remove_leading_spaces'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = '      bla'
+    str = UPSY%stru%remove_leading_spaces( str)
+    call unit_test( str == 'bla', test_name // '/string')
+
+    str = '      '
+    str = UPSY%stru%remove_leading_spaces( str)
+    call unit_test( str == '', test_name // '/empty_string')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_remove_leading_spaces
+
+  subroutine test_str2int( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_str2int'
+    character(len=*), parameter   :: test_name_local = 'str2int'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+    integer                       :: int, stat
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = '1337'
+    int = UPSY%stru%str2int( str, stat)
+    call unit_test( int == 1337 .and. stat == 0, test_name // '/int')
+
+    str = '0001337'
+    int = UPSY%stru%str2int( str, stat)
+    call unit_test( int == 1337 .and. stat == 0, test_name // '/int_leading_zeros')
+
+    str = '   1337'
+    int = UPSY%stru%str2int( str, stat)
+    call unit_test( int == 1337 .and. stat == 0, test_name // '/int_leading_spaces')
+
+    str = 'this shouldnt work'
+    int = UPSY%stru%str2int( str, stat)
+    call unit_test( stat /= 0, test_name // '/invalid')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_str2int
+
+  subroutine test_int2str_with_leading_zeros( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_int2str_with_leading_zeros'
+    character(len=*), parameter   :: test_name_local = 'int2str_with_leading_zeros'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = UPSY%stru%int2str_with_leading_zeros( 1337, 5)
+    call unit_test( str == '01337', test_name // '/int')
+
+    str = UPSY%stru%int2str_with_leading_zeros( 1337, 3)
+    call unit_test( str == '***', test_name // '/invalid')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_int2str_with_leading_zeros
 
 end module ut_string

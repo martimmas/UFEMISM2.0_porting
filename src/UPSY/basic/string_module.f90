@@ -10,7 +10,7 @@ module string_module
   public :: type_string_utilities
   public :: separate_strings_by_double_vertical_bars, colour_string, &
     insert_val_into_string_int, insert_val_into_string_dp, capitalise_string, &
-    remove_leading_spaces, str2int, int2str, strrep
+    remove_leading_spaces, str2int, int2str_with_leading_zeros, strrep
 
   type type_string_utilities
       private
@@ -22,6 +22,8 @@ module string_module
       procedure, public, nopass :: insert_val_into_string_dp
       procedure, public, nopass :: capitalise_string
       procedure, public, nopass :: remove_leading_spaces
+      procedure, public, nopass :: str2int
+      procedure, public, nopass :: int2str_with_leading_zeros
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.
@@ -226,26 +228,21 @@ contains
 
   end function remove_leading_spaces
 
-  subroutine str2int( str, int, stat)
+  function str2int( str, stat) result( int)
     !< Convert a string containing an integer number to an actual integer
-
     character(len=*), intent(in   ) :: str
-    integer         , intent(  out) :: int
-    integer         , intent(  out) :: stat
-
+    integer,          intent(  out) :: stat
+    integer                         :: int
     read( str, *, iostat = stat) int
+  end function str2int
 
-  end subroutine str2int
-
-  subroutine int2str( int,str)
+  function int2str_with_leading_zeros( int, n) result( str)
     !< Convert integer to a character string (with leading zeros)
-
-    integer,          intent(in   ) :: int
-    character(len=*), intent(  out) :: str
-    integer                         :: n,i
-    character(len=4)                :: fmt
-
-    n = len( str)
+    integer, intent(in) :: int
+    integer, intent(in) :: n
+    character(len=n)    :: str
+    integer             :: i
+    character(len=4)    :: fmt
 
     write( fmt,'(A,I1,A)') '(I', n, ')'
     write( str,fmt) int
@@ -254,7 +251,7 @@ contains
       if (str( i:i) == ' ') str( i:i) = '0'
     end do
 
-  end subroutine int2str
+  end function int2str_with_leading_zeros
 
   function strrep( str, old, new) result( str_new)
     !< Replace all occurences in [str] of [old] with [new]

@@ -10,7 +10,6 @@ MODULE UFEMISM_main_model
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
-  use string_module, only: str2int, int2str
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region
@@ -1203,7 +1202,7 @@ CONTAINS
     REAL(dp)                                                           :: xmin, xmax, ymin, ymax
     REAL(dp)                                                           :: lambda_M, phi_M, beta_stereo
     INTEGER                                                            :: n_old, stat, n_new
-    CHARACTER(LEN=5)                                                   :: n_new_str
+    character(len=:), allocatable                                      :: n_new_str
     CHARACTER(LEN=256)                                                 :: new_mesh_name
     type(type_mesh), allocatable                                       :: mesh_new
     REAL(dp)                                                           :: tstart, tstop
@@ -1258,10 +1257,10 @@ CONTAINS
     END IF
 
     ! Create numbered name for the new mesh
-    CALL str2int( region%mesh%name( 16:20), n_old, stat)
+    n_old = UPSY%stru%str2int( region%mesh%name( 16:20), stat)
     IF (stat /= 0) CALL crash('couldnt read number of old mesh!')
     n_new = n_old + 1
-    CALL int2str( n_new, n_new_str)
+    n_new_str = UPSY%stru%int2str_with_leading_zeros( n_new, 5)
     new_mesh_name = 'model_mesh_' // TRIM( region%name) // '_' // n_new_str
 
     ! Create a mesh from the modelled ice geometry
