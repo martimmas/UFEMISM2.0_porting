@@ -20,6 +20,7 @@ module string_module
       procedure, public, nopass :: colour_string
       procedure, public, nopass :: insert_val_into_string_int
       procedure, public, nopass :: insert_val_into_string_dp
+      procedure, public, nopass :: capitalise_string
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.
@@ -193,20 +194,22 @@ contains
 
   end function insert_val_into_string_dp
 
-  subroutine capitalise_string( str)
+  pure function capitalise_string( str) result( str_new)
     !< Capitalise all letters in a string
 
-    character(len=*), intent(inout) :: str
-    integer                         :: i, index_cap
-    character(26), parameter        :: upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    character(26), parameter        :: lower = 'abcdefghijklmnopqrstuvwxyz'
+    character(len=*), intent(in)  :: str
+    character(len=:), allocatable :: str_new
+    integer                       :: i, index_cap
+    character(len=*), parameter   :: upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    character(len=*), parameter   :: lower = 'abcdefghijklmnopqrstuvwxyz'
 
-    do i = 1, len_trim( str)
-      index_cap = index( lower, str( i:i))
-      if (index_cap > 0) str( i:i) = upper( index_cap:index_cap)
+    str_new = str
+    do i = 1, len_trim( str_new)
+      index_cap = index( lower, str_new( i:i))
+      if (index_cap > 0) str_new( i:i) = upper( index_cap:index_cap)
     end do
 
-  end subroutine capitalise_string
+  end function capitalise_string
 
   subroutine remove_leading_spaces( str)
     !< Remove leading spaces from a character string
