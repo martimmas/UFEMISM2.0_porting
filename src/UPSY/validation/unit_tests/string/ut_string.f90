@@ -39,6 +39,7 @@ contains
     call test_remove_leading_spaces                   ( test_name)
     call test_str2int                                 ( test_name)
     call test_int2str_with_leading_zeros              ( test_name)
+    call test_strrep                                  ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -324,5 +325,35 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_int2str_with_leading_zeros
+
+  subroutine test_strrep( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_strrep'
+    character(len=*), parameter   :: test_name_local = 'strrep'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = 'Please replace John with Pete'
+    str = UPSY%stru%strrep( str, 'John', 'Pete')
+    call unit_test( str == 'Please replace Pete with Pete', test_name // '/one')
+
+    str = 'Please replace John, John, John-Bartholomew and Johnnieboy with Pete'
+    str = UPSY%stru%strrep( str, 'John', 'Pete')
+    call unit_test( str == 'Please replace Pete, Pete, Pete-Bartholomew and Petenieboy with Pete', test_name // '/two')
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_strrep
 
 end module ut_string
