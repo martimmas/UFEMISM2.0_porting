@@ -8,7 +8,7 @@ MODULE UFEMISM_main_model
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM, MPI_WTIME
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use string_module, only: colour_string, str2int, int2str, insert_val_into_string_dp
   USE model_configuration                                    , ONLY: C
   USE parameters

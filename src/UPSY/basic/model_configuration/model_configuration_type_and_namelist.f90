@@ -17,7 +17,7 @@ module model_configuration_type_and_namelist
   ! overwritten in the end.
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration_utilities, only: check_config_file_validity
 
   implicit none
@@ -734,7 +734,7 @@ module model_configuration_type_and_namelist
     real(dp)            :: ocean_lin_therm_surf_salinity_config         = 34.0_dp                          ! [psu] Surface salinity when using 'LINEAR_THERMOCLINE'
     real(dp)            :: ocean_lin_therm_deep_salinity_config         = 34.7_dp                          ! [psu] Deep salinity when using 'LINEAR_THERMOCLINE'
     real(dp)            :: ocean_lin_therm_surf_temperature_config      = -1.0_dp                          ! [degC] Surface temperature when using 'LINEAR_THERMOCLINE'
-    real(dp)            :: ocean_lin_therm_deep_temperature_config      = 1.2_dp                           ! [degC] Deep temperature when using 'LINEAR_THERMOCLINE' 
+    real(dp)            :: ocean_lin_therm_deep_temperature_config      = 1.2_dp                           ! [degC] Deep temperature when using 'LINEAR_THERMOCLINE'
     real(dp)            :: ocean_lin_therm_thermocline_top_config       = 200.0_dp                         ! [m] Top of thermocline depth when using 'LINEAR_THERMOCLINE'
     real(dp)            :: ocean_lin_therm_thermocline_bottom_config    = 600.0_dp                         ! [m] Bottom of thermocline depth when using 'LINEAR_THERMOCLINE'
 
@@ -3880,10 +3880,10 @@ contains
     c%filename_climate_snapshot_trans_dT_EAS                 = filename_climate_snapshot_trans_dT_EAS_config
     c%filename_climate_snapshot_trans_dT_GRL                 = filename_climate_snapshot_trans_dT_GRL_config
     c%filename_climate_snapshot_trans_dT_ANT                 = filename_climate_snapshot_trans_dT_ANT_config
-    C%filename_atmosphere_dT_NAM                             = filename_atmosphere_dT_NAM_config            
-    C%filename_atmosphere_dT_EAS                             = filename_atmosphere_dT_EAS_config            
-    C%filename_atmosphere_dT_GRL                             = filename_atmosphere_dT_GRL_config            
-    C%filename_atmosphere_dT_ANT                             = filename_atmosphere_dT_ANT_config            
+    C%filename_atmosphere_dT_NAM                             = filename_atmosphere_dT_NAM_config
+    C%filename_atmosphere_dT_EAS                             = filename_atmosphere_dT_EAS_config
+    C%filename_atmosphere_dT_GRL                             = filename_atmosphere_dT_GRL_config
+    C%filename_atmosphere_dT_ANT                             = filename_atmosphere_dT_ANT_config
 
     C%choice_insolation_forcing                              = choice_insolation_forcing_config
     C%filename_insolation                                    = filename_insolation_config

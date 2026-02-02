@@ -3,7 +3,7 @@ module ocean_snapshot_nudge2D
   use precisions, only: dp
   use parameters, only: NaN
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning, colour_string
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use grid_types, only: type_grid

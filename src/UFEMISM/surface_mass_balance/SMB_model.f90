@@ -1,6 +1,6 @@
 module SMB_model
 
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use SMB_model_basic, only: atype_SMB_model
   use SMB_idealised, only: type_SMB_model_idealised
   use SMB_prescribed, only: type_SMB_model_prescribed

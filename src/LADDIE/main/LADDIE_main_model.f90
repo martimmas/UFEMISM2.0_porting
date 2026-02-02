@@ -8,7 +8,7 @@ module LADDIE_main_model
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM, MPI_WTIME
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration                                    , ONLY: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry

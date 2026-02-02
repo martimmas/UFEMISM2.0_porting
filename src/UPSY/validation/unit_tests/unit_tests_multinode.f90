@@ -5,7 +5,7 @@ module unit_tests_multinode
   use tests_main
   use assertions_basic
   use ut_basic
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, colour_string
   use mpi_basic, only: par, sync
   use ut_mpi_dist_shared_memory, only: unit_tests_mpi_hybrid_distributed_shared_memory_main
   use ut_halo_exchange, only: test_halo_exchange_main

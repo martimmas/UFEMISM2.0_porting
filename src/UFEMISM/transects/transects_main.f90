@@ -5,7 +5,7 @@ module transects_main
   use mpi_basic, only: par, sync
   use mpi_distributed_memory, only: partition_list
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh
@@ -296,7 +296,7 @@ contains
       allocate(waypoints(2,2))
       waypoints(1,:) = [-150000.0_dp,0._dp]
       waypoints(2,:) = [-150000.0_dp,-740000.0_dp]
-  
+
     case('HalbraneD')
       allocate(waypoints(2,2))
       waypoints(1,:) = [150000.0_dp,0._dp]
@@ -815,7 +815,7 @@ contains
     ! In/output variables:
     type(type_mesh),      intent(in   ) :: mesh
     type(type_ice_model), intent(in   ) :: ice
-    type(type_BMB_model), intent(in   ) :: BMB  
+    type(type_BMB_model), intent(in   ) :: BMB
     type(type_transect),  intent(in   ) :: transect
     real(dp),             intent(in   ) :: time
 

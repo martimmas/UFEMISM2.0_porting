@@ -5,7 +5,7 @@ module ct_create_test_meshes
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_CHAR
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, colour_string
   use tests_main
   use assertions_basic
   use mesh_types, only: type_mesh

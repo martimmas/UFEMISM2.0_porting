@@ -4,7 +4,7 @@ module tracer_tracking_model_main
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model

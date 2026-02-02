@@ -4,7 +4,7 @@ module netcdf_basic_wrappers
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_CHAR, MPI_INTEGER
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_basic, only: par, sync
   use basic_model_utilities, only: git_commit_hash
   use netcdf, only: NF90_NOERR, NF90_STRERROR, NF90_INQ_DIMID, NF90_INQUIRE_DIMENSION, &
