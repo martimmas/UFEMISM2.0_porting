@@ -251,10 +251,10 @@ contains
 
     str = trim( var_name) // ': sum = {int_01}, sum(abs) = {int_02}, min = {int_03}, max = {int_04} [' &
       // trim( routine_path) // ']'
-    call insert_val_into_string_int( str, '{int_01}', sum_d)
-    call insert_val_into_string_int( str, '{int_02}', sum_abs_d)
-    call insert_val_into_string_int( str, '{int_03}', min_d)
-    call insert_val_into_string_int( str, '{int_04}', max_d)
+    str = insert_val_into_string_int( str, '{int_01}', sum_d)
+    str = insert_val_into_string_int( str, '{int_02}', sum_abs_d)
+    str = insert_val_into_string_int( str, '{int_03}', min_d)
+    str = insert_val_into_string_int( str, '{int_04}', max_d)
 
     call log_checksum( str)
 

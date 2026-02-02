@@ -333,11 +333,11 @@ contains
     str1 = ' '
     if (par%n_nodes == 1) then
       str1 = '===== Running ' // trim( program_name) // ' on {int_01} cores ====='
-      call insert_val_into_string_int( str1, '{int_01}', par%n)
+      str1 = insert_val_into_string_int( str1, '{int_01}', par%n)
     else
       str1 = '===== Running ' // trim( program_name) // ' on {int_01} cores ({int_02} nodes) ====='
-      call insert_val_into_string_int( str1, '{int_01}', par%n)
-      call insert_val_into_string_int( str1, '{int_02}', par%n_nodes)
+      str1 = insert_val_into_string_int( str1, '{int_01}', par%n)
+      str1 = insert_val_into_string_int( str1, '{int_02}', par%n_nodes)
     end if
 
     str2 = ' '
@@ -383,10 +383,10 @@ contains
     ! Print to screen
     str1 = '===== Finished running ' // trim( program_name) // &
       ' in {int_01} days, {int_02} hours, {int_03} minutes, and {int_04} seconds ====='
-    call insert_val_into_string_int( str1, '{int_01}', nd)
-    call insert_val_into_string_int( str1, '{int_02}', nh)
-    call insert_val_into_string_int( str1, '{int_03}', nm)
-    call insert_val_into_string_int( str1, '{int_04}', ns)
+    str1 = insert_val_into_string_int( str1, '{int_01}', nd)
+    str1 = insert_val_into_string_int( str1, '{int_02}', nh)
+    str1 = insert_val_into_string_int( str1, '{int_03}', nm)
+    str1 = insert_val_into_string_int( str1, '{int_04}', ns)
 
     n = len_trim( str1)
     str2 = ' '

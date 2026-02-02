@@ -92,7 +92,7 @@ contains
 
   end function colour_string
 
-  subroutine insert_val_into_string_int( str, marker, val)
+  pure function insert_val_into_string_int( str, marker, val) result( str_new)
     !< Replace marker in str with val (where val is an integer)
 
     ! Example: str    = 'Johnny has {int_01} apples.'
@@ -101,14 +101,16 @@ contains
     !
     ! This returns: str = 'Johnny has 5 apples'
 
-    character(len=*), intent(inout) :: str
-    character(len=*), intent(in   ) :: marker
-    integer ,         intent(in   ) :: val
-    integer                         :: ci
-    integer                         :: nc
-    character(len=4)                :: fmt
-    character(:), allocatable       :: val_str
-    integer                         :: len_str, len_marker
+    character(len=*),  intent(in) :: str
+    character(len=*),  intent(in) :: marker
+    integer ,          intent(in) :: val
+    character(len=:), allocatable :: str_new
+
+    integer                       :: ci
+    integer                       :: nc
+    character(len=4)              :: fmt
+    character(:), allocatable     :: val_str
+    integer                       :: len_str, len_marker
 
     ! Find position ci in str where i_str occurs
     ci = index( str, marker)
@@ -135,7 +137,7 @@ contains
     elseif (abs( val) < 100000000) then
       nc = 8
     else
-      nc = 9
+      error stop 'insert_val_into_string_int: only accepts integers up to 99999999'
     end if
 
     ! Add room for a minus sign if needed
@@ -150,9 +152,9 @@ contains
     len_marker = len( marker)
 
     ! Insert the integer string into the string
-    str = str(1:ci-1) // val_str // str(ci+len_marker:len_str)
+    str_new = str( 1:ci-1) // val_str // str( ci+len_marker:len_str)
 
-  end subroutine insert_val_into_string_int
+  end function insert_val_into_string_int
 
   subroutine insert_val_into_string_dp( str, marker, val)
     !< Replace marker in str with val (where val is a double-precision number)

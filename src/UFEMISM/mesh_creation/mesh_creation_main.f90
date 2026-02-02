@@ -99,8 +99,6 @@ contains
   subroutine write_mesh_success( mesh)
     !< Write the mesh creation success message to the terminal
 
-    use call_stack_and_comp_time_tracking, only: insert_val_into_string_int, insert_val_into_string_dp
-
     ! In/output variables:
     type(type_mesh), intent(in) :: mesh
 
@@ -114,10 +112,10 @@ contains
     str = '     Set up ' // UPSY%stru%colour_string( TRIM( mesh%name),'light blue') // &
       ' with {int_01} vertices and {int_02} triangles' // &
       ', with a resolution of {dp_01} to {dp_02} m'
-    call insert_val_into_string_int( str, '{int_01}', mesh%nV)
-    call insert_val_into_string_int( str, '{int_02}', mesh%nTri)
-    call insert_val_into_string_dp(  str, '{dp_01}', MINVAL( mesh%R))
-    call insert_val_into_string_dp(  str, '{dp_02}', MAXVAL( mesh%R))
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_01}', mesh%nV)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_02}', mesh%nTri)
+    call UPSY%stru%insert_val_into_string_dp(  str, '{dp_01}', MINVAL( mesh%R))
+    call UPSY%stru%insert_val_into_string_dp(  str, '{dp_02}', MAXVAL( mesh%R))
 
     if (par%primary) WRITE(0,'(A)') trim( str)
 

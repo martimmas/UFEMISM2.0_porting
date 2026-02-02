@@ -145,15 +145,15 @@ contains
       ', {int_08}' // &
       ', {int_09}'
 
-    call UPSY%stru%insert_val_into_string_int( str, '{int_01}', 1)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_02}', 2)
-    call UPSY%stru%insert_val_into_string_int( str, 'john', 3)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_04}', 4)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_05}', 5)
-    call UPSY%stru%insert_val_into_string_int( str, 'a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))', 6)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_07}', 7)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_08}', 8)
-    call UPSY%stru%insert_val_into_string_int( str, '{int_09}', 9)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_01}', 1)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_02}', 2)
+    str = UPSY%stru%insert_val_into_string_int( str, 'john', 3)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_04}', 4)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_05}', 5)
+    str = UPSY%stru%insert_val_into_string_int( str, 'a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))', 6)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_07}', 7)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_08}', 8)
+    str = UPSY%stru%insert_val_into_string_int( str, '{int_09}', 9)
 
     call unit_test( str == 'Test: 1, 2, 3, 4, 5, 6, 7, 8, 9', test_name)
 
