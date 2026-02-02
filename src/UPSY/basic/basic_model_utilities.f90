@@ -2,7 +2,7 @@ module basic_model_utilities
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use basic_program_info, only: program_name
   use string_module, only: colour_string, insert_val_into_string_dp, insert_val_into_string_int
   use crash_mod, only: crash

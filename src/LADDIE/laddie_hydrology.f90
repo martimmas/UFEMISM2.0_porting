@@ -2,7 +2,7 @@ MODULE laddie_hydrology
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine, colour_string
   use model_configuration, only: C
   use parameters
   use mesh_types, only: type_mesh
@@ -103,9 +103,9 @@ contains
     do vi = 1, transect%nV
        p = transect%V(vi,:)
        call find_containing_vertex( mesh, p, index_point)
-       
+
        ! Save index_points of mesh to transect type
-       transect%index_point( vi) = index_point    
+       transect%index_point( vi) = index_point
 
     end do
 

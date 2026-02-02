@@ -2,7 +2,7 @@ module laddie_grid_output
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning, crash
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
@@ -13,7 +13,7 @@ module laddie_grid_output
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
 
-  implicit none 
+  implicit none
 
   private
 
@@ -33,19 +33,19 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'write_to_laddie_output_file_mesh'
-    integer                        :: ncid 
+    integer                        :: ncid
 
     ! Add routine to path
     call init_routine( routine_name)
 
     ! if no NetCDF output should be created, do nothing
-    if (.not. C%do_create_netcdf_output) then 
+    if (.not. C%do_create_netcdf_output) then
       call finalise_routine( routine_name)
       return
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...' 
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( laddie%output_grid_filename, ncid)

@@ -5,7 +5,7 @@ module ice_mass_and_fluxes_ROI
   use precisions, only: dp
   use mpi_basic, only: par
   use model_configuration, only: C
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use parameters, only: ice_density, seawater_density, ocean_area, sec_per_year
   use mesh_types, only: type_mesh
   use scalar_types, only: type_regional_scalars

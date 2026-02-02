@@ -4,11 +4,11 @@ module netcdf_resource_tracking
 ! resource tracking file, which stores the amount of computation
 ! time used by all the different subroutines.
 !
-! (See src/basic/control_resources_and_error_messaging.f90 for
+! (See src/basic/call_stack_and_comp_time_tracking.f90 for
 ! details on how the resource tracking system works)
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: resource_tracker, init_routine, finalise_routine, crash
+  use call_stack_and_comp_time_tracking, only: resource_tracker, init_routine, finalise_routine, crash
   use netcdf_basic
   use netcdf_add_write_scalar_variables
   use netcdf, only: NF90_DOUBLE, NF90_INT, NF90_UNLIMITED

@@ -1,7 +1,7 @@
 module ut_SMB
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use ut_basic, only: unit_test
   use tests_main, only: test_tol, test_ge_le
   use model_configuration, only: C

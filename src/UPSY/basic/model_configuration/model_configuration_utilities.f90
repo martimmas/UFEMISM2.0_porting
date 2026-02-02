@@ -1,7 +1,7 @@
 module model_configuration_utilities
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, &
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, &
     crash, warning
   use string_module, only: capitalise_string, remove_leading_spaces
 

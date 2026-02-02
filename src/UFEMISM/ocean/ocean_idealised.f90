@@ -7,7 +7,7 @@ MODULE ocean_idealised
 
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, colour_string
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -245,7 +245,7 @@ CONTAINS
     REAL(dp)                                            :: S0, S1, T0, T1
 
     ! Add routine to path
-    CALL init_routine( routine_name) 
+    CALL init_routine( routine_name)
 
     ! Read in surface (0) / deep (1) layer salinity (S) and temperature (T)
     S0 = C%ocean_lin_therm_surf_salinity
@@ -257,17 +257,17 @@ CONTAINS
       DO k = 1, C%nz_ocean
 
         ! Surface layer
-        IF (C%z_ocean( k) <= C%ocean_lin_therm_thermocline_top ) THEN 
+        IF (C%z_ocean( k) <= C%ocean_lin_therm_thermocline_top ) THEN
           ocean%T( vi, k) = T0
           ocean%S( vi, k) = S0
 
         ! Thermocline
-        ELSEIF (C%z_ocean( k) > C%ocean_lin_therm_thermocline_top  .AND. C%z_ocean( k) < C%ocean_lin_therm_thermocline_bottom) THEN 
+        ELSEIF (C%z_ocean( k) > C%ocean_lin_therm_thermocline_top  .AND. C%z_ocean( k) < C%ocean_lin_therm_thermocline_bottom) THEN
           ocean%T( vi, k) = T0 + (T1-T0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
           ocean%S( vi, k) = S0 + (S1-S0)*(C%z_ocean( k)-C%ocean_lin_therm_thermocline_top)/(C%ocean_lin_therm_thermocline_bottom-C%ocean_lin_therm_thermocline_top)
 
         ! Deep layer
-        ELSEIF (C%z_ocean( k) >= C%ocean_lin_therm_thermocline_bottom) THEN 
+        ELSEIF (C%z_ocean( k) >= C%ocean_lin_therm_thermocline_bottom) THEN
           ocean%T( vi, k) = T1
           ocean%S( vi, k) = S1
 

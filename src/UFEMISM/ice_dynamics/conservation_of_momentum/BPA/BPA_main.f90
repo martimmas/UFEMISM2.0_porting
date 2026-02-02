@@ -6,7 +6,7 @@ module BPA_main
     MPI_LOR, MPI_LOGICAL, MPI_MIN, MPI_MAX, MPI_SUM
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, colour_string
   use model_configuration, only: C
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
   use mesh_types, only: type_mesh

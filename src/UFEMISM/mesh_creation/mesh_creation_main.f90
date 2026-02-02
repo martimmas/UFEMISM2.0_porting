@@ -4,7 +4,7 @@ module mesh_creation_main
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string
   use grid_types, only: type_grid
   use mesh_types, only: type_mesh
   use reduce_ice_geometry, only: reduce_gridded_ice_geometry, reduce_meshed_ice_geometry
@@ -98,7 +98,7 @@ contains
   subroutine write_mesh_success( mesh)
     !< Write the mesh creation success message to the terminal
 
-    use control_resources_and_error_messaging, only: insert_val_into_string_int, insert_val_into_string_dp
+    use call_stack_and_comp_time_tracking, only: insert_val_into_string_int, insert_val_into_string_dp
 
     ! In/output variables:
     type(type_mesh), intent(in) :: mesh

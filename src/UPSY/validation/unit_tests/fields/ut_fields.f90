@@ -1,6 +1,6 @@
 module ut_fields
 
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use ut_fields_create_field, only: test_create_field
   use ut_fields_io, only: test_io
   use ut_fields_reallocate, only: test_reallocate_field

@@ -1,4 +1,4 @@
-MODULE control_resources_and_error_messaging
+MODULE call_stack_and_comp_time_tracking
 
   ! Keep track of which subroutine has control, so that error messages can actually tell
   ! you where they originated.
@@ -270,7 +270,7 @@ CONTAINS
     END DO
 
     ! If we've reached this point, then the resource tracker is overflowing
-    CALL crash('Resource tracker overflows! Allocate more memory for it in control_resources_and_error_messaging/initialise_control_and_resource_tracker!')
+    CALL crash('Resource tracker overflows! Allocate more memory for it in call_stack_and_comp_time_tracking/initialise_control_and_resource_tracker!')
 
 #endif
 
@@ -299,4 +299,4 @@ CONTAINS
 
   END SUBROUTINE reset_resource_tracker
 
-END MODULE control_resources_and_error_messaging
+END MODULE call_stack_and_comp_time_tracking

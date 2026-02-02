@@ -29,7 +29,7 @@ program LADDIE_program
   use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
   use parameters, only: initialise_constants
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, &
     initialise_control_and_resource_tracker, reset_resource_tracker
   use basic_model_utilities, only: print_model_start, print_model_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests

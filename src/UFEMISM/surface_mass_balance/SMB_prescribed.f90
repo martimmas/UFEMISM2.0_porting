@@ -3,7 +3,7 @@ module SMB_prescribed
   use parameters, only: pi
   use precisions, only: dp
   use model_configuration, only: C
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, colour_string
   use mesh_types, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model, type_SMB_model_context_allocate, &
     type_SMB_model_context_initialise, type_SMB_model_context_run, &

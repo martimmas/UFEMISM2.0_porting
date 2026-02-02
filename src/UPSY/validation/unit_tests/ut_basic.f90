@@ -1,7 +1,7 @@
 module ut_basic
 
   use mpi_basic, only: par, sync
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine, colour_string
 
   implicit none
 

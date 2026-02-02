@@ -7,7 +7,7 @@ MODULE BMB_parameterised
 
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, colour_string
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -111,12 +111,12 @@ CONTAINS
     ! Including the dependency on the slope of the ice shelf base.
     ! Note that this is the "no tapering" case. This parameterisation was presented
     ! both with tapering and no tapering of basal melt rates towards the grounding line
-    ! Initial tests showed that this parameterisation without tapering does a job 
-    ! comparable to Favier2019, but produces less melt over the Amundsen Sea grounding 
-    ! lines, at least when using Bedmap3. In other words, it seems like this is modulated 
-    ! by a relatively flatter ice shelf base at that location in Bedmap3. Including the 
-    ! tapering can easily be done as a separate parameterisation, or as an extension to 
-    ! this one (e.g., by adding a tapering distance factor). This is left for future work, 
+    ! Initial tests showed that this parameterisation without tapering does a job
+    ! comparable to Favier2019, but produces less melt over the Amundsen Sea grounding
+    ! lines, at least when using Bedmap3. In other words, it seems like this is modulated
+    ! by a relatively flatter ice shelf base at that location in Bedmap3. Including the
+    ! tapering can easily be done as a separate parameterisation, or as an extension to
+    ! this one (e.g., by adding a tapering distance factor). This is left for future work,
     ! as the parameterisation is already doing a good job based on initial tests.
 
     ! In/output variables
@@ -155,7 +155,7 @@ CONTAINS
 
       ! Melt constant if C_melt would be prescribed as an exchange velocity gamma
       !C_melt = -1._dp * C%BMB_Holland_Cmelt /(sec_per_year * (seawater_density*cp_ocean)/(ice_density*L_fusion))
-      
+
       BMB%BMB_shelf( vi) = C_melt * dT**(1.5_dp) * SIN(slope_angle)**(0.5_dp)
 
       ! Apply grounded fractions

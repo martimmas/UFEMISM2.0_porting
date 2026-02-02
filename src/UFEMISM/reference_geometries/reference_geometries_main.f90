@@ -7,7 +7,7 @@ module reference_geometries_main
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, colour_string
   use model_configuration, only: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry

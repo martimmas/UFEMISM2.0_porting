@@ -5,7 +5,7 @@ module inversion_utilities
 
   use mpi_basic, only: par
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, colour_string
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh

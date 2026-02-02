@@ -8,7 +8,7 @@ module laddie_forcing_main
   use parameters
   use mpi_basic, only: par
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: crash, init_routine, finalise_routine, colour_string, warning
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine, colour_string, warning
   use model_configuration, only: C
   use reference_geometry_types, only: type_reference_geometry
   use mesh_types, only: type_mesh
