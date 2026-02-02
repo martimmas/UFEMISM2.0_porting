@@ -7,8 +7,8 @@ program UPSY_unit_test_program
   use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
   use parameters, only: initialise_constants
-  use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, &
-    print_model_start, print_model_end
+  use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker
+  use basic_model_utilities, only: print_model_start, print_model_end
   use ut_basic, only: create_unit_tests_output_folder, create_unit_tests_output_file, foldername_unit_tests_output
   use mpi_f08, only: MPI_WTIME, MPI_FINALIZE
 

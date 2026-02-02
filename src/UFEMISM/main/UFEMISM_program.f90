@@ -17,7 +17,8 @@ program UFEMISM_program
   use mpi_basic, only: par, initialise_parallelisation
   use parameters, only: initialise_constants
   use control_resources_and_error_messaging, only: initialise_control_and_resource_tracker, &
-    reset_resource_tracker, print_model_start, print_model_end
+    reset_resource_tracker
+  use basic_model_utilities, only: print_model_start, print_model_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   use region_types, only: type_model_region
