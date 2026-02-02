@@ -1,9 +1,10 @@
 module ut_string
 
+  use UPSY_main, only: UPSY
   use control_resources_and_error_messaging, only: init_routine, finalise_routine
   use precisions, only: dp
   use ut_basic, only: unit_test
-  use UPSY_main, only: UPSY
+  use mpi_basic, only: par
 
   implicit none
 
@@ -30,6 +31,7 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     call test_separate_strings_by_double_vertical_bars( test_name)
+    call test_colour_string( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -82,5 +84,37 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_separate_strings_by_double_vertical_bars
+
+  subroutine test_colour_string( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_colour_string'
+    character(len=*), parameter   :: test_name_local = 'colour_string'
+    character(len=:), allocatable :: test_name
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be gray', 'gray')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be red', 'red')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be green', 'green')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be yellow', 'yellow')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be blue', 'blue')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be pink', 'pink')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be light blue', 'light blue')
+    if (par%primary) write(0,*) UPSY%stru%colour_string( '  This string should be white', 'anything else')
+
+    call unit_test( .true., test_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_colour_string
 
 end module ut_string
