@@ -18,6 +18,8 @@ module string_module
       private
       procedure, public, nopass :: separate_strings_by_double_vertical_bars
       procedure, public, nopass :: colour_string
+      procedure, public, nopass :: insert_val_into_string_int
+      procedure, public, nopass :: insert_val_into_string_dp
   end type type_string_utilities
 
   logical :: do_colour_strings = .true.

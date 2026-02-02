@@ -31,7 +31,8 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     call test_separate_strings_by_double_vertical_bars( test_name)
-    call test_colour_string( test_name)
+    call test_colour_string                           ( test_name)
+    call test_insert_val_into_string_int              ( test_name)
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)
@@ -116,5 +117,49 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine test_colour_string
+
+  subroutine test_insert_val_into_string_int( test_name_parent)
+
+    ! In/output variables:
+    character(len=*), intent(in) :: test_name_parent
+
+    ! Local variables:
+    character(len=*), parameter   :: routine_name = 'test_insert_val_into_string_int'
+    character(len=*), parameter   :: test_name_local = 'insert_val_into_string_int'
+    character(len=:), allocatable :: test_name
+    character(len=:), allocatable :: str
+
+    ! Add routine to call stack
+    call init_routine( routine_name)
+
+    ! Add test name to list
+    test_name = trim( test_name_parent) // '/' // trim( test_name_local)
+
+    str = 'Test: {int_01}' // &
+      ', {int_02}' // &
+      ', john' // &
+      ', {int_04}' // &
+      ', {int_05}' // &
+      ', a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))' // &
+      ', {int_07}' // &
+      ', {int_08}' // &
+      ', {int_09}'
+
+    call UPSY%stru%insert_val_into_string_int( str, '{int_01}', 1)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_02}', 2)
+    call UPSY%stru%insert_val_into_string_int( str, 'john', 3)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_04}', 4)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_05}', 5)
+    call UPSY%stru%insert_val_into_string_int( str, 'a_very_long_and_nonsensical_marker_should_work_too&&*@#(#(#))', 6)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_07}', 7)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_08}', 8)
+    call UPSY%stru%insert_val_into_string_int( str, '{int_09}', 9)
+
+    call unit_test( str == 'Test: 1, 2, 3, 4, 5, 6, 7, 8, 9', test_name)
+
+    ! Remove routine from call stack
+    call finalise_routine( routine_name)
+
+  end subroutine test_insert_val_into_string_int
 
 end module ut_string
