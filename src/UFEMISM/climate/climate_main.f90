@@ -6,8 +6,9 @@ MODULE climate_main
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -176,7 +177,7 @@ CONTAINS
     ! Determine which climate model to initialise
     ! Print to terminal
     IF (par%primary)  WRITE(*,"(A)") '     Initialising climate model "' // &
-      colour_string( TRIM( choice_climate_model),'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( choice_climate_model),'light blue') // '"...'
     select case (choice_climate_model)
     case default
       call crash('unknown choice_climate_model "' // trim( choice_climate_model) // '"')
@@ -280,7 +281,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Writing to climate restart file "' // &
-      colour_string( TRIM( climate%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( climate%restart_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     CALL open_existing_netcdf_file_for_writing( climate%restart_filename, ncid)
@@ -382,7 +383,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Creating climate model restart file "' // &
-      colour_string( TRIM( climate%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( climate%restart_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     CALL create_new_netcdf_file_for_writing( climate%restart_filename, ncid)

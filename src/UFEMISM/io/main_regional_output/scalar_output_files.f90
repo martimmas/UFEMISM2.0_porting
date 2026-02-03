@@ -1,8 +1,9 @@
 module scalar_output_files
 
   use mpi_basic, only: par
+  use UPSY_main, only: UPSY
   use precisions, only: dp
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use model_configuration, only: C
   use region_types, only: type_model_region
   use netcdf_io_main
@@ -46,7 +47,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to scalar output file "' // colour_string( trim( region%output_filename_scalar), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to scalar output file "' // &
+      UPSY%stru%colour_string( trim( region%output_filename_scalar), 'light blue') // '"...'
 
     ! Shorthand for variable names
     filename = region%output_filename_scalar
@@ -145,7 +147,8 @@ contains
     region%output_filename_scalar = filename
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating scalar output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating scalar output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( filename, ncid)
@@ -513,7 +516,8 @@ contains
       end if
 
       ! Print to terminal
-      if (par%primary) write(0,'(A)') '   Writing to ISMIP scalar output file "' // colour_string( trim( region%output_filename_ismip_scalar), 'light blue') // '"...'
+      if (par%primary) write(0,'(A)') '   Writing to ISMIP scalar output file "' // &
+        UPSY%stru%colour_string( trim( region%output_filename_ismip_scalar), 'light blue') // '"...'
 
       ! Shorthand for variable names
       filename = region%output_filename_ismip_scalar
@@ -579,7 +583,8 @@ contains
       region%output_filename_ismip_scalar = filename
 
       ! Print to terminal
-      if (par%primary) write(0,'(A)') '   Creating ISMIP scalar output file "' // colour_string( trim( filename), 'light blue') // '"...'
+      if (par%primary) write(0,'(A)') '   Creating ISMIP scalar output file "' // &
+         UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
       ! Create the NetCDF file
       call create_new_netcdf_file_for_writing( filename, ncid)

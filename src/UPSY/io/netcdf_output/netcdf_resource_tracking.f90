@@ -45,7 +45,7 @@ contains
 
     ! Number of routines in the resource tracker
     n_routines          = size( resource_tracker)
-    length_routine_name = len( resource_tracker( 1)%routine_path)
+    length_routine_name = 2048
 
     ! allocate memory
     allocate( routine_name_encoded(             length_routine_name))
@@ -107,7 +107,7 @@ contains
 
     ! Number of routines in the resource tracker
     n_routines          = size( resource_tracker)
-    length_routine_name = len( resource_tracker( 1)%routine_path)
+    length_routine_name = 2048
 
     ! Determine the file name
     filename_resource_tracker = TRIM( output_dir) // '/resource_tracking.nc'

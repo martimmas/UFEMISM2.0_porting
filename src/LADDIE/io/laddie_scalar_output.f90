@@ -3,7 +3,8 @@ module laddie_scalar_output
   use parameters
   use mpi_basic, only: par
   use precisions, only: dp
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning
+  use UPSY_main, only: UPSY
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use mesh_types, only: type_mesh
@@ -112,7 +113,7 @@ contains
     call generate_filename_XXXXXdotnc( filename_base, laddie%output_scalar_filename)
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating laddie scalar output file "' // colour_string( trim( laddie%output_scalar_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating laddie scalar output file "' // UPSY%stru%colour_string( trim( laddie%output_scalar_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( laddie%output_scalar_filename, ncid)

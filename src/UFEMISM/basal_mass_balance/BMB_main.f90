@@ -6,8 +6,9 @@ MODULE BMB_main
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -417,7 +418,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Writing to BMB restart file "' // &
-      colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     CALL open_existing_netcdf_file_for_writing( BMB%restart_filename, ncid)
@@ -521,7 +522,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Creating BMB model restart file "' // &
-      colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     CALL create_new_netcdf_file_for_writing( BMB%restart_filename, ncid)

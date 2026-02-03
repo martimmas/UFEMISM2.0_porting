@@ -6,8 +6,9 @@ MODULE thermodynamics_main
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par
-  USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region
@@ -429,7 +430,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE (0,*) '  Initialising ice temperatures from file "' // &
-      colour_string( TRIM( filename_initial_ice_temperature), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( filename_initial_ice_temperature), 'light blue') // '"...'
 
     ! Allocate
     ALLOCATE( zeta_read (mesh%nz), source=0.0_dp)

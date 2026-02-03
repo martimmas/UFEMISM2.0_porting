@@ -3,8 +3,9 @@ module predictor_corrector_scheme
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_INTEGER, &
     MPI_MAX, MPI_SUM
   use mpi_basic, only: par
+  use UPSY_main, only: UPSY
   use precisions, only: dp
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh
@@ -456,7 +457,8 @@ contains
     end if
 
     ! write to terminal
-    if (par%primary) write(0,*) '   Initialising ice thickness predictor/corrector scheme from file "' // colour_string( trim( filename),'light blue') // '"...'
+    if (par%primary) write(0,*) '   Initialising ice thickness predictor/corrector scheme from file "' // &
+      UPSY%stru%colour_string( trim( filename),'light blue') // '"...'
 
     ! Read values from the file
     if (timeframe_applied == 1E9_dp) then
@@ -515,7 +517,7 @@ contains
 
     ! Print to terminal
     if (par%primary) write(0,'(A)') '   Writing to ice dynamics restart file "' // &
-      colour_string( trim( pc%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( trim( pc%restart_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( pc%restart_filename, ncid)
@@ -572,7 +574,7 @@ contains
 
     ! Print to terminal
     if (par%primary) write(0,'(A)') '   Creating ice dynamics restart file "' // &
-      colour_string( trim( pc%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( trim( pc%restart_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( pc%restart_filename, ncid)

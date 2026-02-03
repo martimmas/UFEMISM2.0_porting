@@ -66,6 +66,7 @@ contains
     integer                        :: ios
     logical                        :: found_end_of_file_config, found_end_of_file_namelist
     character(len=1024)            :: single_line_config      , single_line_namelist
+    character(len=:), allocatable  :: temp_line_alloc
     integer                        :: line_counter_config     , line_counter_namelist
     logical                        :: found_match
 
@@ -96,13 +97,15 @@ contains
         '" is not terminated with a forward slash!')
 
       ! Remove all leading spaces
-      call remove_leading_spaces( single_line_config)
+      temp_line_alloc = remove_leading_spaces( single_line_config)
+      single_line_config = temp_line_alloc
 
       ! The variable name is the part of the string left of the first (, =, or space.
       single_line_config = single_line_config( 1: scan( single_line_config, '( =')-1)
 
       ! Get config variable in all caps for case-insensitive comparison
-      call capitalise_string( single_line_config)
+      temp_line_alloc = capitalise_string( single_line_config)
+      single_line_config = temp_line_alloc
 
       ! The forward slash at the end terminates the config file
       if (single_line_config == '/') then
@@ -139,13 +142,15 @@ contains
           '" is not terminated with a forward slash!')
 
         ! Remove all leading spaces
-        call remove_leading_spaces( single_line_namelist)
+        temp_line_alloc = remove_leading_spaces( single_line_namelist)
+        single_line_namelist = temp_line_alloc
 
         ! The variable name is the part of the string left of the first (, =, or space.
         single_line_namelist = single_line_namelist( 1: scan( single_line_namelist, '( =')-1)
 
         ! Get namelist variable in all caps for case-insensitive comparison
-        call capitalise_string( single_line_namelist)
+        temp_line_alloc = capitalise_string( single_line_namelist)
+        single_line_namelist =  temp_line_alloc
 
         ! The forward slash at the end terminates the config file
         if (single_line_namelist == '/') found_end_of_file_namelist = .true.
@@ -202,6 +207,7 @@ contains
     integer                        :: ios
     logical                        :: found_end_of_file_config, found_end_of_file_namelist
     character(len=1024)            :: single_line_config      , single_line_namelist
+    character(len=:), allocatable  :: temp_line_alloc
     integer                        :: line_counter_config     , line_counter_namelist
     logical                        :: found_match
 
@@ -232,13 +238,15 @@ contains
         '" is not terminated with a forward slash!')
 
       ! Remove all leading spaces
-      call remove_leading_spaces( single_line_namelist)
+      temp_line_alloc = remove_leading_spaces( single_line_namelist)
+      single_line_namelist = temp_line_alloc
 
       ! The variable name is the part of the string left of the first (, =, or space.
       single_line_namelist = single_line_namelist( 1: scan( single_line_namelist, '( =')-1)
 
       ! Get namelist variable in all caps for case-insensitive comparison
-      call capitalise_string( single_line_namelist)
+      temp_line_alloc = capitalise_string( single_line_namelist)
+      single_line_namelist = temp_line_alloc
 
       ! The forward slash at the end terminates the namelist file
       if (single_line_namelist == '/') found_end_of_file_namelist = .true.
@@ -273,13 +281,15 @@ contains
           '" is not terminated with a forward slash!')
 
         ! Remove all leading spaces
-        call remove_leading_spaces( single_line_config)
+        temp_line_alloc = remove_leading_spaces( single_line_config)
+        single_line_config = temp_line_alloc
 
         ! The variable name is the part of the string left of the first (, =, or space.
         single_line_config = single_line_config( 1: scan( single_line_config, '( =')-1)
 
         ! Get config variable in all caps for case-insensitive comparison
-        call capitalise_string( single_line_config)
+        temp_line_alloc = capitalise_string( single_line_config)
+        single_line_config = temp_line_alloc
 
         ! The forward slash at the end terminates the config file
         if (single_line_config == '/') found_end_of_file_config = .true.

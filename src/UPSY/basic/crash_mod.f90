@@ -85,7 +85,7 @@ contains
     real(dp), optional, intent(in) ::  dp_01,  dp_02,  dp_03,  dp_04,  dp_05,  dp_06,  dp_07,  dp_08,  dp_09,  dp_10
 
     ! Local variables:
-    character(len=1024)           :: err_msg_loc
+    character(len=:), allocatable :: err_msg_loc
     integer                       :: nc
     character(len=9)              :: fmt
     character(len=:), allocatable :: process_str
@@ -112,27 +112,27 @@ contains
     write( process_str,fmt) par%i, '/', par%n
 
     ! Insert numbers into string if needed
-    if (present( int_01)) call insert_val_into_string_int( err_msg_loc, '{int_01}', int_01)
-    if (present( int_02)) call insert_val_into_string_int( err_msg_loc, '{int_02}', int_02)
-    if (present( int_03)) call insert_val_into_string_int( err_msg_loc, '{int_03}', int_03)
-    if (present( int_04)) call insert_val_into_string_int( err_msg_loc, '{int_04}', int_04)
-    if (present( int_05)) call insert_val_into_string_int( err_msg_loc, '{int_05}', int_05)
-    if (present( int_06)) call insert_val_into_string_int( err_msg_loc, '{int_06}', int_06)
-    if (present( int_07)) call insert_val_into_string_int( err_msg_loc, '{int_07}', int_07)
-    if (present( int_08)) call insert_val_into_string_int( err_msg_loc, '{int_08}', int_08)
-    if (present( int_09)) call insert_val_into_string_int( err_msg_loc, '{int_09}', int_09)
-    if (present( int_10)) call insert_val_into_string_int( err_msg_loc, '{int_10}', int_10)
+    if (present( int_01)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_01}', int_01)
+    if (present( int_02)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_02}', int_02)
+    if (present( int_03)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_03}', int_03)
+    if (present( int_04)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_04}', int_04)
+    if (present( int_05)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_05}', int_05)
+    if (present( int_06)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_06}', int_06)
+    if (present( int_07)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_07}', int_07)
+    if (present( int_08)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_08}', int_08)
+    if (present( int_09)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_09}', int_09)
+    if (present( int_10)) err_msg_loc = insert_val_into_string_int( err_msg_loc, '{int_10}', int_10)
 
-    if (present( dp_01 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_01}' , dp_01 )
-    if (present( dp_02 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_02}' , dp_02 )
-    if (present( dp_03 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_03}' , dp_03 )
-    if (present( dp_04 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_04}' , dp_04 )
-    if (present( dp_05 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_05}' , dp_05 )
-    if (present( dp_06 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_06}' , dp_06 )
-    if (present( dp_07 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_07}' , dp_07 )
-    if (present( dp_08 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_08}' , dp_08 )
-    if (present( dp_09 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_09}' , dp_09 )
-    if (present( dp_10 )) call insert_val_into_string_dp(  err_msg_loc, '{dp_10}' , dp_10 )
+    if (present( dp_01 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_01}' , dp_01 )
+    if (present( dp_02 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_02}' , dp_02 )
+    if (present( dp_03 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_03}' , dp_03 )
+    if (present( dp_04 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_04}' , dp_04 )
+    if (present( dp_05 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_05}' , dp_05 )
+    if (present( dp_06 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_06}' , dp_06 )
+    if (present( dp_07 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_07}' , dp_07 )
+    if (present( dp_08 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_08}' , dp_08 )
+    if (present( dp_09 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_09}' , dp_09 )
+    if (present( dp_10 )) err_msg_loc = insert_val_into_string_dp(  err_msg_loc, '{dp_10}' , dp_10 )
 
     ! Write the error to the screen
     write(0,'(A,A,A,A,A,A)') colour_string(' ' // prefix // ': ' // trim( err_msg_loc), print_colour) // &
@@ -140,8 +140,7 @@ contains
       ' on process ', colour_string( process_str,'light blue'), ' (0 = primary)'
 
     ! Stop the program
-    if (do_crash_program) call MPI_ABORT( MPI_COMM_WORLD, ierr)
-    error stop
+    if (do_crash_program) error stop
 
   end subroutine crash_warning_happy
 

@@ -6,10 +6,10 @@ MODULE UFEMISM_main_model
 ! ====================
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM, MPI_WTIME
+  use UPSY_main, only: UPSY
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
-  use string_module, only: colour_string, str2int, int2str, insert_val_into_string_dp
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region
@@ -88,7 +88,8 @@ CONTAINS
 
     IF (par%primary) WRITE(0,*) ''
     IF (par%primary) WRITE (0,'(A,A,A,A,A,F9.3,A,F9.3,A)') &
-      ' Running model region ', colour_string( region%name, 'light blue'), ' (', colour_string( TRIM( region%long_name), 'light blue'), &
+      ' Running model region ', UPSY%stru%colour_string( region%name, 'light blue'), &
+        ' (', UPSY%stru%colour_string( TRIM( region%long_name), 'light blue'), &
       ') from t = ', region%time/1000._dp, ' to t = ', t_end/1000._dp, ' kyr'
 
     ! Initialise average ice-dynamical time step
@@ -469,8 +470,9 @@ CONTAINS
 
     ! Print to screen
     IF (par%primary) WRITE(0,'(A)') ''
-    IF (par%primary) WRITE(0,'(A)') ' Initialising model region ' // colour_string( region%name,'light blue') // ' (' // &
-      colour_string( TRIM( region%long_name),'light blue') // ')...'
+    IF (par%primary) WRITE(0,'(A)') ' Initialising model region ' // &
+      UPSY%stru%colour_string( region%name,'light blue') // ' (' // &
+      UPSY%stru%colour_string( TRIM( region%long_name),'light blue') // ')...'
 
     ! ===== Reference geometries =====
     ! ================================
@@ -692,7 +694,8 @@ CONTAINS
     ! ========================
 
     ! Print to screen
-    IF (par%primary) WRITE(0,'(A)') ' Finished initialising model region ' // colour_string( TRIM( region%long_name),'light blue')
+    IF (par%primary) WRITE(0,'(A)') ' Finished initialising model region ' // &
+      UPSY%stru%colour_string( TRIM( region%long_name),'light blue')
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)
@@ -716,7 +719,8 @@ CONTAINS
     CALL init_routine( routine_name)
 
     ! Print to screen
-    IF (par%primary) WRITE(0,'(A)') '   Setting up the first mesh for model region ' // colour_string( region%name,'light blue') // '...'
+    IF (par%primary) WRITE(0,'(A)') '   Setting up the first mesh for model region ' // &
+       UPSY%stru%colour_string( region%name,'light blue') // '...'
 
     allocate( region%mesh)
 
@@ -929,7 +933,8 @@ CONTAINS
     end if
 
     ! Print to screen
-    IF (par%primary) WRITE(0,'(A)') '   Reading mesh from file "' // colour_string( TRIM( filename_initial_mesh),'light blue') // '"...'
+    IF (par%primary) WRITE(0,'(A)') '   Reading mesh from file "' // &
+      UPSY%stru%colour_string( TRIM( filename_initial_mesh),'light blue') // '"...'
 
     ! Set mesh configuration
     region%mesh%resolution_tolerance = C%mesh_resolution_tolerance
@@ -1197,7 +1202,7 @@ CONTAINS
     REAL(dp)                                                           :: xmin, xmax, ymin, ymax
     REAL(dp)                                                           :: lambda_M, phi_M, beta_stereo
     INTEGER                                                            :: n_old, stat, n_new
-    CHARACTER(LEN=5)                                                   :: n_new_str
+    character(len=:), allocatable                                      :: n_new_str
     CHARACTER(LEN=256)                                                 :: new_mesh_name
     type(type_mesh), allocatable                                       :: mesh_new
     REAL(dp)                                                           :: tstart, tstop
@@ -1211,7 +1216,8 @@ CONTAINS
 
     ! Print to screen
     IF (par%primary) WRITE(0,'(A)') ''
-    IF (par%primary) WRITE(0,'(A)') '   Creating a new mesh for model region ' // colour_string( region%name,'light blue') // '...'
+    IF (par%primary) WRITE(0,'(A)') '   Creating a new mesh for model region ' // &
+      UPSY%stru%colour_string( region%name,'light blue') // '...'
 
     ! Determine model domain
     IF     (region%name == 'NAM') THEN
@@ -1251,10 +1257,10 @@ CONTAINS
     END IF
 
     ! Create numbered name for the new mesh
-    CALL str2int( region%mesh%name( 16:20), n_old, stat)
+    n_old = UPSY%stru%str2int( region%mesh%name( 16:20), stat)
     IF (stat /= 0) CALL crash('couldnt read number of old mesh!')
     n_new = n_old + 1
-    CALL int2str( n_new, n_new_str)
+    n_new_str = UPSY%stru%int2str_with_leading_zeros( n_new, 5)
     new_mesh_name = 'model_mesh_' // TRIM( region%name) // '_' // n_new_str
 
     ! Create a mesh from the modelled ice geometry
@@ -1315,7 +1321,7 @@ CONTAINS
 
     ! Print to screen
     str = '   Finished the mesh update in {dp_01} seconds'
-    CALL insert_val_into_string_dp( str, '{dp_01}', tstop-tstart)
+    str = UPSY%stru%insert_val_into_string_dp( str, '{dp_01}', tstop-tstart)
     IF (par%primary) WRITE(0,'(A)') str
 
     ! Finalise routine path

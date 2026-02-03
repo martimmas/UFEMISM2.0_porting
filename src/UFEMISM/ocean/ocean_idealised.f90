@@ -6,8 +6,9 @@ MODULE ocean_idealised
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
@@ -77,7 +78,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary)  WRITE(*,"(A)") '     Initialising idealised ocean model "' // &
-      colour_string( TRIM( C%choice_ocean_model_idealised),'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( C%choice_ocean_model_idealised),'light blue') // '"...'
 
     ! Run the chosen idealised ocean model
     SELECT CASE (C%choice_ocean_model_idealised)

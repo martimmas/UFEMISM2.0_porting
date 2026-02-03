@@ -2,7 +2,8 @@ module laddie_grid_output
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning, crash
+  use UPSY_main, only: UPSY
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
@@ -45,7 +46,7 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // UPSY%stru%colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( laddie%output_grid_filename, ncid)
@@ -340,7 +341,7 @@ contains
     laddie%output_grid_filename = trim( C%output_dir) // 'laddie_output_grid.nc'
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating grid output file "' // UPSY%stru%colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( laddie%output_grid_filename, ncid)

@@ -3,8 +3,9 @@ module tracer_tracking_model_main
   ! The main tracer tracking model module.
 
   use precisions, only: dp
+  use UPSY_main, only: UPSY
   use mpi_basic, only: par
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
@@ -89,7 +90,7 @@ contains
 
     ! Print to terminal
     if (par%primary)  write(*,'(a)') '   Initialising tracer-tracking model ' // &
-      colour_string( trim(C%choice_tracer_tracking_model), 'light blue') // '...'
+      UPSY%stru%colour_string( trim(C%choice_tracer_tracking_model), 'light blue') // '...'
 
     ! Allocate memory for the model-independent tracer-tracking data
     allocate( tracer_tracking%age( mesh%vi1:mesh%vi2, C%nz))

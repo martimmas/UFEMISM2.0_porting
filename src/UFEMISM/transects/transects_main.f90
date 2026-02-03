@@ -2,16 +2,17 @@ module transects_main
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_ALLREDUCE, MPI_IN_PLACE, &
     MPI_INTEGER, MPI_SUM
+  use UPSY_main, only: UPSY
   use mpi_basic, only: par, sync
   use mpi_distributed_memory, only: partition_list
   use precisions, only: dp
-  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, colour_string, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use mesh_types, only: type_mesh
   use ice_model_types, only: type_ice_model
   use transect_types, only: atype_transect, type_transect
-  use string_module, only: separate_strings_by_double_vertical_bars
+  use UPSY_main, only: UPSY
   use netcdf_io_main
   use netcdf, only: NF90_UNLIMITED
   use netcdf_write_field_transect
@@ -66,7 +67,7 @@ contains
       return
     end if
 
-    call separate_strings_by_double_vertical_bars( transects_str, transect_strs)
+    call UPSY%stru%separate_strings_by_double_vertical_bars( transects_str, transect_strs)
 
     allocate( region%transects( size(transect_strs)))
 
@@ -101,7 +102,7 @@ contains
     transect%dx   = dx
 
     if (par%primary) write(0,*) '  Initialising output transect ', &
-      colour_string( trim( transect%name),'light blue'), '...'
+      UPSY%stru%colour_string( trim( transect%name),'light blue'), '...'
 
     select case (source)
     case default
@@ -856,7 +857,7 @@ contains
     filename = transect%nc%filename
 
     if (par%primary) write(0,*) '  Writing to transect output file "', &
-      colour_string( trim( filename), 'light blue'), '"...'
+      UPSY%stru%colour_string( trim( filename), 'light blue'), '"...'
 
     ! Map ice model data to transect
     call map_from_mesh_vertices_to_transect_2D ( mesh, transect, ice%Hi,       tHi_partial,     'trilin')

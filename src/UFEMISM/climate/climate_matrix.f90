@@ -5,7 +5,7 @@ module climate_matrix
 
   use precisions                                             , only: dp
   use mpi_basic                                              , only: par, sync
-  use call_stack_and_comp_time_tracking                  , only: crash, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking                  , only: crash, init_routine, finalise_routine
   use model_configuration                                    , only: C
   use parameters
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER
