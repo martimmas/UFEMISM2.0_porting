@@ -39,8 +39,6 @@ CONTAINS
   SUBROUTINE initialise_control_and_resource_tracker
     ! Initialise the control and resource tracker
 
-    IMPLICIT NONE
-
 #if (DO_RESOURCE_TRACKING)
 
     ! Local variables:
