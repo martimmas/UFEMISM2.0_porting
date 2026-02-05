@@ -90,7 +90,6 @@ contains
     end do
 
     ! Update masks
-    ! call determine_masks( region%mesh, region%ice)
     call determine_masks( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%mask, region%ice%mask_icefree_land, region%ice%mask_icefree_ocean, region%ice%mask_grounded_ice, region%ice%mask_floating_ice, region%ice%mask_margin, region%ice%mask_gl_fl, region%ice%mask_gl_gr,region%ice%mask_cf_gr, region%ice%mask_cf_fl, region%ice%mask_coastline)
 
       ! Update sub-grid grounded fractions
@@ -162,7 +161,6 @@ contains
       end do
 
       ! Update masks
-      ! call determine_masks( region%mesh, region%ice)
       call determine_masks( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%mask, region%ice%mask_icefree_land, region%ice%mask_icefree_ocean, region%ice%mask_grounded_ice, region%ice%mask_floating_ice, region%ice%mask_margin, region%ice%mask_gl_fl, region%ice%mask_gl_gr,region%ice%mask_cf_gr, region%ice%mask_cf_fl, region%ice%mask_coastline)
 
       ! DENK DROM : assess whether this is important for the velocitiy computation below
@@ -196,7 +194,6 @@ contains
       end do
 
       ! Update masks
-      ! call determine_masks( region%mesh, region%ice)
       call determine_masks( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%mask, region%ice%mask_icefree_land, region%ice%mask_icefree_ocean, region%ice%mask_grounded_ice, region%ice%mask_floating_ice, region%ice%mask_margin, region%ice%mask_gl_fl, region%ice%mask_gl_gr,region%ice%mask_cf_gr, region%ice%mask_cf_fl, region%ice%mask_coastline)
 
       ! Update sub-grid grounded fractions
