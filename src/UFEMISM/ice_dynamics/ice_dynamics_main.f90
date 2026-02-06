@@ -153,7 +153,7 @@ contains
     call determine_masks( region%mesh, region%ice)
 
     ! Calculate new effective thickness
-    call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
+    call calc_effective_thickness( region%mesh, region%ice%Hi, region%ice%Hb,region%ice%SL,region%ice%Hi_eff, region%ice%fraction_margin)
 
     ! Calculate ice shelf draft gradients
     call calc_ice_shelf_base_slopes_onesided( region%mesh, region%ice)
@@ -307,7 +307,7 @@ contains
     ! =======================
 
     ! Compute effective thickness at calving fronts
-    call calc_effective_thickness( mesh, ice, ice%Hi, ice%Hi_eff, ice%fraction_margin)
+     call calc_effective_thickness( mesh, ice%Hi,ice%Hb,ice%SL, ice%Hi_eff, ice%fraction_margin)
 
     ! Calculate ice shelf draft gradients
     call calc_ice_shelf_base_slopes_onesided( mesh, ice)
@@ -779,7 +779,7 @@ contains
     ! =======================
 
     ! Calculate new effective thickness
-    call calc_effective_thickness( mesh_new, ice, ice%Hi, ice%Hi_eff, ice%fraction_margin)
+     call calc_effective_thickness( mesh_new, ice%Hi,ice%Hb,ice%SL, ice%Hi_eff, ice%fraction_margin)
 
     ! Surface gradients
     ! =================
@@ -1434,7 +1434,7 @@ contains
       call determine_masks( region%mesh, region%ice)
 
       ! Calculate new effective thickness
-      call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
+      call calc_effective_thickness( region%mesh, region%ice%Hi, region%ice%Hb,region%ice%SL,region%ice%Hi_eff, region%ice%fraction_margin)
 
       ! NOTE: as calculating the zeta gradients is quite expensive, only do so when necessary,
       !       i.e. when solving the heat equation or the Blatter-Pattyn stress balance
