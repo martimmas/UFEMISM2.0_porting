@@ -93,7 +93,7 @@ contains
     call determine_masks( region%mesh, region%ice)
 
       ! Update sub-grid grounded fractions
-    call calc_grounded_fractions( region%mesh, region%ice%TAF, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%Hi, region%ice%SL, region%ice%dHb, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
+    call calc_grounded_fractions( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%dHb, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
 
       ! Update effective ice thickness
     call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
@@ -168,7 +168,7 @@ contains
       ! call calc_zeta_gradients( region%mesh, region%ice)
 
       ! Update sub-grid grounded fractions
-      call calc_grounded_fractions( region%mesh, region%ice%TAF, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%Hi, region%ice%SL, region%ice%dHb, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
+      call calc_grounded_fractions( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%dHb, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
 
       ! DENK DROM : assess whether this is important for the velocitiy computation below
       ! ! Calculate the basal mass balance
@@ -197,7 +197,7 @@ contains
       call determine_masks( region%mesh, region%ice)
 
       ! Update sub-grid grounded fractions
-      call calc_grounded_fractions( region%mesh, region%ice%TAF, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%Hi, region%ice%SL, region%ice%dHb, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
+      call calc_grounded_fractions( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%dHb, region%ice%fraction_gr, region%ice%fraction_gr_b, region%ice%mask_floating_ice, region%ice%bedrock_cdf, region%ice%bedrock_cdf_b)
 
       ! Update effective ice thickness
       call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)

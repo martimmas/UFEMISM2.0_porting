@@ -9,6 +9,7 @@ module subgrid_grounded_fractions_main
   use mpi_distributed_memory, only: gather_to_all
   use subgrid_grounded_fractions_bedrock_CDF
   use subgrid_grounded_fractions_bilin_TAF
+   use ice_geometry_basics, only: thickness_above_floatation
 
   implicit none
 
@@ -18,32 +19,39 @@ module subgrid_grounded_fractions_main
 
 contains
 
-  subroutine calc_grounded_fractions( mesh, TAF, fraction_gr, fraction_gr_b, mask_floating_ice, Hi, SL, dHb, bedrock_cdf,bedrock_cdf_b)
+  subroutine calc_grounded_fractions( mesh, Hi, Hb, SL, dHb, fraction_gr, fraction_gr_b, mask_floating_ice, bedrock_cdf, bedrock_cdf_b)
     !< Calculate the sub-grid grounded-area fractions
 
     ! In- and output variables
     type(type_mesh),                                                     intent(in   ) :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: TAF
-    real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(  out) :: fraction_gr
-    real(dp), dimension(mesh%ti1:mesh%ti2),                              intent(  out) :: fraction_gr_b
-    logical,  dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: mask_floating_ice
     real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: Hi
+    real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: Hb
     real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: SL
     real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: dHb
+    logical,  dimension(mesh%vi1:mesh%vi2),                              intent(in   ) :: mask_floating_ice
     real(dp), dimension(mesh%vi1:mesh%vi2, C%subgrid_bedrock_cdf_nbins), intent(in   ) :: bedrock_cdf
     real(dp), dimension(mesh%ti1:mesh%ti2, C%subgrid_bedrock_cdf_nbins), intent(in   ) :: bedrock_cdf_b
+    real(dp), dimension(mesh%vi1:mesh%vi2),                              intent(  out) :: fraction_gr
+    real(dp), dimension(mesh%ti1:mesh%ti2),                              intent(  out) :: fraction_gr_b
 
     ! Local variables:
     character(len=1024), parameter         :: routine_name = 'calc_grounded_fractions'
+    real(dp), dimension(mesh%vi1:mesh%vi2) :: TAF
     real(dp), dimension(mesh%vi1:mesh%vi2) :: fraction_gr_TAF_a
     real(dp), dimension(mesh%vi1:mesh%vi2) :: fraction_gr_CDF_a
     real(dp), dimension(mesh%ti1:mesh%ti2) :: fraction_gr_TAF_b
     real(dp), dimension(mesh%ti1:mesh%ti2) :: fraction_gr_CDF_b
     logical,  dimension(mesh%nV)           :: mask_floating_ice_tot
-    integer                                :: ti, via, vib, vic
+    integer                                :: ti, via, vib, vic, vi
+
 
     ! Add routine to path
     call init_routine( routine_name)
+
+
+    do vi = mesh%vi1, mesh%vi2
+      TAF = thickness_above_floatation( Hi( vi), Hb( vi), SL( vi))
+    end do
 
     ! Use the specified way of calculating sub-grid grounded fractions
     select case (C%choice_subgrid_grounded_fraction)
