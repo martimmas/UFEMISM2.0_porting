@@ -1,11 +1,7 @@
 module ice_geometry_calculations_mod
  
     use precisions, only: dp
-    !use control_resources_and_error_messaging 
     use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-    ! use CSR_sparse_matrix_type, only: type_sparse_matrix_CSR_dp
-    ! use mpi_distributed_memory, only: gather_to_all
-    !use model_configuration, only: C
     use mesh_types, only: type_mesh
     use subgrid_ice_margin, only: calc_effective_thickness
     use masks_mod, only: determine_masks
@@ -61,10 +57,7 @@ module ice_geometry_calculations_mod
     contains
  
     subroutine calc_ice_geometry( self, mesh, Hi, SL, Hb)
-
-    !, Hi_eff, fraction_margin, fraction_gr, fraction_gr_b, bedrock_cdf, bedrock_cdf_b, Hs, Hib, Ho, TAF, dHb,  mask, mask_icefree_land, mask_icefree_ocean, mask_grounded_ice, mask_floating_ice,mask_margin, mask_gl_fl, mask_gl_gr,mask_cf_gr, mask_cf_fl, mask_coastline)
-        ! Main subroutine that calculates the ice geometry's primary fields (Hs, Hib, Ho, TAF) and related/secondary fields ( fraction of marin, Hi_eff, masks) based on ice thickness, sea level, and bedrock elevation
-        ! The routines are public but the values of the variables remain private when been modified
+        ! Calculates the ice geometry fields (Hs, Hib, TAF, Ho) from the primary input fields (Hi, SL, Hb), secondary fiels ( fraction margin ect ) and calculates the masks.         
 
         !In/out variables
         class(type_ice_geometry),                        intent(inout) :: self
@@ -72,10 +65,8 @@ module ice_geometry_calculations_mod
         real(dp),dimension(self%mesh%vi1:self%mesh%vi2), intent(in   ) :: Hi
         real(dp),dimension(self%mesh%vi1:self%mesh%vi2), intent(in   ) :: SL
         real(dp),dimension(self%mesh%vi1:self%mesh%vi2), intent(in   ) :: Hb
-        ! type(type_mesh), target, intent(in) :: mesh
 
         !Local variables 
-        ! integer :: lb, ub
         character(len=1024), parameter :: routine_name = 'calc_ice_geometry'
 
         call init_routine( routine_name)
@@ -85,7 +76,6 @@ module ice_geometry_calculations_mod
         self%Hi   = Hi 
         self%Hb   = Hb
         self%SL   = SL
-       
 
         ! Apply no ice mask on Hi then calculate basic geometry
         call self%calc_ice_geometry_primary_fields()
@@ -111,9 +101,6 @@ module ice_geometry_calculations_mod
         integer :: vi
 
         do vi = self%mesh%vi1, self%mesh%vi2
-        !     ! No ice mask 
-        !     !if (mask_noice ( vi)) self%Hi( vi) = 0.0_dp
-            ! Basic geometry calculations
             self%Hs ( vi) = ice_surface_elevation( self%Hi( vi), self%Hb( vi), self%SL( vi))
             self%Hib( vi) = self%Hs( vi) - self%Hi( vi)
             self%TAF( vi) = thickness_above_floatation( self%Hi( vi), self%Hb( vi), self%SL( vi))
