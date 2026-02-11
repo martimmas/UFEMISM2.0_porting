@@ -711,7 +711,7 @@ CONTAINS
 
           ELSEIF (C%choice_BMB_subgrid == 'PMP') THEN
             ! Apply PMP scheme
-            IF (ice%mask_floating_ice( vi) .OR. ice%mask_gl_gr( vi) .OR. (ice%mask_cf_gr(vi) .AND. ice%Hib(vi) < ice%SL(vi))) BMB%BMB( vi) = (1._dp - ice%fraction_gr( vi)) * BMB%BMB_shelf( vi)
+            IF (ice%mask_floating_ice( vi) .OR. ice%mask_gl_gr( vi) .OR. (ice%mask_cf_gr(vi) .AND. ice%Hib(vi) < ice%SL(vi))) BMB%BMB( vi) = (1._dp) * BMB%BMB_shelf( vi)
           ELSE
             CALL crash('unknown choice_BMB_subgrid "' // TRIM(C%choice_BMB_subgrid) // '"!')
           END IF
