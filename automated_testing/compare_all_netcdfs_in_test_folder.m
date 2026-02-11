@@ -13,6 +13,8 @@ if ~exist( foldername_mod,'dir')
   error(['couldnt find results for test "' foldername '"'])
 end
 
+all_files_match = true;
+
 henk = dir( foldername_ref);
 for i = 1: length( henk)
   filename_ref = [foldername_ref '/' henk(i).name];
@@ -21,8 +23,15 @@ for i = 1: length( henk)
     if ~exist( filename_mod,'file')
       error(['file "' henk(i).name '" does not exist in results of test "' foldername '"'])
     end
-    compare_netcdf( filename_ref, filename_mod);
+    files_match = compare_netcdf( filename_ref, filename_mod);
+    if ~files_match
+      all_files_match = false;
+    end
   end
+end
+
+if ~all_files_match
+  error('Not all files are identical')
 end
 
 end
