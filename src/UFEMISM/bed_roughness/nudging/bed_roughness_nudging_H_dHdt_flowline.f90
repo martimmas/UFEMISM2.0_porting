@@ -40,6 +40,9 @@ contains
 
     ! Local variables:
     character(len=256), parameter          :: routine_name = 'run_bed_roughness_nudging_H_dHdt_flowline'
+    integer                                :: vi
+    real(dp)                               :: weight_Hb, max_phi_Martin2011
+    !real(dp), dimension(mesh%vi1:mesh%vi2) :: 
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -52,13 +55,33 @@ contains
     call calc_flowline_averaged_deltaHs_dHsdt( mesh, ice, target_geometry, &
       bed_roughness%nudging_H_dHdt_flowline)
 
+      ! here add code to say how to limit/cap min and max bed roughness
+      ! if uniform then use C%generic_bed_roughness_min and C%generic_bed_roughness_max
+      ! if maxs and mins are variable using Martin2011
+    do vi = mesh%vi1, mesh%vi2
+
+      ! Compute till friction angle based on Martin et al. (2011) Eq. 10
+      weight_Hb = min( 1._dp, max( 0._dp, &
+        (ice%Hb( vi) - C%Martin2011till_phi_Hb_min) / (C%Martin2011till_phi_Hb_max - C%Martin2011till_phi_Hb_min) ))
+
+      max_phi_Martin2011 = (1._dp - weight_Hb) * C%Martin2011till_phi_min + weight_Hb * C%Martin2011till_phi_max
+      ! aplly upper limit on bed roughness based on Martin2011 till friction angle
+      bed_roughness%generic_bed_roughness( vi) = min(max_phi_Martin2011, bed_roughness%generic_bed_roughness( vi))
+
+    end do
+
     call calc_dCdt( mesh, ice, grid_smooth, bed_roughness, &
       bed_roughness%nudging_H_dHdt_flowline)
 
     ! Calculate predicted bed roughness at t+dt
-    bed_roughness%generic_bed_roughness_next = max( C%generic_bed_roughness_min, min( C%generic_bed_roughness_max, &
+    !bed_roughness%generic_bed_roughness_next = max( C%generic_bed_roughness_min, min( C%generic_bed_roughness_max, &
+    !  bed_roughness%generic_bed_roughness_prev + C%bed_roughness_nudging_dt * &
+    !  bed_roughness%nudging_H_dHdt_flowline%dC_dt ))
+
+    ! Calculate predicted bed roughness at t+dt
+    bed_roughness%generic_bed_roughness_next = max( C%generic_bed_roughness_min, &
       bed_roughness%generic_bed_roughness_prev + C%bed_roughness_nudging_dt * &
-      bed_roughness%nudging_H_dHdt_flowline%dC_dt ))
+      bed_roughness%nudging_H_dHdt_flowline%dC_dt )
 
     ! Finalise routine path
     call finalise_routine( routine_name)
