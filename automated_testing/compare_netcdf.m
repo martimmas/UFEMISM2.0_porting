@@ -320,6 +320,10 @@ end
 
     if ~data_matches
       disp(['  Mismatching data in ' filename_ref '/' var_name])
+      if contains( filename_ref, '_checksum')
+        disp(['    Reference: ' num2str( d_ref)])
+        disp(['    Model    : ' num2str( d_mod)])
+      end
     end
 
   end
