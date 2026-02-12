@@ -526,6 +526,7 @@ MODULE model_configuration
     REAL(dp)            :: bed_roughness_nudging_t_end_config           = +9.9E9_dp                        ! [yr]      Latest   model time when nudging is allowed
     REAL(dp)            :: generic_bed_roughness_min_config             = 0.1_dp                           ! [?]       Smallest allowed value for the first  inverted bed roughness field
     REAL(dp)            :: generic_bed_roughness_max_config             = 30._dp                           ! [?]       Largest  allowed value for the first  inverted bed roughness field
+    CHARACTER(LEN=256)  :: choice_bed_roughness_nudging_limit_method_config    = 'uniform'                 !           Method to limit the bed roughness updates: "uniform", "Martin2011"
 
     ! Bed roughness nudging model based on flowline-averaged values of H and dH/dt
     REAL(dp)            :: bednudge_H_dHdt_flowline_t_scale_config      = 100._dp                          ! [yr]      Timescale
@@ -1673,6 +1674,7 @@ MODULE model_configuration
     REAL(dp)            :: bed_roughness_nudging_t_end
     REAL(dp)            :: generic_bed_roughness_min
     REAL(dp)            :: generic_bed_roughness_max
+    CHARACTER(LEN=256)  :: choice_bed_roughness_nudging_limit_method
 
     ! Bed roughness nudging model based on flowline-averaged values of H and dH/dt
     REAL(dp)            :: bednudge_H_dHdt_flowline_t_scale
@@ -2864,6 +2866,7 @@ CONTAINS
       bed_roughness_nudging_t_end_config                          , &
       generic_bed_roughness_min_config                            , &
       generic_bed_roughness_max_config                            , &
+      choice_bed_roughness_nudging_limit_method_config            , &
       bednudge_H_dHdt_flowline_t_scale_config                     , &
       bednudge_H_dHdt_flowline_dH0_config                         , &
       bednudge_H_dHdt_flowline_dHdt0_config                       , &
@@ -3817,6 +3820,7 @@ CONTAINS
     C%bed_roughness_nudging_t_end                            = bed_roughness_nudging_t_end_config
     C%generic_bed_roughness_min                              = generic_bed_roughness_min_config
     C%generic_bed_roughness_max                              = generic_bed_roughness_max_config
+    C%choice_bed_roughness_nudging_limit_method              = choice_bed_roughness_nudging_limit_method_config
 
     ! Bed roughness nudging model based on flowline-averaged values of H and dH/dt
     C%bednudge_H_dHdt_flowline_t_scale                       = bednudge_H_dHdt_flowline_t_scale_config
