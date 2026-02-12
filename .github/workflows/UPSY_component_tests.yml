@@ -22,4 +22,5 @@ jobs:
 
   # Run all the component tests using the development compilation on MacOS
   component_tests_dev_macOS:
+    needs: install_and_cache_Matlab
     uses: ./.github/workflows/UPSY_component_tests_dev_MacOS.yml
