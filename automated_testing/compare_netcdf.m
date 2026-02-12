@@ -354,6 +354,23 @@ end
       if diff_max > tol
         data_matches = false;
       end
+
+      if ~data_matches
+        disp(['  Mismatching data in ' filename_ref '/' var_name])
+        disp(['    Reference: ' num2str( d_ref')])
+        disp(['    Model    : ' num2str( d_mod')])
+      end
+
+    else
+      % This isn't a checksum file; just compare all the data
+
+      dd = abs( 1 - d_mod ./ d_ref);
+      data_matches = all( dd < tol);
+
+      if ~data_matches
+        disp(['  Mismatching data in ' filename_ref '/' var_name])
+      end
+
     end
 
   end
