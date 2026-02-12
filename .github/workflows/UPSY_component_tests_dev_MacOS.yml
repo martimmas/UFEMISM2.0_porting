@@ -57,7 +57,7 @@ jobs:
           ls -a
           cd UPSY
           ls -a
-          c dcomponent_test_mesh_creation
+          cd component_test_mesh_creation
           ls -a
       #     ./test_script
 
