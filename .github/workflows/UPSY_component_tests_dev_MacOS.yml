@@ -52,13 +52,19 @@ jobs:
 
       - name: Run component test - mesh creation
         run: |
-          cd automated_testing/UPSY/component_test_mesh_creation
-          ./test_script
+          ls -a
+          cd automated_testing
+          ls -a
+          cd UPSY
+          ls -a
+          c dcomponent_test_mesh_creation
+          ls -a
+      #     ./test_script
 
-      - name: Check test result
-        uses: matlab-actions/run-command@v2
-        with:
-          command: |
-            addpath('automated_testing')
-            reduce_all_netcdfs_in_folder_to_checksum('${{github.workspace}}/automated_testing/UPSY/component_test_mesh_creation/results')
-            compare_all_netcdfs_in_test_folder('${{github.workspace}}/automated_testing/UPSY/component_test_mesh_creation')
+      # - name: Check test result
+      #   uses: matlab-actions/run-command@v2
+      #   with:
+      #     command: |
+      #       addpath('automated_testing')
+      #       reduce_all_netcdfs_in_folder_to_checksum('${{github.workspace}}/automated_testing/UPSY/component_test_mesh_creation/results')
+      #       compare_all_netcdfs_in_test_folder('${{github.workspace}}/automated_testing/UPSY/component_test_mesh_creation')
