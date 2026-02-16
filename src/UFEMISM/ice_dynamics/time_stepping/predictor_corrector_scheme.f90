@@ -96,7 +96,7 @@ contains
     call calc_grounded_fractions( region%mesh, region%ice)
 
       ! Update effective ice thickness
-    call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
+    call calc_effective_thickness( region%mesh, region%ice%Hi, region%ice%Hb,region%ice%SL,region%ice%Hi_eff, region%ice%fraction_margin)
 
     ! == Time step iteration: if, at the end of the PC timestep, the truncation error
     !    turns out to be too large, run it again with a smaller dt, until the truncation
@@ -136,7 +136,8 @@ contains
         region%ice%pc%dHi_dt_Hi_n_u_n - (region%ice%pc%zeta_t / 2._dp) * region%ice%pc%dHi_dt_Hi_nm1_u_nm1)
 
       ! if so desired, modify the predicted ice thickness field based on user-defined settings
-      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_star_np1, region%refgeo_PD, region%time)
+      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%Hb, region%ice%SL, region%ice%pc%Hi_star_np1, region%refgeo_PD, region%time)
+      
 
       ! Adjust the predicted dHi_dt to compensate for thickness modifications
       ! This is just Robinson et al., 2020, Eq 30 above rearranged to retrieve
@@ -200,7 +201,7 @@ contains
       call calc_grounded_fractions( region%mesh, region%ice)
 
       ! Update effective ice thickness
-      call calc_effective_thickness( region%mesh, region%ice, region%ice%Hi, region%ice%Hi_eff, region%ice%fraction_margin)
+      call calc_effective_thickness( region%mesh, region%ice%Hi, region%ice%Hb,region%ice%SL,region%ice%Hi_eff, region%ice%fraction_margin)
 
       ! Calculate thinning rates for the current ice thickness and predicted velocity
       call calc_dHi_dt( region%mesh, region%ice%Hi, region%ice%Hb, region%ice%SL, region%ice%u_vav_b, region%ice%v_vav_b, region%SMB%SMB, region%BMB%BMB, region%LMB%LMB, region%AMB%AMB, region%ice%fraction_margin, &
@@ -221,7 +222,7 @@ contains
       region%ice%dHi_dt_raw = (region%ice%pc%Hi_np1 - region%ice%Hi_prev) / region%ice%pc%dt_np1
 
       ! if so desired, modify the corrected ice thickness field based on user-defined settings
-      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%pc%Hi_np1, region%refgeo_PD, region%time)
+      call alter_ice_thickness( region%mesh, region%ice, region%ice%Hi_prev, region%ice%Hb, region%ice%SL, region%ice%pc%Hi_np1, region%refgeo_PD, region%time)
 
       ! Adjust the predicted dHi_dt to compensate for thickness modifications
       ! This is just Robinson et al., 2020, Eq 31 above rearranged to retrieve
