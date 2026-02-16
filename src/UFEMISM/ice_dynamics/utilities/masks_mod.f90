@@ -84,21 +84,6 @@ contains
     ! ===================
 
     ! Store previous basic masks
-    ! ice%mask_icefree_land_prev  = ice%mask_icefree_land
-    ! ice%mask_icefree_ocean_prev = ice%mask_icefree_ocean
-    ! ice%mask_grounded_ice_prev  = ice%mask_grounded_ice
-    ! ice%mask_floating_ice_prev  = ice%mask_floating_ice
-
-    ! ! Initialise basic masks
-    ! ice%mask_icefree_land  = .false.
-    ! ice%mask_icefree_ocean = .false.
-    ! ice%mask_grounded_ice  = .false.
-    ! ice%mask_floating_ice  = .false.
-    ! ice%mask               = 0
-
-
-
-    ! Store previous basic masks
     mask_icefree_land_prev  = mask_icefree_land
     mask_icefree_ocean_prev = mask_icefree_ocean
     mask_grounded_ice_prev  = mask_grounded_ice
@@ -155,26 +140,12 @@ contains
     ! === Transitional masks ===
     ! ==========================
 
-    ! ! Gather basic masks to all processes
-    ! call gather_to_all( ice%mask_icefree_land , mask_icefree_land_tot )
-    ! call gather_to_all( ice%mask_icefree_ocean, mask_icefree_ocean_tot)
-    ! call gather_to_all( ice%mask_grounded_ice , mask_grounded_ice_tot )
-    ! call gather_to_all( ice%mask_floating_ice , mask_floating_ice_tot )
 
     ! Gather basic masks to all processes
     call gather_to_all( mask_icefree_land , mask_icefree_land_tot )
     call gather_to_all( mask_icefree_ocean, mask_icefree_ocean_tot)
     call gather_to_all( mask_grounded_ice , mask_grounded_ice_tot )
     call gather_to_all( mask_floating_ice , mask_floating_ice_tot )
-
-    ! ! Initialise transitional masks
-    ! ice%mask_margin    = .false.
-    ! ice%mask_gl_gr     = .false.
-    ! ice%mask_gl_fl     = .false.
-    ! ice%mask_cf_gr     = .false.
-    ! ice%mask_cf_fl     = .false.
-    ! ice%mask_coastline = .false.
-
 
     ! Initialise transitional masks
     mask_margin    = .false.
@@ -191,8 +162,6 @@ contains
         do ci = 1, mesh%nC( vi)
           vj = mesh%C( vi,ci)
           if (.not. (mask_grounded_ice_tot( vj) .OR. mask_floating_ice_tot( vj))) then
-            ! ice%mask_margin( vi) = .true.
-            ! ice%mask( vi) = C%type_margin
             mask_margin( vi) = .true.
             mask( vi) = C%type_margin
           end if
@@ -204,8 +173,6 @@ contains
         do ci = 1, mesh%nC( vi)
           vj = mesh%C( vi,ci)
           if (mask_floating_ice_tot( vj)) then
-            ! ice%mask_gl_gr( vi) = .true.
-            ! ice%mask( vi) = C%type_groundingline_gr
             mask_gl_gr( vi) = .true.
             mask( vi) = C%type_groundingline_gr
           end if
@@ -217,8 +184,6 @@ contains
         do ci = 1, mesh%nC( vi)
           vj = mesh%C( vi,ci)
           if (mask_grounded_ice_tot( vj)) then
-            ! ice%mask_gl_fl( vi) = .true.
-            ! ice%mask( vi) = C%type_groundingline_fl
             mask_gl_fl( vi) = .true.
             mask( vi) = C%type_groundingline_fl
           end if
@@ -230,8 +195,6 @@ contains
         do ci = 1, mesh%nC(vi)
           vj = mesh%C( vi,ci)
           if (mask_icefree_ocean_tot( vj)) then
-            ! ice%mask_cf_gr( vi) = .true.
-            ! ice%mask( vi) = C%type_calvingfront_gr
             mask_cf_gr( vi) = .true.
             mask( vi) = C%type_calvingfront_gr
           end if
@@ -243,8 +206,6 @@ contains
         do ci = 1, mesh%nC(vi)
           vj = mesh%C( vi,ci)
           if (mask_icefree_ocean_tot( vj)) then
-            ! ice%mask_cf_fl( vi) = .true.
-            ! ice%mask( vi) = C%type_calvingfront_fl
             mask_cf_fl( vi) = .true.
             mask( vi) = C%type_calvingfront_fl
           end if
@@ -256,8 +217,6 @@ contains
         do ci = 1, mesh%nC(vi)
           vj = mesh%C( vi,ci)
           if (mask_icefree_ocean_tot( vj)) then
-            ! ice%mask_coastline( vi) = .true.
-            ! ice%mask( vi) = C%type_coastline
             mask_coastline( vi) = .true.
             mask( vi) = C%type_coastline
           end if
