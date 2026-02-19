@@ -41,10 +41,13 @@ contains
     ! Local variables:
     character(len=256), parameter          :: routine_name = 'run_bed_roughness_nudging_H_dHdt_flowline'
     integer                                :: vi
-    real(dp)                               :: weight_Hb, max_phi_Martin2011
+    real(dp)                               :: weight_Hb
+    real(dp), dimension(mesh%vi1:mesh%vi2) :: max_phi_Martin2011
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    max_phi_Martin2011 = 0._dp
 
     call calc_nudging_vs_extrapolation_masks( mesh, ice, &
       bed_roughness%nudging_H_dHdt_flowline%mask_calc_dCdt_from_nudging, &
@@ -65,13 +68,15 @@ contains
             weight_Hb = min( 1._dp, max( 0._dp, &
               (ice%Hb( vi) - C%Martin2011till_phi_Hb_min) / (C%Martin2011till_phi_Hb_max - C%Martin2011till_phi_Hb_min) ))
 
-            max_phi_Martin2011 = (1._dp - weight_Hb) * C%Martin2011till_phi_min + weight_Hb * C%Martin2011till_phi_max
+            max_phi_Martin2011( vi) = (1._dp - weight_Hb) * C%Martin2011till_phi_min + weight_Hb * C%Martin2011till_phi_max
           end do
 
         ! Calculate predicted bed roughness at t+dt
-        bed_roughness%generic_bed_roughness_next = max( C%generic_bed_roughness_min, min( max_phi_Martin2011, &
-          bed_roughness%generic_bed_roughness_prev + C%bed_roughness_nudging_dt * &
-          bed_roughness%nudging_H_dHdt_flowline%dC_dt ))
+        do vi = mesh%vi1, mesh%vi2
+          bed_roughness%generic_bed_roughness_next( vi) = max( C%generic_bed_roughness_min, min( max_phi_Martin2011( vi), &
+            bed_roughness%generic_bed_roughness_prev( vi) + C%bed_roughness_nudging_dt * &
+            bed_roughness%nudging_H_dHdt_flowline%dC_dt( vi)))
+        end do
 
       case ('uniform') ! min and max till friction angle limits are uniform across the domain
         ! Calculate predicted bed roughness at t+dt
