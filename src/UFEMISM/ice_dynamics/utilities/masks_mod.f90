@@ -21,73 +21,43 @@ module masks_mod
 
 contains
 
-  !subroutine determine_masks( mesh, ice)
-
-  subroutine determine_masks( mesh, Hi, Hb, SL, mask, mask_icefree_land, mask_icefree_ocean, mask_grounded_ice, mask_floating_ice, mask_margin, mask_gl_fl, mask_gl_gr, mask_cf_gr, mask_cf_fl,mask_coastline)
+  subroutine determine_masks( mesh, Hi, Hb, SL, &
+    mask, mask_icefree_land, mask_icefree_ocean, mask_grounded_ice, mask_floating_ice, &
+    mask_margin, mask_gl_fl, mask_gl_gr, mask_cf_gr, mask_cf_fl,mask_coastline)
     !< Determine the different masks
 
-    ! mask_icefree_land       ! T: ice-free land , F: otherwise
-    ! mask_icefree_ocean      ! T: ice-free ocean, F: otherwise
-    ! mask_grounded_ice       ! T: grounded ice  , F: otherwise
-    ! mask_floating_ice       ! T: floating ice  , F: otherwise
-    ! mask_icefree_land_prev  ! T: ice-free land , F: otherwise (during previous time step)
-    ! mask_icefree_ocean_prev ! T: ice-free ocean, F: otherwise (during previous time step)
-    ! mask_grounded_ice_prev  ! T: grounded ice  , F: otherwise (during previous time step)
-    ! mask_floating_ice_prev  ! T: floating ice  , F: otherwise (during previous time step)
-    ! mask_margin             ! T: ice next to ice-free, F: otherwise
-    ! mask_gl_gr              ! T: grounded ice next to floating ice, F: otherwise
-    ! mask_gl_fl              ! T: floating ice next to grounded ice, F: otherwise
-    ! mask_cf_gr              ! T: grounded ice next to ice-free water (sea or lake), F: otherwise
-    ! mask_cf_fl              ! T: floating ice next to ice-free water (sea or lake), F: otherwise
-    ! mask_coastline          ! T: ice-free land next to ice-free ocean, F: otherwise
-
-
     ! In variables
-    type(type_mesh),                        intent(in ) :: mesh
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in ) :: Hi                      ! [m]       Ice thickness 
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in ) :: Hb                      ! [m]       Bedrock elevation
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in ) :: SL                      ! [m]       Water surface elevation
+    type(type_mesh),                        intent(in   ) :: mesh
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: Hi                      ! [m]       Ice thickness
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: Hb                      ! [m]       Bedrock elevation
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: SL                      ! [m]       Water surface elevation
 
-    ! Out variables 
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_icefree_land       ! T: ice-free land , F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_icefree_ocean      ! T: ice-free ocean, F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_grounded_ice       ! T: grounded ice  , F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_floating_ice       ! T: floating ice  , F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_margin             ! T: ice next to ice-free, F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_gl_gr              ! T: grounded ice next to floating ice, F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_gl_fl              ! T: floating ice next to grounded ice, F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_cf_gr              ! T: grounded ice next to ice-free water (sea or lake), F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_cf_fl              ! T: floating ice next to ice-free water (sea or lake), F: otherwise
-    logical,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask_coastline          ! T: ice-free land next to ice-free ocean, F: otherwise
-    integer,  dimension(mesh%vi1:mesh%vi2), intent(out) :: mask    
-
-    ! In- and output variables
-    ! type(type_mesh),      intent(in   ) :: mesh
-    ! type(type_ice_model), intent(inout) :: ice
+    ! Out variables
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_icefree_land       ! T: ice-free land , F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_icefree_ocean      ! T: ice-free ocean, F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_grounded_ice       ! T: grounded ice  , F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_floating_ice       ! T: floating ice  , F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_margin             ! T: ice next to ice-free, F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_gl_gr              ! T: grounded ice next to floating ice, F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_gl_fl              ! T: floating ice next to grounded ice, F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_cf_gr              ! T: grounded ice next to ice-free water (sea or lake), F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_cf_fl              ! T: floating ice next to ice-free water (sea or lake), F: otherwise
+    logical,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask_coastline          ! T: ice-free land next to ice-free ocean, F: otherwise
+    integer,  dimension(mesh%vi1:mesh%vi2), intent(  out) :: mask
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'determine_masks'
-    integer                        :: vi, ci, vj
-    logical, dimension(mesh%nV)    :: mask_icefree_land_tot
-    logical, dimension(mesh%nV)    :: mask_icefree_ocean_tot
-    logical, dimension(mesh%nV)    :: mask_grounded_ice_tot
-    logical, dimension(mesh%nV)    :: mask_floating_ice_tot
-    logical, dimension(mesh%vi1:mesh%vi2) :: mask_icefree_land_prev
-    logical, dimension(mesh%vi1:mesh%vi2) :: mask_icefree_ocean_prev
-    logical, dimension(mesh%vi1:mesh%vi2) :: mask_grounded_ice_prev
-    logical, dimension(mesh%vi1:mesh%vi2) :: mask_floating_ice_prev
+    character(len=*), parameter :: routine_name = 'determine_masks'
+    integer                     :: vi, ci, vj
+    logical, dimension(mesh%nV) :: mask_icefree_land_tot
+    logical, dimension(mesh%nV) :: mask_icefree_ocean_tot
+    logical, dimension(mesh%nV) :: mask_grounded_ice_tot
+    logical, dimension(mesh%nV) :: mask_floating_ice_tot
 
     ! Add routine to path
     call init_routine( routine_name)
 
     ! === Basic masks ===
     ! ===================
-
-    ! Store previous basic masks
-    mask_icefree_land_prev  = mask_icefree_land
-    mask_icefree_ocean_prev = mask_icefree_ocean
-    mask_grounded_ice_prev  = mask_grounded_ice
-    mask_floating_ice_prev  = mask_floating_ice
 
     ! Initialise basic masks
     mask_icefree_land  = .false.
@@ -139,7 +109,6 @@ contains
 
     ! === Transitional masks ===
     ! ==========================
-
 
     ! Gather basic masks to all processes
     call gather_to_all( mask_icefree_land , mask_icefree_land_tot )
