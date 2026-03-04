@@ -187,7 +187,8 @@ def main():
         '-D',
         '--directory',
         dest='directory',
-        default='figures',
+        type = str,
+        default='',
         help='Directory to save figure'
     )
 
@@ -223,6 +224,7 @@ def main():
         '--variables',
         dest='variables',
         type = str,
+        default = ['BMB_v3'],
         nargs = '+',
         help='Variable names'
     )
@@ -232,6 +234,7 @@ def main():
         '--timeindices',
         dest='timeindices',
         type = int,
+        default = [-1],
         nargs = '+',
         help='Time indices'
     )
@@ -256,6 +259,11 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.directory == '':
+        args.directory = os.path.join(args.rundir,'figures')
+
+    print(args.directory)
 
     make_2dplot(
         rundir = args.rundir,
