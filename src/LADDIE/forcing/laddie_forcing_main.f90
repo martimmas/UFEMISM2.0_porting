@@ -327,7 +327,7 @@ contains
     call init_routine( routine_name)
 
     ! Print to screen
-    if (par%primary) write(0,'(A)') '   Creating mesh from referenge geometry...'
+    if (par%primary) write(0,'(A)') '   Creating mesh from reference geometry...'
 
     ! Determine if the initial geometry is provided gridded or meshed
     if (allocated( refgeo%grid_raw%x)) then
