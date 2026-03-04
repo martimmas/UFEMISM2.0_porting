@@ -93,10 +93,10 @@ class Figure(object):
             field = self.fields[key]
             if field.mask is not None:
                 field.get_mcoll()
-                im = field.ax.add_collection(field.mcoll)
+                field.ax.add_collection(field.mcoll)
             field.get_pcoll()
-            im = field.ax.add_collection(field.pcoll)
-            cbar = plt.colorbar(im,cax=field.cax,orientation=self.orientation)
+            field.ax.add_collection(field.pcoll)
+            cbar = plt.colorbar(field.scalarmap,cax=field.cax,orientation=self.orientation)
             cbar.set_label(field.varname)
 
             if add_gl:
