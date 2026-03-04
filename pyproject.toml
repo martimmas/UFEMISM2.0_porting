@@ -32,7 +32,8 @@ dependencies = [
     "xarray",
     "tqdm",
     "ipython",
-    "ipykernel"
+    "ipykernel",
+    "qt6-wayland"
 ]
 
 [tool.setuptools.packages.find]

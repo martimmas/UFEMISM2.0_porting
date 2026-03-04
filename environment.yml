@@ -21,3 +21,4 @@ dependencies:
   - tqdm
   - ipython
   - ipykernel
+  - qt6-wayland
