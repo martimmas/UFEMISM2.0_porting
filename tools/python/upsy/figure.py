@@ -83,7 +83,13 @@ class Figure(object):
         return
 
     def make(self,figname, add_gl=True, add_time=False):
-        """Make the figure with all the added fields """
+        """Make the actual figure with all the added fields 
+        It aligns panels either horizontally or vertically,
+        along with a colorbar per panel.
+        If requested by add_gl, the grouding line is added to each panel
+        This routine will spit out a .png file in the requested directory
+        """
+        
 
         fig = plt.figure(figsize=self.figsize,constrained_layout=True)
 
