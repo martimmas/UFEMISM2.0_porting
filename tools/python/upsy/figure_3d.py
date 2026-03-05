@@ -13,18 +13,26 @@ from upsy.run import Run
 from upsy.mesh import Mesh, Timeframe
 
 def make_3dplot(
-    rundir: str, 
-    azilight: str | int | float = 0, 
-    elelight: str | int | float = 45, 
-    aziview: str | int | float = 190, 
-    eleview: str | int | float = 15, 
-    vmax: str | int | float = 200,
-    shrink: str | list = [1,1,1,1],
-    dpi: str | int = 1200,
-    vaspect: str | float = 0.1,
-    linewidth: str | int = 0.0,
+    rundir: str, # Directory of the run where output is stored
+    azilight: str | int | float = 0, # Azimuth of the light source for hillshading
+    elelight: str | int | float = 45, # Elevation of the light source for hillshading
+    aziview: str | int | float = 190, # Azimuth of the viewpoint
+    eleview: str | int | float = 15, # Elevation of the viewpoint
+    vmax: str | int | float = 200, # Maximum of the colorbar
+    shrink: str | list = [1,1,1,1], # Number of gridcells to cut from the domain to avoid edge effects
+    dpi: str | int = 1200, # DPI of the output figure
+    vaspect: str | float = 0.1, # Vertical aspect ratio to change the exaggeration of the vertical dimension
+    linewidth: str | int = 0.0, # Linewidth around the cells
 ):
 
+    """
+    Make a fancy 3D plot of your output.
+    This requires the output variables Hs, Hs_b, dHs_dx, and dHs_dy
+    Also, it's now hardcoded only for BMB (UFEMISM run) or melt (LADDIE), 
+    which should be available in the output
+    """
+
+    # Change input types to required ones
     try:
         azilight = float(azilight)
         elelight = float(elelight)
@@ -49,12 +57,12 @@ def make_3dplot(
     os.makedirs(dirname,exist_ok=True)
 
     print('Getting verts')
-    #Get surface faces
+    #Get surface faces: the sloped voronoi cells
     verts_oce = _verts_vi(tf, 0*tf.ds.Hs_b)
     verts_Hs = _verts_vi(tf, tf.ds.Hs_b)
 
     print('Getting curts')
-    #Get curtains
+    #Get curtains: the vertical faces around the voronoi cells
     curts_cf_fl, curts_vi_cf_fl = _curts_vi(tf, tf.ds.Hs_b, 0*tf.ds.Hs_b, [4,6], [2,8])
     curts_cf_gr, curts_vi_cf_gr = _curts_vi(tf, tf.ds.Hs_b, 0*tf.ds.Hs_b, [3,5,7,9,10], [2,8])
 
@@ -64,26 +72,34 @@ def make_3dplot(
     hn_Hs = hillshade(tf.ds.dHs_dx,tf.ds.dHs_dy,azimuth=azilight,altitude=elelight)
 
     print('Adding colors to verts')
-    #Add colors to verts
+    #Add colors to verts (= surface faces)
+
+    # Allocate colors
     cols_oce = [(0,0,0,0)]*len(verts_oce)
     cols_ice = [(0,0,0,0)]*len(verts_Hs)
     cols_bmb = [(0,0,0,0)]*len(verts_Hs)
     cols_bed = [(0,0,0,0)]*len(verts_Hs)
 
+    # Determine mask
     mask = tf.ds.mask.values
+
+    # Read the melt rates
     try:
         melt_vals = tf.ds.melt.values * 3600*24*365.25
     except:
         melt_vals = -tf.ds.BMB.values
 
-    hn_Hs = np.array(hn_Hs) #TODO necessary?
+    # This seems to be necessary...
+    hn_Hs = np.array(hn_Hs)
     hn_oce = np.array(hn_oce)
     
+    # Change matplotlib colors to rgba, and use predefined colors for masked surfaces
     rgba_bg_bmb = scalarmap.to_rgba(melt_vals)
     rgba_bg_oce = mpl.colors.to_rgba('darkslategray')
     rgba_bg_ice = mpl.colors.to_rgba('lightblue')
     rgba_bg_bed = mpl.colors.to_rgba('saddlebrown')
 
+    # Determine actual colors based on colormap (or predefined color) and hillshade
     for vi in tqdm(range(len(mask))):
         #BMB
         if mask[vi] in [4,6]:
@@ -101,7 +117,10 @@ def make_3dplot(
             cols_bed[vi] = rgba(rgba_bg_bed,hn_Hs[vi],alpha=.4)
 
     print('Adding colors to curts')
-    #Add colors to curts
+
+    #Add colors to curts, same procedure as verts
+
+    #Curtains (vertical faces) at the calving front of floating cells 
     cols_curts_cf_fl = [(0,0,0,0)]*len(curts_cf_fl)
     for i,curt in tqdm(enumerate(curts_cf_fl)):
         vi = curts_vi_cf_fl[i]
@@ -110,6 +129,7 @@ def make_3dplot(
         hn = curtshade(dy,dx,azilight,elelight)
         cols_curts_cf_fl[i] = rgba(rgba_bg_bmb[vi],hn)
 
+    # Curtains (vertical faces) at the calving front of grounded cells (= cliff)
     cols_curts_cf_gr = [(0,0,0,0)]*len(curts_cf_gr)
     for i,curt in tqdm(enumerate(curts_cf_gr)):
         vi = curts_vi_cf_gr[i]
@@ -119,29 +139,41 @@ def make_3dplot(
         cols_curts_cf_gr[i] = rgba(rgba_bg_ice,hn,alpha=.4)
 
     print('Making figure')
+
     #Make figure
+
+    #Prepare figure
     fig = plt.figure(figsize=(7,3))#, constrained_layout=True)
     ax = fig.add_subplot(projection='3d')
     
+    # Add faces (verts, curts) and associated colors together
     allv = verts_Hs*3 + verts_oce + curts_cf_fl + curts_cf_gr
     allc = cols_ice + cols_bmb + cols_bed + cols_oce + cols_curts_cf_fl + cols_curts_cf_gr
     
+    # Create a polygon of the thing and add to the axis
     poly = Poly3DCollection(allv,fc=allc,lw=linewidth,edgecolor='k',axlim_clip=True)
     ax.add_collection3d(poly)
     
+    # Set the boundary domain, aspect, and dimension limits
     ax.set_aspect('equalxy')
     ax.set_box_aspect((1,1,vaspect))
     ax.set_xlim([tf.ds.xmin+shrink[0]*1e3, tf.ds.xmax-shrink[1]*1e3])
     ax.set_ylim([tf.ds.ymin+shrink[2]*1e3, tf.ds.ymax-shrink[3]*1e3])
     ax.set_zlim(zmin=min(tf.ds.Hs.values)-10,zmax=max(tf.ds.Hs.values)+10)
     
+    # Set the viewpoint
     ax.view_init(elev=eleview, azim=aziview)
     ax.set_axis_off()
 
+    # This is a nasty hardcoded adjustment to make sure the figure is fully visible
+    # without too large white spaces around it. There doesn't seem to be a clean
+    # way to do this, so sticking to it for now.
     fig.subplots_adjust(left=-.8,right=1.8,top=1.8,bottom=-.8)
 
     filename = os.path.join(dirname,'3Dplot.png')
 
+    # Add metadata of choices to the figure for reproducibility and optimisation, 
+    # it's not so easy to find though...
     metadata = {
         'azilight': str(azilight),
         'elelight': str(elelight),
@@ -154,13 +186,24 @@ def make_3dplot(
         'linewidth': str(linewidth)
     }
 
+    # Just print the metadata to screen so adjustments (viewpoint, vertical aspect, etc) can be optimised
     print(metadata)
 
+    # Save the thing
     plt.savefig(filename,dpi=dpi, metadata=metadata)#, bbox_inches='tight')
 
     print(f'Finished {filename}')
 
 def main():
+    """
+    Command-line interface to plot the 3D figure
+
+    Example usage:
+
+    upsy-plot-3dfigure rundir
+    """
+
+    # Parse command-line input
     parser = argparse.ArgumentParser(
     description='Make 3D plot'
     )
@@ -248,6 +291,7 @@ def main():
 
     args = parser.parse_args()
 
+    # Make the plot
     make_3dplot(
         rundir = args.rundir,
         azilight = args.azilight,
@@ -261,7 +305,17 @@ def main():
         linewidth = args.linewidth,
     )
 
+# Helper functions
+
 def _verts_vi(tf, H_b):
+    """
+    Determine the corner points (horizontal and vertical of the verts (surface faces).
+    These are essentially the voronoi cells with their vertical dimension.
+    Input:
+    tf: Timeframe class
+    H_b: Height variable on b-grid, typically Hs_b
+    """
+
     verts = []
 
     # Extract necessary data from the dataset at once
@@ -292,23 +346,44 @@ def _verts_vi(tf, H_b):
     return verts
 
 def _curts_vi(tf, H_b0, H_b1, maskvals, neighbs):
+    """
+    Determine the cornerpoints of the curtains (vertically oriented rectangles)
+    Input:
+    tf: Timeframe class
+    H_b0: Height variable on b-grid of the bottom two cornerpoints
+    H_b1: Height variable on b-grid of the top two cornerpoints
+    maskvals: List of mask values, 
+        only form a curtain for cells containing a mask value equal to one of these values
+    neighbs: List of mask values for the opposite cell,
+        only form a curtain if the opposite neighbour has one of these mask values
+
+    Example for the calving front of floating ice shelves: 
+        H_b0 would typically be Hs_b (ice surface)
+        H_b1 would typically be 0 (sea level)
+        maskvals should include 4 (floating ice) and often 6 (cf_fl (?) )
+        neighbs should include 2 (ocean) and often 8 (cf_oc (?) )
+    """
 
     curts = []
     curts_vi = []
 
+    # Extract necessary data from the dataset
     EV = tf.ds.EV.values
     ETri = tf.ds.ETri.values
     Tricc = tf.ds.Tricc.values
     mask = tf.ds.mask.values
 
-
     for ei in tqdm(range(0,len(tf.ds.ei))):
+        # Determine vertex indices at both sides of the face
         v0 = EV[0,ei] - 1
         v1 = EV[1,ei] - 1
 
+        # Determine mask values of the two cells bordering the curtain
         mask_v0 = mask[v0]
         mask_v1 = mask[v1]
 
+        # Check whether a curtain should be determined
+        # If so, extract the triangle indices (borders of the curtain)
         if mask_v0 in maskvals and mask_v1 in neighbs:
             vi = v0
             t0 = ETri[1, ei] -1
@@ -320,20 +395,35 @@ def _curts_vi(tf, H_b0, H_b1, maskvals, neighbs):
         else:
             continue
 
+        # Translate triangle indices to values on the horizontal plane
         x0, x1 = Tricc[0, t0], Tricc[0, t1]
         y0, y1 = Tricc[1, t0], Tricc[1, t1]
 
+        # Add the vertical dimension to the four corner points
         z00, z01 = H_b0[t0], H_b1[t0]
         z10, z11 = H_b0[t1], H_b1[t1]
 
+        # Combine horizontal and vertical dimensions
         c = np.array([[x0, x0, x1, x1], [y0, y0, y1, y1], [z00, z01, z11, z10]]).T.tolist()
 
+        # Append the curtain and the vertex index to determine the color for this curtain
         curts.append(c)
         curts_vi.append(vi)
 
     return curts, curts_vi
 
 def hillshade(dHdx,dHdy,azimuth,altitude,z_fac=1000):
+    """
+    Determine the hillshade factor to darken cells
+    based on the angle of the surface (dHdx, dHdy)
+    and the azimuth and elevation of the light source
+    plus some vertical exaggeration factor
+    """
+
+    # Got this whole algorithm from the website of ArcGIS Pro:
+    # https://pro.arcgis.com/en/pro-app/latest/tool-reference/3d-analyst/how-hillshade-works.htm
+    # It seems to work well
+
     zenith_deg = 90-altitude
     zenith_rad = zenith_deg * np.pi / 180.0
     azimuth_math = azimuth+90
@@ -355,6 +445,10 @@ def hillshade(dHdx,dHdy,azimuth,altitude,z_fac=1000):
     return hn
 
 def curtshade(dy,dx,azimuth,altitude,z_fac=1000):
+    """
+    Derived a similar algorithm for the shading of the curtains
+    """
+
     zenith_deg = 90-altitude
     zenith_rad = zenith_deg * np.pi / 180.0
     azimuth_math = azimuth+90
@@ -373,7 +467,7 @@ def curtshade(dy,dx,azimuth,altitude,z_fac=1000):
     return hn
 
 def _get_cmap(vmax=200):
-    """ BMB colormap """
+    """ BMB colormap, hardcoded for now """
 
     Ncols = 68
     vmax = vmax 
@@ -393,6 +487,10 @@ def _get_cmap(vmax=200):
     return scalarmap
 
 def rgba(rgba_bg,hn,alpha=.2):
+    """
+    Combine RGB values with the normalised hillshading using
+    an alpha factor to determine how 'dark' the shadow should be 
+    """
     rgb = [hn * alpha + rgba_bg[i] * (1-alpha) for i in [0,1,2]]
     rgba = tuple(np.append(rgb,1))
     return rgba
