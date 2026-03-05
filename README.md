@@ -14,4 +14,11 @@ conda env create -y -n upsy -f environment.yml
 conda activate upsy
 python -m pip install -e . --no-deps --no-build-isolation
 ```
-
+To the package can then be loaded by `import upsy`,
+You can also try out these commands in the terminal:
+```
+upsy-diagnose-run rundir
+upsy-plot-2dfigure rundir
+upsy-plot-3dfigure rundir
+```
+For additional help, try `upsy-plot-2dfigure -h`
