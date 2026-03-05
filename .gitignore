@@ -72,4 +72,3 @@ linting_mods/*
 
 #Ignore Thule for now
 automated_testing/integrated_tests/idealised/Thule
-
