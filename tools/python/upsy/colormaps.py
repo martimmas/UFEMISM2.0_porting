@@ -153,6 +153,14 @@ def get_cmap(varname):
         cmap = copy(plt.get_cmap('nipy_spectral'))
         norm = mpl.colors.LogNorm(vmin=3000,vmax=30e3)
 
+    elif varname == 'SMB':
+        cmap = copy(plt.get_cmap('cmo.tarn'))
+        norm = mpl.colors.SymLogNorm(0.05, vmin=-6, vmax=6, linscale=.01)
+
+    elif varname == 'till_friction_angle':
+        cmap = copy(plt.get_cmap('cmo.turbid'))
+        norm = mpl.colors.Normalize(vmin=0,vmax=45,clip=True)
+
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
         return
