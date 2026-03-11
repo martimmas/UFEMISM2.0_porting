@@ -161,6 +161,10 @@ def get_cmap(varname):
         cmap = copy(plt.get_cmap('cmo.turbid'))
         norm = mpl.colors.Normalize(vmin=0,vmax=45,clip=True)
 
+    elif varname == 'dHi_dt':
+        cmap = copy(plt.get_cmap('cmo.balance_r'))
+        norm = mpl.colors.Normalize(vmin=-1,vmax=1,clip=True)
+
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
         return
