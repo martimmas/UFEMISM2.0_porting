@@ -177,7 +177,7 @@ contains
 
       ! DENK DROM : assess whether this is important for the velocitiy computation below
       ! ! Calculate the basal mass balance
-      ! call run_BMB_model( region%mesh, region%ice, region%ocean, region%refgeo_PD, region%SMB, region%BMB, region%name, region%time)
+      ! call run_BMB_model( region%mesh, region%ice, region%ocean, region%refgeo_PD, region%BMB, region%name, region%time)
 
       ! Calculate ice velocities for the predicted geometry
       call solve_stress_balance( region%mesh, region%ice, region%bed_roughness, &
