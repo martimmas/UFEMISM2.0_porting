@@ -15,7 +15,6 @@ MODULE BMB_main
   USE ice_model_types                                        , ONLY: type_ice_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
   USE reference_geometry_types                               , ONLY: type_reference_geometry
-  use SMB_model, only: atype_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE laddie_model_types                                     , ONLY: type_laddie_model
   USE laddie_forcing_types                                   , ONLY: type_laddie_forcing
@@ -43,7 +42,7 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, is_initial)
+  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, BMB, region_name, time, is_initial)
     ! Calculate the basal mass balance
 
     ! In/output variables:
@@ -51,7 +50,6 @@ CONTAINS
     TYPE(type_ice_model),                   INTENT(IN)    :: ice
     TYPE(type_ocean_model),                 INTENT(IN)    :: ocean
     TYPE(type_reference_geometry),          INTENT(IN)    :: refgeo
-    class(atype_SMB_model),                 intent(in   ) :: SMB
     TYPE(type_BMB_model),                   INTENT(INOUT) :: BMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time

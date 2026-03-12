@@ -98,7 +98,8 @@ def get_cmap(varname):
     
     elif varname == 'Hs':
         cmap = copy(plt.get_cmap('cmo.ice'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=1000,clip=True)
+        #norm = mpl.colors.Normalize(vmin=0,vmax=1000,clip=True)
+        norm = mpl.colors.LogNorm(vmin=1,vmax=3000,clip=True)
 
     elif varname == 'H_lad':
         cmap = copy(plt.get_cmap('cmo.deep'))
@@ -126,8 +127,8 @@ def get_cmap(varname):
 
     elif varname in ['uabs_surf', 'uabs_vav', 'bed_roughness_nudge_H_u_target_velocity']:
         cmap = copy(plt.get_cmap('turbo'))
-        norm = mpl.colors.Normalize(vmin=0,vmax=2000,clip=True)
-        #norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
+        #norm = mpl.colors.Normalize(vmin=0,vmax=2000,clip=True)
+        norm = mpl.colors.LogNorm(vmin=1.,vmax=4000,clip=True)
 
     elif varname == 'mask_SGD':
         cmap = copy(plt.get_cmap('Greys'))
@@ -160,6 +161,14 @@ def get_cmap(varname):
     elif varname == 'till_friction_angle':
         cmap = copy(plt.get_cmap('cmo.turbid'))
         norm = mpl.colors.Normalize(vmin=0,vmax=45,clip=True)
+
+    elif varname == 'dHi_dt':
+        cmap = copy(plt.get_cmap('cmo.balance_r'))
+        norm = mpl.colors.Normalize(vmin=-1,vmax=1,clip=True)
+
+    elif varname == 'divQ':
+        cmap = copy(plt.get_cmap('cmo.diff'))
+        norm = mpl.colors.Normalize(vmin=-1,vmax=1,clip=True)
 
     else:
         print(f'ERROR: no colormap available yet for {varname}, add one to colormaps.py')
