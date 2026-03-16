@@ -115,13 +115,12 @@ CONTAINS
       end select
     CASE DEFAULT
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
-    END IF
-    
+    END SELECT
+
     if (C%do_use_ISMIP_future_shelf_collapse_forcing) then
       ! Run the ISMIP-style forcing
       call run_climate_retreat_mask( mesh, climate, time, ice)
     end if
-    END SELECT
 
     ! Finalise routine path
     CALL finalise_routine( routine_name)

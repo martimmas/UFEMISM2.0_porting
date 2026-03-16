@@ -43,7 +43,7 @@ CONTAINS
 ! ===== Main routines =====
 ! =========================
 
-  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, SMB, BMB, region_name, time, climate, is_initial)
+  SUBROUTINE run_BMB_model( mesh, ice, ocean, refgeo, BMB, region_name, time, climate, is_initial)
     ! Calculate the basal mass balance
 
     ! In/output variables:
