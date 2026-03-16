@@ -2,8 +2,9 @@ module laddie_mesh_output
 
   use precisions, only: dp
   use mpi_basic, only: par, sync
+  use UPSY_main, only: UPSY
   use parameters
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use mesh_types, only: type_mesh
   use laddie_model_types, only: type_laddie_model
@@ -14,6 +15,7 @@ module laddie_mesh_output
   use mesh_contour, only: calc_mesh_contour
   use mpi_f08, only: MPI_WIN
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
+  use mesh_disc_apply_operators , only: map_a_b_2D, ddx_a_a_2D, ddy_a_a_2D
 
   implicit none
 
@@ -45,7 +47,7 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to mesh output file "' // UPSY%stru%colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( laddie%output_mesh_filename, ncid)
@@ -137,6 +139,10 @@ contains
     character(len=1024), parameter     :: routine_name = 'write_to_laddie_output_file_mesh_field'
     integer, dimension(:  ), pointer     :: mask_int => null()
     type(MPI_WIN)                        :: wmask_int
+    real(dp), dimension(:  ), pointer    :: d_partial_a => null()
+    real(dp), dimension(:  ), pointer    :: d_partial_b => null()
+    type(MPI_WIN)                        :: wd_partial_a
+    type(MPI_WIN)                        :: wd_partial_b
     call init_routine( routine_name)
 
     ! if no NetCDF output should be created, do nothing
@@ -150,6 +156,11 @@ contains
     call allocate_dist_shared( mask_int, wmask_int, mesh%pai_V%n_nih)
     mask_int( mesh%pai_V%i1_nih : mesh%pai_V%i2_nih) => mask_int
 
+    call allocate_dist_shared( d_partial_a, wd_partial_a, mesh%pai_V%n_nih)
+    d_partial_a( mesh%pai_V%i1_nih : mesh%pai_V%i2_nih) => d_partial_a
+
+    call allocate_dist_shared( d_partial_b, wd_partial_b, mesh%pai_Tri%n_nih)
+    d_partial_b( mesh%pai_Tri%i1_nih : mesh%pai_Tri%i2_nih) => d_partial_b
 
     ! Add the specified data field to the file
     select case (choice_output_field)
@@ -169,24 +180,61 @@ contains
 
       ! Ice geometry
       case ('Hi')
-        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hi', forcing%Hi, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hi', forcing%Hi)
+      case ('Hs')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hs', forcing%Hs)
+      case ('Hb')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hb', forcing%Hb)
       case ('Hib')
-        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hib', forcing%Hib, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'Hib', forcing%Hib)
       case ('TAF')
-        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'TAF', forcing%TAF, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'TAF', forcing%TAF)
       case ('grounding_line')
         call write_grounding_line_to_file( laddie%output_mesh_filename, ncid, mesh, forcing)
 
+      ! Geometry on triangles
+      case ('Hs_b')
+        call map_a_b_2D( mesh, forcing%Hs, d_partial_b, d_a_is_hybrid = .true., d_b_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, laddie%output_mesh_filename, ncid, 'Hs_b', d_partial_b)
+      case ('Hb_b')
+        call map_a_b_2D( mesh, forcing%Hb, d_partial_b, d_a_is_hybrid = .true., d_b_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, laddie%output_mesh_filename, ncid, 'Hb_b', d_partial_b)
+      case ('Hib_b')
+        call map_a_b_2D( mesh, forcing%Hib, d_partial_b, d_a_is_hybrid = .true., d_b_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b_notime( mesh, laddie%output_mesh_filename, ncid, 'Hib_b', d_partial_b)
+
+      ! Geometry gradients
+      case ('dHs_dx')
+        call ddx_a_a_2D( mesh, forcing%Hs, d_partial_a, d_a_is_hybrid = .true., ddx_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHs_dx', d_partial_a)
+      case ('dHs_dy')
+        call ddy_a_a_2D( mesh, forcing%Hs, d_partial_a, d_a_is_hybrid = .true., ddy_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHs_dy', d_partial_a)
+      case ('dHb_dx')
+        call ddx_a_a_2D( mesh, forcing%Hb, d_partial_a, d_a_is_hybrid = .true., ddx_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHb_dx', d_partial_a)
+      case ('dHb_dy')
+        call ddy_a_a_2D( mesh, forcing%Hb, d_partial_a, d_a_is_hybrid = .true., ddy_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHb_dy', d_partial_a)
+      case ('dHib_dx')
+        call ddx_a_a_2D( mesh, forcing%Hib, d_partial_a, d_a_is_hybrid = .true., ddx_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHib_dx', d_partial_a)
+      case ('dHib_dy')
+        call ddy_a_a_2D( mesh, forcing%Hib, d_partial_a, d_a_is_hybrid = .true., ddy_a_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'dHib_dy', d_partial_a)
+
       ! Ice temperature
       case ('Ti')
-        call write_to_field_multopt_mesh_dp_3D_notime( mesh, laddie%output_mesh_filename, ncid, 'Ti', forcing%Ti, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_3D_notime( mesh, laddie%output_mesh_filename, ncid, 'Ti', forcing%Ti)
 
       ! Main ocean variables
       case ('T_ocean')
-        call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'T_ocean', forcing%T_ocean, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'T_ocean', forcing%T_ocean)
       case ('S_ocean')
-        call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'S_ocean', forcing%S_ocean, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_3D_ocean_notime( mesh, laddie%output_mesh_filename, ncid, 'S_ocean', forcing%S_ocean)
 
+      case ('f_coriolis')
+        call write_to_field_multopt_mesh_dp_2D_notime( mesh, laddie%output_mesh_filename, ncid, 'f_coriolis', forcing%f_coriolis)
 
     ! ===== Masks =====
     ! =================
@@ -197,73 +245,80 @@ contains
         elsewhere
           mask_int = 0
         end where
-        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask_SGD', mask_int, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask_SGD', mask_int)
       case ('mask')
-        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask', forcing%mask, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_int_2D( mesh, laddie%output_mesh_filename, ncid, 'mask', forcing%mask)
 
     ! == LADDIE ==
     ! ============
 
       ! Main laddie variables
       case ('H_lad')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'H_lad', laddie%now%H, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'H_lad', laddie%now%H)
       case ('U_lad')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'U_lad', laddie%now%U, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'U_lad', laddie%now%U)
       case ('V_lad')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'V_lad', laddie%now%V, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'V_lad', laddie%now%V)
       case ('T_lad')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_lad', laddie%now%T, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_lad', laddie%now%T)
       case ('S_lad')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'S_lad', laddie%now%S, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'S_lad', laddie%now%S)
+
+      case ('H_lad_b')
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'H_lad_b', laddie%now%H_b)
 
       ! Useful laddie fields
       case ('drho_amb')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'drho_amb', laddie%drho_amb, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'drho_amb', laddie%drho_amb)
       case ('drho_base')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'drho_base', laddie%drho_base, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'drho_base', laddie%drho_base)
       case ('entr')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'entr', laddie%entr, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'entr', laddie%entr)
       case ('entr_dmin')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'entr_dmin', laddie%entr_dmin, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'entr_dmin', laddie%entr_dmin)
       case ('SGD')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'SGD', laddie%SGD, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'SGD', laddie%SGD)
       case ('melt')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'melt', laddie%melt, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'melt', laddie%melt)
       case ('divQH')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQH', laddie%divQH, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQH', laddie%divQH)
       case ('divQT')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQT', laddie%divQT, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQT', laddie%divQT)
       case ('divQS')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQS', laddie%divQS, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'divQS', laddie%divQS)
       case ('diffT')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'diffT', laddie%diffT, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'diffT', laddie%diffT)
       case ('diffS')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'diffS', laddie%diffS, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'diffS', laddie%diffS)
       case ('viscU')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'viscU', laddie%viscU, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'viscU', laddie%viscU)
       case ('viscV')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'viscV', laddie%viscV, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'viscV', laddie%viscV)
       case ('T_base')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_base', laddie%T_base, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_base', laddie%T_base)
       case ('T_amb')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_amb', laddie%T_amb, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_amb', laddie%T_amb)
+      case ('T_freeze')
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'T_freeze', laddie%T_freeze)
       case ('u_star')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'u_star', laddie%u_star, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'u_star', laddie%u_star)
       case ('gamma_T')
-        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'gamma_T', laddie%gamma_T, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D( mesh, laddie%output_mesh_filename, ncid, 'gamma_T', laddie%gamma_T)
       case ('divQU')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'divQU', laddie%divQU, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'divQU', laddie%divQU)
       case ('divQV')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'divQV', laddie%divQV, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'divQV', laddie%divQV)
       case ('HU_lad')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'HU_lad', laddie%now%H_b*laddie%now%U, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'HU_lad', laddie%now%H_b*laddie%now%U)
       case ('HV_lad')
-        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'HV_lad', laddie%now%H_b*laddie%now%V, d_is_hybrid = .true.)
+        call write_to_field_multopt_mesh_dp_2D_b( mesh, laddie%output_mesh_filename, ncid, 'HV_lad', laddie%now%H_b*laddie%now%V)
 
     end select
 
     ! Deallocate mask_int
     call deallocate_dist_shared( mask_int, wmask_int)
+    call deallocate_dist_shared( d_partial_a, wd_partial_a)
+    call deallocate_dist_shared( d_partial_b, wd_partial_b)
 
 
     ! Finalise routine path
@@ -291,7 +346,7 @@ contains
     call generate_filename_XXXXXdotnc( filename_base, laddie%output_mesh_filename)
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating laddie output file "' // colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating laddie output file "' // UPSY%stru%colour_string( trim( laddie%output_mesh_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( laddie%output_mesh_filename, ncid)
@@ -420,6 +475,10 @@ contains
       ! Ice geometry
       case ('Hi')
         call add_field_mesh_dp_2D_notime( filename, ncid, 'Hi', long_name = 'Ice thickness', units = 'm')
+      case ('Hs')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'Hs', long_name = 'Ice surface elevation', units = 'm')
+      case ('Hb')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'Hb', long_name = 'Bedrock elevation', units = 'm w.r.t. sea level')
       case ('Hib')
         call add_field_mesh_dp_2D_notime( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. sea level')
       case ('TAF')
@@ -433,6 +492,26 @@ contains
         call add_attribute_char( filename, ncid, id_var_grounding_line, 'units', 'm')
         call add_attribute_char( filename, ncid, id_var_grounding_line, 'format', 'Matlab/Python contour format')
 
+      case ('Hs_b')
+        call add_field_mesh_dp_2D_b_notime( filename, ncid, 'Hs_b', long_name = 'Ice surface elevation on triangles', units = 'm')
+      case ('Hb_b')
+        call add_field_mesh_dp_2D_b_notime( filename, ncid, 'Hb_b', long_name = 'Bedrock elevation on triangles', units = 'm')
+      case ('Hib_b')
+        call add_field_mesh_dp_2D_b_notime( filename, ncid, 'Hib_b', long_name = 'Ice base elevation on triangles', units = 'm')
+
+      case ('dHs_dx')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHs_dx', long_name = 'Ice surface elevation gradient x-direction', units = 'm')
+      case ('dHs_dy')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHs_dy', long_name = 'Ice surface elevation gradient y-direction', units = 'm')
+      case ('dHb_dx')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHb_dx', long_name = 'Bedrock elevation gradient x-direction', units = 'm')
+      case ('dHb_dy')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHb_dy', long_name = 'Bedrock elevation gradient y-direction', units = 'm')
+      case ('dHib_dx')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHib_dx', long_name = 'Ice base elevation gradient x-direction', units = 'm')
+      case ('dHib_dy')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'dHib_dy', long_name = 'Ice base elevation gradient y-direction', units = 'm')
+
       ! Ice temperature
       case ('Ti')
         call add_field_mesh_dp_3D_notime( filename, ncid, 'Ti', long_name = 'Englacial temperature', units = 'deg C')
@@ -442,6 +521,9 @@ contains
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
         call add_field_mesh_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'PSU')
+
+      case ('f_coriolis')
+        call add_field_mesh_dp_2D_notime( filename, ncid, 'f_coriolis', long_name = 'Coriolis parameter', units = 's^-1')
 
       case ('mask_SGD')
         call add_field_mesh_int_2d( filename, ncid, 'mask_SGD', long_name = 'Mask indicating potential subglacial discharge cells')
@@ -462,6 +544,9 @@ contains
         call add_field_mesh_dp_2D( filename, ncid, 'T_lad', long_name = 'Laddie temperature', units = 'deg C')
       case ('S_lad')
         call add_field_mesh_dp_2D( filename, ncid, 'S_lad', long_name = 'Laddie salinity', units = 'PSU')
+
+      case ('H_lad_b')
+        call add_field_mesh_dp_2D_b( filename, ncid, 'H_lad_b', long_name = 'Laddie layer thickness on triangles', units = 'm')
 
       ! Useful laddie fields
       case ('drho_amb')
@@ -494,6 +579,8 @@ contains
         call add_field_mesh_dp_2D( filename, ncid, 'T_base', long_name = 'Temperature at ice/ocean interface', units = 'deg C')
       case ('T_amb')
         call add_field_mesh_dp_2D( filename, ncid, 'T_amb', long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
+      case ('T_freeze')
+        call add_field_mesh_dp_2D( filename, ncid, 'T_freeze', long_name = 'Feezing temperature', units = 'deg C')
       case ('u_star')
         call add_field_mesh_dp_2D( filename, ncid, 'u_star', long_name = 'Friction velocity', units = 'm s^-1')
       case ('gamma_T')

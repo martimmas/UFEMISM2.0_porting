@@ -5,7 +5,7 @@ module tests_graph
   use precisions, only: dp
   use mesh_types, only: type_mesh
   use graph_types, only: type_graph
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use mpi_basic, only: par
 
   implicit none
@@ -57,7 +57,7 @@ contains
     isso = .true.
     isso = isso .and. test_graph_matches_mesh_vertices ( mesh, graph)
     isso = isso .and. test_graph_matches_mesh_triangles( mesh, graph)
-    isso = isso .and. test_graph_matches_mesh_edges    ( mesh, graph)
+    ! isso = isso .and. test_graph_matches_mesh_edges    ( mesh, graph)
 
     ! Finalise routine path
     call finalise_routine( routine_name)

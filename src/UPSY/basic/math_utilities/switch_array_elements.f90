@@ -3,7 +3,7 @@ module switch_array_elements
   ! Switch individual elements or entire rows in 2-D arrays
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: crash
+  use call_stack_and_comp_time_tracking, only: crash
 
   implicit none
 
@@ -32,9 +32,13 @@ contains
     integer, dimension(:), intent(inout) :: d
     integer,               intent(in   ) :: i1, i2
 
-    d( i1) = d( i1) + d( i2)
-    d( i2) = d( i1) - d( i2)
-    d( i1) = d( i1) - d( i2)
+    ! Local variables:
+    integer :: a, b
+
+    a = d( i1)
+    b = d( i2)
+    d( i1) = b
+    d( i2) = a
 
   end subroutine switch_rows_int_1D
 
@@ -45,9 +49,13 @@ contains
     integer, dimension(:,:), intent(inout) :: d
     integer,                 intent(in   ) :: i1, i2
 
-    d( i1,:) = d( i1,:) + d( i2,:)
-    d( i2,:) = d( i1,:) - d( i2,:)
-    d( i1,:) = d( i1,:) - d( i2,:)
+    ! Local variables:
+    integer, dimension(size(d,2)) :: a, b
+
+    a = d( i1,:)
+    b = d( i2,:)
+    d( i1,:) = b
+    d( i2,:) = a
 
   end subroutine switch_rows_int_2D
 
@@ -58,9 +66,13 @@ contains
     real(dp), dimension(:), intent(inout) :: d
     integer,                intent(in   ) :: i1, i2
 
-    d( i1) = d( i1) + d( i2)
-    d( i2) = d( i1) - d( i2)
-    d( i1) = d( i1) - d( i2)
+    ! Local variables:
+    real(dp) :: a, b
+
+    a = d( i1)
+    b = d( i2)
+    d( i1) = b
+    d( i2) = a
 
   end subroutine switch_rows_dp_1D
 
@@ -71,9 +83,13 @@ contains
     real(dp), dimension(:,:), intent(inout) :: d
     integer,                  intent(in   ) :: i1, i2
 
-    d( i1,:) = d( i1,:) + d( i2,:)
-    d( i2,:) = d( i1,:) - d( i2,:)
-    d( i1,:) = d( i1,:) - d( i2,:)
+    ! Local variables:
+    real(dp), dimension(size(d,2)) :: a, b
+
+    a = d( i1,:)
+    b = d( i2,:)
+    d( i1,:) = b
+    d( i2,:) = a
 
   end subroutine switch_rows_dp_2D
 

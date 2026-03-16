@@ -29,9 +29,9 @@ program LADDIE_program
   use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
   use parameters, only: initialise_constants
-  use control_resources_and_error_messaging, only: warning, crash, happy, init_routine, finalise_routine, &
-    colour_string, do_colour_strings, initialise_control_and_resource_tracker, reset_resource_tracker, &
-    print_model_start, print_model_end
+  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, &
+    initialise_control_and_resource_tracker, reset_resource_tracker
+  use basic_model_utilities, only: print_model_start, print_model_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
   use mesh_types, only: type_mesh
@@ -41,6 +41,7 @@ program LADDIE_program
   use laddie_forcing_main, only: initialise_forcing
   use LADDIE_main_model, only: run_laddie_model, initialise_laddie_model
   use laddie_unit_tests, only: run_laddie_unit_tests
+  use laddie_hydrology, only: initialise_transects_SGD
 
   implicit none
 
@@ -52,7 +53,6 @@ program LADDIE_program
 
   ! The LADDIE model
   type(type_laddie_model)                :: laddie
-  type(type_reference_geometry)          :: refgeo
   type(type_mesh)                        :: mesh
 
   ! Computation time tracking
@@ -80,15 +80,11 @@ program LADDIE_program
   end if
 
   ! Initialise MPI parallelisation and PETSc
-  call initialise_parallelisation( input_argument)
+  call initialise_parallelisation
   call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   ! Initialise constants (pi, NaN, ...)
   call initialise_constants
-
-  ! Only the primary process "sees" the input argument; all the others are
-  ! initialised by MPI without it. Broadcast it so they know what to do.
-  call MPI_BCAST( input_argument, len(input_argument), MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
 
   ! Start the clock
   tstart = MPI_WTIME()
@@ -106,7 +102,7 @@ program LADDIE_program
   else ! An actual model simulation
 
     ! Initialise the main model configuration
-    call initialise_model_configuration
+    call initialise_model_configuration( input_argument)
 
     ! Create the resource tracking output file
     call create_resource_tracking_file( C%output_dir)
@@ -115,6 +111,11 @@ program LADDIE_program
     ! ==================================
 
     call initialise_forcing( mesh, forcing)
+
+    ! == Initialise subglacial discharge ==
+    ! =====================================
+
+    call initialise_transects_SGD(mesh, forcing)
 
     ! == Initialise the model ==
     ! ==========================

@@ -7,11 +7,11 @@ MODULE series_utilities
 
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string, warning, insert_val_into_string_int,insert_val_into_string_dp
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, warning
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE global_forcing_types                                   , ONLY: type_global_forcing
-  
+
   IMPLICIT NONE
 
 CONTAINS
@@ -36,12 +36,12 @@ SUBROUTINE update_timeframes_from_record(time_axis, record, time_at_t0, time_at_
     CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'update_timeframes_from_record'
     INTEGER                                            :: ti0, ti1, tii, ncid, nt
     CHARACTER(LEN=256)                                 :: str
-    REAL(dp)                                           :: dt_min 
+    REAL(dp)                                           :: dt_min
 
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    
+
     ! Update sea level
     ! Find timeframe closest to desired time
     nt = size(time_axis)
@@ -69,15 +69,15 @@ SUBROUTINE update_timeframes_from_record(time_axis, record, time_at_t0, time_at_
         !  dp_01 = time, dp_02 = time_axis( ti0))
       end if
     end if
-      
-    
+
+
     time_at_t0 = time_axis(ti0)
     val_at_t0  = record(ti0)
-      
+
     ! if the desired time is after t0, we take one record after for t1
     if (time >= time_at_t0) then
       if (ti0 == size(time_axis)) then
-        IF (par%primary) WRITE(0,*) 'desired timeframe is at or beyond the last record. Using last available value for both timeframes...'
+        ! IF (par%primary) WRITE(0,*) 'desired timeframe is at or beyond the last record. Using last available value for both timeframes...'
         time_at_t1 = time_axis(ti0)
         val_at_t1  = record(ti0)
       else
@@ -87,7 +87,7 @@ SUBROUTINE update_timeframes_from_record(time_axis, record, time_at_t0, time_at_
     else
       ! otherwise we read one record before for t0, and that record is t1
       if (ti0 == 1) then
-        IF (par%primary) WRITE(0,*) 'desired timeframe is at or before the first record. Using first available value for both timeframes...'
+        ! IF (par%primary) WRITE(0,*) 'desired timeframe is at or before the first record. Using first available value for both timeframes...'
         time_at_t1 = time_axis(ti0)
         val_at_t1  = record(ti0)
       else
@@ -114,7 +114,7 @@ SUBROUTINE update_timeframes_from_record(time_axis, record, time_at_t0, time_at_
     REAL(dp),                          INTENT(IN   )   :: time_at_t1
     REAL(dp),                          INTENT(IN   )   :: time
     REAL(dp),                          INTENT(  OUT)   :: interpolated_value
-    
+
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                      :: routine_name = 'interpolate_value_from_forcing_record'

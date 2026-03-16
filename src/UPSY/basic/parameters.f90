@@ -9,7 +9,6 @@ module parameters
 
 ! ===== Global variables =====
 ! ============================
-
   real(dp)            :: pi
   real(dp)            :: NaN
 
@@ -27,6 +26,7 @@ module parameters
   real(dp), parameter :: R_gas                            = 8.314_dp                  ! [J mol^-1 K^-1]     Gas constant
   real(dp), parameter :: cp_ocean                         = 3.974E3_dp                ! [J kg^-1 K^-1]      Specific heat capacity of ocean water
   real(dp), parameter :: ocean_area                       = 3.611E14_dp               ! [m^2]               World ocean area
+  real(dp), parameter :: earth_rotation_rate              = 7.2921E-5_dp              ! [s^-1]              Earth's rotation rate
 
 ! ===== LADDIE parameters ====
 ! ============================

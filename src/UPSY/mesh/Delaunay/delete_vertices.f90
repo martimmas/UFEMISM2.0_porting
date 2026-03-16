@@ -3,7 +3,7 @@ module delete_vertices
   ! Delete a vertex from the mesh and update the Delaunay triangulation accordingly.
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, crash, warning
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use mesh_types, only: type_mesh
   use assertions_basic, only: assert
   use tests_main
@@ -36,12 +36,20 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'delete_vertex'
+    integer                        :: ci, vj
+    logical                        :: is_double_free
 
     ! Add routine to path
     call init_routine( routine_name)
 
     ! Safety
-    if (mesh%VBI( vi_kill) > 0) call crash('delete_vertex only works on free vertices for now')
+    is_double_free = .true.
+    if (mesh%VBI( vi_kill) > 0) is_double_free = .false.
+    do ci = 1, mesh%nC( vi_kill)
+      vj = mesh%C( vi_kill,ci)
+      if (mesh%VBI( vj) > 0) is_double_free = .false.
+    end do
+    if (.not. is_double_free) call crash('delete_vertex only works on double-free vertices for now')
 
     if (mesh%nC( vi_kill) == 3) then
       call crash('delete_vertex_nCeq3 not implemented yet')

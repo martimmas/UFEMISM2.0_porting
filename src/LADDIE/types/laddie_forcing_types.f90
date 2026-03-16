@@ -7,18 +7,32 @@ module laddie_forcing_types
 
   use precisions                                             , only: dp
   use CSR_sparse_matrix_type                                 , only: type_sparse_matrix_CSR_dp
-  use mpi_f08, only: MPI_WIN
+  use mpi_f08                                                , only: MPI_WIN
+  use transect_types                                         , only: atype_transect
 
   implicit none
 
+  private
+
+  public :: type_transect_SGD, type_laddie_forcing
+
 ! ===== Types =====
 ! =================
+
+  type, extends( atype_transect) :: type_transect_SGD
+
+    real(dp)                  :: flux_strength
+    integer, dimension(10000) :: index_point
+
+  end type type_transect_SGD
 
   type type_laddie_forcing
     ! The laddie model structure
 
     ! Forcing
     real(dp), dimension(:),   contiguous, pointer :: Hi                 => null()  ! [m]               Ice thickness
+    real(dp), dimension(:),   contiguous, pointer :: Hs                 => null()  ! [m]               Ice surface elevation
+    real(dp), dimension(:),   contiguous, pointer :: Hb                 => null()  ! [m]               Bedrock elevation (w.r.t. PD sea level)
     real(dp), dimension(:),   contiguous, pointer :: Hib                => null()  ! [m]               Ice base elevation (w.r.t. PD sea level)
     real(dp), dimension(:),   contiguous, pointer :: TAF                => null()  ! [m]               Thickness above floatation
     real(dp), dimension(:),   contiguous, pointer :: dHib_dx_b          => null()  ! []                Horizontal derivative of ice draft on b-grid
@@ -33,9 +47,15 @@ module laddie_forcing_types
     real(dp), dimension(:,:), contiguous, pointer :: Ti                 => null()  ! [K]               Englacial temperature
     real(dp), dimension(:,:), contiguous, pointer :: T_ocean            => null()  ! [degrees Celsius] 3-D ocean temperature
     real(dp), dimension(:,:), contiguous, pointer :: S_ocean            => null()  ! [PSU]             3-D ocean salinity
-    type(MPI_WIN) :: wHi, wHib, wTAF, wdHib_dx_b, wdHib_dy_b
+
+    real(dp), dimension(:),   contiguous, pointer :: f_coriolis         => null()  ! [s^-1]            Coriolis parameter f
+
+    type(MPI_WIN) :: wHi, wHs, wHb, wHib, wTAF, wdHib_dx_b, wdHib_dy_b
     type(MPI_WIN) :: wmask_icefree_land, wmask_icefree_ocean, wmask_grounded_ice, wmask_floating_ice, wmask_gl_fl, wmask_SGD, wmask
     type(MPI_WIN) :: wTi, wT_ocean, wS_ocean
+    type(MPI_WIN) :: wf_coriolis
+
+    type(type_transect_SGD), dimension(:), allocatable :: transects
 
   end type type_laddie_forcing
 

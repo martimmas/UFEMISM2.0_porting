@@ -6,8 +6,9 @@ module ocean_GlacialIndex
 ! ====================
 
   use precisions                                             , only: dp
+  use UPSY_main, only: UPSY
   use mpi_basic                                              , only: par, sync
-  use control_resources_and_error_messaging                  , only: crash, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration                                    , only: C
   use parameters
   use mesh_types                                             , only: type_mesh
@@ -44,7 +45,7 @@ subroutine initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, s
     call init_routine( routine_name)
 
     if (par%primary)  write(*,"(A)") '     Initialising transient ocean model "' // &
-            colour_string( trim( C%choice_ocean_model_transient),'light blue') // '"...'
+            UPSY%stru%colour_string( trim( C%choice_ocean_model_transient),'light blue') // '"...'
     ! We need the snapshot and the dT to apply to it
     select case (region_name)
         case ('NAM')
@@ -67,19 +68,6 @@ subroutine initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, s
         call crash('unknown region_name "' // region_name // '"')
     end select
 
-    ! Allocating timeframe variables; the series itself is allocated in the read function below
-    allocate(ocean%GI%GI_t0)
-    allocate(ocean%GI%GI_t1)
-    allocate(ocean%GI%GI_at_t0)
-    allocate(ocean%GI%GI_at_t1)
-    allocate( ocean%GI%T0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%S0_warm( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%T0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
-    allocate( ocean%GI%S0_cold( mesh%vi1:mesh%vi2,C%nz_ocean))
-    ocean%GI%T0_warm = 0._dp
-    ocean%GI%S0_warm = 0._dp
-    ocean%GI%T0_cold = 0._dp
-    ocean%GI%S0_cold = 0._dp
 
     ! Fill in  main variables
     call read_field_from_file_3D_ocean( filename_ocean_snapshot_warm, field_name_options_T_ocean,  mesh, C%output_dir, C%z_ocean, ocean%GI%T0_warm)
@@ -92,13 +80,15 @@ subroutine initialise_ocean_model_GlacialIndex( mesh, ice, ocean, region_name, s
 
     ! Apply extrapolation method if required
     select case (C%choice_ocean_extrapolation_method)
-        case('initialisation')
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_warm)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_warm)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_cold)
-        call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_cold)
-        case default
-        call crash('unknown choice_ocean_extrapolation_method "' // trim( C%choice_ocean_extrapolation_method) // '"')
+    case('none')
+      ! Do nothing (assume input ocean data has already been extrapolated)
+    case('initialisation')
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_warm)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_warm)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%T0_cold)
+      call extrapolate_ocean_forcing( mesh, ice, ocean%GI%S0_cold)
+    case default
+      call crash('unknown choice_ocean_extrapolation_method "' // trim( C%choice_ocean_extrapolation_method) // '"')
     end select
 
     call finalise_routine(routine_name)

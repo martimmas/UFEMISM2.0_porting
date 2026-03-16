@@ -11,6 +11,10 @@ UPSY_component_test_program
 UPSY_component_test_program_dev
 UPSY_component_test_program_perf
 
+UPSY_component_test_program_mesh_creation
+UPSY_component_test_program_mesh_creation_dev
+UPSY_component_test_program_mesh_creation_perf
+
 UFEMISM_program
 UFEMISM_program_dev
 UFEMISM_program_perf
@@ -49,6 +53,7 @@ automated_testing/test_reports/*.html
 # Ignore automated test figures
 automated_testing/unit_tests/figures/*.png
 automated_testing/component_tests/figures/*.png
+automated_testing/component_tests/figures/*.avi
 
 # Ignore temporary scoreboard files
 automated_testing/component_tests/temporary_scoreboard_files/*.xml
@@ -61,5 +66,9 @@ tools/python/klooi.ipynb
 automated_testing/integrated_tests/idealised/Berends2023_nudging/experiment_I/input_data/*.nc
 automated_testing/integrated_tests/idealised/Berends2023_nudging/experiment_II/input_data/*.nc
 
+
 # Ignore linting mods
 linting_mods/*
+
+#Ignore Thule for now
+automated_testing/integrated_tests/idealised/Thule

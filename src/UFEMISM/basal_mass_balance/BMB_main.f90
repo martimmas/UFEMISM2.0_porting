@@ -6,15 +6,15 @@ MODULE BMB_main
 ! ====================
 
   USE precisions                                             , ONLY: dp
+  use UPSY_main, only: UPSY
   USE mpi_basic                                              , ONLY: par, sync
-  USE control_resources_and_error_messaging                  , ONLY: crash, init_routine, finalise_routine, colour_string
+  USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
   USE ice_model_types                                        , ONLY: type_ice_model
   USE ocean_model_types                                      , ONLY: type_ocean_model
   USE reference_geometry_types                               , ONLY: type_reference_geometry
-  USE SMB_model_types                                        , ONLY: type_SMB_model
   USE BMB_model_types                                        , ONLY: type_BMB_model
   USE laddie_model_types                                     , ONLY: type_laddie_model
   USE laddie_forcing_types                                   , ONLY: type_laddie_forcing
@@ -27,6 +27,8 @@ MODULE BMB_main
   use LADDIE_main_model, only: initialise_laddie_model, run_laddie_model
   use laddie_main_utils, only: remap_laddie_model
   use laddie_utilities, only: allocate_laddie_forcing
+  use laddie_forcing_main, only: calculate_coriolis_parameter
+  use laddie_hydrology, only: initialise_transects_SGD
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use ice_geometry_basics, only: is_floating
   USE mesh_utilities                                         , ONLY: extrapolate_Gaussian
@@ -49,7 +51,6 @@ CONTAINS
     TYPE(type_ice_model),                   INTENT(IN)    :: ice
     TYPE(type_ocean_model),                 INTENT(IN)    :: ocean
     TYPE(type_reference_geometry),          INTENT(IN)    :: refgeo
-    TYPE(type_SMB_model),                   INTENT(IN)    :: SMB
     TYPE(type_BMB_model),                   INTENT(INOUT) :: BMB
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
     REAL(dp),                               INTENT(IN)    :: time
@@ -119,6 +120,19 @@ CONTAINS
       BMB%t_next = time + C%dt_BMB
     END IF
 
+    ! Re-initialise BMB model if needed, only for LADDIE
+    if (time > BMB%t_next_reinit) then
+      select case (choice_BMB_model)
+        case default
+          !No need to do anything
+        case ('laddie')
+          call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
+          call initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .false.)
+          call run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, .true., .false.)
+          BMB%t_next_reinit = BMB%t_next_reinit + C%dt_BMB_reinit
+      end select
+    end if
+
     ! Run the chosen BMB model
     SELECT CASE (choice_BMB_model)
       CASE ('uniform')
@@ -142,7 +156,7 @@ CONTAINS
       CASE ('laddie_py')
         CALL run_BMB_model_laddie( mesh, ice, BMB, time, .FALSE.)
       CASE ('laddie')
-        call update_laddie_forcing( mesh, ice, ocean, BMB%forcing)
+        call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
         CALL run_laddie_model( mesh, BMB%laddie, BMB%forcing, time, is_initial, .FALSE.)
 
         DO vi = mesh%vi1, mesh%vi2
@@ -174,7 +188,7 @@ CONTAINS
       CASE ('uniform')
         ! Update BMB only for cells in ROI
         DO vi = mesh%vi1, mesh%vi2
-          IF (ice%mask_ROI(vi)) THEN
+          IF (ice%mask_ROI(vi) > 0) THEN
             IF (ice%mask_floating_ice( vi) .OR. ice%mask_icefree_ocean( vi) .OR. ice%mask_gl_gr( vi)) THEN
               BMB%BMB_shelf( vi) = C%uniform_BMB_ROI
             END IF
@@ -312,7 +326,8 @@ CONTAINS
         CALL initialise_BMB_model_laddie( mesh, BMB)
       CASE ('laddie')
         call allocate_laddie_forcing( mesh, BMB%forcing)
-        call update_laddie_forcing( mesh, ice, ocean, BMB%forcing)
+        call update_laddie_forcing( mesh, ice, ocean, BMB%forcing, region_name)
+        call initialise_transects_SGD( mesh, BMB%forcing)
         CALL initialise_laddie_model( mesh, BMB%laddie, BMB%forcing, .FALSE.)
       CASE DEFAULT
         CALL crash('unknown choice_BMB_model "' // TRIM( choice_BMB_model) // '"')
@@ -418,7 +433,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Writing to BMB restart file "' // &
-      colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     CALL open_existing_netcdf_file_for_writing( BMB%restart_filename, ncid)
@@ -522,7 +537,7 @@ CONTAINS
 
     ! Print to terminal
     IF (par%primary) WRITE(0,'(A)') '   Creating BMB model restart file "' // &
-      colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
+      UPSY%stru%colour_string( TRIM( BMB%restart_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     CALL create_new_netcdf_file_for_writing( BMB%restart_filename, ncid)
@@ -618,7 +633,7 @@ CONTAINS
         CALL remap_BMB_model_laddie( mesh_new, BMB)
       CASE ('laddie')
         call remap_laddie_forcing( mesh_old, mesh_new, BMB%forcing)
-        call update_laddie_forcing( mesh_new, ice, ocean, BMB%forcing)
+        call update_laddie_forcing( mesh_new, ice, ocean, BMB%forcing, region_name)
         call remap_laddie_model( mesh_old, mesh_new, BMB%laddie, BMB%forcing, time)
         call run_laddie_model( mesh_new, BMB%laddie, BMB%forcing, time, .FALSE., .FALSE.)
       CASE DEFAULT
@@ -686,7 +701,7 @@ CONTAINS
 
     DO vi = mesh%vi1, mesh%vi2
       ! Only for ROI cells
-      IF (ice%mask_ROI(vi)) THEN
+      IF (ice%mask_ROI(vi) > 0) THEN
         CALL compute_subgrid_BMB(ice, BMB, vi)
       END IF
     END DO
@@ -722,21 +737,25 @@ CONTAINS
 
   END SUBROUTINE compute_subgrid_BMB
 
-  subroutine update_laddie_forcing( mesh, ice, ocean, forcing)
+  subroutine update_laddie_forcing( mesh, ice, ocean, forcing, region_name)
 
     ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh 
+    type(type_mesh),           intent(in   ) :: mesh
     type(type_ice_model),      intent(in   ) :: ice
     type(type_ocean_model),    intent(in   ) :: ocean
     type(type_laddie_forcing), intent(inout) :: forcing
+    character(len=3),          intent(in   ) :: region_name
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'update_laddie_forcing'
+    real(dp)                       :: lambda_M, phi_M, beta_stereo
 
     ! Add routine to path
     call init_routine( routine_name)
 
     forcing%Hi                ( mesh%vi1:mesh%vi2  ) = ice%Hi                ( mesh%vi1:mesh%vi2  )
+    forcing%Hs                ( mesh%vi1:mesh%vi2  ) = ice%Hs                ( mesh%vi1:mesh%vi2  )
+    forcing%Hb                ( mesh%vi1:mesh%vi2  ) = ice%Hb                ( mesh%vi1:mesh%vi2  )
     forcing%Hib               ( mesh%vi1:mesh%vi2  ) = ice%Hib               ( mesh%vi1:mesh%vi2  )
     forcing%TAF               ( mesh%vi1:mesh%vi2  ) = ice%TAF               ( mesh%vi1:mesh%vi2  )
     forcing%dHib_dx_b         ( mesh%ti1:mesh%ti2  ) = ice%dHib_dx_b         ( mesh%ti1:mesh%ti2  )
@@ -749,12 +768,38 @@ CONTAINS
     forcing%mask_gl_fl        ( mesh%vi1:mesh%vi2  ) = ice%mask_gl_fl        ( mesh%vi1:mesh%vi2  )
     forcing%mask_SGD          ( mesh%vi1:mesh%vi2  ) = ice%mask_SGD          ( mesh%vi1:mesh%vi2  )
     forcing%mask              ( mesh%vi1:mesh%vi2  ) = ice%mask              ( mesh%vi1:mesh%vi2  )
-    
+
     forcing%Ti                ( mesh%vi1:mesh%vi2,:) = ice%Ti                ( mesh%vi1:mesh%vi2,:) - 273.15 ! [degC]
     forcing%T_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%T               ( mesh%vi1:mesh%vi2,:)
     forcing%S_ocean           ( mesh%vi1:mesh%vi2,:) = ocean%S               ( mesh%vi1:mesh%vi2,:)
 
+    ! Determine which BMB model to run for this region
+    select case (region_name)
+      case default
+        call crash('unknown region_name "' // region_name // '"')
+      case ('NAM')
+        lambda_M    = C%lambda_M_NAM
+        phi_M       = C%phi_M_NAM
+        beta_stereo = C%beta_stereo_NAM
+      case ('EAS')
+        lambda_M    = C%lambda_M_EAS
+        phi_M       = C%phi_M_EAS
+        beta_stereo = C%beta_stereo_EAS
+      case ('GRL')
+        lambda_M    = C%lambda_M_GRL
+        phi_M       = C%phi_M_GRL
+        beta_stereo = C%beta_stereo_GRL
+      case ('ANT')
+        lambda_M    = C%lambda_M_ANT
+        phi_M       = C%phi_M_ANT
+        beta_stereo = C%beta_stereo_ANT
+    end select
+
+    call calculate_coriolis_parameter( mesh, forcing, lambda_M, phi_M, beta_stereo)
+
     call checksum( forcing%Hi                , 'forcing%Hi'                , mesh%pai_V)
+    call checksum( forcing%Hs                , 'forcing%Hs'                , mesh%pai_V)
+    call checksum( forcing%Hb                , 'forcing%Hb'                , mesh%pai_V)
     call checksum( forcing%Hib               , 'forcing%Hib'               , mesh%pai_V)
     call checksum( forcing%TAF               , 'forcing%TAF'               , mesh%pai_V)
     call checksum( forcing%dHib_dx_b         , 'forcing%dHib_dx_b'         , mesh%pai_Tri)
@@ -769,6 +814,7 @@ CONTAINS
     call checksum( forcing%Ti                , 'forcing%Ti'                , mesh%pai_V)
     call checksum( forcing%T_ocean           , 'forcing%T_ocean'           , mesh%pai_V)
     call checksum( forcing%S_ocean           , 'forcing%S_ocean'           , mesh%pai_V)
+    call checksum( forcing%f_coriolis        , 'forcing%f_coriolis'        , mesh%pai_V)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -791,6 +837,8 @@ CONTAINS
 
     ! Forcing
     call reallocate_dist_shared( forcing%Hi                , forcing%wHi                , mesh_new%pai_V%n_nih)
+    call reallocate_dist_shared( forcing%Hs                , forcing%wHs                , mesh_new%pai_V%n_nih)
+    call reallocate_dist_shared( forcing%Hb                , forcing%wHb                , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%Hib               , forcing%wHib               , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%TAF               , forcing%wTAF               , mesh_new%pai_V%n_nih)
     call reallocate_dist_shared( forcing%dHib_dx_b         , forcing%wdHib_dx_b         , mesh_new%pai_Tri%n_nih)
@@ -805,7 +853,10 @@ CONTAINS
     call reallocate_dist_shared( forcing%Ti                , forcing%wTi                , mesh_new%pai_V%n_nih, mesh_new%nz)
     call reallocate_dist_shared( forcing%T_ocean           , forcing%wT_ocean           , mesh_new%pai_V%n_nih, C%nz_ocean)
     call reallocate_dist_shared( forcing%S_ocean           , forcing%wS_ocean           , mesh_new%pai_V%n_nih, C%nz_ocean)
+    call reallocate_dist_shared( forcing%f_coriolis        , forcing%wf_coriolis        , mesh_new%pai_Tri%n_nih)
     forcing%Hi                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hi
+    forcing%Hs                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hs
+    forcing%Hb                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hb
     forcing%Hib               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%Hib
     forcing%TAF               ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih               ) => forcing%TAF
     forcing%dHib_dx_b         ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%dHib_dx_b
@@ -820,6 +871,7 @@ CONTAINS
     forcing%Ti                ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:mesh_new%nz) => forcing%Ti
     forcing%T_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%T_ocean
     forcing%S_ocean           ( mesh_new%pai_V%i1_nih  :mesh_new%pai_V%i2_nih, 1:C%nz_ocean ) => forcing%S_ocean
+    forcing%f_coriolis        ( mesh_new%pai_Tri%i1_nih:mesh_new%pai_Tri%i2_nih             ) => forcing%f_coriolis
 
     ! Finalise routine path
     call finalise_routine( routine_name)

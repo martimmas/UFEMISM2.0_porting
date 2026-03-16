@@ -7,9 +7,8 @@ module LADDIE_main_model
 
   use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_SUM, MPI_WTIME
   use precisions, only: dp
-  use mpi_basic, only: par, sync 
-  use control_resources_and_error_messaging, only: happy, warning, crash, init_routine, finalise_routine, &
-    colour_string, str2int, int2str, insert_val_into_string_dp
+  use mpi_basic, only: par, sync
+  use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration                                    , ONLY: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry
@@ -24,7 +23,7 @@ module LADDIE_main_model
   use laddie_scalar_output, only: create_laddie_scalar_output_file, write_to_laddie_scalar_output_file, &
     buffer_laddie_scalars
   use laddie_integration, only: integrate_euler, integrate_fbrk3, integrate_lfra, move_laddie_timestep
-  use laddie_physics, only: compute_subglacial_discharge
+  use laddie_physics, only: compute_subglacial_discharge, compute_SGD_at_transects
   use mesh_types, only: type_mesh
   use ocean_main, only: initialise_ocean_model, run_ocean_model
   use netcdf_io_main
@@ -36,7 +35,6 @@ module LADDIE_main_model
   use scalar_output_files, only: create_scalar_regional_output_file, buffer_scalar_output, write_to_scalar_regional_output_file
   use mesh_ROI_polygons
   use apply_maps, only: clear_all_maps_involving_this_mesh
-  use mesh_memory, only: deallocate_mesh
   use mesh_halo_exchange, only: exchange_halos
   use mesh_repartitioning, only: repartition_mesh
   use checksum_mod, only: checksum
@@ -52,10 +50,10 @@ contains
     ! Integrate the model until t_end
 
     ! In/output variables
-    type(type_mesh),           intent(in   ) :: mesh 
+    type(type_mesh),           intent(in   ) :: mesh
     type(type_laddie_model),   intent(inout) :: laddie
     type(type_laddie_forcing), intent(inout) :: forcing
-    real(dp),                  intent(in   ) :: time 
+    real(dp),                  intent(in   ) :: time
     logical,                   intent(in   ) :: is_initial
     logical,                   intent(in   ) :: is_standalone
 
@@ -65,17 +63,6 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
-
-    ! Only in first time step
-    select case (C%choice_laddie_SGD)
-      case default
-        call crash('unknown choice_laddie_SGD "' // trim( C%choice_laddie_SGD) // '"!')
-      case ('none')
-        ! Do nothing
-      case ('idealised','read_from_file')
-        ! Compute SGD
-        call compute_subglacial_discharge( mesh, laddie, forcing)
-    end select
 
     if (C%do_repartition_laddie) then
       ! Repartition the mesh so each process has (approximately)
@@ -94,9 +81,6 @@ contains
       ! Run laddie on the original mesh
       call run_laddie_model_leg( mesh, laddie, forcing, time, is_initial, is_standalone)
     end if
-
-    ! Clean up after yourself
-    call deallocate_mesh( mesh_repartitioned)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -125,8 +109,10 @@ contains
     real(dp), parameter            :: fac_dt_relax = 3.0_dp ! Reduction factor of time step
     real(dp)                       :: time_to_write    ! [days]
     real(dp)                       :: last_write_time  ! [days]
-    real(dp)                       :: time_to_write_fields    ! [days]
-    real(dp)                       :: last_write_time_fields  ! [days]
+    real(dp)                       :: time_to_write_mesh    ! [days]
+    real(dp)                       :: last_write_time_mesh  ! [days]
+    real(dp)                       :: time_to_write_grid    ! [days]
+    real(dp)                       :: last_write_time_grid  ! [days]
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -139,6 +125,25 @@ contains
 
     ! == Update masks ==
     call update_laddie_masks( mesh, laddie, forcing)
+
+    ! == Compute SGD ==
+    select case (C%choice_laddie_SGD)
+      case default
+        call crash('unknown choice_laddie_SGD "' // trim( C%choice_laddie_SGD) // '"!')
+      case ('none')
+        ! Do nothing
+      case ('idealised','read_from_file')
+        if (time >= C%start_time_of_applying_SGD) then
+          ! Compute SGD
+          call compute_subglacial_discharge( mesh, laddie, forcing)
+        else
+          ! Set SGD to zero
+          laddie%SGD = 0._dp
+        end if
+      case ('read_transects')
+        ! Compute SGD from transects
+        call compute_SGD_at_transects(mesh, laddie, forcing)
+    end select
 
     ! Set values to zero if outside laddie mask
     do vi = mesh%vi1, mesh%vi2
@@ -189,9 +194,11 @@ contains
 
     tl = 0.0_dp
     last_write_time = 0.0_dp
-    last_write_time_fields = 0.0_dp
+    last_write_time_mesh = 0.0_dp
+    last_write_time_grid = 0.0_dp
     time_to_write = C%time_interval_scalar_output
-    time_to_write_fields = C%time_interval_scalar_output
+    time_to_write_mesh = C%dt_output
+    time_to_write_grid = C%dt_output_grid
 
     ! Perform first integration with half the time step for LFRA scheme
     dt = C%dt_laddie / fac_dt_relax
@@ -225,7 +232,7 @@ contains
       if (is_standalone) then
         ! Always include scalar output
         call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-  
+
         ! Write scalars if required
         if (tl > time_to_write * sec_per_day) then
           call write_to_laddie_scalar_output_file( laddie)
@@ -233,29 +240,33 @@ contains
           time_to_write = time_to_write + C%time_interval_scalar_output
         end if
 
-        ! Write mesh and grid if required
-        if (tl > time_to_write_fields * sec_per_day) then
+        ! Write mesh if required
+        if (tl > time_to_write_mesh * sec_per_day) then
           call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
+          last_write_time_mesh = time_to_write_mesh
+          time_to_write_mesh = time_to_write_mesh + C%dt_output
+        end if
+
+        ! Write grid if required
+        if (tl > time_to_write_grid * sec_per_day) then
           call write_to_laddie_output_file_grid( mesh, laddie, forcing, ref_time + tl)
-          last_write_time_fields = time_to_write_fields
-          ! TODO use proper config param for frequency
-          time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+          last_write_time_grid = time_to_write_grid
+          time_to_write_grid = time_to_write_grid + C%dt_output_grid
         end if
 
       else
         if (C%do_write_laddie_output_fields) then
           ! Write if required
-          if (tl > time_to_write_fields * sec_per_day) then
+          if (tl > time_to_write_mesh * sec_per_day) then
             call write_to_laddie_mesh_output_file( mesh, laddie, forcing, ref_time + tl, is_standalone)
-            last_write_time_fields = time_to_write_fields
-            ! TODO use proper frequency
-            time_to_write_fields = time_to_write_fields + C%time_interval_scalar_output
+            last_write_time_mesh = time_to_write_mesh
+            time_to_write_mesh = time_to_write_mesh + C%dt_output
           end if
         end if
-  
+
         if (C%do_write_laddie_output_scalar) then
           call buffer_laddie_scalars( mesh, laddie, ref_time + tl)
-  
+
           ! Write if required
           if (tl > time_to_write * sec_per_day) then
             call write_to_laddie_scalar_output_file( laddie)

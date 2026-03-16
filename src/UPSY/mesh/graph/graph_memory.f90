@@ -1,7 +1,7 @@
 module graph_memory
 
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use graph_types, only: type_graph
   use reallocate_mod, only: reallocate
   use mpi_distributed_shared_memory, only: deallocate_dist_shared
@@ -42,9 +42,9 @@ contains
     allocate( graph%nC        ( n        ), source = 0)
     allocate( graph%C         ( n, nC_mem), source = 0)
 
-    ! Ghost nodes
-    allocate( graph%is_ghost  ( n        ), source = .false.)
-    allocate( graph%ghost_nhat( n, 2     ), source = 0._dp)
+    ! border nodes
+    allocate( graph%is_border  ( n        ), source = .false.)
+    allocate( graph%border_nhat( n, 2     ), source = 0._dp)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -72,9 +72,9 @@ contains
     call reallocate( graph%nC        , graph%n              )
     call reallocate( graph%C         , graph%n, graph%nC_mem)
 
-    ! Ghost nodes
-    call reallocate( graph%is_ghost  , graph%n              )
-    call reallocate( graph%ghost_nhat, graph%n, 2           )
+    ! border nodes
+    call reallocate( graph%is_border  , graph%n              )
+    call reallocate( graph%border_nhat, graph%n, 2           )
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -105,9 +105,9 @@ contains
     deallocate( graph%nC)
     deallocate( graph%C )
 
-    ! Ghost nodes
-    deallocate( graph%is_ghost  )
-    deallocate( graph%ghost_nhat)
+    ! border nodes
+    deallocate( graph%is_border  )
+    deallocate( graph%border_nhat)
 
     ! Parallelisation ranges
     deallocate( graph%owning_process)

@@ -2,7 +2,8 @@ module laddie_grid_output
 
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use UPSY_main, only: UPSY
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
@@ -13,7 +14,7 @@ module laddie_grid_output
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
 
-  implicit none 
+  implicit none
 
   private
 
@@ -33,19 +34,19 @@ contains
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'write_to_laddie_output_file_mesh'
-    integer                        :: ncid 
+    integer                        :: ncid
 
     ! Add routine to path
     call init_routine( routine_name)
 
     ! if no NetCDF output should be created, do nothing
-    if (.not. C%do_create_netcdf_output) then 
+    if (.not. C%do_create_netcdf_output) then
       call finalise_routine( routine_name)
       return
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...' 
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // UPSY%stru%colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( laddie%output_grid_filename, ncid)
@@ -182,12 +183,37 @@ contains
       case ('Hi')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hi, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hi', d_grid_vec_partial_2D)
+      case ('Hs')
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hs, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hs', d_grid_vec_partial_2D)
+      case ('Hb')
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hb, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hb', d_grid_vec_partial_2D)
       case ('Hib')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%Hib, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'Hib', d_grid_vec_partial_2D)
       case ('TAF')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%TAF, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'TAF', d_grid_vec_partial_2D)
+
+      case ('Hs_b')
+        ! Do nothing
+      case ('Hb_b')
+        ! Do nothing
+      case ('Hib_b')
+        ! Do nothing
+      case ('dHs_dx')
+        ! Do nothing
+      case ('dHs_dy')
+        ! Do nothing
+      case ('dHb_dx')
+        ! Do nothing
+      case ('dHb_dy')
+        ! Do nothing
+      case ('dHib_dx')
+        ! Do nothing
+      case ('dHib_dy')
+        ! Do nothing
 
       ! Ice temperature
       case ('Ti')
@@ -202,6 +228,9 @@ contains
         call map_from_mesh_vertices_to_xy_grid_3D( mesh, grid, C%output_dir, forcing%S_ocean, d_grid_vec_partial_3D_ocean, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_3D_ocean( grid, laddie%output_grid_filename, ncid, 'S_ocean', d_grid_vec_partial_3D_ocean)
 
+      case ('f_coriolis')
+        call map_from_mesh_triangles_to_xy_grid_2D( mesh, grid, C%output_dir, forcing%f_coriolis, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D_notime( grid, laddie%output_grid_filename, ncid, 'f_coriolis', d_grid_vec_partial_2D)
     ! ===== Masks =====
     ! =================
 
@@ -249,6 +278,9 @@ contains
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%now%S, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'S_lad', d_grid_vec_partial_2D)
 
+      case ('H_lad_b')
+        ! Do nothing
+
       ! Useful laddie fields
       case ('drho_amb')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%drho_amb, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
@@ -289,6 +321,9 @@ contains
       case ('T_amb')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%T_amb, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'T_amb', d_grid_vec_partial_2D)
+      case ('T_freeze')
+        call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%T_freeze, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
+        call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'T_freeze', d_grid_vec_partial_2D)
       case ('u_star')
         call map_from_mesh_vertices_to_xy_grid_2D( mesh, grid, C%output_dir, laddie%u_star, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, laddie%output_grid_filename, ncid, 'u_star', d_grid_vec_partial_2D)
@@ -331,7 +366,7 @@ contains
     laddie%output_grid_filename = trim( C%output_dir) // 'laddie_output_grid.nc'
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating grid output file "' // colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating grid output file "' // UPSY%stru%colour_string( trim( laddie%output_grid_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( laddie%output_grid_filename, ncid)
@@ -452,16 +487,42 @@ contains
       ! Ice geometry
       case ('Hi')
         call add_field_grid_dp_2D_notime( filename, ncid, 'Hi', long_name = 'Ice thickness', units = 'm')
+      case ('Hs')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs', long_name = 'Ice surface elevation', units = 'm')
+      case ('Hb')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb', long_name = 'Bedrock elevation', units = 'm w.r.t. sea level')
       case ('Hib')
         call add_field_grid_dp_2D_notime( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. sea level')
       case ('TAF')
         call add_field_grid_dp_2D_notime( filename, ncid, 'TAF', long_name = 'Ice thickness above floatation', units = 'm w.r.t. sea level')
+      case ('Hs_b')
+        ! Do nothing
+      case ('Hb_b')
+        ! Do nothing
+      case ('Hib_b')
+        ! Do nothing
+      case ('dHs_dx')
+        ! Do nothing
+      case ('dHs_dy')
+        ! Do nothing
+      case ('dHb_dx')
+        ! Do nothing
+      case ('dHb_dy')
+        ! Do nothing
+      case ('dHib_dx')
+        ! Do nothing
+      case ('dHib_dy')
+        ! Do nothing
+
       case ('Ti')
         call add_field_grid_dp_3D_notime( filename, ncid, 'Ti', long_name = 'Englacial temperature', units = 'K')
       case ('T_ocean')
         call add_field_grid_dp_3D_ocean_notime( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
         call add_field_grid_dp_3D_ocean_notime( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'psu')
+
+      case ('f_coriolis')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'f_coriolis', long_name = 'Coriolis parameter', units = 's^-1')
 
     ! ===== Masks =====
     ! =================
@@ -505,6 +566,9 @@ contains
       case ('S_lad')
         call add_field_grid_dp_2D( filename, ncid, 'S_lad', long_name = 'Laddie salinity', units = 'PSU')
 
+      case ('H_lad_b')
+        ! Do nothing
+
       ! Useful laddie fields
       case ('drho_amb')
         call add_field_grid_dp_2D( filename, ncid, 'drho_amb', long_name = 'Depth integrated buoyancy', units = 'kg m^-2')
@@ -532,6 +596,8 @@ contains
         call add_field_grid_dp_2D( filename, ncid, 'T_base', long_name = 'Temperature at ice/ocean interface', units = 'deg C')
       case ('T_amb')
         call add_field_grid_dp_2D( filename, ncid, 'T_amb', long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
+      case ('T_freeze')
+        call add_field_grid_dp_2D( filename, ncid, 'T_freeze', long_name = 'Freezing temperature', units = 'deg C')
       case ('u_star')
         call add_field_grid_dp_2D( filename, ncid, 'u_star', long_name = 'Friction velocity', units = 'm s^-1')
       case ('gamma_T')

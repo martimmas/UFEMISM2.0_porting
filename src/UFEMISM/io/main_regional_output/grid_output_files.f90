@@ -1,22 +1,29 @@
 module grid_output_files
 
+  use mpi_f08, only: MPI_COMM_WORLD, MPI_ALLREDUCE, MPI_DOUBLE_PRECISION, MPI_IN_PLACE, MPI_SUM
+  use UPSY_main, only: UPSY
   use precisions, only: dp
   use mpi_basic, only: par
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning, crash
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
   use grid_types, only: type_grid
   use netcdf_io_main
+  use ice_mass_and_fluxes, only: calc_ice_margin_fluxes
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
     map_from_mesh_triangles_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_3D
+  use mpi_distributed_memory, only: gather_to_all
+  use SMB_IMAU_ITM, only: type_SMB_model_IMAU_ITM
 
   implicit none
 
   private
 
   public :: create_main_regional_output_file_grid, write_to_main_regional_output_file_grid, &
-            create_main_regional_output_file_grid_ROI, write_to_main_regional_output_file_grid_ROI
+            create_main_regional_output_file_grid_ROI, write_to_main_regional_output_file_grid_ROI, &
+            create_ISMIP_regional_output_file_grid, write_to_ISMIP_regional_output_file_grid, &
+            create_ISMIP_regional_output_file_grid_ROI, write_to_ISMIP_regional_output_file_grid_ROI
 
 contains
 
@@ -27,7 +34,7 @@ contains
     type(type_model_region), intent(in   ) :: region
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'write_to_main_regional_output_file_mesh'
+    character(len=1024), parameter :: routine_name = 'write_to_main_regional_output_file_grid'
     integer                        :: ncid
 
     ! Add routine to path
@@ -40,7 +47,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // &
+       UPSY%stru%colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( region%output_filename_grid, ncid)
@@ -139,7 +147,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Writing to grid output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Open the NetCDF file
     call open_existing_netcdf_file_for_writing( filename, ncid)
@@ -234,6 +243,18 @@ contains
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D_ocean
     real(dp), dimension(:),   allocatable :: mask_int
+    integer                               :: vi, ierr
+
+    ! 2D ISMIP-only variables
+    real(dp), dimension(:),   allocatable :: Ti_base_gr
+    real(dp), dimension(:),   allocatable :: Ti_base_fl
+    real(dp), dimension(:),   allocatable :: basal_drag
+    real(dp), dimension(:),   allocatable :: BMB_masked
+    real(dp), dimension(:),   allocatable :: calving_flux
+    real(dp), dimension(:),   allocatable :: calving_and_front_melt_flux
+    real(dp), dimension(:),   allocatable :: land_ice_area_fraction
+    real(dp), dimension(:),   allocatable :: grounded_ice_sheet_area_fraction
+    real(dp), dimension(:),   allocatable :: floating_ice_shelf_area_fraction
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -350,6 +371,18 @@ contains
       case ('grounded_ice_contour')
         ! Do nothing; only written to mesh files
 
+    ! ===== Geometry on triangles for 3D plots =====
+    ! ==============================================
+      case ('Hs_b')
+        ! Do nothing; only written to mesh files
+
+    ! ===== Geometry gradients for hillshade =====
+    ! ============================================
+      case ('dHs_dx')
+        ! Do nothing; only written to mesh files
+      case ('dHs_dy')
+        ! Do nothing; only written to mesh files
+
     ! ===== Geometry changes w.r.t. reference =====
     ! =============================================
 
@@ -417,13 +450,14 @@ contains
       case ('mask_SGD')
       case ('mask_ROI')
         ! Exception for mask_ROI, needed for offline laddie coupling
-        where (region%ice%mask_ROI .eqv. .TRUE.)
+        where (region%ice%mask_ROI > 0)
           mask_int = 1.0_dp
         elsewhere
           mask_int = 0.0_dp
         end where
-        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, mask_int, d_grid_vec_partial_2D)
-        call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'mask_ROI', d_grid_vec_partial_2D)
+        ! call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, DBLE(region%ice%mask_ROI), d_grid_vec_partial_2D) ! we need to convert to real for the remapping function - for now it crashes b/c DBLE() does not save as NF90_DOUBLE
+        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, mask_int, d_grid_vec_partial_2D) ! TODO: we want this mask to be able to show the different regions under different numbers
+        call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'mask_ROI', d_grid_vec_partial_2D) ! should it be "notime" or not?
 
     ! ===== Area fractions =====
     ! ==========================
@@ -703,17 +737,32 @@ contains
 
       ! Main SMB variables
       case ('SMB')
-        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
+        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D, d_mesh_is_hybrid = .true.)
         call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'SMB', d_grid_vec_partial_2D)
       case ('Albedo')
-        call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%Albedo, d_grid_vec_partial_2D_monthly)
-        call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'Albedo', d_grid_vec_partial_2D_monthly)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('Albedo only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, IMAU_ITM%Albedo, d_grid_vec_partial_2D_monthly)
+          call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'Albedo', d_grid_vec_partial_2D_monthly)
+        end select
       case ('FirnDepth')
-        call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%FirnDepth, d_grid_vec_partial_2D_monthly)
-        call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'FirnDepth', d_grid_vec_partial_2D_monthly)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('FirnDepth only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, IMAU_ITM%FirnDepth, d_grid_vec_partial_2D_monthly)
+          call write_to_field_multopt_grid_dp_2D_monthly( grid, filename, ncid, 'FirnDepth', d_grid_vec_partial_2D_monthly)
+        end select
       case ('MeltPreviousYear')
-        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%IMAUITM%MeltPreviousYear, d_grid_vec_partial_2D)
-        call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'MeltPreviousYear', d_grid_vec_partial_2D)
+        select type (IMAU_ITM => region%SMB)
+        class default
+          call crash('MeltPreviousYear only defined for SMB model IMAU-ITM')
+        class is (type_SMB_model_IMAU_ITM)
+          call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, IMAU_ITM%MeltPreviousYear, d_grid_vec_partial_2D)
+          call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'MeltPreviousYear', d_grid_vec_partial_2D)
+        end select
 
     ! == Basal mass balance ==
     ! ========================
@@ -846,6 +895,142 @@ contains
         call map_from_mesh_vertices_to_xy_grid_3D( region%mesh, grid, C%output_dir, region%tracer_tracking%age, d_grid_vec_partial_3D)
         call write_to_field_multopt_grid_dp_3D( grid, filename, ncid, 'age', d_grid_vec_partial_3D)
 
+    ! == ISMIP outputs ==
+    ! =====================
+    case ('lithk')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Hi, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'lithk', d_grid_vec_partial_2D)
+    case ('orog')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Hs, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'orog', d_grid_vec_partial_2D)
+    case ('topg')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Hb, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'topg', d_grid_vec_partial_2D)
+    case ('hfgeoubed')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%geothermal_heat_flux, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'hfgeoubed', d_grid_vec_partial_2D)
+    case ('acabf')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%SMB%SMB, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'acabf', d_grid_vec_partial_2D)
+    case ('libmassbfgr')
+      allocate( BMB_masked( region%mesh%vi1:region%mesh%vi2),source=0._dp)
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_grounded_ice(vi) .eqv. .TRUE.) then
+          BMB_masked( vi) = region%BMB%BMB( vi) ! TODO: BMB for the grounded ice is not assigned anywhere
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_masked, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbfgr', d_grid_vec_partial_2D)
+      deallocate(BMB_masked)
+    case ('libmassbffl')
+      allocate( BMB_masked( region%mesh%vi1:region%mesh%vi2),source=0._dp)
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
+          BMB_masked( vi) = region%BMB%BMB_shelf( vi)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, BMB_masked, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'libmassbffl', d_grid_vec_partial_2D)
+    case ('dlithkdt')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%dHi_dt, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'dlithkdt', d_grid_vec_partial_2D)
+    case ('xvelsurf')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%u_surf, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'xvelsurf', d_grid_vec_partial_2D)
+    case ('yvelsurf')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%v_surf, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'yvelsurf', d_grid_vec_partial_2D)
+    case ('zvelsurf')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%w_surf, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'zvelsurf', d_grid_vec_partial_2D)
+    case ('xvelbase')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%u_base, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'xvelbase', d_grid_vec_partial_2D)
+    case ('yvelbase')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%v_base, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'yvelbase', d_grid_vec_partial_2D)
+    case ('zvelbase')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%w_base, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'zvelbase', d_grid_vec_partial_2D)
+    case ('xvelmean')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%u_vav, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'xvelmean', d_grid_vec_partial_2D)
+    case ('yvelmean')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%v_vav, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'yvelmean', d_grid_vec_partial_2D)
+    case ('litemptop')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%Ti(:,1), d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litemptop', d_grid_vec_partial_2D)
+    case ('litempbotgr')
+      allocate( Ti_base_gr            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_grounded_ice(vi)) then
+          Ti_base_gr( vi) = region%ice%Ti( vi,region%mesh%nz)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_gr, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotgr', d_grid_vec_partial_2D)
+      deallocate( Ti_base_gr)
+    case ('litempbotfl')
+      allocate( Ti_base_fl            ( region%mesh%vi1:region%mesh%vi2),source=0._dp)
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_floating_ice(vi) .eqv. .TRUE.) then
+          Ti_base_fl( vi) = region%ice%Ti(vi,region%mesh%nz)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, Ti_base_fl, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'litempbotfl', d_grid_vec_partial_2D)
+      deallocate( Ti_base_fl)
+    case ('strbasemag')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%basal_shear_stress, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'strbasemag', d_grid_vec_partial_2D)
+    case ('licalvf')
+      allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2))
+      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_flux, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'licalvf', d_grid_vec_partial_2D)
+      deallocate( calving_flux)
+    case ('lifmassbf')
+      allocate( calving_flux               ( region%mesh%vi1:region%mesh%vi2)) ! for now just gets the calving flux w/o front melt
+      call calc_ice_margin_fluxes( region%mesh, region%ice, calving_flux)
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, calving_flux, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'lifmassbf', d_grid_vec_partial_2D)
+      deallocate( calving_flux)
+    case ('sftgif')
+      allocate( land_ice_area_fraction( region%mesh%vi1:region%mesh%vi2))
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_cf_gr( vi) .eqv. .FALSE.) then
+           if( region%ice%mask_grounded_ice( vi) .OR. region%ice%mask_floating_ice( vi)) then
+              land_ice_area_fraction( vi) = 1._dp
+            else
+              land_ice_area_fraction( vi) = 0._dp
+            end if
+        else
+          land_ice_area_fraction( vi) = region%ice%fraction_margin( vi)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, land_ice_area_fraction, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgif', d_grid_vec_partial_2D)
+      deallocate( land_ice_area_fraction)
+    case ('sftgrf')
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%ice%fraction_gr, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftgrf', d_grid_vec_partial_2D)
+    case ('sftflf')
+      allocate( floating_ice_shelf_area_fraction( region%mesh%vi1:region%mesh%vi2))
+      do vi = region%mesh%vi1, region%mesh%vi2
+        if (region%ice%mask_cf_fl( vi) .eqv. .FALSE.) then
+           if( region%ice%mask_floating_ice( vi)) then
+            floating_ice_shelf_area_fraction( vi) = 1._dp
+          else
+            floating_ice_shelf_area_fraction( vi) = 0._dp
+          end if
+        else
+          floating_ice_shelf_area_fraction( vi) = region%ice%fraction_margin( vi)
+        end if
+      end do
+      call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, floating_ice_shelf_area_fraction, d_grid_vec_partial_2D)
+      call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'sftflf', d_grid_vec_partial_2D)
+      deallocate(floating_ice_shelf_area_fraction)
     end select
 
     ! Finalise routine path
@@ -876,7 +1061,8 @@ contains
     region%output_filename_grid = trim( C%output_dir) // 'main_output_' // region%name // '_grid.nc'
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating grid output file "' // colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating grid output file "' // &
+      UPSY%stru%colour_string( trim( region%output_filename_grid), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( region%output_filename_grid, ncid)
@@ -981,7 +1167,8 @@ contains
     end if
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating ROI output file "' // colour_string( trim( filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating ROI output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( filename, ncid)
@@ -1095,60 +1282,60 @@ contains
     ! ===========================
 
       case ('resolution')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'resolution', long_name = 'Mesh resolution (distance to nearest neighbour)', units = 'm')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'resolution', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Mesh resolution (distance to nearest neighbour)', units = 'm')
 
     ! ===== Reference geometries =====
     ! ================================
 
       ! Initial ice-sheet geometry
       case ('Hi_init')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_init', long_name = 'Initial ice thickness', units = 'm')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_init', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Initial ice thickness', units = 'm')
       case ('Hb_init')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_init', long_name = 'Initial bedrock elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_init', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Initial bedrock elevation', units = 'm w.r.t. PD sea level')
       case ('Hs_init')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_init', long_name = 'Initial surface elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_init', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Initial surface elevation', units = 'm w.r.t. PD sea level')
       case ('SL_init')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_init', long_name = 'Initial geoid elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_init', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Initial geoid elevation', units = 'm w.r.t. PD sea level')
 
       ! Present-day ice-sheet geometry
       case ('Hi_PD')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_PD', long_name = 'Present-day ice thickness', units = 'm')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_PD', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Present-day ice thickness', units = 'm')
       case ('Hb_PD')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_PD', long_name = 'Present-day bedrock elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_PD', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Present-day bedrock elevation', units = 'm w.r.t. PD sea level')
       case ('Hs_PD')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_PD', long_name = 'Present-day surface elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_PD', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Present-day surface elevation', units = 'm w.r.t. PD sea level')
       case ('SL_PD')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_PD', long_name = 'Present-day geoid elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_PD', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Present-day geoid elevation', units = 'm w.r.t. PD sea level')
 
       ! GIA equilibrium ice-sheet geometry
       case ('Hi_GIAeq')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_GIAeq', long_name = 'GIA equilibrium ice thickness', units = 'm')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hi_GIAeq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'GIA equilibrium ice thickness', units = 'm')
       case ('Hb_GIAeq')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_GIAeq', long_name = 'GIA equilibrium bedrock elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hb_GIAeq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'GIA equilibrium bedrock elevation', units = 'm w.r.t. PD sea level')
       case ('Hs_GIAeq')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_GIAeq', long_name = 'GIA equilibrium surface elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'Hs_GIAeq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'GIA equilibrium surface elevation', units = 'm w.r.t. PD sea level')
       case ('SL_GIAeq')
-        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_GIAeq', long_name = 'GIA equilibrium geoid elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D_notime( filename, ncid, 'SL_GIAeq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'GIA equilibrium geoid elevation', units = 'm w.r.t. PD sea level')
 
     ! ===== Basic ice-sheet geometry =====
     ! ====================================
 
       case ('Hi')
-        call add_field_grid_dp_2D( filename, ncid, 'Hi', long_name = 'Ice thickness', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'Hi', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice thickness', units = 'm')
       case ('Hb')
-        call add_field_grid_dp_2D( filename, ncid, 'Hb', long_name = 'Bedrock elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D( filename, ncid, 'Hb', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Bedrock elevation', units = 'm w.r.t. PD sea level')
       case ('Hs')
-        call add_field_grid_dp_2D( filename, ncid, 'Hs', long_name = 'Surface elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D( filename, ncid, 'Hs', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface elevation', units = 'm w.r.t. PD sea level')
       case ('Hib')
-        call add_field_grid_dp_2D( filename, ncid, 'Hib', long_name = 'Ice base elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D( filename, ncid, 'Hib', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice base elevation', units = 'm w.r.t. PD sea level')
       case ('SL')
-        call add_field_grid_dp_2D( filename, ncid, 'SL', long_name = 'Geoid elevation', units = 'm w.r.t. PD sea level')
+        call add_field_grid_dp_2D( filename, ncid, 'SL', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Geoid elevation', units = 'm w.r.t. PD sea level')
       case ('TAF')
-        call add_field_grid_dp_2D( filename, ncid, 'TAF', long_name = 'Thickness above floatation', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'TAF', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Thickness above floatation', units = 'm')
       case ('Hi_eff')
-        call add_field_grid_dp_2D( filename, ncid, 'Hi_eff', long_name = 'Effective ice thickness', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'Hi_eff', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Effective ice thickness', units = 'm')
       case ('Hs_slope')
-        call add_field_grid_dp_2D( filename, ncid, 'Hs_slope', long_name = 'Absolute surface gradient', units = '-')
+        call add_field_grid_dp_2D( filename, ncid, 'Hs_slope', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Absolute surface gradient', units = '-')
       case ('grounding_line')
         ! Do nothing; only written to mesh files
       case ('ice_margin')
@@ -1160,41 +1347,53 @@ contains
       case ('grounded_ice_contour')
         ! Do nothing; only written to mesh files
 
+    ! ===== Geometry on triangles for 3D plots =====
+    ! ==============================================
+      case ('Hs_b')
+        ! Do nothing; only written to mesh files
+
+    ! ===== Geometry gradients for hillshade =====
+    ! ============================================
+      case ('dHs_dx')
+        ! Do nothing; only written to mesh files
+      case ('dHs_dy')
+        ! Do nothing; only written to mesh files
+
     ! ===== Geometry changes w.r.t. reference =====
     ! =============================================
 
       case ('dHi')
-        call add_field_grid_dp_2D( filename, ncid, 'dHi', long_name = 'Ice thickness difference w.r.t. reference', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'dHi', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice thickness difference w.r.t. reference', units = 'm')
       case ('dHb')
-        call add_field_grid_dp_2D( filename, ncid, 'dHb', long_name = 'Bedrock elevation difference w.r.t. reference', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'dHb', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Bedrock elevation difference w.r.t. reference', units = 'm')
       case ('dHs')
-        call add_field_grid_dp_2D( filename, ncid, 'dHs', long_name = 'Surface elevation difference w.r.t. reference', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'dHs', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface elevation difference w.r.t. reference', units = 'm')
       case ('dHib')
-        call add_field_grid_dp_2D( filename, ncid, 'dHib', long_name = 'Ice base elevation difference w.r.t. reference', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'dHib', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice base elevation difference w.r.t. reference', units = 'm')
 
     ! ===== Geometry rates of change =====
     ! ====================================
 
       case ('dHi_dt')
-        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt', long_name = 'Ice thickness rate of change', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice thickness rate of change', units = 'm yr^-1')
       case ('dHb_dt')
-        call add_field_grid_dp_2D( filename, ncid, 'dHb_dt', long_name = 'Bedrock elevation rate of change', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHb_dt', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Bedrock elevation rate of change', units = 'm yr^-1')
       case ('dHs_dt')
-        call add_field_grid_dp_2D( filename, ncid, 'dHs_dt', long_name = 'Surface elevation rate of change', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHs_dt', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface elevation rate of change', units = 'm yr^-1')
       case ('dHib_dt')
-        call add_field_grid_dp_2D( filename, ncid, 'dHib_dt', long_name = 'Ice base elevation rate of change', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHib_dt', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice base elevation rate of change', units = 'm yr^-1')
       case ('dHi_dt_raw')
-        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_raw', long_name = 'Ice thickness rate of change before any modifications', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_raw', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice thickness rate of change before any modifications', units = 'm yr^-1')
       case ('dHi_dt_residual')
-        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_residual', long_name = 'Residual ice thickness rate of change during model calibration', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_residual', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Residual ice thickness rate of change during model calibration', units = 'm yr^-1')
 
     ! ===== Target quantities =====
     ! =============================
 
       case ('dHi_dt_target')
-        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_target', long_name = 'Target ice thickness rate of change during model calibration', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'dHi_dt_target', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Target ice thickness rate of change during model calibration', units = 'm yr^-1')
       case ('uabs_surf_target')
-        call add_field_grid_dp_2D( filename, ncid, 'uabs_surf_target', long_name = 'Target ice surface speed during model calibration', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'uabs_surf_target', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Target ice surface speed during model calibration', units = 'm yr^-1')
 
     ! ===== Masks =====
     ! =================
@@ -1218,7 +1417,8 @@ contains
       case ('mask_SGD')
       case ('mask_ROI')
         ! Exception for mask_ROI, needed for offline laddie computation
-        call add_field_grid_dp_2D( filename, ncid, 'mask_ROI', long_name = 'ROI mask', units = '')
+        ! call add_field_grid_int_2D( filename, ncid, 'mask_ROI', long_name = 'ROI mask', units = '', do_compress = C%do_compress_output) ! for when we get to save mask_ROI with the different regions as different numbers
+        call add_field_grid_dp_2D( filename, ncid, 'mask_ROI', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'ROI mask', units = '')
 
 
     ! ===== Area fractions =====
@@ -1236,80 +1436,80 @@ contains
     ! ===================================
 
       case ('Ti')
-        call add_field_grid_dp_3D( filename, ncid, 'Ti', long_name = 'Englacial temperature', units = 'K')
+        call add_field_grid_dp_3D( filename, ncid, 'Ti', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Englacial temperature', units = 'K')
       case ('Ti_pmp')
-        call add_field_grid_dp_3D( filename, ncid, 'Ti_pmp', long_name = 'Pressure melting point temperature', units = 'K')
+        call add_field_grid_dp_3D( filename, ncid, 'Ti_pmp', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Pressure melting point temperature', units = 'K')
       case ('Ti_hom')
-        call add_field_grid_dp_2D( filename, ncid, 'Ti_hom', long_name = 'Temperature at base w.r.t. pressure melting point', units = 'K')
+        call add_field_grid_dp_2D( filename, ncid, 'Ti_hom', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Temperature at base w.r.t. pressure melting point', units = 'K')
       case ('Cpi')
-        call add_field_grid_dp_3D( filename, ncid, 'Cpi', long_name = 'Specific heat capacity', units = 'J kg^-1 K^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'Cpi', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Specific heat capacity', units = 'J kg^-1 K^-1')
       case ('Ki')
-        call add_field_grid_dp_3D( filename, ncid, 'Ki', long_name = 'Thermal conductivity', units = 'J m^-1 K^-1 yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'Ki', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Thermal conductivity', units = 'J m^-1 K^-1 yr^-1')
       case ('internal_heating')
-        call add_field_grid_dp_3D( filename, ncid, 'internal_heating', long_name = 'Internal heating', units = '?')
+        call add_field_grid_dp_3D( filename, ncid, 'internal_heating', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Internal heating', units = '?')
       case ('frictional_heating')
-        call add_field_grid_dp_2D( filename, ncid, 'frictional_heating', long_name = 'Frictional heating', units = '?')
+        call add_field_grid_dp_2D( filename, ncid, 'frictional_heating', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Frictional heating', units = '?')
       case ('A_flow')
-        call add_field_grid_dp_3D( filename, ncid, 'A_flow', long_name = 'Glens flow law factor', units = 'Pa^-3 y^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'A_flow', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Glens flow law factor', units = 'Pa^-3 y^-1')
 
     ! === Ice velocities ===
     ! ======================
 
       ! 3-D
       case ('u_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'u_3D', long_name = '3-D ice velocity in the x-direction', units = 'm yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'u_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D ice velocity in the x-direction', units = 'm yr^-1')
       case ('v_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'v_3D', long_name = '3-D ice velocity in the y-direction', units = 'm yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'v_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D ice velocity in the y-direction', units = 'm yr^-1')
       case ('u_3D_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('v_3D_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('w_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'w_3D', long_name = '3-D ice velocity in the z-direction', units = 'm yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'w_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D ice velocity in the z-direction', units = 'm yr^-1')
 
       ! Vertically integrated
       case ('u_vav')
-        call add_field_grid_dp_2D( filename, ncid, 'u_vav', long_name = 'Vertically averaged ice velocity in the x-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'u_vav', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Vertically averaged ice velocity in the x-direction', units = 'm yr^-1')
       case ('v_vav')
-        call add_field_grid_dp_2D( filename, ncid, 'v_vav', long_name = 'Vertically averaged ice velocity in the y-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'v_vav', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Vertically averaged ice velocity in the y-direction', units = 'm yr^-1')
       case ('u_vav_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('v_vav_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('uabs_vav')
-        call add_field_grid_dp_2D( filename, ncid, 'uabs_vav', long_name = 'Vertically averaged absolute ice velocity', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'uabs_vav', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Vertically averaged absolute ice velocity', units = 'm yr^-1')
       case ('uabs_vav_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
 
       ! Surface
       case ('u_surf')
-        call add_field_grid_dp_2D( filename, ncid, 'u_surf', long_name = 'Surface ice velocity in the x-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'u_surf', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface ice velocity in the x-direction', units = 'm yr^-1')
       case ('v_surf')
-        call add_field_grid_dp_2D( filename, ncid, 'v_surf', long_name = 'Surface ice velocity in the y-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'v_surf', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface ice velocity in the y-direction', units = 'm yr^-1')
       case ('u_surf_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('v_surf_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('w_surf')
-        call add_field_grid_dp_2D( filename, ncid, 'w_surf', long_name = 'Surface ice velocity in the z-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'w_surf', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface ice velocity in the z-direction', units = 'm yr^-1')
       case ('uabs_surf')
-        call add_field_grid_dp_2D( filename, ncid, 'uabs_surf', long_name = 'Absolute surface ice velocity', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'uabs_surf', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Absolute surface ice velocity', units = 'm yr^-1')
       case ('uabs_surf_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
 
       ! Base
       case ('u_base')
-        call add_field_grid_dp_2D( filename, ncid, 'u_base', long_name = 'Basal ice velocity in the x-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'u_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal ice velocity in the x-direction', units = 'm yr^-1')
       case ('v_base')
-        call add_field_grid_dp_2D( filename, ncid, 'v_base', long_name = 'Basal ice velocity in the y-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'v_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal ice velocity in the y-direction', units = 'm yr^-1')
       case ('u_base_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('v_base_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
       case ('w_base')
-        call add_field_grid_dp_2D( filename, ncid, 'w_base', long_name = 'Basal ice velocity in the z-direction', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'w_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal ice velocity in the z-direction', units = 'm yr^-1')
       case ('uabs_base')
-        call add_field_grid_dp_2D( filename, ncid, 'uabs_base', long_name = 'Absolute basal ice velocity', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'uabs_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Absolute basal ice velocity', units = 'm yr^-1')
       case ('uabs_base_b')
         ! notE: mapping from mesh triangles to square grid is not (yet) available!
 
@@ -1317,37 +1517,37 @@ contains
     ! ====================
 
       case ('du_dx_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'du_dx_3D', long_name = '3-D xx strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'du_dx_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D xx strain rate', units = 'yr^-1')
       case ('du_dy_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'du_dy_3D', long_name = '3-D xy strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'du_dy_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D xy strain rate', units = 'yr^-1')
       case ('du_dz_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'du_dz_3D', long_name = '3-D xz strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'du_dz_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D xz strain rate', units = 'yr^-1')
       case ('dv_dx_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dv_dx_3D', long_name = '3-D yx strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dv_dx_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D yx strain rate', units = 'yr^-1')
       case ('dv_dy_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dv_dy_3D', long_name = '3-D yy strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dv_dy_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D yy strain rate', units = 'yr^-1')
       case ('dv_dz_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dv_dz_3D', long_name = '3-D yz strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dv_dz_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D yz strain rate', units = 'yr^-1')
       case ('dw_dx_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dw_dx_3D', long_name = '3-D zx strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dw_dx_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D zx strain rate', units = 'yr^-1')
       case ('dw_dy_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dw_dy_3D', long_name = '3-D zy strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dw_dy_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D zy strain rate', units = 'yr^-1')
       case ('dw_dz_3D')
-        call add_field_grid_dp_3D( filename, ncid, 'dw_dz_3D', long_name = '3-D zz strain rate', units = 'yr^-1')
+        call add_field_grid_dp_3D( filename, ncid, 'dw_dz_3D', precision = C%output_precision, do_compress = C%do_compress_output, long_name = '3-D zz strain rate', units = 'yr^-1')
 
     ! == Ice flow regime ==
     ! =====================
 
       case ('divQ')
-        call add_field_grid_dp_2D( filename, ncid, 'divQ', long_name = 'Horizontal ice flux divergence', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'divQ', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Horizontal ice flux divergence', units = 'm yr^-1')
       case ('R_shear')
-        call add_field_grid_dp_2D( filename, ncid, 'R_shear', long_name = 'Slide/shear ratio', units = '0-1')
+        call add_field_grid_dp_2D( filename, ncid, 'R_shear', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Slide/shear ratio', units = '0-1')
 
     ! == Ice P/C time stepping ==
     ! ===========================
 
       case ('pc_truncation_error')
-        call add_field_grid_dp_2D( filename, ncid, 'pc_truncation_error', long_name = 'Ice P/C truncation error tau', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'pc_truncation_error', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice P/C truncation error tau', units = 'm')
       case ('pc_untolerated_events')
         ! DENK DROM : not gridable
 
@@ -1355,34 +1555,34 @@ contains
     ! =====================
 
       case ('pore_water_pressure')
-        call add_field_grid_dp_2D( filename, ncid, 'pore_water_pressure', long_name = 'Till pore water pressure', units = 'Pa')
+        call add_field_grid_dp_2D( filename, ncid, 'pore_water_pressure', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Till pore water pressure', units = 'Pa')
       case ('overburden_pressure')
-        call add_field_grid_dp_2D( filename, ncid, 'overburden_pressure', long_name = 'Ice overburden pressure', units = 'Pa')
+        call add_field_grid_dp_2D( filename, ncid, 'overburden_pressure', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ice overburden pressure', units = 'Pa')
       case ('effective_pressure')
-        call add_field_grid_dp_2D( filename, ncid, 'effective_pressure', long_name = 'Effective basal pressure', units = 'Pa')
+        call add_field_grid_dp_2D( filename, ncid, 'effective_pressure', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Effective basal pressure', units = 'Pa')
       case ('pore_water_likelihood')
-        call add_field_grid_dp_2D( filename, ncid, 'pore_water_likelihood', long_name = 'Till pore water likelihood', units = '0-1')
+        call add_field_grid_dp_2D( filename, ncid, 'pore_water_likelihood', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Till pore water likelihood', units = '0-1')
       case ('pore_water_fraction')
-        call add_field_grid_dp_2D( filename, ncid, 'pore_water_fraction', long_name = 'Fraction of overburden pressure reduced by pore water', units = '0-1')
+        call add_field_grid_dp_2D( filename, ncid, 'pore_water_fraction', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Fraction of overburden pressure reduced by pore water', units = '0-1')
 
     ! == Basal sliding ==
     ! ===================
 
       ! Sliding law coefficients
       case ('till_friction_angle')
-        call add_field_grid_dp_2D( filename, ncid, 'till_friction_angle', long_name = 'Till friction angle', units = 'degrees')
+        call add_field_grid_dp_2D( filename, ncid, 'till_friction_angle', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Till friction angle', units = 'degrees')
       case ('alpha_sq')
-        call add_field_grid_dp_2D( filename, ncid, 'alpha_sq', long_name = 'Coulomb-law friction coefficientn', units = 'dimensionless')
+        call add_field_grid_dp_2D( filename, ncid, 'alpha_sq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Coulomb-law friction coefficientn', units = 'dimensionless')
       case ('beta_sq')
-        call add_field_grid_dp_2D( filename, ncid, 'beta_sq', long_name = 'Power-law friction coefficient', units = 'Pa m^−1/m yr^1/m')
+        call add_field_grid_dp_2D( filename, ncid, 'beta_sq', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Power-law friction coefficient', units = 'Pa m^−1/m yr^1/m')
 
         ! Basal friction and shear stress
       case ('till_yield_stress')
-        call add_field_grid_dp_2D( filename, ncid, 'till_yield_stress', long_name = 'Till yield stress', units = 'Pa')
+        call add_field_grid_dp_2D( filename, ncid, 'till_yield_stress', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Till yield stress', units = 'Pa')
       case ('basal_friction_coefficient')
-        call add_field_grid_dp_2D( filename, ncid, 'basal_friction_coefficient', long_name = 'Basal friction coefficient', units = 'Pa yr m^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'basal_friction_coefficient', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal friction coefficient', units = 'Pa yr m^-1')
       case ('basal_shear_stress')
-        call add_field_grid_dp_2D( filename, ncid, 'basal_shear_stress', long_name = 'Basal shear stress', units = 'Pa')
+        call add_field_grid_dp_2D( filename, ncid, 'basal_shear_stress', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal shear stress', units = 'Pa')
 
       ! Bed roughness nudging - H, dH/dt, flowline
       case ('bed_roughness_nudge_H_dHdt_flowline_deltaHs_av_up')
@@ -1452,108 +1652,108 @@ contains
     ! =====================
 
       case ('geothermal_heat_flux')
-        call add_field_grid_dp_2D( filename, ncid, 'geothermal_heat_flux', long_name = 'Geothermal heat flux', units = 'J m^-2 yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'geothermal_heat_flux', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Geothermal heat flux', units = 'J m^-2 yr^-1')
 
     ! == Climate ==
     ! =============
 
       ! Main climate variables
       case ('T2m')
-        call add_field_grid_dp_2D_monthly( filename, ncid, 'T2m', long_name = 'Monthly mean 2-m air temperature', units = 'K')
+        call add_field_grid_dp_2D_monthly( filename, ncid, 'T2m', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Monthly mean 2-m air temperature', units = 'K')
       case ('Precip')
-        call add_field_grid_dp_2D_monthly( filename, ncid, 'Precip', long_name = 'Monthly total precipitation', units = 'm.w.e.')
+        call add_field_grid_dp_2D_monthly( filename, ncid, 'Precip', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Monthly total precipitation', units = 'm.w.e.')
       CASE ('Q_TOA')
-        CALL add_field_grid_dp_2D_monthly( filename, ncid, 'Q_TOA', long_name = 'Monthly insolation at the top of the atmosphere', units = 'W m^-2')
+        CALL add_field_grid_dp_2D_monthly( filename, ncid, 'Q_TOA', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Monthly insolation at the top of the atmosphere', units = 'W m^-2')
 
     ! == Ocean ==
     ! ==========================
 
       ! Main ocean variables
       case ('T_ocean')
-        call add_field_grid_dp_3D_ocean( filename, ncid, 'T_ocean', long_name = 'Ocean temperature', units = 'deg C')
+        call add_field_grid_dp_3D_ocean( filename, ncid, 'T_ocean', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ocean temperature', units = 'deg C')
       case ('S_ocean')
-        call add_field_grid_dp_3D_ocean( filename, ncid, 'S_ocean', long_name = 'Ocean salinity', units = 'psu')
+        call add_field_grid_dp_3D_ocean( filename, ncid, 'S_ocean', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ocean salinity', units = 'psu')
       case ('T_draft')
-        call add_field_grid_dp_2D( filename, ncid, 'T_draft', long_name = 'Ocean temperature at ice draft', units = 'deg C')
+        call add_field_grid_dp_2D( filename, ncid, 'T_draft', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ocean temperature at ice draft', units = 'deg C')
       case ('T_freezing_point')
-        call add_field_grid_dp_2D( filename, ncid, 'T_freezing_point', long_name = 'Ocean freezing temperature at ice draft', units = 'deg C')
+        call add_field_grid_dp_2D( filename, ncid, 'T_freezing_point', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Ocean freezing temperature at ice draft', units = 'deg C')
 
     ! == Surface mass balance ==
     ! ==========================
 
       ! Main SMB variables
       case ('SMB')
-        call add_field_grid_dp_2D( filename, ncid, 'SMB', long_name = 'Surface mass balance', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'SMB', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface mass balance', units = 'm yr^-1')
       case ('Albedo')
-        call add_field_grid_dp_2D_monthly( filename, ncid, 'Albedo', long_name = 'Surface albedo', units = '0-1')
+        call add_field_grid_dp_2D_monthly( filename, ncid, 'Albedo', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Surface albedo', units = '0-1')
       case ('FirnDepth')
-        call add_field_grid_dp_2D_monthly( filename, ncid, 'FirnDepth', long_name = 'Monthly firn layer depth', units = 'm')
+        call add_field_grid_dp_2D_monthly( filename, ncid, 'FirnDepth', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Monthly firn layer depth', units = 'm')
       case ('MeltPreviousYear')
-        call add_field_grid_dp_2D_monthly( filename, ncid, 'MeltPreviousYear', long_name = 'Total ice melt from previous year', units = 'm')
+        call add_field_grid_dp_2D_monthly( filename, ncid, 'MeltPreviousYear', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Total ice melt from previous year', units = 'm')
 
     ! == Basal mass balance ==
     ! ========================
 
       ! Main BMB variables
       case ('BMB')
-        call add_field_grid_dp_2D( filename, ncid, 'BMB', long_name = 'Basal mass balance', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'BMB', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance', units = 'm yr^-1')
       case ('BMB_inv')
-        call add_field_grid_dp_2D( filename, ncid, 'BMB_inv', long_name = 'Basal mass balance - inverted', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'BMB_inv', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance - inverted', units = 'm yr^-1')
       case ('BMB_transition_phase')
-        call add_field_grid_dp_2D( filename, ncid, 'BMB_transition_phase', long_name = 'Basal mass balance - transition phase', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'BMB_transition_phase', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance - transition phase', units = 'm yr^-1')
       case ('BMB_modelled')
-        call add_field_grid_dp_2D( filename, ncid, 'BMB_modelled', long_name = 'Basal mass balance - modelled', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'BMB_modelled', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance - modelled', units = 'm yr^-1')
 
     ! == LADDIE ==
     ! ============
 
       ! Main laddie variables
       case ('H_lad')
-        call add_field_grid_dp_2D( filename, ncid, 'H_lad', long_name = 'Laddie layer thickness', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'H_lad', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Laddie layer thickness', units = 'm')
       case ('U_lad')
-        call add_field_grid_dp_2D( filename, ncid, 'U_lad', long_name = 'Laddie U velocity', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'U_lad', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Laddie U velocity', units = 'm s^-1')
       case ('V_lad')
-        call add_field_grid_dp_2D( filename, ncid, 'V_lad', long_name = 'Laddie V velocity', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'V_lad', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Laddie V velocity', units = 'm s^-1')
       case ('T_lad')
-        call add_field_grid_dp_2D( filename, ncid, 'T_lad', long_name = 'Laddie temperature', units = 'deg C')
+        call add_field_grid_dp_2D( filename, ncid, 'T_lad', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Laddie temperature', units = 'deg C')
       case ('S_lad')
-        call add_field_grid_dp_2D( filename, ncid, 'S_lad', long_name = 'Laddie salinity', units = 'PSU')
+        call add_field_grid_dp_2D( filename, ncid, 'S_lad', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Laddie salinity', units = 'PSU')
 
       ! Useful laddie fields
       case ('drho_amb')
-        call add_field_grid_dp_2D( filename, ncid, 'drho_amb', long_name = 'Depth integrated buoyancy', units = 'kg m^-2')
+        call add_field_grid_dp_2D( filename, ncid, 'drho_amb', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Depth integrated buoyancy', units = 'kg m^-2')
       case ('drho_base')
-        call add_field_grid_dp_2D( filename, ncid, 'drho_base', long_name = 'Depth integrated buoyancy', units = 'kg m^-2')
+        call add_field_grid_dp_2D( filename, ncid, 'drho_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Depth integrated buoyancy', units = 'kg m^-2')
       case ('entr')
-        call add_field_grid_dp_2D( filename, ncid, 'entr', long_name = 'Entrainment rate', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'entr', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Entrainment rate', units = 'm s^-1')
       case ('entr_dmin')
-        call add_field_grid_dp_2D( filename, ncid, 'entr_dmin', long_name = 'Entrainment rate for Dmin', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'entr_dmin', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Entrainment rate for Dmin', units = 'm s^-1')
       case ('SGD')
-        call add_field_grid_dp_2D( filename, ncid, 'SGD', long_name = 'Subglacial discharge rate', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'SGD', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Subglacial discharge rate', units = 'm s^-1')
       case ('melt')
-        call add_field_grid_dp_2D( filename, ncid, 'melt', long_name = 'melt rate', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'melt', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'melt rate', units = 'm s^-1')
       case ('divQH')
-        call add_field_grid_dp_2D( filename, ncid, 'divQH', long_name = 'Thickness divergence', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'divQH', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Thickness divergence', units = 'm s^-1')
       case ('divQT')
-        call add_field_grid_dp_2D( filename, ncid, 'divQT', long_name = 'Heat divergence', units = 'degC m s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'divQT', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Heat divergence', units = 'degC m s^-1')
       case ('divQS')
-        call add_field_grid_dp_2D( filename, ncid, 'divQS', long_name = 'Salt divergence', units = 'PSU m s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'divQS', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Salt divergence', units = 'PSU m s^-1')
       case ('diffT')
-        call add_field_grid_dp_2D( filename, ncid, 'diffT', long_name = 'Heat diffusion', units = 'degC m s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'diffT', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Heat diffusion', units = 'degC m s^-1')
       case ('diffS')
-        call add_field_grid_dp_2D( filename, ncid, 'diffS', long_name = 'Salt diffusion', units = 'PSU m s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'diffS', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Salt diffusion', units = 'PSU m s^-1')
       case ('viscU')
         ! not implemented
       case ('viscV')
         ! not implemented
       case ('T_base')
-        call add_field_grid_dp_2D( filename, ncid, 'T_base', long_name = 'Temperature at ice/ocean interface', units = 'deg C')
+        call add_field_grid_dp_2D( filename, ncid, 'T_base', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Temperature at ice/ocean interface', units = 'deg C')
       case ('T_amb')
-        call add_field_grid_dp_2D( filename, ncid, 'T_amb', long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
+        call add_field_grid_dp_2D( filename, ncid, 'T_amb', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Temperature at interface with ambient ocean', units = 'deg C')
       case ('u_star')
-        call add_field_grid_dp_2D( filename, ncid, 'u_star', long_name = 'Friction velocity', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'u_star', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Friction velocity', units = 'm s^-1')
       case ('gamma_T')
-        call add_field_grid_dp_2D( filename, ncid, 'gamma_T', long_name = 'Heat exchange coefficient', units = 'm s^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'gamma_T', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Heat exchange coefficient', units = 'm s^-1')
       case ('divQU')
         ! not implemented
       case ('divQV')
@@ -1569,33 +1769,358 @@ contains
 
       ! Main LMB variables
       case ('LMB')
-        call add_field_grid_dp_2D( filename, ncid, 'LMB', long_name = 'Lateral mass balance', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'LMB', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Lateral mass balance', units = 'm yr^-1')
 
     ! == Artificial mass balance ==
     ! =============================
 
       ! Main AMB variables
       case ('AMB')
-        call add_field_grid_dp_2D( filename, ncid, 'AMB', long_name = 'Artificial mass balance', units = 'm yr^-1')
+        call add_field_grid_dp_2D( filename, ncid, 'AMB', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Artificial mass balance', units = 'm yr^-1')
 
     ! == Glacial isostatic adjustment ==
     ! ==================================
 
       ! Main GIA variables
       case ('dHb_next')
-        call add_field_grid_dp_2D( filename, ncid, 'dHb_next', long_name = 'Bedrock elevation difference from ELRA', units = 'm')
+        call add_field_grid_dp_2D( filename, ncid, 'dHb_next', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Bedrock elevation difference from ELRA', units = 'm')
 
     ! == Tracer tracking ==
     ! =====================
 
       case ('age')
-        call add_field_grid_dp_3D( filename, ncid, 'age', long_name = 'Age of ice', units = 'yr')
+        call add_field_grid_dp_3D( filename, ncid, 'age', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Age of ice', units = 'yr')
 
+    ! == ISMIP outputs ==
+    ! =====================
+    case ('lithk')
+      call add_field_grid_dp_2D( filename, ncid, 'lithk',       precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_thickness',                                               units = 'm')
+    case ('orog')
+      call add_field_grid_dp_2D( filename, ncid, 'orog',        precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'surface_altitude',                                                 units = 'm')
+    case ('topg')
+      call add_field_grid_dp_2D( filename, ncid, 'topg',        precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'bedrock_altitude',                                                 units = 'm')
+    case ('hfgeoubed')
+      call add_field_grid_dp_2D( filename, ncid, 'hfgeoubed',   precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'upward_geothermal_heat_flux_at_ground_level',                      units = 'W m-2')
+    case ('acabf')
+      call add_field_grid_dp_2D( filename, ncid, 'acabf',       precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_surface_specific_mass_balance_flux',                      units = 'Kg m-2 s-1')
+    case ('libmassbfgr')
+      call add_field_grid_dp_2D( filename, ncid, 'libmassbfgr', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_specific_mass_balance_flux',                        units = 'Kg m-2 s-1')
+    case ('libmassbffl')
+      call add_field_grid_dp_2D( filename, ncid, 'libmassbffl', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_specific_mass_balance_flux',                        units = 'Kg m-2 s-1')
+    case ('dlithkdt')
+      call add_field_grid_dp_2D( filename, ncid, 'dlithkdt',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'tendency_of_land_ice_thickness',                                   units = 'm s-1')
+    case ('xvelsurf')
+      call add_field_grid_dp_2D( filename, ncid, 'xvelsurf',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_surface_x_velocity',                                      units = 'm s-1')
+    case ('yvelsurf')
+      call add_field_grid_dp_2D( filename, ncid, 'yvelsurf',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_surface_y_velocity',                                      units = 'm s-1')
+    case ('zvelsurf')
+      call add_field_grid_dp_2D( filename, ncid, 'zvelsurf',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_surface_upward_velocity',                                 units = 'm s-1')
+    case ('xvelbase')
+      call add_field_grid_dp_2D( filename, ncid, 'xvelbase',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_x_velocity',                                        units = 'm s-1')
+    case ('yvelbase')
+      call add_field_grid_dp_2D( filename, ncid, 'yvelbase',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_y_velocity',                                        units = 'm s-1')
+    case ('zvelbase')
+      call add_field_grid_dp_2D( filename, ncid, 'zvelbase',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_upward_velocity',                                   units = 'm s-1')
+    case ('xvelmean')
+      call add_field_grid_dp_2D( filename, ncid, 'xvelmean',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_vertical_mean_x_velocity',                                units = 'm s-1')
+    case ('yvelmean')
+      call add_field_grid_dp_2D( filename, ncid, 'yvelmean',    precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_vertical_mean_y_velocity',                                units = 'm s-1')
+    case ('litemptop')
+      call add_field_grid_dp_2D( filename, ncid, 'litemptop',   precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'temperature_at_top_of_ice_sheet_model',                            units = 'K')
+    case ('litempbotgr')
+      call add_field_grid_dp_2D( filename, ncid, 'litempbotgr', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'temperature_at_base_of_ice_sheet_model',                           units = 'K')
+    case ('litempbotfl')
+      call add_field_grid_dp_2D( filename, ncid, 'litempbotfl', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'temperature_at_base_of_ice_sheet_model',                           units = 'K')
+    case ('strbasemag')
+      call add_field_grid_dp_2D( filename, ncid, 'strbasemag',  precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_basal_drag',                                              units = 'Pa')
+    case ('licalvf')
+      call add_field_grid_dp_2D( filename, ncid, 'licalvf',     precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_specific_mass_flux_due_to_calving',                       units = 'kg m-2 s-1')
+    case ('lifmassbf')
+      call add_field_grid_dp_2D( filename, ncid, 'lifmassbf',   precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting', units = 'kg m-2 s-1')
+    case ('sftgif')
+      call add_field_grid_dp_2D( filename, ncid, 'sftgif',      precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'land_ice_area_fraction',                                           units = '1')
+    case ('sftgrf')
+      call add_field_grid_dp_2D( filename, ncid, 'sftgrf',      precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'grounded_ice_sheet_area_fraction',                                 units = '1')
+    case ('sftflf')
+      call add_field_grid_dp_2D( filename, ncid, 'sftflf',      precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'floating_ice_shelf_area_fraction',                                 units = '1')
     end select
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
   end subroutine create_main_regional_output_file_grid_field
+
+  subroutine create_ISMIP_regional_output_file_grid( region)
+      !< Create the main regional output NetCDF file - grid version
+
+      ! In/output variables:
+      type(type_model_region), intent(inout) :: region
+
+      ! Local variables:
+      character(len=1024), parameter :: routine_name = 'create_ISMIP_regional_output_file_grid'
+      integer                        :: ncid
+
+      ! Add routine to path
+      call init_routine( routine_name)
+
+      ! if no NetCDF output should be created, do nothing
+      if (.not. C%do_create_ISMIP_output) then
+        call finalise_routine( routine_name)
+        return
+      end if
+
+      ! Set the filename
+      region%output_filename_grid_ismip = trim( C%output_dir) // 'ismip_output_' // region%name // '_grid.nc'
+
+      ! Print to terminal
+      if (par%primary) write(0,'(A)') '   Creating gridded ISMIP output file "' // &
+        UPSY%stru%colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
+
+      ! Create the NetCDF file
+      call create_new_netcdf_file_for_writing( region%output_filename_grid_ismip, ncid)
+
+      ! Set up the grid in the file
+      call setup_xy_grid_in_netcdf_file( region%output_filename_grid_ismip, ncid, region%output_grid)
+
+      ! Add time, zeta, and month dimensions+variables to the file
+      call add_time_dimension_to_file(  region%output_filename_grid_ismip, ncid)
+      call add_month_dimension_to_file( region%output_filename_grid_ismip, ncid)
+
+      ! Add the default data fields to the file
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lithk')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'orog')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'topg')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'hfgeoubed')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'acabf')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'libmassbfgr')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'libmassbffl')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'dlithkdt')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'xvelsurf')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'yvelsurf')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'zvelsurf')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'xvelbase')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'yvelbase')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'zvelbase')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'xvelmean')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'yvelmean')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litemptop')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotgr')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'litempbotfl')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'strbasemag')
+      ! call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+      ! call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'lifmassbf') ! TODO: when front melt is computed
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgif')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftgrf')
+      call create_main_regional_output_file_grid_field( region%output_filename_grid_ismip, ncid, 'sftflf')
+
+      ! Close the file
+      call close_netcdf_file( ncid)
+
+      ! Finalise routine path
+      call finalise_routine( routine_name)
+
+  end subroutine create_ISMIP_regional_output_file_grid
+
+  subroutine write_to_ISMIP_regional_output_file_grid( region)
+
+      !< Write to the main regional output NetCDF file - grid version
+
+      ! In/output variables:
+      type(type_model_region), intent(in   ) :: region
+
+      ! Local variables:
+      character(len=1024), parameter :: routine_name = 'write_to_ISMIP_regional_output_file_grid'
+      integer                        :: ncid
+
+      ! Add routine to path
+      call init_routine( routine_name)
+
+      ! if no NetCDF output should be created, do nothing
+      if (.not. C%do_create_ISMIP_output) then
+        call finalise_routine( routine_name)
+        return
+      end if
+
+      ! Print to terminal
+      if (par%primary) write(0,'(A)') '   Writing to gridded ISMIP output file "' // &
+        UPSY%stru%colour_string( trim( region%output_filename_grid_ismip), 'light blue') // '"...'
+
+      ! Open the NetCDF file
+      call open_existing_netcdf_file_for_writing( region%output_filename_grid_ismip, ncid)
+
+      ! write the time to the file
+      call write_time_to_file( region%output_filename_grid_ismip, ncid, region%time * 360._dp)
+
+      ! write the default data fields to the file
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lithk')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'orog')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'topg')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'hfgeoubed')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'acabf')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'libmassbfgr')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'libmassbffl')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'dlithkdt')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'xvelsurf')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'yvelsurf')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'zvelsurf')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'xvelbase')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'yvelbase')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'zvelbase')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'xvelmean')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'yvelmean')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litemptop')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotgr')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'litempbotfl')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'strbasemag')
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+      ! call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'lifmassbf') ! TODO: when front melt is computed
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgif')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftgrf')
+      call write_to_main_regional_output_file_grid_field( region, region%output_grid, region%output_filename_grid_ismip, ncid, 'sftflf')
+
+      ! Close the file
+      call close_netcdf_file( ncid)
+
+      ! Finalise routine path
+      call finalise_routine( routine_name)
+
+  end subroutine write_to_ISMIP_regional_output_file_grid
+
+  subroutine create_ISMIP_regional_output_file_grid_ROI( region, grid, filename)
+    !< Create the main regional output NetCDF file - grid version
+
+    ! In/output variables:
+    type(type_model_region), intent(in   ) :: region
+    type(type_grid),         intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: filename
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'create_ISMIP_regional_output_file_grid_ROI'
+    integer                        :: ncid
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! if no NetCDF output should be created, do nothing
+    if (.not. C%do_create_ISMIP_output) then
+      call finalise_routine( routine_name)
+      return
+    end if
+
+    ! Print to terminal
+    if (par%primary) write(0,'(A)') '   Creating ROI ISMIP output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
+
+    ! Create the NetCDF file
+    call create_new_netcdf_file_for_writing( filename, ncid)
+
+    ! Set up the grid in the file
+    call setup_xy_grid_in_netcdf_file( filename, ncid, grid)
+
+    ! Add time, zeta, and month dimensions+variables to the file
+    call add_time_dimension_to_file(  filename, ncid)
+    call add_month_dimension_to_file( filename, ncid)
+
+    ! Add the default data fields to the file
+    call create_main_regional_output_file_grid_field( filename, ncid, 'lithk')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'orog')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'topg')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'hfgeoubed')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'acabf')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'libmassbfgr')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'libmassbffl')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'dlithkdt')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'xvelsurf')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'yvelsurf')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'zvelsurf')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'xvelbase')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'yvelbase')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'zvelbase')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'xvelmean')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'yvelmean')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'litemptop')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'litempbotgr')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'litempbotfl')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'strbasemag')
+    ! call create_main_regional_output_file_grid_field( filename, ncid, 'licalvf' ) ! TODO: flux computation routine crashes when run in parallel
+    ! call create_main_regional_output_file_grid_field( filename, ncid, 'lifmassbf') ! TODO: when front melt is computed
+    call create_main_regional_output_file_grid_field( filename, ncid, 'sftgif')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'sftgrf')
+    call create_main_regional_output_file_grid_field( filename, ncid, 'sftflf')
+
+    ! Close the file
+    call close_netcdf_file( ncid)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine create_ISMIP_regional_output_file_grid_ROI
+
+  subroutine write_to_ISMIP_regional_output_file_grid_ROI( region, grid, filename)
+    !< Write to the gridded output NetCDF file for a region-of-interest
+
+    ! In/output variables:
+    type(type_model_region), intent(in   ) :: region
+    type(type_grid),         intent(in   ) :: grid
+    character(len=*),        intent(in   ) :: filename
+
+    ! Local variables:
+    character(len=1024), parameter :: routine_name = 'write_to_ISMIP_regional_output_file_grid_ROI'
+    integer                        :: ncid
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! if no NetCDF output should be created, do nothing
+    if (.not. C%do_create_ISMIP_output) then
+      call finalise_routine( routine_name)
+      return
+    end if
+
+    ! Print to terminal
+    if (par%primary) write(0,'(A)') '   Writing to ISMIP grid output file "' // &
+      UPSY%stru%colour_string( trim( filename), 'light blue') // '"...'
+
+    ! Open the NetCDF file
+    call open_existing_netcdf_file_for_writing( filename, ncid)
+
+    ! write the time to the file
+    call write_time_to_file( filename, ncid, region%time * 360._dp)
+
+    ! write the ISMIP data fields to the file
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lithk')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'orog')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'topg')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'hfgeoubed')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'acabf')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'libmassbfgr')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'libmassbffl')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'dlithkdt')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'xvelsurf')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'yvelsurf')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'zvelsurf')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'xvelbase')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'yvelbase')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'zvelbase')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'xvelmean')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'yvelmean')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litemptop')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotgr')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'litempbotfl')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'strbasemag')
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'licalvf') ! TODO: flux computation routine crashes when run in parallel
+    ! call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'lifmassbf') ! TODO: when front melt is computed
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgif')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftgrf')
+    call write_to_main_regional_output_file_grid_field( region, grid, filename, ncid, 'sftflf')
+
+    ! Close the file
+    call close_netcdf_file( ncid)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine write_to_ISMIP_regional_output_file_grid_ROI
+
 
 end module grid_output_files

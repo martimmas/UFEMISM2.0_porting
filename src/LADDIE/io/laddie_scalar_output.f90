@@ -1,9 +1,10 @@
 module laddie_scalar_output
 
   use parameters
-  use mpi_basic, only: par 
+  use mpi_basic, only: par
   use precisions, only: dp
-  use control_resources_and_error_messaging, only: init_routine, finalise_routine, colour_string, warning
+  use UPSY_main, only: UPSY
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
   use mesh_types, only: type_mesh
@@ -42,7 +43,7 @@ contains
     call open_existing_netcdf_file_for_writing( filename, ncid)
 
     ! Inquire number of timeframes already present in the file
-    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti) 
+    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = ti)
 
     ! Write the time to the file
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'time',              laddie%buffer%time,              n, ti+1)
@@ -77,7 +78,7 @@ contains
     call write_buffer_to_scalar_file_single_variable( filename, ncid, 'divQH_sum',         laddie%buffer%divQH_sum,         n, ti+1)
 
     ! Reset buffer
-    laddie%buffer%n = 0 
+    laddie%buffer%n = 0
 
     ! Close the file
     call close_netcdf_file( ncid)
@@ -112,7 +113,7 @@ contains
     call generate_filename_XXXXXdotnc( filename_base, laddie%output_scalar_filename)
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Creating laddie scalar output file "' // colour_string( trim( laddie%output_scalar_filename), 'light blue') // '"...'
+    if (par%primary) write(0,'(A)') '   Creating laddie scalar output file "' // UPSY%stru%colour_string( trim( laddie%output_scalar_filename), 'light blue') // '"...'
 
     ! Create the NetCDF file
     call create_new_netcdf_file_for_writing( laddie%output_scalar_filename, ncid)
@@ -183,31 +184,53 @@ contains
       laddie%buffer%n_mem = n_mem
       laddie%buffer%n     = 0
 
+      if (allocated( laddie%buffer%time)) deallocate(laddie%buffer%time)
       allocate( laddie%buffer%time             ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%layer_volume)) deallocate(laddie%buffer%layer_volume)
+      if (allocated( laddie%buffer%area_a      )) deallocate(laddie%buffer%area_a)
+      if (allocated( laddie%buffer%area_b      )) deallocate(laddie%buffer%area_b)
       allocate( laddie%buffer%layer_volume     ( n_mem), source = 0._dp)
       allocate( laddie%buffer%area_a           ( n_mem), source = 0._dp)
       allocate( laddie%buffer%area_b           ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%thickness_mean)) deallocate(laddie%buffer%thickness_mean)
+      if (allocated( laddie%buffer%thickness_max )) deallocate(laddie%buffer%thickness_max)
+      if (allocated( laddie%buffer%thickness_min )) deallocate(laddie%buffer%thickness_min)
       allocate( laddie%buffer%thickness_mean   ( n_mem), source = 0._dp)
       allocate( laddie%buffer%thickness_max    ( n_mem), source = 0._dp)
       allocate( laddie%buffer%thickness_min    ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%melt_mean)) deallocate(laddie%buffer%melt_mean)
+      if (allocated( laddie%buffer%melt_max )) deallocate(laddie%buffer%melt_max)
+      if (allocated( laddie%buffer%melt_min )) deallocate(laddie%buffer%melt_min)
+      if (allocated( laddie%buffer%melt_tot )) deallocate(laddie%buffer%melt_tot)
       allocate( laddie%buffer%melt_mean        ( n_mem), source = 0._dp)
       allocate( laddie%buffer%melt_max         ( n_mem), source = 0._dp)
       allocate( laddie%buffer%melt_min         ( n_mem), source = 0._dp)
       allocate( laddie%buffer%melt_tot         ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%uabs_max)) deallocate(laddie%buffer%uabs_max)
       allocate( laddie%buffer%uabs_max         ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%T_mean)) deallocate(laddie%buffer%T_mean)
+      if (allocated( laddie%buffer%T_max )) deallocate(laddie%buffer%T_max)
+      if (allocated( laddie%buffer%T_min )) deallocate(laddie%buffer%T_min)
       allocate( laddie%buffer%T_mean           ( n_mem), source = 0._dp)
       allocate( laddie%buffer%T_max            ( n_mem), source = 0._dp)
       allocate( laddie%buffer%T_min            ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%S_mean)) deallocate(laddie%buffer%S_mean)
+      if (allocated( laddie%buffer%S_max )) deallocate(laddie%buffer%S_max)
+      if (allocated( laddie%buffer%S_min )) deallocate(laddie%buffer%S_min)
       allocate( laddie%buffer%S_mean           ( n_mem), source = 0._dp)
       allocate( laddie%buffer%S_max            ( n_mem), source = 0._dp)
       allocate( laddie%buffer%S_min            ( n_mem), source = 0._dp)
 
+      if (allocated( laddie%buffer%entr_tot     )) deallocate(laddie%buffer%entr_tot)
+      if (allocated( laddie%buffer%entr_dmin_tot)) deallocate(laddie%buffer%entr_dmin_tot)
+      if (allocated( laddie%buffer%detr_tot     )) deallocate(laddie%buffer%detr_tot)
+      if (allocated( laddie%buffer%divQH_sum    )) deallocate(laddie%buffer%divQH_sum)
       allocate( laddie%buffer%entr_tot         ( n_mem), source = 0._dp)
       allocate( laddie%buffer%entr_dmin_tot    ( n_mem), source = 0._dp)
       allocate( laddie%buffer%detr_tot         ( n_mem), source = 0._dp)
