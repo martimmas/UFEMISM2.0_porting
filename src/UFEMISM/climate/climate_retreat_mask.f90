@@ -70,16 +70,6 @@ contains
       if (time == C%start_time_of_run) then
         ! If the retreat mask is time-independent, just read it once and keep it constant
         call read_field_from_file_2D( C%ISMIP_future_shelf_collapse_forcing_filename, 'mask', mesh, C%output_dir, climate%ISMIP_style%shelf_collapse_mask)
-
-        ! If the retreat mask is applied only to the open ocean, set the shelf collapse mask to zero
-        if (C%retreat_mask_applied_only_to_open_ocean) then
-          do vi = mesh%vi1, mesh%vi2
-            if (.not. ice%mask_icefree_ocean(vi)) then
-              climate%ISMIP_style%shelf_collapse_mask( vi) = 0.0_dp
-            end if
-          end do
-        end if
-
       else
         ! do nothing, no need to read the mask again
       end if ! if (time == C%start_time_of_run)
