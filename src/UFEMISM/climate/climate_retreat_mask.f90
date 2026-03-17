@@ -127,17 +127,10 @@ contains
     allocate( climate%ISMIP_style%shelf_collapse_mask1( mesh%vi1:mesh%vi2))
     allocate( climate%ISMIP_style%shelf_collapse_mask( mesh%vi1:mesh%vi2))
 
-! what about this one? I think is not needed? as it is like a real value
-      ! Allocate memory for the timestamps of the two timeframes
-    !allocate( climate%ISMIP_style%shelf_collapse_mask_t0)
-    !allocate( climate%ISMIP_style%shelf_collapse_mask_t1)
-      !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t0, climate_matrix%ISMIP_style%wshelf_collapse_mask_t0)
-      !CALL allocate_shared_dp_0D( climate%ISMIP_style%shelf_collapse_mask_t1, climate_matrix%ISMIP_style%wshelf_collapse_mask_t1)
-
-        ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
-        ! is guaranteed to first read two new timeframes from the NetCDF file
-      climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
-      climate%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
+    ! Give impossible values to timeframes, so that the first call to run_climate_model_ISMIP_style
+    ! is guaranteed to first read two new timeframes from the NetCDF file
+    climate%ISMIP_style%shelf_collapse_mask_t0 = C%start_time_of_run - 100._dp
+    climate%ISMIP_style%shelf_collapse_mask_t1 = C%start_time_of_run - 90._dp
 
     ! Finalise routine path
     call finalise_routine( routine_name)
