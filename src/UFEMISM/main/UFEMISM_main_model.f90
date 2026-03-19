@@ -226,7 +226,9 @@ CONTAINS
 
     ! Buffer scalar output data
     call buffer_scalar_output( region)
-    call buffer_ISMIP_scalar_output( region)
+    if (C%do_create_ismip_output) then
+      call buffer_ISMIP_scalar_output( region)
+    end if
 
     if (region%nROI > 0) then
       call buffer_scalar_output_ROI( region)
