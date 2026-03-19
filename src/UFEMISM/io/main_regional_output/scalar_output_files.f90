@@ -510,7 +510,7 @@ contains
       call init_routine( routine_name)
 
       ! if no NetCDF output should be created, do nothing
-      if (.not. C%do_create_ismip_output) then
+      if (.not. C%do_create_ismip_output .OR. .not. C%do_create_netcdf_output) then
         call finalise_routine( routine_name)
         return
       end if
@@ -572,7 +572,7 @@ contains
       call init_routine( routine_name)
 
       ! if no NetCDF output should be created, do nothing
-      if (.not. C%do_create_netcdf_output) then
+      if (.not. C%do_create_ismip_output .OR. .not. C%do_create_netcdf_output) then
         call finalise_routine( routine_name)
         return
       end if
