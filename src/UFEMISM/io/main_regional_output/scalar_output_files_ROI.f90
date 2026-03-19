@@ -301,7 +301,7 @@ contains
     type(type_model_region), intent(inout) :: region
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'buffer_scalar_output'
+    character(len=1024), parameter :: routine_name = 'buffer_scalar_output_ROI'
     integer                        :: n, i_ROI
 
     ! Add routine to path
