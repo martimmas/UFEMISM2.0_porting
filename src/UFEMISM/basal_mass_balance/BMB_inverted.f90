@@ -88,6 +88,9 @@ contains
 
           BMB_inv%BMB( vi) = BMB_inv%BMB( vi) + C%dt_BMB * dBMBdt
 
+        else
+          BMB_inv%BMB( vi) = 0._dp
+
         end if
       end do
 
