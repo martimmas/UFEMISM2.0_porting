@@ -301,6 +301,11 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
+    if (.not. C%do_create_netcdf_output) then
+      call finalise_routine( routine_name)
+      return
+    end if
+
     ! Only the primary does this
     if (par%primary) then
 
@@ -674,6 +679,11 @@ contains
 
     ! Add routine to path
     call init_routine( routine_name)
+
+    if (.not. C%do_create_ismip_output .OR. .not. C%do_create_netcdf_output) then
+      call finalise_routine( routine_name)
+      return
+    end if
 
     ! Only the primary does this
     if (par%primary) then
