@@ -20,7 +20,7 @@ module conservation_of_mass_semiimplicit
 
 contains
 
-  subroutine calc_dHi_dt_semiimplicit( mesh, Hi, Hi_eff, Hb, SL, u_vav_b, v_vav_b, SMB, BMB, LMB, AMB, &
+  subroutine calc_dHi_dt_semiimplicit( mesh, Hi, Hb, SL, u_vav_b, v_vav_b, SMB, BMB, LMB, AMB, &
     fraction_margin, mask_noice, dt, dHi_dt, Hi_tplusdt, divQ, dHi_dt_target, BC_prescr_mask, BC_prescr_Hi)
     !< Calculate ice thickness rates of change (dH/dt)
     !< Use a semi-implicit time discretisation scheme for the ice fluxes
@@ -70,7 +70,6 @@ contains
     ! In/output variables:
     type(type_mesh),                        intent(in   )           :: mesh                  ! [-]       The model mesh
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   )           :: Hi                    ! [m]       Ice thickness at time t
-    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   )           :: Hi_eff                ! [m]       Effective ice thickness at time t
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   )           :: Hb                    ! [m]       Bedrock elevation at time t
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   )           :: SL                    ! [m]       Water surface elevation at time t
     real(dp), dimension(mesh%ti1:mesh%ti2), intent(in   )           :: u_vav_b               ! [m yr^-1] Vertically averaged ice velocities in the x-direction on the b-grid (triangles)
@@ -106,7 +105,7 @@ contains
     ! First calculate the explicit solution (used to estimate the time step,
     ! and to apply boundary conditions at the domain border)
     dt_ex = dt
-    call calc_dHi_dt_explicit( mesh, Hi, Hi_eff, Hb, SL, u_vav_b, v_vav_b, SMB, BMB, LMB, AMB_ex, &
+    call calc_dHi_dt_explicit( mesh, Hi, Hb, SL, u_vav_b, v_vav_b, SMB, BMB, LMB, AMB_ex, &
       fraction_margin, mask_noice, dt_ex, dHi_dt_ex, Hi_tplusdt_ex, divQ_ex, &
       dHi_dt_target, BC_prescr_mask, BC_prescr_Hi)
     dt_max = dt_ex
@@ -116,7 +115,7 @@ contains
 
     ! Calculate the ice flux divergence div(Q)
     call multiply_CSR_matrix_with_vector_1D_wrapper( M_divQ, &
-      mesh%pai_V, Hi_eff, mesh%pai_V, divQ, &
+      mesh%pai_V, Hi, mesh%pai_V, divQ, &
       xx_is_hybrid = .false., yy_is_hybrid = .false., &
       buffer_xx_nih = mesh%buffer1_d_a_nih, buffer_yy_nih = mesh%buffer2_d_a_nih)
 
