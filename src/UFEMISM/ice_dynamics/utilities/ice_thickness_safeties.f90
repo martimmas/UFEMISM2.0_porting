@@ -132,11 +132,19 @@ contains
       case('BMB')
         ! do nothing, collapse will be applied in BMB routine
       case('calving')
-        do vi = mesh%vi1, mesh%vi2
-          if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp .and. is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi))) then
-            Hi_new( vi) = 0._dp
-          end if
-        end do
+        if (C%retreat_mask_applied_only_to_open_ocean) then ! remove ice only if is ocean
+          do vi = mesh%vi1, mesh%vi2
+            if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp .and. refgeo%Hb( vi) < 0._dp) then
+              Hi_new( vi) = 0._dp
+            end if
+          end do
+        else ! remove ice everywhere within the mask if is floating
+          do vi = mesh%vi1, mesh%vi2
+            if (climate%ISMIP_style%shelf_collapse_mask( vi) > 0.01_dp .and. is_floating( Hi_eff_new( vi), ice%Hb( vi), ice%SL( vi))) then
+              Hi_new( vi) = 0._dp
+            end if
+          end do
+        end if
       case default
         call crash('unknown shelf_collapse_type "' // trim( C%shelf_collapse_type) // '"')
       end select
