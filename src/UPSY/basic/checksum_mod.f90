@@ -51,9 +51,9 @@ contains
   end subroutine checksum_logical_1D
 
   subroutine checksum_logical_1D_hybrid( pai, d, var_name)
-    type(type_par_arr_info), intent(in) :: pai
-    logical, dimension(:),   intent(in) :: d
-    character(len=*),        intent(in) :: var_name
+    type(type_par_arr_info),                     intent(in) :: pai
+    logical, dimension(pai%i1_node:pai%i2_node), intent(in) :: d
+    character(len=*),                            intent(in) :: var_name
 
     integer :: sum_d, ierr
 
@@ -141,9 +141,9 @@ contains
   end subroutine checksum_int_1D
 
   subroutine checksum_int_1D_hybrid( pai, d, var_name)
-    type(type_par_arr_info), intent(in) :: pai
-    integer, dimension(:),   intent(in) :: d
-    character(len=*),        intent(in) :: var_name
+    type(type_par_arr_info),                     intent(in) :: pai
+    integer, dimension(pai%i1_node:pai%i2_node), intent(in) :: d
+    character(len=*),                            intent(in) :: var_name
 
     integer :: sum_d, sum_abs_d, min_d, max_d, ierr
 
@@ -243,9 +243,9 @@ contains
   end subroutine checksum_dp_1D
 
   subroutine checksum_dp_1D_hybrid( pai, d, var_name)
-    type(type_par_arr_info), intent(in) :: pai
-    real(dp), dimension(:),  intent(in) :: d
-    character(len=*),        intent(in) :: var_name
+    type(type_par_arr_info),                      intent(in) :: pai
+    real(dp), dimension(pai%i1_node:pai%i2_node), intent(in) :: d
+    character(len=*),                             intent(in) :: var_name
 
     real(dp) :: sum_d, sum_abs_d, min_d, max_d
     integer  :: ierr
