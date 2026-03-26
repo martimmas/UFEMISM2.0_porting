@@ -8,6 +8,7 @@ module checksum_mod
   use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, MPI_DOUBLE_PRECISION, MPI_SUM, &
     MPI_MIN, MPI_MAX, MPI_COMM_WORLD
+  use crash_mod, only: crash
 
   implicit none
 
@@ -16,14 +17,14 @@ module checksum_mod
   public :: create_checksum_logfile, checksum
 
   interface checksum
-    procedure :: checksum_logical_1D_hybrid
-    procedure :: checksum_logical_2D_hybrid
+    procedure :: checksum_logical_1D
+    procedure :: checksum_logical_2D
     procedure :: checksum_int_0D
-    procedure :: checksum_int_1D_hybrid
-    procedure :: checksum_int_2D_hybrid
+    procedure :: checksum_int_1D
+    procedure :: checksum_int_2D
     procedure :: checksum_dp_0D
-    procedure :: checksum_dp_1D_hybrid
-    procedure :: checksum_dp_2D_hybrid
+    procedure :: checksum_dp_1D
+    procedure :: checksum_dp_2D
   end interface checksum
 
   logical             :: checksum_logfile_exists
@@ -32,9 +33,26 @@ module checksum_mod
 
 contains
 
+  subroutine checksum_logical_1D( pai, d, var_name)
+    type(type_par_arr_info), intent(in) :: pai
+    logical, dimension(:),   intent(in) :: d
+    character(len=*),        intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_logical_1D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_logical_1D
+
   subroutine checksum_logical_1D_hybrid( pai, d, var_name)
     type(type_par_arr_info), intent(in) :: pai
-    logical,  dimension(:),  intent(in) :: d
+    logical, dimension(:),   intent(in) :: d
     character(len=*),        intent(in) :: var_name
 
     integer :: sum_d, ierr
@@ -49,10 +67,27 @@ contains
 
   end subroutine checksum_logical_1D_hybrid
 
+  subroutine checksum_logical_2D( pai, d, var_name)
+    type(type_par_arr_info), intent(in) :: pai
+    logical, dimension(:,:), intent(in) :: d
+    character(len=*),        intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_logical_2D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_logical_2D
+
   subroutine checksum_logical_2D_hybrid( pai, d, var_name)
-    type(type_par_arr_info),  intent(in) :: pai
-    logical,  dimension(:,:), intent(in) :: d
-    character(len=*),         intent(in) :: var_name
+    type(type_par_arr_info), intent(in) :: pai
+    logical, dimension(:,:), intent(in) :: d
+    character(len=*),        intent(in) :: var_name
 
     integer :: sum_d, ierr
 
@@ -88,9 +123,26 @@ contains
 
   end subroutine checksum_int_0D
 
+  subroutine checksum_int_1D( pai, d, var_name)
+    type(type_par_arr_info), intent(in) :: pai
+    integer, dimension(:),   intent(in) :: d
+    character(len=*),        intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_int_1D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_int_1D
+
   subroutine checksum_int_1D_hybrid( pai, d, var_name)
     type(type_par_arr_info), intent(in) :: pai
-    integer,  dimension(:),  intent(in) :: d
+    integer, dimension(:),   intent(in) :: d
     character(len=*),        intent(in) :: var_name
 
     integer :: sum_d, sum_abs_d, min_d, max_d, ierr
@@ -111,10 +163,27 @@ contains
 
   end subroutine checksum_int_1D_hybrid
 
+  subroutine checksum_int_2D( pai, d, var_name)
+    type(type_par_arr_info), intent(in) :: pai
+    integer, dimension(:,:), intent(in) :: d
+    character(len=*),        intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_int_2D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_int_2D
+
   subroutine checksum_int_2D_hybrid( pai, d, var_name)
-    type(type_par_arr_info),  intent(in) :: pai
-    integer,  dimension(:,:), intent(in) :: d
-    character(len=*),         intent(in) :: var_name
+    type(type_par_arr_info), intent(in) :: pai
+    integer, dimension(:,:), intent(in) :: d
+    character(len=*),        intent(in) :: var_name
 
     integer :: sum_d, sum_abs_d, min_d, max_d, ierr
 
@@ -156,6 +225,23 @@ contains
 
   end subroutine checksum_dp_0D
 
+  subroutine checksum_dp_1D( pai, d, var_name)
+    type(type_par_arr_info), intent(in) :: pai
+    real(dp), dimension(:),  intent(in) :: d
+    character(len=*),        intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_dp_1D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_dp_1D
+
   subroutine checksum_dp_1D_hybrid( pai, d, var_name)
     type(type_par_arr_info), intent(in) :: pai
     real(dp), dimension(:),  intent(in) :: d
@@ -179,6 +265,23 @@ contains
     call log_checksum_dp( sum_d, sum_abs_d, min_d, max_d, var_name)
 
   end subroutine checksum_dp_1D_hybrid
+
+  subroutine checksum_dp_2D( pai, d, var_name)
+    type(type_par_arr_info),  intent(in) :: pai
+    real(dp), dimension(:,:), intent(in) :: d
+    character(len=*),         intent(in) :: var_name
+
+    if (.not. C%do_write_checksum_log) return
+
+    if (size( d,1) == pai%n_loc) then
+      ! FIXME
+    elseif (size( d,1) == pai%n_node) then
+      call checksum_dp_2D_hybrid( pai, d, var_name)
+    else
+      call crash('invalid array size')
+    end if
+
+  end subroutine checksum_dp_2D
 
   subroutine checksum_dp_2D_hybrid( pai, d, var_name)
     type(type_par_arr_info),  intent(in) :: pai
