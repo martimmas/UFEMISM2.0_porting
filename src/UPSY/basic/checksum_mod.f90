@@ -77,17 +77,18 @@ contains
     if (size( d,1) == pai%n_loc) then
       ! FIXME
     elseif (size( d,1) == pai%n_node) then
-      call checksum_logical_2D_hybrid( pai, d, var_name)
+      call checksum_logical_2D_hybrid( pai, size( d,2), d, var_name)
     else
       call crash('invalid array size')
     end if
 
   end subroutine checksum_logical_2D
 
-  subroutine checksum_logical_2D_hybrid( pai, d, var_name)
-    type(type_par_arr_info), intent(in) :: pai
-    logical, dimension(:,:), intent(in) :: d
-    character(len=*),        intent(in) :: var_name
+  subroutine checksum_logical_2D_hybrid( pai, nz, d, var_name)
+    type(type_par_arr_info),                           intent(in) :: pai
+    integer,                                           intent(in) :: nz
+    logical, dimension(pai%i1_node:pai%i2_node, 1:nz), intent(in) :: d
+    character(len=*),                                  intent(in) :: var_name
 
     integer :: sum_d, ierr
 
@@ -173,17 +174,18 @@ contains
     if (size( d,1) == pai%n_loc) then
       ! FIXME
     elseif (size( d,1) == pai%n_node) then
-      call checksum_int_2D_hybrid( pai, d, var_name)
+      call checksum_int_2D_hybrid( pai, size( d,2), d, var_name)
     else
       call crash('invalid array size')
     end if
 
   end subroutine checksum_int_2D
 
-  subroutine checksum_int_2D_hybrid( pai, d, var_name)
-    type(type_par_arr_info), intent(in) :: pai
-    integer, dimension(:,:), intent(in) :: d
-    character(len=*),        intent(in) :: var_name
+  subroutine checksum_int_2D_hybrid( pai, nz, d, var_name)
+    type(type_par_arr_info),                           intent(in) :: pai
+    integer,                                           intent(in) :: nz
+    integer, dimension(pai%i1_node:pai%i2_node, 1:nz), intent(in) :: d
+    character(len=*),                                  intent(in) :: var_name
 
     integer :: sum_d, sum_abs_d, min_d, max_d, ierr
 
@@ -276,17 +278,18 @@ contains
     if (size( d,1) == pai%n_loc) then
       ! FIXME
     elseif (size( d,1) == pai%n_node) then
-      call checksum_dp_2D_hybrid( pai, d, var_name)
+      call checksum_dp_2D_hybrid( pai, size( d,2), d, var_name)
     else
       call crash('invalid array size')
     end if
 
   end subroutine checksum_dp_2D
 
-  subroutine checksum_dp_2D_hybrid( pai, d, var_name)
-    type(type_par_arr_info),  intent(in) :: pai
-    real(dp), dimension(:,:), intent(in) :: d
-    character(len=*),         intent(in) :: var_name
+  subroutine checksum_dp_2D_hybrid( pai, nz, d, var_name)
+    type(type_par_arr_info),                            intent(in) :: pai
+    integer,                                            intent(in) :: nz
+    real(dp), dimension(pai%i1_node:pai%i2_node, 1:nz), intent(in) :: d
+    character(len=*),                                   intent(in) :: var_name
 
     real(dp) :: sum_d, sum_abs_d, min_d, max_d
     integer  :: ierr
