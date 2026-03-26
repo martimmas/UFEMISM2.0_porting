@@ -16,14 +16,14 @@ module checksum_mod
   public :: create_checksum_logfile, checksum
 
   interface checksum
-    procedure :: checksum_logical_1D
-    procedure :: checksum_logical_2D
+    procedure :: checksum_logical_1D_hybrid
+    procedure :: checksum_logical_2D_hybrid
     procedure :: checksum_int_0D
-    procedure :: checksum_int_1D
-    procedure :: checksum_int_2D
+    procedure :: checksum_int_1D_hybrid
+    procedure :: checksum_int_2D_hybrid
     procedure :: checksum_dp_0D
-    procedure :: checksum_dp_1D
-    procedure :: checksum_dp_2D
+    procedure :: checksum_dp_1D_hybrid
+    procedure :: checksum_dp_2D_hybrid
   end interface checksum
 
   logical             :: checksum_logfile_exists
@@ -32,7 +32,7 @@ module checksum_mod
 
 contains
 
-  subroutine checksum_logical_1D( d, var_name, pai)
+  subroutine checksum_logical_1D_hybrid( d, var_name, pai)
     logical,  dimension(:),            intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -51,9 +51,9 @@ contains
 
     call log_checksum_int( sum_d, 0, 0, 0, var_name)
 
-  end subroutine checksum_logical_1D
+  end subroutine checksum_logical_1D_hybrid
 
-  subroutine checksum_logical_2D( d, var_name, pai)
+  subroutine checksum_logical_2D_hybrid( d, var_name, pai)
     logical,  dimension(:,:),          intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -72,7 +72,7 @@ contains
 
     call log_checksum_int( sum_d, 0, 0, 0, var_name)
 
-  end subroutine checksum_logical_2D
+  end subroutine checksum_logical_2D_hybrid
 
   subroutine checksum_int_0D( d, var_name)
     ! For 0-D values, verify that all processes have the same value,
@@ -96,7 +96,7 @@ contains
 
   end subroutine checksum_int_0D
 
-  subroutine checksum_int_1D( d, var_name, pai)
+  subroutine checksum_int_1D_hybrid( d, var_name, pai)
     integer,  dimension(:),            intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -124,9 +124,9 @@ contains
 
     call log_checksum_int( sum_d, sum_abs_d, min_d, max_d, var_name)
 
-  end subroutine checksum_int_1D
+  end subroutine checksum_int_1D_hybrid
 
-  subroutine checksum_int_2D( d, var_name, pai)
+  subroutine checksum_int_2D_hybrid( d, var_name, pai)
     integer,  dimension(:,:),          intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -154,7 +154,7 @@ contains
 
     call log_checksum_int( sum_d, sum_abs_d, min_d, max_d, var_name)
 
-  end subroutine checksum_int_2D
+  end subroutine checksum_int_2D_hybrid
 
   subroutine checksum_dp_0D( d, var_name)
     ! For 0-D values, verify that all processes have the same value,
@@ -178,7 +178,7 @@ contains
 
   end subroutine checksum_dp_0D
 
-  subroutine checksum_dp_1D( d, var_name, pai)
+  subroutine checksum_dp_1D_hybrid( d, var_name, pai)
     real(dp), dimension(:),            intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -207,9 +207,9 @@ contains
 
     call log_checksum_dp( sum_d, sum_abs_d, min_d, max_d, var_name)
 
-  end subroutine checksum_dp_1D
+  end subroutine checksum_dp_1D_hybrid
 
-  subroutine checksum_dp_2D( d, var_name, pai)
+  subroutine checksum_dp_2D_hybrid( d, var_name, pai)
     real(dp), dimension(:,:),          intent(in) :: d
     character(len=*),                  intent(in) :: var_name
     type(type_par_arr_info), optional, intent(in) :: pai
@@ -238,7 +238,7 @@ contains
 
     call log_checksum_dp( sum_d, sum_abs_d, min_d, max_d, var_name)
 
-  end subroutine checksum_dp_2D
+  end subroutine checksum_dp_2D_hybrid
 
   subroutine log_checksum_int( sum_d, sum_abs_d, min_d, max_d, var_name)
 
