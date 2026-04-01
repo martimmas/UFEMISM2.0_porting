@@ -128,15 +128,23 @@ CONTAINS
     ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Hs(     mesh%vi1:mesh%vi2))
     ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%T2m(    mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Precip( mesh%vi1:mesh%vi2,12))
-    ALLOCATE( climate%snapshot_p_anml%T2m_anomaly(    mesh%vi1:mesh%vi2,12))
-    ALLOCATE( climate%snapshot_p_anml%Precip_anomaly( mesh%vi1:mesh%vi2,12))
-    ALLOCATE( climate%snapshot_p_anml%T2m(            mesh%vi1:mesh%vi2,12))
-    ALLOCATE( climate%snapshot_p_anml%Precip(         mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%T2m_anomaly_0(    mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%Precip_anomaly_0( mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%T2m_anomaly_1(    mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%Precip_anomaly_1( mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%T2m_anomaly(      mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%Precip_anomaly(   mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%T2m(              mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%Precip(           mesh%vi1:mesh%vi2,12))
     climate%snapshot_p_anml%snapshot_baseline%Hs     = 0._dp
     climate%snapshot_p_anml%snapshot_baseline%T2m    = 0._dp
     climate%snapshot_p_anml%snapshot_baseline%Precip = 0._dp
     climate%snapshot_p_anml%T2m_anomaly              = 0._dp
     climate%snapshot_p_anml%Precip_anomaly           = 0._dp
+    climate%snapshot_p_anml%T2m_anomaly_0            = 0._dp
+    climate%snapshot_p_anml%Precip_anomaly_0         = 0._dp
+    climate%snapshot_p_anml%T2m_anomaly_1            = 0._dp
+    climate%snapshot_p_anml%Precip_anomaly_1         = 0._dp
     climate%snapshot_p_anml%T2m                      = 0._dp
     climate%snapshot_p_anml%Precip                   = 0._dp
 
