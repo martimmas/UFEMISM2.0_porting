@@ -194,7 +194,6 @@ CONTAINS
     ! Read in anomalies
 
     ! Initialise anomaly timeframes
-    IF (par%primary)  WRITE(*,"(A)") '    Reading anomalies...'
     climate%snapshot_p_anml%anomaly_t0 = C%start_time_of_run - 200._dp
     climate%snapshot_p_anml%anomaly_t1 = C%start_time_of_run - 100._dp
     call update_climate_timeframes( mesh, climate, C%start_time_of_run)
