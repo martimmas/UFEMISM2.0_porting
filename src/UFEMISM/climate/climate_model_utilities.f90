@@ -607,16 +607,16 @@ subroutine update_climate_timeframes(mesh, climate, time)
     climate%snapshot_p_anml%anomaly_t1 = time_from_file( ti1)
 
     ! Read the two timeframes
-    call read_field_from_file_2D( filename, 'T2m_anomaly', &
+    call read_field_from_file_2D_monthly( filename, 'T2m_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_0, &
       time_to_read = climate%snapshot_p_anml%anomaly_t0)
-    call read_field_from_file_2D( filename, 'T2m_anomaly', &
+    call read_field_from_file_2D_monthly( filename, 'T2m_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_1, &
       time_to_read = climate%snapshot_p_anml%anomaly_t1)
-    call read_field_from_file_2D( filename, 'Precip_anomaly', &
+    call read_field_from_file_2D_monthly( filename, 'Precip_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_0, &
       time_to_read = climate%snapshot_p_anml%anomaly_t0)
-    call read_field_from_file_2D( filename, 'Precip_anomaly', &
+    call read_field_from_file_2D_monthly( filename, 'Precip_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_1, &
       time_to_read = climate%snapshot_p_anml%anomaly_t1)
 

@@ -66,22 +66,23 @@ CONTAINS
     w0 = (climate%snapshot_p_anml%anomaly_t1 - time) / (climate%snapshot_p_anml%anomaly_t1 - self%anomaly_t0)
     w1 = 1._dp - w0
 
+    do m = 1,12
     do vi = mesh%vi1, mesh%vi2
 
-      ! Note that the baseline and the applied temperature are monthly, but the anomaly is annual
-      climate%snapshot_p_anml%T2m_anomaly( vi)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi)
-      climate%snapshot_p_anml%Precip_anomaly( vi) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi)
+      climate%snapshot_p_anml%T2m_anomaly( vi, m)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi, m)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi, m)
+      climate%snapshot_p_anml%Precip_anomaly( vi, m) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi, m) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi, m)
       
 
       ! Add anomaly to snapshot to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,:)    = climate%snapshot_p_anml%T2m_baseline( vi,:)    + climate%snapshot_p_anml%T2m_anomaly( vi)
-      climate%snapshot_p_anml%Precip( vi,:) = climate%snapshot_p_anml%Precip_baseline( vi,:) + climate%snapshot_p_anml%Precip_anomaly( vi)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%T2m_baseline( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi, m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%Precip_baseline( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi, m)
       
 
       ! Copy T2m to climate model
-      climate%T2m( vi,:)    = climate%snapshot_p_anml%T2m( vi,:)
-      climate%Precip( vi,:) = climate%snapshot_p_anml%Precip( vi,:)
+      climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
+      climate%Precip( vi,m) = climate%snapshot_p_anml%Precip( vi,m)
 
+    end do
     end do
 
     ! Update temperature and precipitation fields based on the mismatch between
@@ -123,18 +124,11 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    !ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Hs(     mesh%vi1:mesh%vi2))
-    !ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%T2m(    mesh%vi1:mesh%vi2,12))
-    !ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Precip( mesh%vi1:mesh%vi2,12))
+    ! Allocate variables that will be computed
     ALLOCATE( climate%snapshot_p_anml%T2m_anomaly(    mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%Precip_anomaly( mesh%vi1:mesh%vi2,12))
-    
-    ! TODO: do we need to allocate these??
-    !ALLOCATE( climate%snapshot_p_anml%T2m_anomaly_0(    mesh%vi1:mesh%vi2,12))
-    !ALLOCATE( climate%snapshot_p_anml%Precip_anomaly_0( mesh%vi1:mesh%vi2,12))
-    !ALLOCATE( climate%snapshot_p_anml%T2m_anomaly_1(    mesh%vi1:mesh%vi2,12))
-    !ALLOCATE( climate%snapshot_p_anml%Precip_anomaly_1( mesh%vi1:mesh%vi2,12))
-
+    ALLOCATE( climate%snapshot_p_anml%T2m(            mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%Precip(         mesh%vi1:mesh%vi2,12))
 
     ! Run the chosen realistic climate model
     climate%snapshot_p_anml%snapshot_baseline%has_insolation = .FALSE.
@@ -191,20 +185,22 @@ CONTAINS
     w0 = (climate%snapshot_p_anml%anomaly_t1 - C%start_time_of_run) / (climate%snapshot_p_anml%anomaly_t1 - climate%snapshot_p_anml%anomaly_t0)
     w1 = 1._dp - w0
 
+    do m = 1,12
     do vi = mesh%vi1, mesh%vi2
 
       ! Note that the baseline and the applied temperature and precip are monthly, but the anomaly is annual
-      climate%snapshot_p_anml%T2m_anomaly( vi)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi)
-      climate%snapshot_p_anml%Precip_anomaly( vi) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi)
+      climate%snapshot_p_anml%T2m_anomaly( vi,m)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi,m)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi,m)
+      climate%snapshot_p_anml%Precip_anomaly( vi,m) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi,m) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi,m)
 
       ! Add anomaly to snapshots to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,:)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,:)    + climate%snapshot_p_anml%T2m_anomaly( vi)
-      climate%snapshot_p_anml%Precip( vi,:) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,:) + climate%snapshot_p_anml%Precip_anomaly( vi)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
 
       ! Copy to climate model
-      climate%T2m( vi,:)    = climate%snapshot_p_anml%T2m( vi,:)
-      climate%Precip( vi,:) = climate%snapshot_p_anml%Precip( vi,:)
+      climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
+      climate%Precip( vi,m) = climate%snapshot_p_anml%Precip( vi,m)
 
+    end do
     end do
 
     call apply_geometry_downscaling_corrections( mesh, ice, climate)
@@ -299,19 +295,20 @@ CONTAINS
     w0 = (climate%snapshot_p_anml%anomaly_t1 - time) / (climate%snapshot_p_anml%anomaly_t1 - climate%snapshot_p_anml%anomaly_t0)
     w1 = 1._dp - w0
 
+    do m = 1,12
     do vi = mesh%vi1, mesh%vi2
 
       ! Note that the baseline and the applied temperature and precip are monthly, but the anomaly is annual
-      climate%snapshot_p_anml%T2m_anomaly( vi)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi)
-      climate%snapshot_p_anml%Precip_anomaly( vi) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi)
+      climate%snapshot_p_anml%T2m_anomaly( vi,m)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi,m)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi,m)
+      climate%snapshot_p_anml%Precip_anomaly( vi,m) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi,m) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi,m)
 
       ! Add anomaly to snapshots to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,:)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,:)    + climate%snapshot_p_anml%T2m_anomaly( vi)
-      climate%snapshot_p_anml%Precip( vi,:) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,:) + climate%snapshot_p_anml%Precip_anomaly( vi)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
 
       ! Copy to climate model
-      climate%T2m( vi,:)    = climate%snapshot_p_anml%T2m( vi,:)
-      climate%Precip( vi,:) = climate%snapshot_p_anml%Precip( vi,:)
+      climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
+      climate%Precip( vi,m) = climate%snapshot_p_anml%Precip( vi,m)
 
     end do
 

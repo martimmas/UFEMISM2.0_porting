@@ -93,16 +93,16 @@ MODULE climate_model_types
     REAL(dp), DIMENSION(:,:), ALLOCATABLE   :: Precip                          ! Monthly mean precipitation anomaly (m)
 
     ! anomalies
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: T2m_anomaly                     ! Monthly mean 2m air temperature anomaly (K)
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: Precip_anomaly                  ! Monthly mean precipitation anomaly (m)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: T2m_anomaly                   ! Monthly mean 2m air temperature anomaly (K)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Precip_anomaly                ! Monthly mean precipitation anomaly (m)
 
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: T2m_anomaly_0                   ! Prev. timeframe of monthly mean 2m air temperature anomaly (K)
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: Precip_anomaly_0                ! Prev. timeframe of monthly mean precipitation anomaly (m)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: T2m_anomaly_0                 ! Prev. timeframe of monthly mean 2m air temperature anomaly (K)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Precip_anomaly_0              ! Prev. timeframe of monthly mean precipitation anomaly (m)
 
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: T2m_anomaly_1                   ! Next timeframe of monthly mean 2m air temperature anomaly (K)
-    REAL(dp), DIMENSION(:), ALLOCATABLE     :: Precip_anomaly_1                ! Next timeframe of monthly mean precipitation anomaly (m)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: T2m_anomaly_1                 ! Next timeframe of monthly mean 2m air temperature anomaly (K)
+    REAL(dp), DIMENSION(:,:), ALLOCATABLE     :: Precip_anomaly_1              ! Next timeframe of monthly mean precipitation anomaly (m)
 
-    REAL(dp)                                  :: anomaly_t0, anomaly_t1          ! times of each timeframe
+    REAL(dp)                                  :: anomaly_t0, anomaly_t1        ! times of each timeframe
 
   END TYPE type_climate_model_snapshot_plus_anomalies
   
