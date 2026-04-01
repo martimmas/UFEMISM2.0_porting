@@ -187,11 +187,8 @@ CONTAINS
     end select
 
     ! Read in baseline variables
-    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline Hs...'
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Hs)
-    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline T2m...'
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%T2m)
-    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline Precip...'
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Precip)
 
     ! Read in anomalies
