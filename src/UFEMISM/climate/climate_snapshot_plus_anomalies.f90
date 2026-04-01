@@ -125,10 +125,20 @@ CONTAINS
     CALL init_routine( routine_name)
 
     ! Allocate variables that will be computed
+    ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Hs(     mesh%vi1:mesh%vi2))
+    ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%T2m(    mesh%vi1:mesh%vi2,12))
+    ALLOCATE( climate%snapshot_p_anml%snapshot_baseline%Precip( mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%T2m_anomaly(    mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%Precip_anomaly( mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%T2m(            mesh%vi1:mesh%vi2,12))
     ALLOCATE( climate%snapshot_p_anml%Precip(         mesh%vi1:mesh%vi2,12))
+    climate%snapshot_p_anml%snapshot_baseline%Hs     = 0._dp
+    climate%snapshot_p_anml%snapshot_baseline%T2m    = 0._dp
+    climate%snapshot_p_anml%snapshot_baseline%Precip = 0._dp
+    climate%snapshot_p_anml%T2m_anomaly              = 0._dp
+    climate%snapshot_p_anml%Precip_anomaly           = 0._dp
+    climate%snapshot_p_anml%T2m                      = 0._dp
+    climate%snapshot_p_anml%Precip                   = 0._dp
 
     ! Run the chosen realistic climate model
     climate%snapshot_p_anml%snapshot_baseline%has_insolation = .FALSE.
@@ -169,13 +179,17 @@ CONTAINS
     end select
 
     ! Read in baseline variables
+    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline Hs...'
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Hs)
+    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline T2m...'
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%T2m)
+    IF (par%primary)  WRITE(*,"(A)") '    Reading baseline Precip...'
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Precip)
 
     ! Read in anomalies
 
     ! Initialise anomaly timeframes
+    IF (par%primary)  WRITE(*,"(A)") '    Reading anomalies...'
     climate%snapshot_p_anml%anomaly_t0 = C%start_time_of_run - 200._dp
     climate%snapshot_p_anml%anomaly_t1 = C%start_time_of_run - 100._dp
     call update_climate_timeframes( mesh, climate, C%start_time_of_run)
