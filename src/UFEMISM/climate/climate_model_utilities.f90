@@ -31,6 +31,7 @@ module climate_model_utilities
   public :: apply_precipitation_CC_correction
   public :: apply_geometry_downscaling_corrections
   public :: fill_in_transient_dT_snapshot_fields
+  public :: update_climate_timeframes
 
   contains
 
@@ -557,5 +558,71 @@ module climate_model_utilities
     CALL finalise_routine( routine_name)
 
 end subroutine fill_in_transient_dT_snapshot_fields
+
+subroutine update_climate_timeframes(mesh, climate, time)
+
+    ! In/output variables:
+    type(type_mesh),                  intent(in   ) :: mesh
+    type(type_climate_model),         intent(inout) :: climate
+    real(dp),                         intent(in   ) :: time
+
+    ! Local variables:
+    character(len=1024), parameter      :: routine_name = 'update_climate_timeframes'
+    integer                             :: ncid, id_dim_time, nt, id_var_time, ierr
+    real(dp), dimension(:), allocatable :: time_from_file
+    integer                             :: ti0, ti1
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! Read time variable from the file
+    call open_existing_netcdf_file_for_reading( filename, ncid)
+    call check_time( filename, ncid)
+    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = nt)
+    call inquire_var_multopt( filename, ncid, field_name_options_time, id_var_time)
+    allocate( time_from_file( nt))
+    call read_var_primary( filename, ncid, id_var_time, time_from_file)
+    call MPI_BCAST( time_from_file(:), nt, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    call close_netcdf_file( ncid)
+
+    ! Find the two timeframes
+    if (time < time_from_file( 1)) then
+      if (par%primary) call warning('model time before start of anomaly file; using first timeframe')
+      ti0 = 1
+      ti1 = 2
+    elseif (time > time_from_file( size( time_from_file,1))) then
+      if (par%primary) call warning('model time beyond end of anomaly file; using last timeframe')
+      ti0 = size( time_from_file,1) - 1
+      ti1 = size( time_from_file,1)
+    else
+      ti0 = 1
+      ti1 = 2
+      do while (time_from_file( ti1) < time .and. ti1 < size( time_from_file,1))
+        ti0 = ti1
+        ti1 = ti1 + 1
+      end do
+    end if
+
+    climate%snapshot_p_anml%anomaly_t0 = time_from_file( ti0)
+    climate%snapshot_p_anml%anomaly_t1 = time_from_file( ti1)
+
+    ! Read the two timeframes
+    call read_field_from_file_2D( filename, 'T2m_anomaly', &
+      mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_0, &
+      time_to_read = climate%snapshot_p_anml%anomaly_t0)
+    call read_field_from_file_2D( filename, 'T2m_anomaly', &
+      mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_1, &
+      time_to_read = climate%snapshot_p_anml%anomaly_t1)
+    call read_field_from_file_2D( filename, 'Precip_anomaly', &
+      mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_0, &
+      time_to_read = climate%snapshot_p_anml%anomaly_t0)
+    call read_field_from_file_2D( filename, 'Precip_anomaly', &
+      mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_1, &
+      time_to_read = climate%snapshot_p_anml%anomaly_t1)
+
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine update_climate_timeframes
 
 end module
