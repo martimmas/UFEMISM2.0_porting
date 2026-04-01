@@ -20,7 +20,7 @@ MODULE climate_snapshot_plus_anomalies
   USE netcdf_basic
   use reallocate_mod                                         , only: reallocate_bounds
   use mpi_distributed_memory                                 , only: distribute_from_primary
-  use climate_model_utilities
+  use climate_model_utilities                                , only: update_climate_timeframes, get_insolation_at_time
   use series_utilities
 
   IMPLICIT NONE
@@ -51,6 +51,7 @@ CONTAINS
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'run_climate_model_snp_p_anml'
     INTEGER                                               :: vi, m
+    REAL(dp)                                              :: w0, w1
 
     ! Add routine to path
     CALL init_routine( routine_name)
@@ -63,7 +64,7 @@ CONTAINS
     end if
 
     ! Interpolate between the two timeframes to find the applied anomaly
-    w0 = (climate%snapshot_p_anml%anomaly_t1 - time) / (climate%snapshot_p_anml%anomaly_t1 - self%anomaly_t0)
+    w0 = (climate%snapshot_p_anml%anomaly_t1 - time) / (climate%snapshot_p_anml%anomaly_t1 - climate%snapshot_p_anml%anomaly_t0)
     w1 = 1._dp - w0
 
     do m = 1,12
@@ -74,8 +75,8 @@ CONTAINS
       
 
       ! Add anomaly to snapshot to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%T2m_baseline( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi, m)
-      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%Precip_baseline( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi, m)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi, m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi, m)
       
 
       ! Copy T2m to climate model
@@ -113,7 +114,6 @@ CONTAINS
     TYPE(type_ice_model),                   INTENT(IN)    :: ice
     TYPE(type_climate_model),               INTENT(INOUT) :: climate
     CHARACTER(LEN=3),                       INTENT(IN)    :: region_name
-    real(dp),                               INTENT(IN)    :: start_time_of_run
 
     ! Local variables:
     CHARACTER(LEN=256), PARAMETER                         :: routine_name = 'initialise_climate_model_snp_p_anml'
@@ -171,7 +171,7 @@ CONTAINS
     ! Read in baseline variables
     CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Hs)
     CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%T2m)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline&Precip)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Precip)
 
     ! Read in anomalies
 
@@ -193,8 +193,8 @@ CONTAINS
       climate%snapshot_p_anml%Precip_anomaly( vi,m) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi,m) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi,m)
 
       ! Add anomaly to snapshots to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
-      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
 
       ! Copy to climate model
       climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
@@ -282,13 +282,13 @@ CONTAINS
 
     call reallocate_bounds( climate%snapshot_p_anml%snapshot_baseline%Hs, mesh_new%vi1, mesh_new%vi2)
 
-    CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Hs)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%T2m)
-    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh, C%output_dir, climate%snapshot_p_anml%snapshot_baseline&Precip)
+    CALL read_field_from_file_2D(         filename_climate_snapshot, 'Hs'    , mesh_new, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Hs)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'T2m'   , mesh_new, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%T2m)
+    CALL read_field_from_file_2D_monthly( filename_climate_snapshot, 'Precip', mesh_new, C%output_dir, climate%snapshot_p_anml%snapshot_baseline%Precip)
 
     
     ! Update anomaly timeframes
-    call update_climate_timeframes( mesh, climate, time)
+    call update_climate_timeframes( mesh_new, climate, time)
 
     ! Calculate climate%snapshot_p_anml%T2m_anomaly
     ! Interpolate between the two timeframes to find the applied anomaly
@@ -296,23 +296,24 @@ CONTAINS
     w1 = 1._dp - w0
 
     do m = 1,12
-    do vi = mesh%vi1, mesh%vi2
+    do vi = mesh_new%vi1, mesh_new%vi2
 
       ! Note that the baseline and the applied temperature and precip are monthly, but the anomaly is annual
       climate%snapshot_p_anml%T2m_anomaly( vi,m)    = w0 * climate%snapshot_p_anml%T2m_anomaly_0( vi,m)    + w1 * climate%snapshot_p_anml%T2m_anomaly_1( vi,m)
       climate%snapshot_p_anml%Precip_anomaly( vi,m) = w0 * climate%snapshot_p_anml%Precip_anomaly_0( vi,m) + w1 * climate%snapshot_p_anml%Precip_anomaly_1( vi,m)
 
       ! Add anomaly to snapshots to find the applied temperature and precipitation
-      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
-      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
+      climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
 
       ! Copy to climate model
       climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
       climate%Precip( vi,m) = climate%snapshot_p_anml%Precip( vi,m)
 
     end do
+    end do
 
-    call apply_geometry_downscaling_corrections( mesh, ice, climate)
+    call apply_geometry_downscaling_corrections( mesh_new, ice, climate)
     
 
     IF (climate%snapshot_p_anml%snapshot_baseline%has_insolation .eqv. .TRUE.) THEN
@@ -343,7 +344,7 @@ CONTAINS
     ! Add routine to path
     CALL init_routine( routine_name)
 
-    IF     ((C%choice_climate_model == 'snapshot_plus_anomalies') .AND. (climate%snapshot_p_anml%snapshot_baseline%do_lapse_rates .eqv. .TRUE.)) THEN
+    IF     (climate%snapshot_p_anml%snapshot_baseline%do_lapse_rates .eqv. .TRUE.) THEN
 
       allocate( T_inv     (mesh%vi1:mesh%vi2, 12))
       allocate( T_inv_ref (mesh%vi1:mesh%vi2, 12))
@@ -373,8 +374,6 @@ CONTAINS
       deallocate(T_inv)
       deallocate(T_inv_ref)
 
-    ELSEIF (C%choice_climate_model_realistic == 'climate_matrix') THEN
-      ! Not yet implemented! Will likely use the lambda field from Berends et al. (2018)
     END IF
 
     ! Finalise routine path
@@ -383,4 +382,4 @@ CONTAINS
   END SUBROUTINE apply_geometry_downscaling_corrections
 
 
-END MODULE climate_snapshot_plus_transient_deltaT
+END MODULE climate_snapshot_plus_anomalies

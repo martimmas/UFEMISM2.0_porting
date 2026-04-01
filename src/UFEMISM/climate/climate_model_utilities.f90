@@ -5,7 +5,7 @@ module climate_model_utilities
   use call_stack_and_comp_time_tracking                  , only: crash, init_routine, finalise_routine, warning
   use model_configuration                                    , only: C
   use parameters
-  use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER
+  use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER, MPI_BCAST
   use mesh_types                                             , only: type_mesh
   use ice_model_types                                        , only: type_ice_model
   use grid_types                                             , only: type_grid
@@ -576,12 +576,12 @@ subroutine update_climate_timeframes(mesh, climate, time)
     call init_routine( routine_name)
 
     ! Read time variable from the file
-    call open_existing_netcdf_file_for_reading( filename, ncid)
-    call check_time( filename, ncid)
-    call inquire_dim_multopt( filename, ncid, field_name_options_time, id_dim_time, dim_length = nt)
-    call inquire_var_multopt( filename, ncid, field_name_options_time, id_var_time)
+    call open_existing_netcdf_file_for_reading( climate%snapshot_p_anml%filename_climate_anomalies, ncid)
+    call check_time( climate%snapshot_p_anml%filename_climate_anomalies, ncid)
+    call inquire_dim_multopt( climate%snapshot_p_anml%filename_climate_anomalies, ncid, field_name_options_time, id_dim_time, dim_length = nt)
+    call inquire_var_multopt( climate%snapshot_p_anml%filename_climate_anomalies, ncid, field_name_options_time, id_var_time)
     allocate( time_from_file( nt))
-    call read_var_primary( filename, ncid, id_var_time, time_from_file)
+    call read_var_primary( climate%snapshot_p_anml%filename_climate_anomalies, ncid, id_var_time, time_from_file)
     call MPI_BCAST( time_from_file(:), nt, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     call close_netcdf_file( ncid)
 
@@ -607,16 +607,16 @@ subroutine update_climate_timeframes(mesh, climate, time)
     climate%snapshot_p_anml%anomaly_t1 = time_from_file( ti1)
 
     ! Read the two timeframes
-    call read_field_from_file_2D_monthly( filename, 'T2m_anomaly', &
+    call read_field_from_file_2D_monthly( climate%snapshot_p_anml%filename_climate_anomalies, 'T2m_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_0, &
       time_to_read = climate%snapshot_p_anml%anomaly_t0)
-    call read_field_from_file_2D_monthly( filename, 'T2m_anomaly', &
+    call read_field_from_file_2D_monthly( climate%snapshot_p_anml%filename_climate_anomalies, 'T2m_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%T2m_anomaly_1, &
       time_to_read = climate%snapshot_p_anml%anomaly_t1)
-    call read_field_from_file_2D_monthly( filename, 'Precip_anomaly', &
+    call read_field_from_file_2D_monthly( climate%snapshot_p_anml%filename_climate_anomalies, 'Precip_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_0, &
       time_to_read = climate%snapshot_p_anml%anomaly_t0)
-    call read_field_from_file_2D_monthly( filename, 'Precip_anomaly', &
+    call read_field_from_file_2D_monthly( climate%snapshot_p_anml%filename_climate_anomalies, 'Precip_anomaly', &
       mesh, C%output_dir, climate%snapshot_p_anml%Precip_anomaly_1, &
       time_to_read = climate%snapshot_p_anml%anomaly_t1)
 
