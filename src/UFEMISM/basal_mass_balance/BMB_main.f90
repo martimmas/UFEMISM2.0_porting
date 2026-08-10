@@ -712,7 +712,7 @@ CONTAINS
           ELSEIF (C%choice_BMB_subgrid == 'PMP') THEN
             ! Apply PMP scheme
             if (C%do_remove_shelves) then ! Apply only frontal melting
-              if (ice%mask_cf_gr(vi) .AND. ice%Hib(vi) < ice%SL(vi)) BMB%BMB( vi) = (1._dp - ice%fraction_gr( vi)) * BMB%BMB_shelf( vi)
+              if (ice%mask_cf_gr(vi) .OR. ice%mask_cf_fl(vi) .AND. ice%Hib(vi) < ice%SL(vi)) BMB%BMB( vi) = (1._dp - ice%fraction_gr( vi)) * BMB%BMB_shelf( vi)
             else
               if (ice%mask_floating_ice( vi) .OR. ice%mask_gl_gr( vi) .OR. (ice%mask_cf_gr(vi) .AND. ice%Hib(vi) < ice%SL(vi))) BMB%BMB( vi) = (1._dp - ice%fraction_gr( vi)) * BMB%BMB_shelf( vi)
             end if
