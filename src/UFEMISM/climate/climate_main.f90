@@ -21,7 +21,7 @@ MODULE climate_main
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   use netcdf_io_main
   use climate_matrix                                         , only: run_climate_model_matrix, initialise_climate_matrix, remap_climate_matrix_model
-  use climate_retreat_mask                                   , only: run_climate_retreat_mask, initialise_climate_retreat_mask
+  use climate_retreat_mask                                   , only: run_climate_retreat_mask, initialise_climate_retreat_mask, remap_climate_retreat_mask
   
   IMPLICIT NONE
 
@@ -440,6 +440,11 @@ CONTAINS
       call remap_climate_matrix_model( mesh_new, climate, region_name, grid, ice, forcing)
     ELSE
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
+    END IF
+
+    IF (C%do_use_ISMIP_future_shelf_collapse_forcing) THEN
+      ! Remap the ISMIP-style forcing
+      call remap_climate_retreat_mask( mesh_new, climate)
     END IF
 
     ! Finalise routine path

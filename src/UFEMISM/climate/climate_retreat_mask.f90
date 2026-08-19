@@ -22,6 +22,7 @@ module climate_retreat_mask
   public :: run_climate_retreat_mask
   public :: update_ISMIP_style_future_timeframes
   public :: initialise_climate_retreat_mask
+  public :: remap_climate_retreat_mask
 
 contains
 
@@ -153,5 +154,31 @@ contains
     call finalise_routine( routine_name)
 
   end subroutine initialise_climate_retreat_mask
+
+  subroutine remap_climate_retreat_mask(mesh_new, climate)
+    ! Remap the retreat mask to the new mesh
+
+    ! In/output variables:
+    type(type_mesh),                    intent(in   ) :: mesh_new
+    type(type_climate_model),           intent(inout) :: climate
+
+    ! Local variables:
+    character(len=256), parameter                           :: routine_name = 'remap_climate_retreat_mask'
+
+    ! Add routine to path
+    call init_routine( routine_name)
+
+    ! deallocate memory for the old mesh
+    deallocate( climate%ISMIP_style%shelf_collapse_mask0)
+    deallocate( climate%ISMIP_style%shelf_collapse_mask1)
+    deallocate( climate%ISMIP_style%shelf_collapse_mask)
+
+    ! initialise again with the new mesh
+    call initialise_climate_retreat_mask( mesh_new, climate)
+    
+    ! Finalise routine path
+    call finalise_routine( routine_name)
+
+  end subroutine remap_climate_retreat_mask
 
 end module climate_retreat_mask
