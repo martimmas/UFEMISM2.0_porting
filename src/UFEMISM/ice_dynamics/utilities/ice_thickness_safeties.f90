@@ -153,8 +153,8 @@ contains
     ! check that the ice thickness cannot be 0 if the CF and GL are the same grid point (vi)
     if (C%do_allow_change_only_in_ROI) then
       do vi = mesh%vi1, mesh%vi2
-        if ((ice%mask_cf_gr( vi) .or. ice%mask_cf_fl( vi)) .and. (ice%mask_gl_gr( vi) .or. ice%mask_gl_fl( vi))) then
-          Hi_new( vi) = max( Hi_new( vi), 1.0_dp) ! not allowed to be smaller than 1 meter
+        if (ice%mask_gl_gr( vi) .or. ice%mask_gl_fl( vi)) then
+          Hi_new( vi) = max( Hi_new( vi), 10.0_dp) ! not allowed to be smaller than 10 meters
         end if
       end do
     end if
