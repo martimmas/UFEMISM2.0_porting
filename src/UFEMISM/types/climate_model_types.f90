@@ -131,6 +131,22 @@ MODULE climate_model_types
 
   END TYPE type_climate_model_matrix
 
+  type type_climate_retreat_mask
+    ! Prescribed ice-shelf retreat mask (see climate_retreat_mask.f90)
+
+    logical                                 :: loaded = .false.                    !       Whether the cached frames are valid on the current mesh
+    real(dp)                                :: t0 = 0._dp                          ! [yr]  Time of cached frame 0
+    real(dp)                                :: t1 = 0._dp                          ! [yr]  Time of cached frame 1
+    real(dp), dimension(:), allocatable     :: times                               ! [yr]  Time axis of the mask file
+    real(dp), dimension(:), allocatable     :: mask0                               ! [-]   Cached frame 0 on the model mesh
+    real(dp), dimension(:), allocatable     :: mask1                               ! [-]   Cached frame 1 on the model mesh
+    real(dp), dimension(:), allocatable     :: mask                                ! [-]   Retreat mask at the current climate time
+    logical,  dimension(:), allocatable     :: open_ocean                          !       Ice-free ocean in the reference geometry
+    character(len=1024)                     :: open_ocean_reference_filename = ''  !       File containing the open-ocean reference
+    character(len=3)                        :: region_name = ''                    !       Model region that the reference belongs to
+
+  end type type_climate_retreat_mask
+
   TYPE type_climate_model
     ! The climate model data structure.
 
@@ -165,6 +181,7 @@ MODULE climate_model_types
     TYPE(type_climate_model_snapshot_plus_anomalies)    :: snapshot_p_anml
     TYPE(type_climate_model_matrix)                     :: matrix             ! The "matrix"          climate model option: three GCM snapshots (warm, cold, and PI), and a PD reanalysis snapshot to use for bias correction
     type(type_climate_model_ISMIP7)                     :: ISMIP7
+    type(type_climate_retreat_mask)                     :: retreat            ! Prescribed ice-shelf retreat mask
 
   END TYPE type_climate_model
 

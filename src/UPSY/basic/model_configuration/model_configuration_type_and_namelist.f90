@@ -433,6 +433,12 @@ module model_configuration_type_and_namelist
     logical             :: remove_shelves_larger_than_PD_config         = .false.                          ! If set to TRUE, all floating ice beyond the present-day calving front is removed (used for some Antarctic spin-ups)
     logical             :: continental_shelf_calving_config             = .false.                          ! If set to TRUE, all ice beyond the continental shelf edge (set by a maximum depth) is removed
     real(dp)            :: continental_shelf_min_height_config          = -2000._dp                        ! Maximum depth of the continental shelf
+    logical             :: do_use_ISMIP_future_shelf_collapse_forcing_config           = .false.                ! If set to TRUE, prescribe ice-shelf retreat from a (time-dependent) mask read from a NetCDF file
+    character(len=1024) :: ISMIP_future_shelf_collapse_forcing_filename_config         = ''                     ! File containing the retreat mask (variable "mask", values in [0,1]; time in years if time-dependent)
+    character(len=1024) :: shelf_collapse_type_config                                  = 'BMB'                  ! How the retreat mask is applied: "BMB" (prescribed shelf melt) or "calving" (removal of floating ice)
+    logical             :: retreat_mask_without_time_config                            = .false.                ! If set to TRUE, the retreat mask is static (no time dimension)
+    logical             :: retreat_mask_applied_only_to_open_ocean_config              = .false.                ! If set to TRUE, the (static) retreat mask only applies where the initial geometry was ice-free ocean
+    character(len=1024) :: retreat_mask_open_ocean_reference_filename_config           = ''                     ! Open-ocean reference written by an earlier run segment; if empty, it is derived from the initial geometry
 
   ! == Ice dynamics - stabilisation
   ! ===============================
@@ -1690,6 +1696,12 @@ module model_configuration_type_and_namelist
     logical             :: remove_shelves_larger_than_PD
     logical             :: continental_shelf_calving
     real(dp)            :: continental_shelf_min_height
+    logical             :: do_use_ISMIP_future_shelf_collapse_forcing
+    character(len=1024) :: ISMIP_future_shelf_collapse_forcing_filename
+    character(len=1024) :: shelf_collapse_type
+    logical             :: retreat_mask_without_time
+    logical             :: retreat_mask_applied_only_to_open_ocean
+    character(len=1024) :: retreat_mask_open_ocean_reference_filename
 
   ! == Ice dynamics - stabilisation
   ! ===============================
@@ -2833,6 +2845,12 @@ contains
       remove_shelves_larger_than_PD_config                        , &
       continental_shelf_calving_config                            , &
       continental_shelf_min_height_config                         , &
+      do_use_ISMIP_future_shelf_collapse_forcing_config           , &
+      ISMIP_future_shelf_collapse_forcing_filename_config         , &
+      shelf_collapse_type_config                                  , &
+      retreat_mask_without_time_config                            , &
+      retreat_mask_applied_only_to_open_ocean_config              , &
+      retreat_mask_open_ocean_reference_filename_config           , &
       choice_mask_noice_config                                    , &
       Hi_min_config                                               , &
       Hi_thin_config                                              , &
@@ -3840,6 +3858,12 @@ contains
     C%remove_shelves_larger_than_PD                          = remove_shelves_larger_than_PD_config
     C%continental_shelf_calving                              = continental_shelf_calving_config
     C%continental_shelf_min_height                           = continental_shelf_min_height_config
+    C%do_use_ISMIP_future_shelf_collapse_forcing             = do_use_ISMIP_future_shelf_collapse_forcing_config
+    C%ISMIP_future_shelf_collapse_forcing_filename           = ISMIP_future_shelf_collapse_forcing_filename_config
+    C%shelf_collapse_type                                    = shelf_collapse_type_config
+    C%retreat_mask_without_time                              = retreat_mask_without_time_config
+    C%retreat_mask_applied_only_to_open_ocean                = retreat_mask_applied_only_to_open_ocean_config
+    C%retreat_mask_open_ocean_reference_filename             = retreat_mask_open_ocean_reference_filename_config
 
     ! == Ice dynamics - stabilisation
     ! ===============================

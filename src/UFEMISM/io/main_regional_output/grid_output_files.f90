@@ -837,6 +837,11 @@ contains
       case ('BMB_modelled')
         call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%BMB%BMB_modelled, d_grid_vec_partial_2D)
         call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'BMB_modelled', d_grid_vec_partial_2D)
+      case ('retreat_mask')
+        if (.not. allocated( region%climate%retreat%mask)) &
+          call crash('retreat_mask only defined when do_use_ISMIP_future_shelf_collapse_forcing = .true.')
+        call map_from_mesh_vertices_to_xy_grid_2D( region%mesh, grid, C%output_dir, region%climate%retreat%mask, d_grid_vec_partial_2D)
+        call write_to_field_multopt_grid_dp_2D( grid, filename, ncid, 'retreat_mask', d_grid_vec_partial_2D)
 
     ! == LADDIE ==
     ! ============
@@ -1672,6 +1677,8 @@ contains
         call add_field_grid_dp_2D( filename, ncid, 'BMB_transition_phase', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance - transition phase', units = 'm yr^-1')
       case ('BMB_modelled')
         call add_field_grid_dp_2D( filename, ncid, 'BMB_modelled', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Basal mass balance - modelled', units = 'm yr^-1')
+      case ('retreat_mask')
+        call add_field_grid_dp_2D( filename, ncid, 'retreat_mask', precision = C%output_precision, do_compress = C%do_compress_output, long_name = 'Prescribed ice-shelf retreat mask', units = '-')
 
     ! == LADDIE ==
     ! ============
