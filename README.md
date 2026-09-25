@@ -32,3 +32,35 @@ upsy-plot-2dfigure rundir
 upsy-plot-3dfigure rundir
 ```
 For additional help, try `upsy-plot-2dfigure -h`
+
+### Prescribed ice-shelf retreat
+
+The retreat-mask forcing, adapted from Franco's `iQ2300_R-LIS` branch, is disabled
+by default. Enable it with:
+
+```fortran
+do_use_ISMIP_future_shelf_collapse_forcing_config = .true.
+ISMIP_future_shelf_collapse_forcing_filename_config = 'retreat.nc'
+shelf_collapse_type_config = 'calving' ! or 'BMB'
+retreat_mask_without_time_config = .false.
+```
+
+Supply a NetCDF `mask` in [0,1], without missing values, on an x/y grid, lon/lat
+grid or model mesh. Transient masks need strictly increasing times in model
+years. Frames are interpolated linearly; endpoints are held outside the time
+range. Values above 0.01 select retreat, sampled at the climate timestep.
+
+`calving` removes selected floating ice. `BMB` prescribes −400 m/yr shelf melt
+before subgrid weighting and the global melt cap (100 m/yr by default); the
+background melt is restored when selection ends. Retreat BMB cannot be combined
+with `inverted` or `prescribed_fixed` BMB. Request `retreat_mask` as an output
+field only when the forcing is enabled.
+
+For static masks, `retreat_mask_applied_only_to_open_ocean_config = .true.`
+restricts selection to initially ice-free ocean. Reuse the generated
+`retreat_mask_open_ocean_reference_<REGION>.nc` through
+`retreat_mask_open_ocean_reference_filename_config` when restarting. Use
+`{region}` in the configured filename for multiple regions. Remeshing preserves
+this initial reference rather than deriving it from the evolving geometry.
+
+See [retreat-mask tests](automated_testing/UFEMISM/retreat_mask/README.md).
