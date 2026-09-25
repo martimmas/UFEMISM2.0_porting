@@ -154,7 +154,7 @@ CONTAINS
 
       ! Calculate the basal mass balance
       CALL run_BMB_model( region%mesh, region%ice, region%ice%geom, region%ocean, &
-        region%refgeo_PD, region%BMB, region%name, region%time, is_initial=.FALSE.)
+        region%refgeo_PD, region%BMB, region%name, region%time, region%climate, is_initial=.FALSE.)
 
       ! Calculate the lateral mass balance
       CALL run_LMB_model( region%mesh, region%ice%geom, region%LMB, region%name, region%time)
@@ -603,7 +603,7 @@ CONTAINS
       region%ocean, region%name, C%start_time_of_run)
     call region%SMB%run( C%start_time_of_run, region%ice, region%ice%geom, region%climate, region%grid_smooth)
     CALL run_BMB_model( region%mesh, region%ice, region%ice%geom, region%ocean, &
-      region%refgeo_PD, region%BMB, region%name, C%start_time_of_run, is_initial=.TRUE.)
+      region%refgeo_PD, region%BMB, region%name, C%start_time_of_run, region%climate, is_initial=.TRUE.)
     CALL run_LMB_model( region%mesh, region%ice%geom, region%LMB, region%name, region%time)
 
     ! Reset the timers
@@ -1317,7 +1317,7 @@ CONTAINS
     CALL remap_climate_model(         region%mesh, mesh_new,             region%climate, region%name, region%time, region%refgeo_PD, region%refgeo_init, region%grid_smooth, region%ice, region%ice%geom, forcing)
     CALL remap_ocean_model(           region%mesh, mesh_new, region%ice%geom, region%ocean  , region%name, region%time)
     call region%SMB%remap( mesh_new, region%time, region%refgeo_init, region%refgeo_PD, region%ice%geom)
-    CALL remap_BMB_model(             region%mesh, mesh_new, region%ice, region%ice%geom, region%ocean, region%BMB    , region%name, region%time)
+    CALL remap_BMB_model(             region%mesh, mesh_new, region%ice, region%ice%geom, region%ocean, region%BMB    , region%name, region%time, region%climate)
     CALL remap_LMB_model(             region%mesh, mesh_new,             region%LMB    , region%name)
     CALL remap_AMB_model(             region%mesh, mesh_new,             region%AMB                 )
     CALL remap_GIA_model(             region%mesh, mesh_new,             region%GIA    , region%refgeo_GIAeq, region%ELRA)

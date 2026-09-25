@@ -12,6 +12,7 @@ module unit_tests
   use ut_bedrock_CDFs, only: unit_tests_bedrock_CDFs_main
   use ut_ocean_extrapolation, only: unit_tests_ocean_extrapolation_main
   use ut_SMB, only: unit_tests_SMB_main
+  use ut_climate_retreat_mask, only: unit_tests_climate_retreat_mask_main
 
   implicit none
 
@@ -50,6 +51,7 @@ contains
     call unit_tests_bedrock_CDFs_main          ( test_name)
     call unit_tests_ocean_extrapolation_main   ( test_name)
     call unit_tests_SMB_main                   ( test_name)
+    call unit_tests_climate_retreat_mask_main  ( test_name)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
