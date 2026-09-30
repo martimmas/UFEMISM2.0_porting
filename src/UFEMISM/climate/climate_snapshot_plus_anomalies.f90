@@ -380,7 +380,7 @@ CONTAINS
 
       ! Add anomaly to snapshots to find the applied temperature and precipitation
       climate%snapshot_p_anml%T2m( vi,m)    = climate%snapshot_p_anml%snapshot_baseline%T2m( vi,m)    + climate%snapshot_p_anml%T2m_anomaly( vi,m)
-      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%snapshot_baseline%Precip( vi,m) + climate%snapshot_p_anml%Precip_anomaly( vi,m)
+      climate%snapshot_p_anml%Precip( vi,m) = climate%snapshot_p_anml%snapshot_baseline%Precip( vi,m) * climate%snapshot_p_anml%Precip_anomaly( vi,m)
 
       ! Copy to climate model
       climate%T2m( vi,m)    = climate%snapshot_p_anml%T2m( vi,m)
