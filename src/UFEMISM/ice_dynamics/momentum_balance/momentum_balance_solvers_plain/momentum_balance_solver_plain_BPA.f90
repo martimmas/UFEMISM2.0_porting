@@ -2190,7 +2190,7 @@ contains
     call map_b_a_2D( self%mesh, u_base_b, u_base_a)
     call map_b_a_2D( self%mesh, v_base_b, v_base_a)
     call calc_basal_friction_coefficient( self%mesh, geom, bed_roughness, u_base_a, v_base_a, &
-      ice%effective_pressure, ice%till_yield_stress, ice%basal_friction_coefficient)
+      ice%effective_pressure, ice%till_yield_stress, ice%basal_friction_coefficient, ice%Ti_hom)
 
     ! Map basal friction coefficient beta_b to the b-grid
     call map_a_b_2D( self%mesh, ice%basal_friction_coefficient, self%basal_friction_coefficient_b)

@@ -25,7 +25,7 @@ module sliding_laws
 contains
 
   subroutine calc_basal_friction_coefficient( mesh, geom, bed_roughness, u_a, v_a, &
-    effective_pressure, till_yield_stress, basal_friction_coefficient)
+    effective_pressure, till_yield_stress, basal_friction_coefficient, ti_hom)
     ! Calculate the effective basal friction coefficient using the specified sliding law
 
     ! In/output variables:
@@ -36,9 +36,11 @@ contains
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: effective_pressure
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: till_yield_stress
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(  out) :: basal_friction_coefficient
+    real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: ti_hom
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'calc_basal_friction_coefficient'
+    integer                     :: vi
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -80,6 +82,13 @@ contains
 
     ! Limit basal friction coefficient to improve stability
     basal_friction_coefficient = min( C%slid_beta_max, basal_friction_coefficient)
+
+    ! Adds maximum friction where ice is frozen to the base
+    do vi = mesh%vi1, mesh%vi2
+      if (ti_hom(vi ) < -10.0_dp) then
+        basal_friction_coefficient(vi) = 1E9_dp ! C%slid_beta_max
+      end if
+    end do
 
     ! Finalise routine path
     call finalise_routine( routine_name)

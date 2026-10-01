@@ -821,7 +821,7 @@ contains
     call map_b_a_2D( self%mesh, self%u_base_b, u_base_a)
     call map_b_a_2D( self%mesh, self%v_base_b, v_base_a)
     call calc_basal_friction_coefficient( self%mesh, geom, bed_roughness, u_base_a, v_base_a, &
-      ice%effective_pressure, ice%till_yield_stress, ice%basal_friction_coefficient)
+      ice%effective_pressure, ice%till_yield_stress, ice%basal_friction_coefficient, ice%Ti_hom)
 
     ! Calculate beta_eff on the a-grid
     if (C%choice_sliding_law == 'no_sliding') then
