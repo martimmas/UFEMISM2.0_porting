@@ -236,7 +236,8 @@ contains
     end do
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to ISMIP output files' // '...'
+    if (par%primary) write(0,'(A)') '   Writing to '// &
+      UPSY%stru%colour_string( trim( C%ismip_filename_style), 'light blue') // ' output files' // '...'
 
     ! Basic topography
     d_loc_dp = region%ice%geom%Hi( region%mesh%vi1:region%mesh%vi2)
@@ -820,7 +821,7 @@ contains
     res_str = adjustl(res_str)
 
     ! Make a title
-    title = 'ISMIP7 output by UFEMISM - ' // trim(field%name)
+    title = trim(C%ismip_filename_style) // ' output by UFEMISM - ' // trim(field%name)
 
     ! Add attributes
     call add_attribute_char( field%filename, ncid, NF90_GLOBAL, 'title', trim(title))
@@ -889,7 +890,7 @@ contains
     res_str = adjustl(res_str)
 
     ! Make a title
-    title = 'ISMIP7 output by UFEMISM - ' // trim(scalar%name)
+    title = trim(C%ismip_filename_style) // ' output by UFEMISM - ' // trim(scalar%name)
 
     ! Add attributes
     call add_attribute_char( scalar%filename, ncid, NF90_GLOBAL, 'title', trim(title))
