@@ -1,9 +1,11 @@
 program UPSY_component_test_program_mesh_remapping_mesh_grid
 
+#include <petsc/finclude/petscsys.h>
+
   use basic_program_info, only: program_name
   use precisions, only: dp
   use mpi_basic, only: par
-  use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
+  use petsc, only: PetscErrorF, PetscFinalize
   use mpi_basic, only: initialise_parallelisation
   use parameters, only: initialise_constants
   use call_stack_and_comp_time_tracking, only: initialise_control_and_resource_tracker, routine_path
@@ -19,7 +21,7 @@ program UPSY_component_test_program_mesh_remapping_mesh_grid
 
   implicit none
 
-  integer                                        :: perr, ierr
+  integer                                        :: ierr
   character(len=1024)                            :: foldername_test_meshes_and_grids, foldername_output
   character(len=1024), dimension(:), allocatable :: test_mesh_filenames
   character(len=1024), dimension(:), allocatable :: test_grid_filenames
@@ -29,7 +31,6 @@ program UPSY_component_test_program_mesh_remapping_mesh_grid
 
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation
-  call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   call print_git_commit_hash_and_package_versions
 
@@ -69,7 +70,6 @@ program UPSY_component_test_program_mesh_remapping_mesh_grid
   call print_model_end( tcomp)
 
   ! Finalise PETSc and MPI parallelisation
-  call PetscFinalize( perr)
-  call MPI_FINALIZE( ierr)
+  PetscCall( PetscFinalize( ierr))
 
 end program UPSY_component_test_program_mesh_remapping_mesh_grid

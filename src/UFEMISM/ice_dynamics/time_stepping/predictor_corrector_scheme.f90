@@ -17,7 +17,6 @@ module predictor_corrector_scheme
   use time_step_criteria, only: calc_critical_timestep_adv
   use conservation_of_mass_main, only: calc_dHi_dt
   use ice_thickness_safeties, only: alter_ice_thickness
-  use ice_velocities_main, only: solve_stress_balance
   use checksum_mod, only: checksum
   use remove_unconnected_shelves_mod, only: remove_unconnected_shelves
 
@@ -44,8 +43,6 @@ contains
     real(dp), dimension(region%mesh%vi1:region%mesh%vi2) :: Hi_dummy
     real(dp)                                             :: beta_1, beta_2
     integer                                              :: n_guilty, n_tot
-    integer                                              :: n_visc_its
-    integer                                              :: n_Axb_its
     real(dp), dimension(region%mesh%vi1:region%mesh%vi2) :: SMB_loc
 
     ! Add routine to path
@@ -97,6 +94,9 @@ contains
           beta_2 * region%ice%pc%dHi_dt_Hi_nm1_u_nm1( vi))
       end do
       call apply_noice_mask( region%mesh, region%ice%mask_noice, region%ice%pc%Hi_star_np1)
+      if (C%do_apply_ISMIP7_fracture_mask) then
+        call region%ice%ISMIP7_fracture%run( region%time, region%ice%geom, region%ice%pc%Hi_star_np1)
+      end if
       call forbid_negative_ice_thickness( region%mesh, region%ice%pc%Hi_star_np1)
       call remove_unconnected_shelves( region%mesh, region%ice%geom%Hb, region%ice%geom%SL, region%ice%pc%Hi_star_np1)
       call alter_ice_thickness( region%mesh, region%ice, region%ice%geom, region%ice%Hi_prev, &
@@ -114,14 +114,13 @@ contains
 
       ! Calculate ice velocities for the predicted geometry
       !   u_n+1 in Robinson et al., 2020, Eq. 31
-      call solve_stress_balance( region%mesh, region%ice, region%ice%geom, region%ice%vel, &
-        region%ice%momentum_balance_solver, region%bed_roughness, &
-        region%BMB%BMB, region%name, n_visc_its, n_Axb_its)
+      call region%ice%momentum_balance_solver%run( region%ice, region%ice%geom, &
+        region%bed_roughness, region%ice%vel, region%BMB%BMB)
 
       ! Update stability info
       region%ice%dt_ice     = region%ice%pc%dt_np1
-      region%ice%n_visc_its = n_visc_its
-      region%ice%n_Axb_its  = n_Axb_its
+      region%ice%n_visc_its = region%ice%momentum_balance_solver%n_visc_its
+      region%ice%n_Axb_its  = region%ice%momentum_balance_solver%n_Axb_its
 
       ! == Corrector step ==
       ! ====================
@@ -139,6 +138,9 @@ contains
       region%ice%pc%Hi_np1 = region%ice%Hi_prev + (region%ice%pc%dt_np1 / 2._dp) * &
         (region%ice%pc%dHi_dt_Hi_n_u_n + region%ice%pc%dHi_dt_Hi_star_np1_u_np1)
       call apply_noice_mask( region%mesh, region%ice%mask_noice, region%ice%pc%Hi_np1)
+      if (C%do_apply_ISMIP7_fracture_mask) then
+        call region%ice%ISMIP7_fracture%run( region%time, region%ice%geom, region%ice%pc%Hi_np1)
+      end if
       call forbid_negative_ice_thickness( region%mesh, region%ice%pc%Hi_np1)
       call remove_unconnected_shelves( region%mesh, region%ice%geom%Hb, region%ice%geom%SL, region%ice%pc%Hi_np1)
       call alter_ice_thickness( region%mesh, region%ice, region%ice%geom, region%ice%Hi_prev, &

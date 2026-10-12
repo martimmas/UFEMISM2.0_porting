@@ -24,7 +24,9 @@ program LADDIE_program
 ! ===== Preamble =====
 ! ====================
 
-  use petscksp
+#include <petsc/finclude/petscsys.h>
+
+  use petsc, only: PetscErrorF, PetscFinalize
   use precisions, only: dp
   use basic_program_info, only: program_name
   use mpi_basic, only: par, initialise_parallelisation
@@ -43,6 +45,7 @@ program LADDIE_program
   use laddie_unit_tests, only: run_laddie_unit_tests
   use laddie_hydrology, only: initialise_transects_SGD
   use git_commit_hash_and_package_versions, only: print_git_commit_hash_and_package_versions
+  use mpi_f08, only: MPI_WTIME
 
   implicit none
 
@@ -82,7 +85,6 @@ program LADDIE_program
 
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation
-  call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   call print_git_commit_hash_and_package_versions
 
@@ -113,7 +115,7 @@ program LADDIE_program
     ! == Initialise forcing and mesh ==
     ! ==================================
 
-    call initialise_forcing( mesh, forcing)
+    call initialise_forcing( mesh, forcing, 'ANT')
 
     ! == Initialise subglacial discharge ==
     ! =====================================
@@ -147,8 +149,7 @@ program LADDIE_program
   call print_model_end( tcomp)
 
   ! Finalise PETSc and MPI parallelisation
-  call PetscFinalize( perr)
-  call MPI_FINALIZE( ierr)
+  PetscCall( PetscFinalize( perr))
 
 
 end program LADDIE_program

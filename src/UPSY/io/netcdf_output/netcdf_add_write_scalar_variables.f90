@@ -1,6 +1,7 @@
 module netcdf_add_write_scalar_variables
   !< Add and write data to scalar variables
 
+  use model_configuration, only: C
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
@@ -268,7 +269,8 @@ contains
       ! Days centered at 1 July of last year, days_bnds span full last year from 1 Jan to 1 Jan
 
       ! Convert time
-      call convert_time_to_days( time, days, days_bnds)
+      call convert_time_to_days( time, days, days_bnds, &
+        calendar = C%choice_cftime_output_calendar, refyear = C%choice_cftime_output_refyear)
 
       ! Write time
       call write_var_primary( filename, ncid, id_var_time, (/ days /), start = (/ nt /), count = (/ 1 /) )
@@ -284,7 +286,8 @@ contains
       ! Days centered at 1 January, no bounds
 
       ! Convert time
-      call convert_time_to_days( time, days)
+      call convert_time_to_days( time, days, &
+        calendar = C%choice_cftime_output_calendar, refyear = C%choice_cftime_output_refyear)
 
       ! Write time
       call write_var_primary( filename, ncid, id_var_time, (/ days /), start = (/ nt /), count = (/ 1 /) )
