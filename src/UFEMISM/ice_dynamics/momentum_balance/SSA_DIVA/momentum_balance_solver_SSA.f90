@@ -550,7 +550,7 @@ contains
     call map_b_a_2D( self%mesh, self%v_vav_b, v_vav_a)
     call calc_basal_friction_coefficient( self%mesh, geom, bed_roughness, u_vav_a, v_vav_a, &
       ice%effective_pressure, ice%till_yield_stress, ice%basal_friction_coefficient)
-      
+
     ! Map the basal friction coefficient to the b-grid
     call map_a_b_2D( self%mesh, ice%basal_friction_coefficient, self%basal_friction_coefficient_b)
 

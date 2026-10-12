@@ -39,7 +39,6 @@ contains
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'calc_basal_friction_coefficient'
-    integer                     :: vi
 
     ! Add routine to path
     call init_routine( routine_name)
