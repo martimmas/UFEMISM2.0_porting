@@ -1,12 +1,14 @@
 program UPSY_multinode_unit_test_program
   !< A program to run all of UPSY's multi-node unit tests
 
+#include <petsc/finclude/petscsys.h>
+
   use basic_program_info, only: program_name
   use precisions, only: dp
   use mpi_basic, only: par
   use crash_mod, only: crash
   use model_configuration, only: C
-  use petscksp, only: PetscInitialize, PETSC_NULL_CHARACTER, PetscFinalize
+  use petsc, only: PetscErrorF, PetscFinalize
   use mpi_basic, only: initialise_parallelisation_multinode_tests
   use parameters, only: initialise_constants
   use call_stack_and_comp_time_tracking, only: initialise_control_and_resource_tracker, crash
@@ -23,7 +25,7 @@ program UPSY_multinode_unit_test_program
 
   implicit none
 
-  integer                        :: perr, ierr
+  integer                        :: ierr
   character(len=1024)            :: foldername_output
   character(len=1024), parameter :: test_name = 'UPSY'
   real(dp)                       :: tstart, tstop, tcomp
@@ -32,7 +34,6 @@ program UPSY_multinode_unit_test_program
 
   ! Initialise MPI parallelisation and PETSc
   call initialise_parallelisation_multinode_tests
-  call PetscInitialize( PETSC_NULL_CHARACTER, perr)
 
   call print_git_commit_hash_and_package_versions
 
@@ -77,7 +78,6 @@ program UPSY_multinode_unit_test_program
   call print_model_end( tcomp)
 
   ! Finalise PETSc and MPI parallelisation
-  call PetscFinalize( perr)
-  call MPI_FINALIZE( ierr)
+  PetscCall( PetscFinalize( ierr))
 
 end program UPSY_multinode_unit_test_program

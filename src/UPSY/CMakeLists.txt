@@ -21,9 +21,11 @@ set( UPSY_program_sources_raw
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_unit_test_program.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_multinode_unit_test_program.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_PETSc_matrix_solving.f90"
+	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_PETSc_DMPLEX.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_creation.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_focussing.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_discretisation.f90"
+	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_remapping_grid_grid.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_remapping_mesh_grid.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/UPSY_component_test_program_mesh_remapping_mesh_mesh.f90")
 

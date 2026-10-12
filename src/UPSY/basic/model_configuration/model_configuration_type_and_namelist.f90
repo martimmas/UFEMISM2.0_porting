@@ -270,7 +270,7 @@ module model_configuration_type_and_namelist
   ! ==========================
 
     ! General
-    character(len=1024) :: choice_stress_balance_approximation_config   = 'DIVA'                           ! Choice of stress balance approximation: "none" (= no flow, though geometry can still change due to mass balance), "SIA", "SSA", "SIA/SSA", "DIVA", "BPA"
+    character(len=1024) :: choice_stress_balance_approximation_config   = 'DIVA'                           ! Choice of stress balance approximation: "none" (= no flow, though geometry can still change due to mass balance), "SIA", "SSA", "SIA/SSA", "DIVA", "BPA", "SSA_FD_SNES" (finite-difference SSA solved with PetscSNES), "SSA_FEM_PETSc" (finite-element SSA solved with PetscFE/PetscSNES)
     character(len=1024) :: choice_hybrid_SIASSA_scheme_config           = 'add'                            ! Choice of scheme for combining SIA and SSA velocities in the hybrid approach
     logical             :: do_include_SSADIVA_crossterms_config         = .true.                           ! Whether or not to include the gradients of the effective viscosity (the "cross-terms") in the solution of the SSA/DIVA
 
@@ -312,6 +312,26 @@ module model_configuration_type_and_namelist
     character(len=1024) :: stress_balance_PETSc_PCtype_config           = 'bjacobi'                        ! Which preconditioner PETSc should use
     real(dp)            :: stress_balance_PETSc_rtol_config             = 1E-7_dp                          ! PETSc solver - stop criterion, relative difference (iteration stops if rtol OR abstol is reached)
     real(dp)            :: stress_balance_PETSc_abstol_config           = 1E-5_dp                          ! PETSc solver - stop criterion, absolute difference
+
+    ! SSA_FEM_PETSc solver (SNES + PetscFE) - separate from the KSP-only settings
+    ! above because it solves a non-linear system (SNES wrapping a KSP), and its
+    ! residual is non-dimensionalised (see momentum_balance_solver_SSA_FEM_PETSc.f90),
+    ! so the tolerances below apply to an O(1) dimensionless residual.
+    character(len=1024) :: SSA_FEM_PETSc_pc_type_config          = 'lu'                              ! Preconditioner for the SNES solve: "lu" (direct, MUMPS on >1 rank), "gamg" (algebraic multigrid, uses the rigid-body near-null-space), "bjacobi" (block-Jacobi/ILU)
+    real(dp)            :: SSA_FEM_PETSc_snes_rtol_config         = 1E-8_dp                          ! SNES solver - stop criterion, relative reduction of the (dimensionless) residual
+    real(dp)            :: SSA_FEM_PETSc_snes_abstol_config       = 1E-10_dp                         ! SNES solver - stop criterion, absolute (dimensionless) residual norm
+    integer             :: SSA_FEM_PETSc_snes_maxits_config       = 50                                ! Maximum number of Newton iterations per solve
+
+    ! SSA_FD_SNES solver (PetscSNES + the in-house finite-difference SSA discretisation).
+    ! "Tier 1" defect-correction Newton: PetscSNES wraps a KSP around the same linear
+    ! system the SSA solver assembles per viscosity iteration (see
+    ! SSA_FD_SNES_implementation_plan.md). The inner KSP/PC reuse the
+    ! stress_balance_PETSc_* settings above; the tolerances below apply to the raw
+    ! (dimensional) residual norm, so convergence is driven mainly by the relative rtol.
+    real(dp)            :: SSA_FD_SNES_snes_rtol_config           = 1E-3_dp                          ! SNES solver - stop criterion, relative reduction of the (non-dimensional) residual norm
+    real(dp)            :: SSA_FD_SNES_snes_abstol_config         = 1E-3_dp                          ! SNES solver - stop criterion, absolute (non-dimensional) residual norm
+    integer             :: SSA_FD_SNES_snes_maxits_config         = 50                                ! Maximum number of Newton iterations per solve
+    logical             :: SSA_FD_SNES_use_EW_config              = .true.                           ! Use Eisenstat-Walker inexact-Newton tolerancing on the inner KSP
 
     ! Boundary conditions
     character(len=1024) :: BC_ice_front_config                          = 'infinite_slab'                  ! Boundary conditions to the momentum balance at the ice front: "infinite_slab", "ocean_pressure"
@@ -434,6 +454,10 @@ module model_configuration_type_and_namelist
     logical             :: continental_shelf_calving_config             = .false.                          ! If set to TRUE, all ice beyond the continental shelf edge (set by a maximum depth) is removed
     real(dp)            :: continental_shelf_min_height_config          = -2000._dp                        ! Maximum depth of the continental shelf
 
+    logical             :: do_apply_ISMIP7_fracture_mask_config         = .false.                          ! Whether or not to apply the ISMIP7 mask-based hydrofracturing forcing
+    logical             :: ISMIP7_fracture_only_from_front_config       = .false.                          ! true = allow fracture to occur anywhere; false = allow fracture on from the ice front inwards (iteratively, so it -does- fracture everything that can be broken, not just the outermost row of vertices in each time step)
+    character(len=1024) :: filename_ISMIP7_fracture_mask_config         = ''                               ! The full path to the NetCDF file containing the ISMIP7 hydrofracturing mask
+
   ! == Ice dynamics - stabilisation
   ! ===============================
 
@@ -489,7 +513,7 @@ module model_configuration_type_and_namelist
     real(dp)            :: Salle2025_hydro_meltwater_config             = 2.186523556E-7_dp                ! [kg m^-2 s^-1] of meltwater added to basal hydrology system
     real(dp)            :: Salle2025_W_til_max_config                   = 2.0_dp                           ! [m] Maximum allowed till water layer thickness
     real(dp)            :: Salle2025_initial_W_til_config               = 2.0_dp                           ! [m] Initial till water layer thickness
-    real(dp)            :: Salle2025_initial_W_config                   = 0.01_dp                          ! [m] Initial subglacial water layer thickness 
+    real(dp)            :: Salle2025_initial_W_config                   = 0.01_dp                          ! [m] Initial subglacial water layer thickness
     real(dp)            :: Salle2025_Cd_config                          = 3.168874718E-11_dp               ! [m s^-1] Water leaking back from the till to the water layer above
     real(dp)            :: Salle2025_phi_config                         = 26.565_dp                        ! [degrees] till yield stress angle
 
@@ -737,7 +761,9 @@ module model_configuration_type_and_namelist
     character(len=1024) :: climate_ISMIP7_choice_refgeo_config           = ''                               ! Which reference geometry to use as the baseline for calculating delta_ts = dts/dz * delta_s: 'init', 'PD'
     character(len=1024) :: climate_ISMIP7_forcing_foldername_config          = ''                               ! Path to the directory containing the different variables directories (e.g. /path/to/base/folder, so that the climate files are located in /path/to/base/folder/acabf/version)
     character(len=1024) :: climate_ISMIP7_forcing_version_config             = ''                               ! Which version of the forcing files to use (since they often provide more than one), e.g. 'v2' means the climate files are located in /path/to/base/folder/acabf/v2. Leaving this variable empty implies that they are located in /path/to/base/folder/acabf
+    character(len=1024) :: climate_ISMIP7_temperature_name_config        = 'tas'                            ! In some of the forcing files, it's called 'ts'...
 
+    character(len=1024) :: climate_TIPMIP_offset_filename_config         = ''                               ! Filename containing offsets in tas_anomaly and pr_ratio to be applied to baseline climate for forcing shift
 
   ! == Ocean
   ! ========
@@ -824,6 +850,9 @@ module model_configuration_type_and_namelist
     ! Settings for the ISMIP7 ocean model
     character(len=1024) :: ocean_ISMIP7_forcing_foldername_config       = ''                               ! Path to the directory containing the different variables directories (e.g. /path/to/base/folder, so that the ocean files are located in /path/to/base/folder/thetao/version)
     character(len=1024) :: ocean_ISMIP7_forcing_version_config          = ''
+    integer             :: ocean_ISMIP7_calendar_refyear_config         = 1850                             ! Reference year for calendar
+    character(len=1024) :: ocean_ISMIP7_forcing_type_config             = 'absolute'                       ! Type of forcing that is provided 'absolute' (ISMIP7) or 'anomaly' (TIPMIP)
+    character(len=1024) :: ocean_ISMIP7_offset_filename_config          = ''                               ! Filename containing offsets which should be subtracted from the baseline climatology in case of 'anomaly' forcing
 
   ! == Surface mass balance
   ! =======================
@@ -902,6 +931,13 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_ice_config                = 0.5_dp
     real(dp)            :: SMB_IMAUITM_albedo_snow_config               = 0.85_dp
 
+    real(dp)            :: SMB_ITM_C_trans_temp_config                  = 268.0_dp                         ! [K] Transition temperature between suppressed and enhanced surface melting
+    real(dp)            :: SMB_ITM_C_melt_temp_config                   = 4.23E-3_dp                         ! [mwe K^-2] Quadratic melt sensitivity to max(0,T2m-T0)
+    real(dp)            :: SMB_ITM_C_melt_insol_config                  = 5.0E-5_dp                      ! [mwe (Wm^-2)^-1] Melt sensitivity to insolation
+    real(dp)            :: SMB_ITM_initial_firn_air_content_config      = 1._dp                            ! [m] Initial firn air content for ITM when using uniform
+    real(dp)            :: SMB_ITM_C_densification_rate_config          = 0.023_dp                          ! [m s^2 kg^-1] Constant determining the rate at which firn air content decreases due to densification. Empirical values between 0.03 and 0.07
+    real(dp)            :: SMB_ITM_C_sublimation_config                 = 2.3E-4_dp                        ! [s] Constant scaling the quadratic dependence of sublimation on wind speed above a temp-dependent threshold
+
     ! Settings for the snapshot_plus_anomalies SMB model
     character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m_config  = ''                               ! File containing the T2m snapshot (e.g. from a RACMO historical simulation)
     character(len=1024) :: SMB_snp_p_anml_filename_snapshot_SMB_config  = ''                               ! File containing the SMB snapshot (e.g. from a RACMO historical simulation)
@@ -915,6 +951,7 @@ module model_configuration_type_and_namelist
     character(len=1024) :: SMB_ISMIP7_choice_refgeo_config               = ''                               ! Which reference geometry to use as the baseline for calculating delta_SMB = dSMB/dz * delta_s: 'init', 'PD'
     character(len=1024) :: SMB_ISMIP7_forcing_foldername_config          = ''                               ! Path to the directory containing the different variables directories (e.g. /path/to/base/folder, so that the SMB files are located in /path/to/base/folder/acabf/version)
     character(len=1024) :: SMB_ISMIP7_forcing_version_config             = ''                               ! Which version of the forcing files to use (since they often provide more than one), e.g. 'v2' means the SMB files are located in /path/to/base/folder/acabf/v2. Leaving this variable empty implies that they are located in /path/to/base/folder/acabf
+    logical             :: SMB_ISMIP7_apply_SMB_lapse_rate_config        = .true.                           ! Whether or not to apply the provided dSMB/dz geometry correction
 
   ! == Basal mass balance
   ! =====================
@@ -1120,7 +1157,9 @@ module model_configuration_type_and_namelist
     real(dp)            :: dt_GIA_config                                = 100._dp                         ! [yr] GIA model time step
     real(dp)            :: dx_GIA_config                                = 50E3_dp                         ! [m]  GIA model square grid resolution
     real(dp)            :: ELRA_lithosphere_flex_rigidity_config        = 1.0E+25                         ! [kg m^2 s^-2] Lithospheric flexural rigidity
+    character(len=1024) :: choice_GIA_ELRA_relaxation_time_config       = 'uniform'                       ! 'uniform', 'read_from_file'
     real(dp)            :: ELRA_bedrock_relaxation_time_config          = 3000.0                          ! [yr] Relaxation time for bedrock adjustment
+    character(len=1024) :: filename_GIA_ELRA_relaxation_time_config     = ''                              ! Path to a NetCDF file containing a laterally varying bedrock relaxation time field (variable name 'tau')
     real(dp)            :: ELRA_mantle_density_config                   = 3300.0                          ! [kg m^-3] Mantle density
 
   ! == Sea level
@@ -1197,9 +1236,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Eurasia
     real(dp)            :: dx_output_grid_ROI_GRL_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Greenland
     real(dp)            :: dx_output_grid_ROI_ANT_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Antarctica
+    character(len=1024) :: choice_cftime_output_calendar_config         = 'standard'                      ! Which calendar to use for cftime output. 'standard', '365_day'/'noleap', or '360_day'
+    integer             :: choice_cftime_output_refyear_config          = 1850                            ! Reference year for calendar, spitting out in 'days since refyear-01-01'
 
     ! ISMIP
     logical             :: do_create_ismip_output_config                = .false.                         ! Whether or not ISMIP-specific output files should be created at all
+    character(len=1024) :: ismip_filename_style_config                  = 'ISMIP7'                        ! For which MIPstyle the filenames should be modified
     character(len=1024) :: ismip_scenario_name_config                   = 'ctrl'                          ! Scenario name for ISMIP output
     character(len=1024) :: ismip_group_name_config                      = 'IMAU'                          ! Group name included in ISMIP output files
     character(len=1024) :: ismip_model_name_config                      = 'UFEMISM1'                      ! Model name to which numbers can be added for variants
@@ -1569,6 +1611,14 @@ module model_configuration_type_and_namelist
     character(len=1024) :: stress_balance_PETSc_PCtype
     real(dp)            :: stress_balance_PETSc_rtol
     real(dp)            :: stress_balance_PETSc_abstol
+    character(len=1024) :: SSA_FEM_PETSc_pc_type
+    real(dp)            :: SSA_FEM_PETSc_snes_rtol
+    real(dp)            :: SSA_FEM_PETSc_snes_abstol
+    integer             :: SSA_FEM_PETSc_snes_maxits
+    real(dp)            :: SSA_FD_SNES_snes_rtol
+    real(dp)            :: SSA_FD_SNES_snes_abstol
+    integer             :: SSA_FD_SNES_snes_maxits
+    logical             :: SSA_FD_SNES_use_EW
 
     ! Boundary conditions
     character(len=1024) :: BC_ice_front
@@ -1690,6 +1740,10 @@ module model_configuration_type_and_namelist
     logical             :: remove_shelves_larger_than_PD
     logical             :: continental_shelf_calving
     real(dp)            :: continental_shelf_min_height
+
+    logical             :: do_apply_ISMIP7_fracture_mask
+    logical             :: ISMIP7_fracture_only_from_front
+    character(len=1024) :: filename_ISMIP7_fracture_mask
 
   ! == Ice dynamics - stabilisation
   ! ===============================
@@ -1994,6 +2048,9 @@ module model_configuration_type_and_namelist
     character(len=1024) :: climate_ISMIP7_choice_refgeo
     character(len=1024) :: climate_ISMIP7_forcing_foldername
     character(len=1024) :: climate_ISMIP7_forcing_version
+    character(len=1024) :: climate_ISMIP7_temperature_name
+
+    character(len=1024) :: climate_TIPMIP_offset_filename
 
   ! == Ocean
   ! ========
@@ -2080,6 +2137,9 @@ module model_configuration_type_and_namelist
     ! Settings for the ISMIP7 ocean model
     character(len=1024) :: ocean_ISMIP7_forcing_foldername
     character(len=1024) :: ocean_ISMIP7_forcing_version
+    integer             :: ocean_ISMIP7_calendar_refyear
+    character(len=1024) :: ocean_ISMIP7_forcing_type
+    character(len=1024) :: ocean_ISMIP7_offset_filename
 
   ! == Surface mass balance
   ! =======================
@@ -2158,6 +2218,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: SMB_IMAUITM_albedo_soil
     real(dp)            :: SMB_IMAUITM_albedo_ice
     real(dp)            :: SMB_IMAUITM_albedo_snow
+    real(dp)            :: SMB_ITM_C_trans_temp
+    real(dp)            :: SMB_ITM_C_melt_temp
+    real(dp)            :: SMB_ITM_C_melt_insol
+    real(dp)            :: SMB_ITM_initial_firn_air_content
+    real(dp)            :: SMB_ITM_C_densification_rate
+    real(dp)            :: SMB_ITM_C_sublimation
 
     ! Settings for the snapshot_plus_anomalies SMB model
     character(len=1024) :: SMB_snp_p_anml_filename_snapshot_T2m
@@ -2172,6 +2238,7 @@ module model_configuration_type_and_namelist
     character(len=1024) :: SMB_ISMIP7_choice_refgeo
     character(len=1024) :: SMB_ISMIP7_forcing_foldername
     character(len=1024) :: SMB_ISMIP7_forcing_version
+    logical             :: SMB_ISMIP7_apply_SMB_lapse_rate
 
   ! == Basal mass balance
   ! =====================
@@ -2376,7 +2443,9 @@ module model_configuration_type_and_namelist
     real(dp)            :: dt_GIA
     real(dp)            :: dx_GIA
     real(dp)            :: ELRA_lithosphere_flex_rigidity
+    character(len=1024) :: choice_GIA_ELRA_relaxation_time
     real(dp)            :: ELRA_bedrock_relaxation_time
+    character(len=1024) :: filename_GIA_ELRA_relaxation_time
     real(dp)            :: ELRA_mantle_density
 
   ! == Sea level
@@ -2449,9 +2518,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS
     real(dp)            :: dx_output_grid_ROI_GRL
     real(dp)            :: dx_output_grid_ROI_ANT
+    character(len=1024) :: choice_cftime_output_calendar
+    integer             :: choice_cftime_output_refyear
 
     ! ISMIP
     logical             :: do_create_ismip_output
+    character(len=1024) :: ismip_filename_style
     character(len=1024) :: ismip_scenario_name
     character(len=1024) :: ismip_group_name
     character(len=1024) :: ismip_model_name
@@ -2756,6 +2828,14 @@ contains
       stress_balance_PETSc_PCtype_config                          , &
       stress_balance_PETSc_rtol_config                            , &
       stress_balance_PETSc_abstol_config                          , &
+      SSA_FEM_PETSc_pc_type_config                                , &
+      SSA_FEM_PETSc_snes_rtol_config                              , &
+      SSA_FEM_PETSc_snes_abstol_config                            , &
+      SSA_FEM_PETSc_snes_maxits_config                            , &
+      SSA_FD_SNES_snes_rtol_config                                , &
+      SSA_FD_SNES_snes_abstol_config                              , &
+      SSA_FD_SNES_snes_maxits_config                              , &
+      SSA_FD_SNES_use_EW_config                                   , &
       BC_ice_front_config                                         , &
       BC_u_west_config                                            , &
       BC_u_east_config                                            , &
@@ -2833,6 +2913,9 @@ contains
       remove_shelves_larger_than_PD_config                        , &
       continental_shelf_calving_config                            , &
       continental_shelf_min_height_config                         , &
+      do_apply_ISMIP7_fracture_mask_config                        , &
+      ISMIP7_fracture_only_from_front_config                      , &
+      filename_ISMIP7_fracture_mask_config                        , &
       choice_mask_noice_config                                    , &
       Hi_min_config                                               , &
       Hi_thin_config                                              , &
@@ -2867,7 +2950,7 @@ contains
       error_function_max_effective_pressure_config                , &
       Leguy2014_hydro_connect_exponent_config                     , &
       Salle2025_hydro_meltwater_config                            , &
-      Salle2025_W_til_max_config                                  , & 
+      Salle2025_W_til_max_config                                  , &
       Salle2025_initial_W_til_config                              , &
       Salle2025_initial_W_config                                  , &
       Salle2025_Cd_config                                         , &
@@ -3035,6 +3118,8 @@ contains
       climate_ISMIP7_choice_refgeo_config                         , &
       climate_ISMIP7_forcing_foldername_config                    , &
       climate_ISMIP7_forcing_version_config                       , &
+      climate_ISMIP7_temperature_name_config                      , &
+      climate_TIPMIP_offset_filename_config                       , &
       do_asynchronous_ocean_config                                , &
       dt_ocean_config                                             , &
       ocean_vertical_grid_max_depth_config                        , &
@@ -3090,6 +3175,9 @@ contains
       ocean_snp_p_anml_filename_anomalies_config                  , &
       ocean_ISMIP7_forcing_foldername_config                      , &
       ocean_ISMIP7_forcing_version_config                         , &
+      ocean_ISMIP7_calendar_refyear_config                        , &
+      ocean_ISMIP7_forcing_type_config                            , &
+      ocean_ISMIP7_offset_filename_config                         , &
       do_asynchronous_SMB_config                                  , &
       dt_SMB_config                                               , &
       choice_SMB_model_NAM_config                                 , &
@@ -3143,12 +3231,19 @@ contains
       SMB_IMAUITM_albedo_soil_config                              , &
       SMB_IMAUITM_albedo_ice_config                               , &
       SMB_IMAUITM_albedo_snow_config                              , &
+      SMB_ITM_C_trans_temp_config                                 , &
+      SMB_ITM_C_melt_temp_config                                  , &
+      SMB_ITM_C_melt_insol_config                                 , &
+      SMB_ITM_initial_firn_air_content_config                     , &
+      SMB_ITM_C_densification_rate_config                         , &
+      SMB_ITM_C_sublimation_config                                , &
       SMB_snp_p_anml_filename_snapshot_T2m_config                 , &
       SMB_snp_p_anml_filename_snapshot_SMB_config                 , &
       SMB_snp_p_anml_filename_anomalies_config                    , &
       SMB_ISMIP7_choice_SMB_baseline_config                       , &
       SMB_ISMIP7_forcing_foldername_config                        , &
       SMB_ISMIP7_forcing_version_config                           , &
+      SMB_ISMIP7_apply_SMB_lapse_rate_config                      , &
       SMB_ISMIP7_filename_SMB_baseline_fixed_config               , &
       SMB_ISMIP7_choice_SMB_offset_config                         , &
       SMB_ISMIP7_filename_SMB_offset_config                       , &
@@ -3266,7 +3361,9 @@ contains
       dt_GIA_config                                               , &
       dx_GIA_config                                               , &
       ELRA_lithosphere_flex_rigidity_config                       , &
+      choice_GIA_ELRA_relaxation_time_config                      , &
       ELRA_bedrock_relaxation_time_config                         , &
+      filename_GIA_ELRA_relaxation_time_config                    , &
       ELRA_mantle_density_config                                  , &
       choice_sealevel_model_config                                , &
       fixed_sealevel_config                                       , &
@@ -3315,7 +3412,10 @@ contains
       dx_output_grid_ROI_EAS_config                               , &
       dx_output_grid_ROI_GRL_config                               , &
       dx_output_grid_ROI_ANT_config                               , &
+      choice_cftime_output_calendar_config                        , &
+      choice_cftime_output_refyear_config                         , &
       do_create_ismip_output_config                               , &
+      ismip_filename_style_config                                 , &
       ismip_scenario_name_config                                  , &
       ismip_group_name_config                                     , &
       ismip_model_name_config                                     , &
@@ -3719,6 +3819,14 @@ contains
     C%stress_balance_PETSc_PCtype                            = stress_balance_PETSc_PCtype_config
     C%stress_balance_PETSc_rtol                              = stress_balance_PETSc_rtol_config
     C%stress_balance_PETSc_abstol                            = stress_balance_PETSc_abstol_config
+    C%SSA_FEM_PETSc_pc_type                                  = SSA_FEM_PETSc_pc_type_config
+    C%SSA_FEM_PETSc_snes_rtol                                = SSA_FEM_PETSc_snes_rtol_config
+    C%SSA_FEM_PETSc_snes_abstol                              = SSA_FEM_PETSc_snes_abstol_config
+    C%SSA_FEM_PETSc_snes_maxits                               = SSA_FEM_PETSc_snes_maxits_config
+    C%SSA_FD_SNES_snes_rtol                                  = SSA_FD_SNES_snes_rtol_config
+    C%SSA_FD_SNES_snes_abstol                                = SSA_FD_SNES_snes_abstol_config
+    C%SSA_FD_SNES_snes_maxits                                = SSA_FD_SNES_snes_maxits_config
+    C%SSA_FD_SNES_use_EW                                     = SSA_FD_SNES_use_EW_config
 
     ! Boundary conditions
     C%BC_ice_front                                           = BC_ice_front_config
@@ -3840,6 +3948,10 @@ contains
     C%remove_shelves_larger_than_PD                          = remove_shelves_larger_than_PD_config
     C%continental_shelf_calving                              = continental_shelf_calving_config
     C%continental_shelf_min_height                           = continental_shelf_min_height_config
+
+    C%do_apply_ISMIP7_fracture_mask                          = do_apply_ISMIP7_fracture_mask_config
+    C%ISMIP7_fracture_only_from_front                        = ISMIP7_fracture_only_from_front_config
+    C%filename_ISMIP7_fracture_mask                          = filename_ISMIP7_fracture_mask_config
 
     ! == Ice dynamics - stabilisation
     ! ===============================
@@ -4140,6 +4252,9 @@ contains
     C%climate_ISMIP7_choice_refgeo                             = climate_ISMIP7_choice_refgeo_config
     C%climate_ISMIP7_forcing_foldername                        = climate_ISMIP7_forcing_foldername_config
     C%climate_ISMIP7_forcing_version                           = climate_ISMIP7_forcing_version_config
+    C%climate_ISMIP7_temperature_name                          = climate_ISMIP7_temperature_name_config
+
+    C%climate_TIPMIP_offset_filename                           = climate_TIPMIP_offset_filename_config
 
     ! == Ocean
     ! ========
@@ -4226,6 +4341,9 @@ contains
     ! Settings for the ISMIP7 ocean model
     C%ocean_ISMIP7_forcing_foldername                        = ocean_ISMIP7_forcing_foldername_config
     C%ocean_ISMIP7_forcing_version                           = ocean_ISMIP7_forcing_version_config
+    C%ocean_ISMIP7_calendar_refyear                          = ocean_ISMIP7_calendar_refyear_config
+    C%ocean_ISMIP7_forcing_type                              = ocean_ISMIP7_forcing_type_config
+    C%ocean_ISMIP7_offset_filename                           = ocean_ISMIP7_offset_filename_config
 
     ! == Surface mass balance
     ! =======================
@@ -4303,7 +4421,13 @@ contains
     C%SMB_IMAUITM_albedo_water                               = SMB_IMAUITM_albedo_water_config
     C%SMB_IMAUITM_albedo_soil                                = SMB_IMAUITM_albedo_soil_config
     C%SMB_IMAUITM_albedo_ice                                 = SMB_IMAUITM_albedo_ice_config
-    c%SMB_IMAUITM_albedo_snow                                = SMB_IMAUITM_albedo_snow_config
+    C%SMB_IMAUITM_albedo_snow                                = SMB_IMAUITM_albedo_snow_config
+    C%SMB_ITM_C_trans_temp                                   = SMB_ITM_C_trans_temp_config
+    C%SMB_ITM_C_melt_temp                                    = SMB_ITM_C_melt_temp_config
+    C%SMB_ITM_C_melt_insol                                   = SMB_ITM_C_melt_insol_config
+    C%SMB_ITM_initial_firn_air_content                       = SMB_ITM_initial_firn_air_content_config
+    C%SMB_ITM_C_densification_rate                           = SMB_ITM_C_densification_rate_config
+    C%SMB_ITM_C_sublimation                                  = SMB_ITM_C_sublimation_config
 
     ! Settings for the snapshot_plus_anomalies SMB model
     C%SMB_snp_p_anml_filename_snapshot_T2m                   = SMB_snp_p_anml_filename_snapshot_T2m_config
@@ -4318,6 +4442,7 @@ contains
     C%SMB_ISMIP7_choice_refgeo                               = SMB_ISMIP7_choice_refgeo_config
     C%SMB_ISMIP7_forcing_foldername                          = SMB_ISMIP7_forcing_foldername_config
     C%SMB_ISMIP7_forcing_version                             = SMB_ISMIP7_forcing_version_config
+    C%SMB_ISMIP7_apply_SMB_lapse_rate                        = SMB_ISMIP7_apply_SMB_lapse_rate_config
 
     ! == Basal mass balance
     ! =====================
@@ -4426,12 +4551,12 @@ contains
 
     ! Initialisation
     C%choice_laddie_model_initialisation                     = choice_laddie_model_initialisation_config
- 
-    ! Initialisation 'read_from_file' 
+
+    ! Initialisation 'read_from_file'
     C%filename_laddie_restart                                = filename_laddie_restart_config
     C%timeframe_laddie_restart                               = timeframe_laddie_restart_config
- 
-    ! Initialisation 'uniform' 
+
+    ! Initialisation 'uniform'
     C%laddie_initial_thickness                               = laddie_initial_thickness_config
     C%laddie_initial_T_offset                                = laddie_initial_T_offset_config
     C%laddie_initial_S_offset                                = laddie_initial_S_offset_config
@@ -4520,7 +4645,9 @@ contains
     C%dt_GIA                                                 = dt_GIA_config
     C%dx_GIA                                                 = dx_GIA_config
     C%ELRA_lithosphere_flex_rigidity                         = ELRA_lithosphere_flex_rigidity_config
+    C%choice_GIA_ELRA_relaxation_time                        = choice_GIA_ELRA_relaxation_time_config
     C%ELRA_bedrock_relaxation_time                           = ELRA_bedrock_relaxation_time_config
+    C%filename_GIA_ELRA_relaxation_time                      = filename_GIA_ELRA_relaxation_time_config
     C%ELRA_mantle_density                                    = ELRA_mantle_density_config
 
     ! == Sea level
@@ -4593,9 +4720,12 @@ contains
     C%dx_output_grid_ROI_EAS                                 = dx_output_grid_ROI_EAS_config
     C%dx_output_grid_ROI_GRL                                 = dx_output_grid_ROI_GRL_config
     C%dx_output_grid_ROI_ANT                                 = dx_output_grid_ROI_ANT_config
+    C%choice_cftime_output_calendar                          = choice_cftime_output_calendar_config
+    C%choice_cftime_output_refyear                           = choice_cftime_output_refyear_config
 
     ! ISMIP
     C%do_create_ismip_output                                 = do_create_ismip_output_config
+    C%ismip_filename_style                                   = ismip_filename_style_config
     C%ismip_scenario_name                                    = ismip_scenario_name_config
     C%ismip_group_name                                       = ismip_group_name_config
     C%ismip_model_name                                       = ismip_model_name_config

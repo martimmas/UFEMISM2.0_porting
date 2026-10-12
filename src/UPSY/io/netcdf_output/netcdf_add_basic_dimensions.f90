@@ -1,5 +1,6 @@
 module netcdf_add_basic_dimensions
 
+  use model_configuration, only: C
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
@@ -55,6 +56,7 @@ contains
     character(len=1024), parameter :: routine_name = 'add_cftime_dimension_to_file'
     integer                        :: id_dim_time, id_dim_bnds
     integer                        :: id_var_time, id_var_time_bnds
+    character(len=4)               :: refyear
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -62,11 +64,14 @@ contains
     ! Create time dimension
     call create_dimension( filename, ncid, get_first_option_from_list( field_name_options_time), NF90_UNLIMITED, id_dim_time)
 
+    ! Convert refyear to string
+    write(refyear, '(I4.4)') C%choice_cftime_output_refyear
+
     ! Create time variable
     call create_variable(  filename, ncid, get_first_option_from_list( field_name_options_time), NF90_FLOAT, (/ id_dim_time /), id_var_time)
     call add_attribute_char( filename, ncid, id_var_time, 'long_name', 'Time')
-    call add_attribute_char( filename, ncid, id_var_time, 'units', 'days since 1850-01-01')
-    call add_attribute_char( filename, ncid, id_var_time, 'calendar', 'standard')
+    call add_attribute_char( filename, ncid, id_var_time, 'units', 'days since ' // refyear // '-01-01')
+    call add_attribute_char( filename, ncid, id_var_time, 'calendar', C%choice_cftime_output_calendar)
 
     ! Add bounds if required
     if (with_bounds) then

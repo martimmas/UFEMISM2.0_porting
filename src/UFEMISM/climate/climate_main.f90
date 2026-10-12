@@ -123,6 +123,14 @@ CONTAINS
       call climate%ISMIP7%run( geom, time)
       climate%T2m   ( mesh%vi1:mesh%vi2,:) = climate%ISMIP7%T2m   ( mesh%vi1:mesh%vi2,:)
       climate%Precip( mesh%vi1:mesh%vi2,:) = climate%ISMIP7%Precip( mesh%vi1:mesh%vi2,:)
+    case ('snapshot_lapse')
+      call climate%snapshot_lapse%run( geom, time)
+      climate%T2m   ( mesh%vi1:mesh%vi2,:) = climate%snapshot_lapse%T2m   ( mesh%vi1:mesh%vi2,:)
+      climate%Precip( mesh%vi1:mesh%vi2,:) = climate%snapshot_lapse%Precip( mesh%vi1:mesh%vi2,:)
+    case ('TIPMIP')
+      call climate%TIPMIP%run( geom, time)
+      climate%T2m   ( mesh%vi1:mesh%vi2,:) = climate%TIPMIP%T2m   ( mesh%vi1:mesh%vi2,:)
+      climate%Precip( mesh%vi1:mesh%vi2,:) = climate%TIPMIP%Precip( mesh%vi1:mesh%vi2,:)
     CASE DEFAULT
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
     END SELECT
@@ -181,12 +189,14 @@ CONTAINS
     ALLOCATE( climate%Precip( mesh%vi1:mesh%vi2,12))
     allocate( climate%Wind_LR( mesh%vi1:mesh%vi2, 12))
     allocate( climate%Wind_DU( mesh%vi1:mesh%vi2, 12))
+    allocate( climate%Q_TOA( mesh%vi1:mesh%vi2, 12))
     climate%Hs     = 0._dp
     climate%snapshot%Hs     = 0._dp
     climate%T2m    = 0._dp
     climate%Precip = 0._dp
     climate%Wind_LR = 0._dp
     climate%Wind_DU = 0._dp
+    climate%Q_TOA = 0._dp
 
     ! Set time of next calculation to start time
     climate%t_next = C%start_time_of_run
@@ -217,7 +227,19 @@ CONTAINS
       ! No need to do anything (initialisation is handled by the SMB model)
     case ('ISMIP7')
       call climate%ISMIP7%allocate( region_name, mesh)
-      call climate%ISMIP7%initialise( refgeo_PD, refgeo_init)
+      call climate%ISMIP7%initialise( geom, refgeo_PD, refgeo_init)
+    case ('snapshot_lapse')
+      call climate%snapshot_lapse%allocate( region_name, mesh)
+      call climate%snapshot_lapse%initialise( geom, refgeo_PD, refgeo_init)
+      climate%Q_TOA   ( mesh%vi1:mesh%vi2,:) = climate%snapshot_lapse%Q_TOA   ( mesh%vi1:mesh%vi2,:)
+      climate%Wind_LR ( mesh%vi1:mesh%vi2,:) = climate%snapshot_lapse%Wind_LR ( mesh%vi1:mesh%vi2,:)
+      climate%Wind_DU ( mesh%vi1:mesh%vi2,:) = climate%snapshot_lapse%Wind_DU ( mesh%vi1:mesh%vi2,:)
+    case ('TIPMIP')
+      call climate%TIPMIP%allocate( region_name, mesh)
+      call climate%TIPMIP%initialise( geom, refgeo_PD, refgeo_init)
+      climate%Q_TOA   ( mesh%vi1:mesh%vi2,:) = climate%TIPMIP%Q_TOA   ( mesh%vi1:mesh%vi2,:)
+      climate%Wind_LR ( mesh%vi1:mesh%vi2,:) = climate%TIPMIP%Wind_LR ( mesh%vi1:mesh%vi2,:)
+      climate%Wind_DU ( mesh%vi1:mesh%vi2,:) = climate%TIPMIP%Wind_DU ( mesh%vi1:mesh%vi2,:)
     end select
 
     call checksum( mesh%pai_V, climate%T2m   , 'climate%T2m')
@@ -267,7 +289,9 @@ CONTAINS
     case ('none', &
           'idealised', &
           'SMB_snapshot_plus_anomalies', &
-          'ISMIP7')
+          'ISMIP7', &
+          'snapshot_lapse', &
+          'TIPMIP')
       ! No need to do anything
     case ('realistic', &
           'snapshot_plus_uniform_deltaT', &
@@ -366,7 +390,9 @@ CONTAINS
     case ('none', &
           'idealised', &
           'SMB_snapshot_plus_anomalies', &
-          'ISMIP7')
+          'ISMIP7', &
+          'snapshot_lapse', &
+          'TIPMIP')
       ! No need to do anything
     case ('realistic', &
           'snapshot_plus_uniform_deltaT', &
@@ -501,6 +527,10 @@ CONTAINS
       call remap_climate_matrix_model( mesh_new, climate, region_name, grid, ice, geom, forcing)
     elseif (choice_climate_model == 'ISMIP7') then
       call climate%ISMIP7%remap( mesh_new)
+    elseif (choice_climate_model == 'snapshot_lapse') then
+      call climate%snapshot_lapse%remap( mesh_new)
+    elseif (choice_climate_model == 'TIPMIP') then
+      call climate%TIPMIP%remap( mesh_new)
     ELSE
       CALL crash('unknown choice_climate_model "' // TRIM( choice_climate_model) // '"')
     END IF

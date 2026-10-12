@@ -38,6 +38,8 @@ module mesh_ROI_polygons
   public :: calc_polygon_Wilkes_basins
   public :: calc_polygon_Antarctic_Peninsula
   public :: calc_polygon_Institute_basin
+  public :: calc_polygon_Denman_glacier
+  public :: calc_polygon_Aurora_GL2300
 
 contains
 
@@ -1941,5 +1943,61 @@ subroutine calc_polygon_Antarctic_Peninsula( poly)
   call finalise_routine( routine_name)
 
 end subroutine calc_polygon_Antarctic_Peninsula
+
+subroutine calc_polygon_Denman_glacier( poly)
+  ! Return a polygon enveloping the Denman glacier and parts of Shackleton ice shelf
+  ! for the Last Glacial Maximum based on manual analysis of the RAISED consortium data
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Denman_glacier'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 7,2))
+
+  poly(  1,:) = [2.316e+06_dp,-4.018e+05_dp]
+  poly(  2,:) = [2.464e+06_dp,-4.953e+05_dp]
+  poly(  3,:) = [2.640e+06_dp,-4.774e+05_dp]
+  poly(  4,:) = [2.665e+06_dp,-3.837e+05_dp]
+  poly(  5,:) = [2.539e+06_dp,-3.765e+05_dp]
+  poly(  6,:) = [2.492e+06_dp,-3.729e+05_dp]
+  poly(  7,:) = [2.352e+06_dp,-3.405e+05_dp]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Denman_glacier
+
+subroutine calc_polygon_Aurora_GL2300( poly)
+  ! Return a polygon enveloping the Elmer/Ice projected 2300 ice-shelf extent 
+  ! in the Aurora Subglacial Basin.
+
+  ! In/output variables:
+  real(dp), dimension(:,:), allocatable, intent(out) :: poly
+
+  ! Local variables:
+  character(len=1024), parameter :: routine_name = 'calc_polygon_Aurora_GL2300'
+
+  ! Add routine to path
+  call init_routine( routine_name)
+
+  allocate( poly( 7,2))
+
+  poly(  1,:) = [2.000e+06_dp,-1.374e+06_dp]
+  poly(  2,:) = [2.000e+06_dp,-1.200e+06_dp]
+  poly(  3,:) = [2.050e+06_dp,-0.950e+06_dp]
+  poly(  4,:) = [2.200e+06_dp,-0.800e+06_dp]
+  poly(  5,:) = [2.400e+06_dp,-0.650e+06_dp]
+  poly(  6,:) = [2.470e+06_dp,-0.650e+06_dp]
+  poly(  7,:) = [2.470e+06_dp,-1.374e+06_dp]
+
+  ! Finalise routine path
+  call finalise_routine( routine_name)
+
+end subroutine calc_polygon_Aurora_GL2300
 
 end module mesh_ROI_polygons
