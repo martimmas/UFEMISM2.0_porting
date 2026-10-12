@@ -236,7 +236,8 @@ contains
     end do
 
     ! Print to terminal
-    if (par%primary) write(0,'(A)') '   Writing to ISMIP output files' // '...'
+    if (par%primary) write(0,'(A)') '   Writing to '// &
+      UPSY%stru%colour_string( trim( C%ismip_filename_style), 'light blue') // ' output files' // '...'
 
     ! Basic topography
     d_loc_dp = region%ice%geom%Hi( region%mesh%vi1:region%mesh%vi2)
@@ -820,7 +821,7 @@ contains
     res_str = adjustl(res_str)
 
     ! Make a title
-    title = 'ISMIP7 output by UFEMISM - ' // trim(field%name)
+    title = trim(C%ismip_filename_style) // ' output by UFEMISM - ' // trim(field%name)
 
     ! Add attributes
     call add_attribute_char( field%filename, ncid, NF90_GLOBAL, 'title', trim(title))
@@ -889,7 +890,7 @@ contains
     res_str = adjustl(res_str)
 
     ! Make a title
-    title = 'ISMIP7 output by UFEMISM - ' // trim(scalar%name)
+    title = trim(C%ismip_filename_style) // ' output by UFEMISM - ' // trim(scalar%name)
 
     ! Add attributes
     call add_attribute_char( scalar%filename, ncid, NF90_GLOBAL, 'title', trim(title))
@@ -944,7 +945,14 @@ contains
     region%ismip_output%t_curr = C%start_time_of_run
 
     ! Define the name of the subfolder
-    region%ismip_output%folder = trim( C%output_dir) // trim(C%ismip_counter) // '/'
+    select case (C%ismip_filename_style) 
+      case default
+        call crash ('unknown ismip_filename_style "' // trim(C%ismip_filename_style) // '"')
+      case ('ISMIP7')
+        region%ismip_output%folder = trim( C%output_dir) // trim(C%ismip_counter) // '/'
+      case ('TIPMIP')
+        region%ismip_output%folder = trim( C%output_dir) // trim(C%ismip_scenario_name) // '/'
+    end select
 
     ! Basic topography
     call initialise_ISMIP_field( region, region%ismip_output%lithk, 'lithk', 'Ice thickness', 'land_ice_thickness', 'm', 'ST')
@@ -1081,16 +1089,25 @@ contains
 
     ! Convert grid resolution and start/end times to string.
     ! Offset end_year of 1 year to indicate last completed year
-    write(start_year, '(I4)') int(C%start_time_of_run)
-    write(end_year, '(I4)') int(C%end_time_of_run - 1)
+    write(start_year, '(I4.4)') int(C%start_time_of_run)
+    write(end_year, '(I4.4)') int(C%end_time_of_run - 1)
 
     ! Define the filename for this field
-    field%filename = trim( region%ismip_output%folder) // trim(field%name) // '_' // &
-      trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
-      trim(C%ismip_model_name) // '_' // trim(C%ismip_member_id) // '_' // &
-      trim(C%ismip_esm_name) // '_' // trim(C%ismip_forcing_member_id) // '_' // &
-      trim(C%ismip_scenario_name) // '_' // trim(C%ismip_counter) // '_' // &
-      trim(start_year) // '-' // trim(end_year) // '.nc'
+    select case (C%ismip_filename_style)
+      case default
+        call crash ('unknown ismip_filename_style "' // trim(C%ismip_filename_style) // '"')
+      case ('ISMIP7')
+        field%filename = trim( region%ismip_output%folder) // trim(field%name) // '_' // &
+          trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
+          trim(C%ismip_model_name) // '_' // trim(C%ismip_member_id) // '_' // &
+          trim(C%ismip_esm_name) // '_' // trim(C%ismip_forcing_member_id) // '_' // &
+          trim(C%ismip_scenario_name) // '_' // trim(C%ismip_counter) // '_' // &
+          trim(start_year) // '-' // trim(end_year) // '.nc'
+      case ('TIPMIP')
+        field%filename = trim( region%ismip_output%folder) // trim(field%name) // '_' // &
+          trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
+          trim(C%ismip_model_name) // '_' // trim(C%ismip_scenario_name) // '.nc'
+    end select
 
     ! Allocate fields for accumulation during each timestep for flux fields
     if (field%fieldtype == 'FL') then
@@ -1132,16 +1149,25 @@ contains
 
     ! Convert start/end times to string
     ! Offset end_year of 1 year to indicate last completed year
-    write(start_year, '(I4)') int(C%start_time_of_run)
-    write(end_year, '(I4)') int(C%end_time_of_run - 1)
+    write(start_year, '(I4.4)') int(C%start_time_of_run)
+    write(end_year, '(I4.4)') int(C%end_time_of_run - 1)
 
     ! Define the filename for this field
-    scalar%filename = trim( region%ismip_output%folder) // trim(scalar%name) // '_' // &
-      trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
-      trim(C%ismip_model_name) // '_' // trim(C%ismip_member_id) // '_' // &
-      trim(C%ismip_esm_name) // '_' // trim(C%ismip_forcing_member_id) // '_' // &
-      trim(C%ismip_scenario_name) // '_' // trim(C%ismip_counter) // '_' // &
-      trim(start_year) // '-' // trim(end_year) // '.nc'
+    select case (C%ismip_filename_style)
+      case default
+        call crash ('unknown ismip_filename_style "' // trim(C%ismip_filename_style) // '"')
+      case ('ISMIP7')
+        scalar%filename = trim( region%ismip_output%folder) // trim(scalar%name) // '_' // &
+          trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
+          trim(C%ismip_model_name) // '_' // trim(C%ismip_member_id) // '_' // &
+          trim(C%ismip_esm_name) // '_' // trim(C%ismip_forcing_member_id) // '_' // &
+          trim(C%ismip_scenario_name) // '_' // trim(C%ismip_counter) // '_' // &
+          trim(start_year) // '-' // trim(end_year) // '.nc'
+      case ('TIPMIP')
+        scalar%filename = trim( region%ismip_output%folder) // trim(scalar%name) // '_' // &
+          trim(region%ismip_output%IS_name) // '_' // trim(C%ismip_group_name) // '_' // &
+          trim(C%ismip_model_name) // '_' // trim(C%ismip_scenario_name) // '.nc'
+    end select
 
     ! Initialise
     if ((scalar%fieldtype == 'FL')) then

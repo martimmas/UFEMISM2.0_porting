@@ -1236,9 +1236,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Eurasia
     real(dp)            :: dx_output_grid_ROI_GRL_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Greenland
     real(dp)            :: dx_output_grid_ROI_ANT_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Antarctica
+    character(len=1024) :: choice_cftime_output_calendar_config         = 'standard'                      ! Which calendar to use for cftime output. 'standard', '365_day'/'noleap', or '360_day'
+    integer             :: choice_cftime_output_refyear_config          = 1850                            ! Reference year for calendar, spitting out in 'days since refyear-01-01'
 
     ! ISMIP
     logical             :: do_create_ismip_output_config                = .false.                         ! Whether or not ISMIP-specific output files should be created at all
+    character(len=1024) :: ismip_filename_style_config                  = 'ISMIP7'                        ! For which MIPstyle the filenames should be modified
     character(len=1024) :: ismip_scenario_name_config                   = 'ctrl'                          ! Scenario name for ISMIP output
     character(len=1024) :: ismip_group_name_config                      = 'IMAU'                          ! Group name included in ISMIP output files
     character(len=1024) :: ismip_model_name_config                      = 'UFEMISM1'                      ! Model name to which numbers can be added for variants
@@ -2515,9 +2518,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS
     real(dp)            :: dx_output_grid_ROI_GRL
     real(dp)            :: dx_output_grid_ROI_ANT
+    character(len=1024) :: choice_cftime_output_calendar
+    integer             :: choice_cftime_output_refyear
 
     ! ISMIP
     logical             :: do_create_ismip_output
+    character(len=1024) :: ismip_filename_style
     character(len=1024) :: ismip_scenario_name
     character(len=1024) :: ismip_group_name
     character(len=1024) :: ismip_model_name
@@ -3406,7 +3412,10 @@ contains
       dx_output_grid_ROI_EAS_config                               , &
       dx_output_grid_ROI_GRL_config                               , &
       dx_output_grid_ROI_ANT_config                               , &
+      choice_cftime_output_calendar_config                        , &
+      choice_cftime_output_refyear_config                         , &
       do_create_ismip_output_config                               , &
+      ismip_filename_style_config                                 , &
       ismip_scenario_name_config                                  , &
       ismip_group_name_config                                     , &
       ismip_model_name_config                                     , &
@@ -4711,9 +4720,12 @@ contains
     C%dx_output_grid_ROI_EAS                                 = dx_output_grid_ROI_EAS_config
     C%dx_output_grid_ROI_GRL                                 = dx_output_grid_ROI_GRL_config
     C%dx_output_grid_ROI_ANT                                 = dx_output_grid_ROI_ANT_config
+    C%choice_cftime_output_calendar                          = choice_cftime_output_calendar_config
+    C%choice_cftime_output_refyear                           = choice_cftime_output_refyear_config
 
     ! ISMIP
     C%do_create_ismip_output                                 = do_create_ismip_output_config
+    C%ismip_filename_style                                   = ismip_filename_style_config
     C%ismip_scenario_name                                    = ismip_scenario_name_config
     C%ismip_group_name                                       = ismip_group_name_config
     C%ismip_model_name                                       = ismip_model_name_config

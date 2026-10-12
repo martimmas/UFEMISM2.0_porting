@@ -164,7 +164,7 @@ module calendar
           call crash('Requested time to convert to days is not a full year')
         end if
 
-        call convert_time_to_days_with_bounds( full_year, refyear_applied, days, days_bounds)
+        call convert_time_to_days_with_bounds( full_year, calendar_applied, refyear_applied, days, days_bounds)
       else
         ! Determine days at the actual current time at 1 Jan
         call convert_time_to_days_nobounds( full_year, res, calendar_applied, refyear_applied, days)
@@ -234,13 +234,15 @@ module calendar
 
     end subroutine convert_time_to_days_nobounds
 
-    subroutine convert_time_to_days_with_bounds( full_year, refyear, days, days_bounds)
-      ! This routine is specific for creating output, which we always want on
-      ! the standard calendar, hence no other calendars are implemented
-      ! This is tailored specifically to ISMIP7 output
+    subroutine convert_time_to_days_with_bounds( full_year, calendar, refyear, days, days_bounds)
+      ! This routine is used for FL-type ISMIP7 output, which cover a complete year.
+      ! The time-output has a centered value mid-year, and bounds spanning the specific year
+      ! The output should be written at full years (say time 2000.0) and cover the previous year
+      ! (say 1999-01-01:00:00 - 2000-01-01:00:00)
 
       ! In/output variables:
       integer,                 intent(in   ) :: full_year
+      character(len=*),        intent(in   ) :: calendar
       integer,                 intent(in   ) :: refyear
       real(dp),                intent(  out) :: days
       real(dp), dimension(2),  intent(  out) :: days_bounds
@@ -253,31 +255,52 @@ module calendar
       ! Add routine to path
       call init_routine( routine_name)
 
-      ! Initialise
-      days_start = 0._dp
+      select case (calendar)
+        case default
+          call crash ('unknown calendar "' // trim(calendar) // '"')
+        case ('standard')
+          ! ISMIP7-style standard output including leap years
 
-      ! Count days for full years from refyear to start of last year
-      do i = refyear, full_year - 2
-        if (is_leap_year(i)) then
-          days_start = days_start + 366._dp
-        else
-          days_start = days_start + 365._dp
-        end if
-      end do
+          ! Initialise
+          days_start = 0._dp
 
-      ! Add days of current year to year end
-      if (is_leap_year( full_year -1)) then
-        days_end = days_start + 366._dp
-      else
-        days_end = days_start + 365._dp
-      end if
+          ! Count days for full years from refyear to start of last year
+          do i = refyear, full_year - 2
+            if (is_leap_year(i)) then
+              days_start = days_start + 366._dp
+            else
+              days_start = days_start + 365._dp
+            end if
+          end do
+
+          ! Add days of current year to year end
+          if (is_leap_year( full_year -1)) then
+            days_end = days_start + 366._dp
+          else
+            days_end = days_start + 365._dp
+          end if
+
+          ! Get center value at 1 July of last year
+          days = days_end - 184._dp
+
+        case ('noleap', '365_day')
+          days_start = (full_year - refyear - 1) * 365._dp
+          days_end   = (full_year - refyear) * 365._dp
+
+          ! Center value as defined in TIPMIP
+          days = days_start + 182._dp
+
+        case ('360_day')
+          days_start = (full_year - refyear - 1) * 360._dp
+          days_end   = (full_year - refyear) * 360._dp
+
+          days = days_start + 180._dp
+
+      end select
 
       ! Parse to days_bounds
       days_bounds(1) = days_start
       days_bounds(2) = days_end
-
-      ! Get center value at 1 July of last year
-      days = days_end - 184._dp
 
       ! Finalise routine path
       call finalise_routine( routine_name)
