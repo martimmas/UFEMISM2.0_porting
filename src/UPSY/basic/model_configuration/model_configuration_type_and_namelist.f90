@@ -763,6 +763,8 @@ module model_configuration_type_and_namelist
     character(len=1024) :: climate_ISMIP7_forcing_version_config             = ''                               ! Which version of the forcing files to use (since they often provide more than one), e.g. 'v2' means the climate files are located in /path/to/base/folder/acabf/v2. Leaving this variable empty implies that they are located in /path/to/base/folder/acabf
     character(len=1024) :: climate_ISMIP7_temperature_name_config        = 'tas'                            ! In some of the forcing files, it's called 'ts'...
 
+    character(len=1024) :: climate_TIPMIP_offset_filename_config         = ''                               ! Filename containing offsets in tas_anomaly and pr_ratio to be applied to baseline climate for forcing shift
+
   ! == Ocean
   ! ========
 
@@ -848,6 +850,9 @@ module model_configuration_type_and_namelist
     ! Settings for the ISMIP7 ocean model
     character(len=1024) :: ocean_ISMIP7_forcing_foldername_config       = ''                               ! Path to the directory containing the different variables directories (e.g. /path/to/base/folder, so that the ocean files are located in /path/to/base/folder/thetao/version)
     character(len=1024) :: ocean_ISMIP7_forcing_version_config          = ''
+    integer             :: ocean_ISMIP7_calendar_refyear_config         = 1850                             ! Reference year for calendar
+    character(len=1024) :: ocean_ISMIP7_forcing_type_config             = 'absolute'                       ! Type of forcing that is provided 'absolute' (ISMIP7) or 'anomaly' (TIPMIP)
+    character(len=1024) :: ocean_ISMIP7_offset_filename_config          = ''                               ! Filename containing offsets which should be subtracted from the baseline climatology in case of 'anomaly' forcing
 
   ! == Surface mass balance
   ! =======================
@@ -1231,9 +1236,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Eurasia
     real(dp)            :: dx_output_grid_ROI_GRL_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Greenland
     real(dp)            :: dx_output_grid_ROI_ANT_config                = 5E3_dp                          ! [m] Horizontal resolution for the square grid used for output for the region of interest for Antarctica
+    character(len=1024) :: choice_cftime_output_calendar_config         = 'standard'                      ! Which calendar to use for cftime output. 'standard', '365_day'/'noleap', or '360_day'
+    integer             :: choice_cftime_output_refyear_config          = 1850                            ! Reference year for calendar, spitting out in 'days since refyear-01-01'
 
     ! ISMIP
     logical             :: do_create_ismip_output_config                = .false.                         ! Whether or not ISMIP-specific output files should be created at all
+    character(len=1024) :: ismip_filename_style_config                  = 'ISMIP7'                        ! For which MIPstyle the filenames should be modified
     character(len=1024) :: ismip_scenario_name_config                   = 'ctrl'                          ! Scenario name for ISMIP output
     character(len=1024) :: ismip_group_name_config                      = 'IMAU'                          ! Group name included in ISMIP output files
     character(len=1024) :: ismip_model_name_config                      = 'UFEMISM1'                      ! Model name to which numbers can be added for variants
@@ -2042,6 +2050,8 @@ module model_configuration_type_and_namelist
     character(len=1024) :: climate_ISMIP7_forcing_version
     character(len=1024) :: climate_ISMIP7_temperature_name
 
+    character(len=1024) :: climate_TIPMIP_offset_filename
+
   ! == Ocean
   ! ========
 
@@ -2127,6 +2137,9 @@ module model_configuration_type_and_namelist
     ! Settings for the ISMIP7 ocean model
     character(len=1024) :: ocean_ISMIP7_forcing_foldername
     character(len=1024) :: ocean_ISMIP7_forcing_version
+    integer             :: ocean_ISMIP7_calendar_refyear
+    character(len=1024) :: ocean_ISMIP7_forcing_type
+    character(len=1024) :: ocean_ISMIP7_offset_filename
 
   ! == Surface mass balance
   ! =======================
@@ -2505,9 +2518,12 @@ module model_configuration_type_and_namelist
     real(dp)            :: dx_output_grid_ROI_EAS
     real(dp)            :: dx_output_grid_ROI_GRL
     real(dp)            :: dx_output_grid_ROI_ANT
+    character(len=1024) :: choice_cftime_output_calendar
+    integer             :: choice_cftime_output_refyear
 
     ! ISMIP
     logical             :: do_create_ismip_output
+    character(len=1024) :: ismip_filename_style
     character(len=1024) :: ismip_scenario_name
     character(len=1024) :: ismip_group_name
     character(len=1024) :: ismip_model_name
@@ -3103,6 +3119,7 @@ contains
       climate_ISMIP7_forcing_foldername_config                    , &
       climate_ISMIP7_forcing_version_config                       , &
       climate_ISMIP7_temperature_name_config                      , &
+      climate_TIPMIP_offset_filename_config                       , &
       do_asynchronous_ocean_config                                , &
       dt_ocean_config                                             , &
       ocean_vertical_grid_max_depth_config                        , &
@@ -3158,6 +3175,9 @@ contains
       ocean_snp_p_anml_filename_anomalies_config                  , &
       ocean_ISMIP7_forcing_foldername_config                      , &
       ocean_ISMIP7_forcing_version_config                         , &
+      ocean_ISMIP7_calendar_refyear_config                        , &
+      ocean_ISMIP7_forcing_type_config                            , &
+      ocean_ISMIP7_offset_filename_config                         , &
       do_asynchronous_SMB_config                                  , &
       dt_SMB_config                                               , &
       choice_SMB_model_NAM_config                                 , &
@@ -3392,7 +3412,10 @@ contains
       dx_output_grid_ROI_EAS_config                               , &
       dx_output_grid_ROI_GRL_config                               , &
       dx_output_grid_ROI_ANT_config                               , &
+      choice_cftime_output_calendar_config                        , &
+      choice_cftime_output_refyear_config                         , &
       do_create_ismip_output_config                               , &
+      ismip_filename_style_config                                 , &
       ismip_scenario_name_config                                  , &
       ismip_group_name_config                                     , &
       ismip_model_name_config                                     , &
@@ -4231,6 +4254,8 @@ contains
     C%climate_ISMIP7_forcing_version                           = climate_ISMIP7_forcing_version_config
     C%climate_ISMIP7_temperature_name                          = climate_ISMIP7_temperature_name_config
 
+    C%climate_TIPMIP_offset_filename                           = climate_TIPMIP_offset_filename_config
+
     ! == Ocean
     ! ========
 
@@ -4316,6 +4341,9 @@ contains
     ! Settings for the ISMIP7 ocean model
     C%ocean_ISMIP7_forcing_foldername                        = ocean_ISMIP7_forcing_foldername_config
     C%ocean_ISMIP7_forcing_version                           = ocean_ISMIP7_forcing_version_config
+    C%ocean_ISMIP7_calendar_refyear                          = ocean_ISMIP7_calendar_refyear_config
+    C%ocean_ISMIP7_forcing_type                              = ocean_ISMIP7_forcing_type_config
+    C%ocean_ISMIP7_offset_filename                           = ocean_ISMIP7_offset_filename_config
 
     ! == Surface mass balance
     ! =======================
@@ -4692,9 +4720,12 @@ contains
     C%dx_output_grid_ROI_EAS                                 = dx_output_grid_ROI_EAS_config
     C%dx_output_grid_ROI_GRL                                 = dx_output_grid_ROI_GRL_config
     C%dx_output_grid_ROI_ANT                                 = dx_output_grid_ROI_ANT_config
+    C%choice_cftime_output_calendar                          = choice_cftime_output_calendar_config
+    C%choice_cftime_output_refyear                           = choice_cftime_output_refyear_config
 
     ! ISMIP
     C%do_create_ismip_output                                 = do_create_ismip_output_config
+    C%ismip_filename_style                                   = ismip_filename_style_config
     C%ismip_scenario_name                                    = ismip_scenario_name_config
     C%ismip_group_name                                       = ismip_group_name_config
     C%ismip_model_name                                       = ismip_model_name_config
