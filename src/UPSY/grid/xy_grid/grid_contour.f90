@@ -3,7 +3,7 @@ module grid_contour
   ! Functions for working with simple square x/y-grids
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use reallocate_mod, only: reallocate
   use interpolation, only: linint_points

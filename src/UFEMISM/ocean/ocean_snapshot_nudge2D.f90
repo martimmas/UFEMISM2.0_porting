@@ -7,7 +7,7 @@ module ocean_snapshot_nudge2D
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
   use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ocean_model_types, only: type_ocean_model, type_ocean_model_snapshot_nudge2D

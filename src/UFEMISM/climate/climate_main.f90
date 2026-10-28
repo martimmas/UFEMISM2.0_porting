@@ -17,7 +17,7 @@ MODULE climate_main
   use SMB_model, only: atype_SMB_model
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
   use reference_geometry_types, only: type_reference_geometry
-  use grid_types                                             , ONLY: type_grid
+  use grid_basic, only: type_grid
   USE climate_model_types                                    , ONLY: type_climate_model
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE climate_idealised                                      , ONLY: initialise_climate_model_idealised, run_climate_model_idealised

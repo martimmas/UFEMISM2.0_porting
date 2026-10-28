@@ -2,7 +2,7 @@ module netcdf_setup_grid_mesh_in_file
   !< Set up a grid or a mesh in a NetCDF file
 
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use netcdf_basic

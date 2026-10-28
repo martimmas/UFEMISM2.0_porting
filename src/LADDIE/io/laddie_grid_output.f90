@@ -8,7 +8,7 @@ module laddie_grid_output
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use netcdf_io_main
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &

@@ -10,7 +10,6 @@ module ocean_model_basic
   use mpi_f08, only: MPI_WIN
   use ice_model_data, only: atype_ice_model_data
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
 
   implicit none
 

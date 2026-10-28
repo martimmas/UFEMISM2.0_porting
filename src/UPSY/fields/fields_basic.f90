@@ -5,7 +5,7 @@ module fields_basic
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, &
     warning, crash, colour_string
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid, type_Arakawa_grid
   use fields_dimensions, only: third_dimension, type_third_dimension

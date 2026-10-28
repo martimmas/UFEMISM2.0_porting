@@ -5,7 +5,7 @@ module netcdf_read_field_from_xy_grid_file
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use grid_basic, only: deallocate_grid
   use permute_mod

@@ -7,7 +7,7 @@ module ut_mesh_remapping_trace_line_grid
   use ut_basic
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use line_tracing_basic
   use line_tracing_grid
   use mpi_basic, only: par

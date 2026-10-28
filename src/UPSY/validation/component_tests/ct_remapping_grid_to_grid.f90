@@ -8,7 +8,7 @@ module ct_remapping_grid_to_grid
   use mpi_basic, only: par
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use ct_remapping_basic, only: calc_test_function_on_grid
   use remapping_grid_to_grid, only: map_from_xy_grid_to_xy_grid_2D
   use netcdf_io_main

@@ -3,7 +3,7 @@ module smooth_gridded_data
   ! Functions for smoothing data on a square grid
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine

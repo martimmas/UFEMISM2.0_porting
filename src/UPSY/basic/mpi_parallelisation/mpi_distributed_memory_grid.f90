@@ -3,7 +3,7 @@ module mpi_distributed_memory_grid
   ! Functions for working with distributed gridded data
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_distributed_memory, only: distribute_from_primary, gather_to_primary, gather_to_all

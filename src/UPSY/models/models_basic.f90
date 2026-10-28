@@ -3,7 +3,7 @@ module models_basic
   use precisions, only: dp
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use fields_main, only: type_fields_registry
   use Arakawa_grid_mod, only: type_Arakawa_grid

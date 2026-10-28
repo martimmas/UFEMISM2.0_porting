@@ -18,7 +18,7 @@ module ISMIP7_fracture
   use Arakawa_grid_mod, only: Arakawa_grid
   use netcdf_io_main, only: read_time_from_file, open_existing_netcdf_file_for_reading, &
     setup_xy_grid_from_file, close_netcdf_file, inquire_var, read_var_primary
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use remapping_types, only: type_map
   use remapping_grid_to_mesh_vertices, only: create_map_from_xy_grid_to_mesh_vertices
   use apply_maps, only: apply_map_xy_grid_to_mesh_2D

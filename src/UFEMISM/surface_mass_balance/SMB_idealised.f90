@@ -11,7 +11,7 @@ module SMB_idealised
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use climate_model_types, only: type_climate_model
   use reference_geometry_types, only: type_reference_geometry
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 

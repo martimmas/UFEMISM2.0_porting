@@ -9,8 +9,7 @@ module ut_netcdf_read_and_remap
   use parameters, only: pi
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use string_module, only: strrep
-  use grid_types, only: type_grid
-  use grid_basic, only: setup_square_grid
+  use grid_basic, only: type_grid, setup_square_grid
   use mesh_types, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5

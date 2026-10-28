@@ -1,7 +1,7 @@
 module tracer_tracking_model_types
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 

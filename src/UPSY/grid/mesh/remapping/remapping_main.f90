@@ -3,7 +3,7 @@ module remapping_main
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use remapping_types, only: type_map
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use grid_lonlat_basic, only: type_grid_lonlat
   use mesh_types, only: type_mesh
   use interpolation, only: remap_cons_2nd_order_1D

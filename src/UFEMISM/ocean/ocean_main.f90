@@ -12,7 +12,7 @@ MODULE ocean_main
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE mesh_types                                             , ONLY: type_mesh
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   USE ocean_model_types                                      , ONLY: type_ocean_model

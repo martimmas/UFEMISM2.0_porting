@@ -8,7 +8,6 @@ module climate_model_utilities
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER, MPI_BCAST
   use mesh_types                                             , only: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
-  use grid_types                                             , only: type_grid
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
   use netcdf_io_main

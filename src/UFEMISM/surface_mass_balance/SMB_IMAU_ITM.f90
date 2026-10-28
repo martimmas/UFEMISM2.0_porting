@@ -18,7 +18,7 @@ module SMB_IMAU_ITM
   use climate_model_utilities, only: get_insolation_at_time
   use climate_realistic, only: initialise_insolation_forcing
   use reference_geometry_types, only: type_reference_geometry
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 

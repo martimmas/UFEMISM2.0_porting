@@ -4,7 +4,7 @@ module ct_remapping_basic
 
   use precisions, only: dp
   use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use mpi_basic, only: par
   use Halfar_SIA_solution, only: Halfar

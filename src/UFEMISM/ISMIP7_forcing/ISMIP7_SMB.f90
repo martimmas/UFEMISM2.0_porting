@@ -53,7 +53,7 @@ module ISMIP7_SMB
   use ISMIP7_forcing_field_types, only: type_ISMIP7_forcing_field_monthly, type_ISMIP7_forcing_field_yearly
   use netcdf_io_main, only: read_field_from_file_2d
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 

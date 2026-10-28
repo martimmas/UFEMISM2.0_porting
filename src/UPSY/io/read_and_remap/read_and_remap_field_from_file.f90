@@ -10,7 +10,7 @@ module read_and_remap_field_from_file
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, insert_val_into_string_int, warning
   use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use grid_lat_basic, only: type_grid_lat, deallocate_lat_grid
   use grid_lonlat_basic, only: type_grid_lonlat, deallocate_lonlat_grid
   use remapping_main

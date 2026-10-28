@@ -16,7 +16,7 @@ module ut_SMB
   use ice_model_main, only: type_ice_model
   use reference_geometry_types, only: type_reference_geometry
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use Halfar_SIA_solution, only: Halfar
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, &
     MPI_WIN, MPI_MIN, MPI_MAX

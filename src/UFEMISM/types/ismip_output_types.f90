@@ -1,7 +1,7 @@
 module ismip_output_types
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 
@@ -19,7 +19,7 @@ module ismip_output_types
     character(len=1024)                 :: long_name         ! Long name
     character(len=1024)                 :: standard_name     ! Standard name
     character(len=1024)                 :: units             ! Units
-    character(len=2)                    :: fieldtype         ! ST or FL      
+    character(len=2)                    :: fieldtype         ! ST or FL
 
     integer                             :: nt                ! Counter for number of time values written
 
@@ -35,7 +35,7 @@ module ismip_output_types
     character(len=1024)                 :: long_name         ! Long name
     character(len=1024)                 :: standard_name     ! Standard name
     character(len=1024)                 :: units             ! Units
-    character(len=2)                    :: fieldtype         ! ST or FL      
+    character(len=2)                    :: fieldtype         ! ST or FL
 
     integer                             :: nt                ! Counter for number of time values written
 

@@ -10,7 +10,6 @@ module ut_fields_reallocate
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D, &
     type_fields_registry
   use ut_basic
-  use grid_types, only: type_grid
   use mesh_types, only: type_mesh
   use grid_basic, only: setup_square_grid
   use Arakawa_grid_mod, only: Arakawa_grid

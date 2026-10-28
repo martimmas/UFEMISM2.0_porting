@@ -9,7 +9,7 @@ module ut_mesh_remapping
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine
   use parameters, only: pi
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use grid_basic, only: setup_square_grid
   use mesh_types, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary

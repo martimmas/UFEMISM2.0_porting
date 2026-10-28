@@ -8,7 +8,7 @@ module ct_remapping_mesh_to_grid
   use mpi_basic, only: par
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use netcdf_io_main
   use apply_maps, only: clear_all_maps_involving_this_mesh

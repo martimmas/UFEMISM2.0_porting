@@ -15,7 +15,7 @@ module TIPMIP_forcing_field_types
   use apply_maps, only: apply_map_xy_grid_to_mesh_2D, apply_map_xy_grid_to_mesh_3D
   use remapping_grid_to_mesh_vertices, only: create_map_from_xy_grid_to_mesh_vertices
   use parameters, only: NaN, freshwater_density, sec_per_year, ice_density
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use remapping_types, only: type_map
   use dist_to_hybrid_mod, only: dist_to_hybrid
   use models_basic, only: atype_model
@@ -245,7 +245,7 @@ module TIPMIP_forcing_field_types
       ! Allocate arrays for timestamps and file indices, combined for all files in this folder
       allocate( self%timestamps ( cnt-1))
       allocate( self%fileindices( cnt-1))
-      
+
       ! Copy all valid values from buffer
       self%timestamps  = time_buff( 1:cnt-1)
       self%fileindices = fi_buff  ( 1:cnt-1)

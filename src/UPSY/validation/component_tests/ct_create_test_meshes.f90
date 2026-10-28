@@ -11,8 +11,7 @@ module ct_create_test_meshes
   use tests_main
   use assertions_basic
   use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
-  use grid_basic, only: setup_square_grid
+  use grid_basic, only: type_grid, setup_square_grid
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform, refine_mesh_polygon

@@ -4,7 +4,7 @@ module remapping_grid_to_grid
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary
   use line_integrals, only: line_integral_mxydx, line_integral_xydy
 

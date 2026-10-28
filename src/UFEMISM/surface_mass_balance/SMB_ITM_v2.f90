@@ -18,7 +18,7 @@ module SMB_ITM_v2
   use climate_model_utilities, only: get_insolation_at_time
   use climate_realistic, only: initialise_insolation_forcing
   use reference_geometry_types, only: type_reference_geometry
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 
@@ -372,10 +372,10 @@ contains
             albedo_ref = max(self%albedo_ice, self%albedo_snow - .91_dp * self%SurfaceMelt( vi, mprev))
             self%Albedo( vi,m) = .89_dp - (.89_dp - albedo_ref) * exp(-self%Snowfall( vi, m) / 30.9_dp)
 
-            ! Determine ablation as a function of surface temperature 
+            ! Determine ablation as a function of surface temperature
             ! and albedo/insolation according following Bintanja et al. (2002)
             ! Retuned to RACMO2.4p1 data
-            Qsurf = climate%Q_TOA( vi, m) * (0.72_dp + 3.92E-5_dp * geom%Hs( vi)) 
+            Qsurf = climate%Q_TOA( vi, m) * (0.72_dp + 3.92E-5_dp * geom%Hs( vi))
 
             self%SurfaceMelt( vi,m) = &
                 C%SMB_ITM_C_melt_temp * max(0._dp, (climate%T2m( vi,m) - C%SMB_ITM_C_trans_temp))**2 &

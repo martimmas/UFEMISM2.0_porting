@@ -14,7 +14,7 @@ module GIA_ELRA
   use reallocate_mod, only: reallocate_bounds
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary, &
     gather_gridded_data_to_all
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use reference_geometry_types, only: type_reference_geometry
   use ice_geometry_basics, only: is_floating
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, map_from_xy_grid_to_mesh_2D

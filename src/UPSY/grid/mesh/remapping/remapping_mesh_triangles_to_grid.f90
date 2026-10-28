@@ -4,7 +4,7 @@ module remapping_mesh_triangles_to_grid
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use remapping_types, only: type_map

@@ -7,7 +7,7 @@ MODULE laddie_model_types
 
   USE precisions                                             , ONLY: dp
   USE CSR_matrix_mod                                 , ONLY: type_CSR_matrix_dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mpi_f08, only: MPI_WIN
 
   IMPLICIT NONE

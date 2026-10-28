@@ -6,7 +6,7 @@ MODULE ocean_model_types
 ! ====================
 
   USE precisions                                             , ONLY: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use reference_geometry_types, only: type_reference_geometry
 
   IMPLICIT NONE

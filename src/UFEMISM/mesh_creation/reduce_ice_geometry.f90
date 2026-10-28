@@ -8,7 +8,7 @@ module reduce_ice_geometry
   use mpi_basic, only: par, sync
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
   use mesh_types, only: type_mesh
   use mpi_distributed_memory, only: gather_to_primary
   use grid_contour, only: calc_grid_mask_as_polygons, calc_grid_contour_as_line

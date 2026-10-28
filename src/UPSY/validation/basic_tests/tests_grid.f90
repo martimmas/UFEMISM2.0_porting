@@ -3,7 +3,7 @@ module tests_grid
   ! Basic tests for simple square x/y-grids.
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use grid_basic, only: type_grid
 
   implicit none
 

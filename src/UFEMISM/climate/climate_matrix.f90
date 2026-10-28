@@ -13,7 +13,7 @@ module climate_matrix
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_model_main, only: type_ice_model
-  use grid_types                                             , only: type_grid
+  use grid_basic, only: type_grid
   use climate_model_types                                    , only: type_climate_model, type_climate_model_matrix, type_climate_model_snapshot
   use global_forcing_types                                   , only: type_global_forcing
   use SMB_model, only: atype_SMB_model
