@@ -6,6 +6,10 @@ module grid_lat_basic
 
   implicit none
 
+  private
+
+  public :: type_grid_lat, deallocate_lat_grid
+
   type type_grid_lat
     ! A lat-only "grid"
 

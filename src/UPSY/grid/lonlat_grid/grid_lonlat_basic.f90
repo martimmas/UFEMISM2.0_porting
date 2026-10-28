@@ -12,6 +12,15 @@ module grid_lonlat_basic
 
   implicit none
 
+  private
+
+  public :: type_grid_lonlat, setup_simple_lonlat_grid, deallocate_lonlat_grid, &
+    calc_lonlat_field_to_vector_form_translation_tables, &
+    distribute_lonlat_gridded_data_from_primary_dp_2D, &
+    distribute_lonlat_gridded_data_from_primary_dp_3D, &
+    gather_lonlat_gridded_data_to_primary_dp_2D, &
+    gather_lonlat_gridded_data_to_primary_dp_3D
+
   type type_grid_lonlat
     ! A lon/lat grid
 

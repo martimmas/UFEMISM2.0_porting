@@ -10,6 +10,10 @@ module grid_contour
 
   implicit none
 
+  private
+
+  public :: calc_grid_contour_as_line, calc_grid_mask_as_polygons
+
 contains
 
   subroutine calc_grid_contour_as_line( grid, d, f, line, mask)

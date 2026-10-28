@@ -16,6 +16,11 @@ module grid_basic
 
   implicit none
 
+  private
+
+  public :: type_grid, setup_square_grid, deallocate_grid, calc_secondary_grid_data, &
+    calc_matrix_operators_grid
+
   type type_grid
     ! A square grid
 
@@ -49,8 +54,6 @@ module grid_basic
   end type type_grid
 
 contains
-
-! == Basic square grid functionality
 
   subroutine setup_square_grid( name, xmin, xmax, ymin, ymax, dx, grid, lambda_M, phi_M, beta_stereo)
     !< Set up a square grid that covers the specified domain
