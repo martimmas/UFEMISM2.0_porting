@@ -27,7 +27,8 @@ set( UPSY_program_sources_raw
 	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_component_test_program_mesh_discretisation.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_component_test_program_mesh_remapping_grid_grid.f90"
 	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_component_test_program_mesh_remapping_mesh_grid.f90"
-	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_component_test_program_mesh_remapping_mesh_mesh.f90")
+	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_component_test_program_mesh_remapping_mesh_mesh.f90"
+	"${CMAKE_CURRENT_SOURCE_DIR}/programs/UPSY_calculate_remapping_weights.f90")
 
 sanitize_fortran_sources(UPSY_program_sources_sanitized UPSY_programs ${UPSY_program_sources_raw})
 
