@@ -1,4 +1,4 @@
-module grid_lonlat_basic
+module lonlat_grid_basic
 
   ! Functions for working with simple lon/lat-grids
   use precisions, only: dp
@@ -14,15 +14,15 @@ module grid_lonlat_basic
 
   private
 
-  public :: type_xy_grid_lonlat, setup_simple_lonlat_grid, deallocate_lonlat_grid, &
+  public :: type_lonlat_grid, setup_lonlat_grid, deallocate_lonlat_grid, &
     calc_lonlat_field_to_vector_form_translation_tables, &
     distribute_lonlat_gridded_data_from_primary_dp_2D, &
     distribute_lonlat_gridded_data_from_primary_dp_3D, &
     gather_lonlat_gridded_data_to_primary_dp_2D, &
     gather_lonlat_gridded_data_to_primary_dp_3D
 
-  type type_xy_grid_lonlat
-    ! A lon/lat grid
+  type type_lonlat_grid
+    ! A regular lon/lat-grid
 
     ! Basic properties
     character(len=256)                      :: name         !           A nice name tag
@@ -45,22 +45,22 @@ module grid_lonlat_basic
     ! Parallelisation
     integer                                 :: n1,n2,n_loc  ! Matrix rows owned by each process
 
-  end type type_xy_grid_lonlat
+  end type type_lonlat_grid
 
 contains
 
 ! == Basic square grid functionality
 
-  subroutine setup_simple_lonlat_grid( name, nlon, nlat, grid)
+  subroutine setup_lonlat_grid( name, nlon, nlat, grid)
     ! Set up a simple lon/lat-grid that covers the entire globe
 
     ! In/output variables:
     character(len=*),       intent(in   ) :: name
     integer,                intent(in   ) :: nlon, nlat
-    type(type_xy_grid_lonlat), intent(  out) :: grid
+    type(type_lonlat_grid), intent(  out) :: grid
 
     ! Local variables:
-    character(len=*), parameter :: routine_name = 'setup_simple_lonlat_grid'
+    character(len=*), parameter :: routine_name = 'setup_lonlat_grid'
     integer                     :: i,j
 
     ! Add routine to path
@@ -100,13 +100,13 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine setup_simple_lonlat_grid
+  end subroutine setup_lonlat_grid
 
   subroutine deallocate_lonlat_grid( grid)
     ! deallocate memory for a grid object
 
     ! In/output variables:
-    type(type_xy_grid_lonlat), intent(inout) :: grid
+    type(type_lonlat_grid), intent(inout) :: grid
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'deallocate_lonlat_grid'
@@ -128,7 +128,7 @@ contains
     ! Check if two grids are identical
 
     ! In/output variables:
-    type(type_xy_grid_lonlat), intent(inout) :: grid1, grid2
+    type(type_lonlat_grid), intent(inout) :: grid1, grid2
     logical,                intent(  out) :: isso
 
     ! Local variables:
@@ -170,7 +170,7 @@ contains
     ! Calculate grid-cell-to-matrix-row translation tables
 
     ! In/output variables
-    type(type_xy_grid_lonlat), intent(inout) :: grid
+    type(type_lonlat_grid), intent(inout) :: grid
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'calc_lonlat_field_to_vector_form_translation_tables'
@@ -215,7 +215,7 @@ contains
     ! Output to all: partial data in vector form
 
     ! In/output variables:
-    type(type_xy_grid_lonlat),             intent(inout) :: grid
+    type(type_lonlat_grid),             intent(inout) :: grid
     real(dp), dimension(:,:), optional, intent(inout) :: d_grid
     real(dp), dimension(: ),            intent(  out) :: d_grid_vec_partial
 
@@ -260,7 +260,7 @@ contains
     ! Output to all: partial data in vector form
 
     ! In/poutput variables:
-    type(type_xy_grid_lonlat),     intent(inout) :: grid
+    type(type_lonlat_grid),     intent(inout) :: grid
     real(dp), dimension(:,:,:), intent(inout) :: d_grid
     real(dp), dimension(:,:),   intent(  out) :: d_grid_vec_partial
 
@@ -302,7 +302,7 @@ contains
     ! Output to primary: total data field in field form
 
     ! In/output variables:
-    type(type_xy_grid_lonlat),   intent(inout) :: grid
+    type(type_lonlat_grid),   intent(inout) :: grid
     real(dp), dimension(:),   intent(inout) :: d_grid_vec_partial
     real(dp), dimension(:,:), intent(  out) :: d_grid
 
@@ -343,7 +343,7 @@ contains
     ! Output to primary: total data field in field form
 
     ! In/output variables:
-    type(type_xy_grid_lonlat),     intent(inout) :: grid
+    type(type_lonlat_grid),     intent(inout) :: grid
     real(dp), dimension(:,:),   intent(inout) :: d_grid_vec_partial
     real(dp), dimension(:,:,:), intent(  out) :: d_grid
 
@@ -379,4 +379,4 @@ contains
 
   end subroutine gather_lonlat_gridded_data_to_primary_dp_3D
 
-end module grid_lonlat_basic
+end module lonlat_grid_basic

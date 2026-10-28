@@ -5,7 +5,7 @@ module remapping_gridlonlat_to_mesh
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_lonlat_basic, only: type_xy_grid_lonlat
+  use lonlat_grid_basic, only: type_lonlat_grid
   use mesh_basic, only: type_mesh
   use remapping_types, only: type_map
   use CSR_matrix_mod, only: type_CSR_matrix_dp
@@ -25,7 +25,7 @@ subroutine create_map_from_lonlat_grid_to_mesh( grid, mesh, map)
   ! By default uses bilinear interpolation.
 
   ! In/output variables:
-  type(type_xy_grid_lonlat),              intent(in)    :: grid
+  type(type_lonlat_grid),              intent(in)    :: grid
   type(type_mesh),                     intent(in)    :: mesh
   type(type_map),                      intent(inout) :: map
 

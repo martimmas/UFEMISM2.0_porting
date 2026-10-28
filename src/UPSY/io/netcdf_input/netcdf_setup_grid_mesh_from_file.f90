@@ -7,13 +7,13 @@ module netcdf_setup_grid_mesh_from_file
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use xy_grid_basic, only: type_xy_grid
   use grid_lat_basic, only: type_xy_grid_lat
-  use grid_lonlat_basic, only: type_xy_grid_lonlat
+  use lonlat_grid_basic, only: type_lonlat_grid
   use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_parallel_creation, only: broadcast_mesh
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use mesh_disc_calc_matrix_operators_2D, only: calc_all_matrix_operators_mesh
-  use grid_lonlat_basic, only: calc_lonlat_field_to_vector_form_translation_tables
+  use lonlat_grid_basic, only: calc_lonlat_field_to_vector_form_translation_tables
   use xy_grid_basic, only: calc_secondary_xy_grid_data
   use netcdf_basic
   use tests_main
@@ -107,7 +107,7 @@ contains
     ! In/output variables:
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
-    type(type_xy_grid_lonlat), intent(  out) :: grid
+    type(type_lonlat_grid), intent(  out) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'setup_lonlat_grid_from_file'
@@ -389,7 +389,7 @@ contains
     ! In/output variables:
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
-    type(type_xy_grid_lonlat), intent(  out) :: grid
+    type(type_lonlat_grid), intent(  out) :: grid
     type(type_xy_grid_lat),    intent(  out) :: vec
 
     ! Local variables:

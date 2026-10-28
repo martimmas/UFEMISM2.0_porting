@@ -12,7 +12,7 @@ module read_and_remap_field_from_file
   use mesh_basic, only: type_mesh
   use xy_grid_basic, only: type_xy_grid
   use grid_lat_basic, only: type_xy_grid_lat, deallocate_lat_grid
-  use grid_lonlat_basic, only: type_xy_grid_lonlat, deallocate_lonlat_grid
+  use lonlat_grid_basic, only: type_lonlat_grid, deallocate_lonlat_grid
   use remapping_main
   use xy_grid_basic, only: deallocate_xy_grid
   use netcdf_basic
@@ -264,7 +264,7 @@ contains
     logical                             :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                             :: ncid
     type(type_xy_grid)                  :: grid_from_file
-    type(type_xy_grid_lonlat)              :: grid_lonlat_from_file
+    type(type_lonlat_grid)              :: grid_lonlat_from_file
     type(type_mesh)                     :: mesh_from_file
     real(dp), dimension(:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -486,7 +486,7 @@ contains
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh, has_lat_grid
     integer                               :: ncid
     type(type_xy_grid)                    :: grid_from_file
-    type(type_xy_grid_lonlat)                :: grid_lonlat_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
     type(type_xy_grid_lat)                   :: grid_lat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
@@ -634,7 +634,7 @@ contains
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                               :: ncid
     type(type_xy_grid)                    :: grid_from_file
-    type(type_xy_grid_lonlat)                :: grid_lonlat_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -772,7 +772,7 @@ contains
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                               :: ncid
     type(type_xy_grid)                    :: grid_from_file
-    type(type_xy_grid_lonlat)                :: grid_lonlat_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_lonlat_vec_partial_from_file

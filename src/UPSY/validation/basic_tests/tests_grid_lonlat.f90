@@ -3,7 +3,7 @@ module tests_grid_lonlat
   ! Basic tests for simple lon/lat-grids.
 
   use precisions, only: dp
-  use grid_lonlat_basic, only: type_xy_grid_lonlat
+  use lonlat_grid_basic, only: type_lonlat_grid
 
   implicit none
 
@@ -14,7 +14,7 @@ module tests_grid_lonlat
 contains
 
   pure function test_tol_grid_lonlat( grid1, grid2, tol_angle_deg) result( res)
-    type(type_xy_grid_lonlat), intent(in) :: grid1, grid2
+    type(type_lonlat_grid), intent(in) :: grid1, grid2
     real(dp),               intent(in) :: tol_angle_deg
     logical :: res
 

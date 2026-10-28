@@ -4,7 +4,7 @@ module remapping_main
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use remapping_types, only: type_map
   use xy_grid_basic, only: type_xy_grid
-  use grid_lonlat_basic, only: type_xy_grid_lonlat
+  use lonlat_grid_basic, only: type_lonlat_grid
   use mesh_basic, only: type_mesh
   use interpolation, only: remap_cons_2nd_order_1D
   use mesh_utilities, only: check_if_meshes_are_identical
@@ -271,7 +271,7 @@ contains
     ! Map a 2-D data field from a lon/lat-grid to a mesh.
 
     ! In/output variables
-    type(type_xy_grid_lonlat),              intent(in)    :: grid
+    type(type_lonlat_grid),              intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     real(dp), dimension(:    ),          intent(in)    :: d_grid_vec_partial
     real(dp), dimension(:    ),          intent(out)   :: d_mesh_partial
@@ -326,7 +326,7 @@ contains
     ! Map a 3-D data field from a lon/lat-grid to a mesh.
 
     ! In/output variables
-    type(type_xy_grid_lonlat),              intent(in)    :: grid
+    type(type_lonlat_grid),              intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     real(dp), dimension(:,:  ),          intent(in)    :: d_grid_vec_partial
     real(dp), dimension(:,:  ),          intent(out)   :: d_mesh_partial
