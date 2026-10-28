@@ -1,6 +1,5 @@
-module grid_lat_basic
+module lat_grid_basic
 
-  ! Functions for working with simple lon/lat-grids
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
 
@@ -8,9 +7,9 @@ module grid_lat_basic
 
   private
 
-  public :: type_xy_grid_lat, deallocate_lat_grid
+  public :: type_lat_grid, deallocate_lat_grid
 
-  type type_xy_grid_lat
+  type type_lat_grid
     ! A lat-only "grid"
 
     ! Basic properties
@@ -29,7 +28,7 @@ module grid_lat_basic
     ! Parallelisation
     integer                                 :: n1,n2,n_loc  ! Matrix rows owned by each process
 
-  end type type_xy_grid_lat
+  end type type_lat_grid
 
 contains
 
@@ -37,7 +36,7 @@ contains
     ! deallocate memory for a lat-only grid object
 
     ! In/output variables:
-    type(type_xy_grid_lat), intent(inout) :: grd
+    type(type_lat_grid), intent(inout) :: grd
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'deallocate_lat_grid'
@@ -54,4 +53,4 @@ contains
 
   end subroutine deallocate_lat_grid
 
-end module grid_lat_basic
+end module lat_grid_basic

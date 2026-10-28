@@ -1,4 +1,4 @@
-module grid_contour
+module xy_grid_contour
 
   ! Functions for working with simple square x/y-grids
 
@@ -12,11 +12,11 @@ module grid_contour
 
   private
 
-  public :: calc_grid_contour_as_line, calc_grid_mask_as_polygons
+  public :: calc_xy_grid_contour_as_line, calc_xy_grid_mask_as_polygons
 
 contains
 
-  subroutine calc_grid_contour_as_line( grid, d, f, line, mask)
+  subroutine calc_xy_grid_contour_as_line( grid, d, f, line, mask)
     !< Calculate a contour line at level f for data d on a square grid.
     !< Generate the contour line in UFEMISM line-segment format (i.e. unordered
     !< individual line segments).
@@ -29,7 +29,7 @@ contains
     logical,  dimension(:,:), optional,    intent(in   ) :: mask
 
     ! Local variables:
-    character(len=*), parameter           :: routine_name = 'calc_grid_contour_as_line'
+    character(len=*), parameter           :: routine_name = 'calc_xy_grid_contour_as_line'
     real(dp), parameter                   :: tol = 1E-5_dp
     real(dp), dimension(:,:), allocatable :: d_scaled
     integer                               :: i,j
@@ -205,9 +205,9 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_grid_contour_as_line
+  end subroutine calc_xy_grid_contour_as_line
 
-  subroutine calc_grid_mask_as_polygons( grid, mask, poly_mult)
+  subroutine calc_xy_grid_mask_as_polygons( grid, mask, poly_mult)
     !< Calculate a set of polygon enveloping all TRUE-valued mask cells
 
     ! In/output variables
@@ -216,7 +216,7 @@ contains
     real(dp), dimension(:,:), allocatable, intent(  out) :: poly_mult
 
     ! Local variables:
-    character(len=*), parameter           :: routine_name = 'calc_grid_mask_as_polygons'
+    character(len=*), parameter           :: routine_name = 'calc_xy_grid_mask_as_polygons'
     logical,  dimension(:,:), allocatable :: mask_loc
     integer                               :: i,j
     real(dp), dimension(:,:), allocatable :: poly
@@ -253,7 +253,7 @@ contains
 
         ! Calculate a polygon enveloping this TRUE region, and
         ! remove the region from the mask
-        call calc_grid_mask_as_polygon( grid, mask_loc, i, j, poly, n_poly)
+        call calc_xy_grid_mask_as_polygon( grid, mask_loc, i, j, poly, n_poly)
 
         ! Add this polygon to poly_mult
         poly_mult( n_tot+1,1) = real( n_poly,dp)
@@ -276,9 +276,9 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_grid_mask_as_polygons
+  end subroutine calc_xy_grid_mask_as_polygons
 
-  subroutine calc_grid_mask_as_polygon( grid, mask, i0, j0, poly, n_poly)
+  subroutine calc_xy_grid_mask_as_polygon( grid, mask, i0, j0, poly, n_poly)
     !< Calculate a polygon enveloping the set of TRUE-valued mask cells around i0,j0,
     !< and remove that set of grid cells from the mask
 
@@ -290,7 +290,7 @@ contains
     integer,                  intent(  out) :: n_poly
 
     ! Local variables:
-    character(len=*), parameter           :: routine_name = 'calc_grid_mask_as_polygon'
+    character(len=*), parameter           :: routine_name = 'calc_xy_grid_mask_as_polygon'
     logical,  dimension(:,:), allocatable :: mask_ext
     integer,  dimension(:,:), allocatable :: map
     integer,  dimension(:,:), allocatable :: stack
@@ -493,6 +493,6 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_grid_mask_as_polygon
+  end subroutine calc_xy_grid_mask_as_polygon
 
-end module grid_contour
+end module xy_grid_contour

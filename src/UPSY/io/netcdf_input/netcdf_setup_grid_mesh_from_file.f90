@@ -6,7 +6,7 @@ module netcdf_setup_grid_mesh_from_file
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use xy_grid_basic, only: type_xy_grid
-  use grid_lat_basic, only: type_xy_grid_lat
+  use lat_grid_basic, only: type_lat_grid
   use lonlat_grid_basic, only: type_lonlat_grid
   use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
@@ -390,7 +390,7 @@ contains
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
     type(type_lonlat_grid), intent(  out) :: grid
-    type(type_xy_grid_lat),    intent(  out) :: vec
+    type(type_lat_grid),    intent(  out) :: vec
 
     ! Local variables:
     character(len=1024), parameter       :: routine_name = 'setup_lonlat_grid_from_lat_file'

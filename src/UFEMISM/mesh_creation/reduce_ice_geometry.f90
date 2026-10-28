@@ -11,7 +11,7 @@ module reduce_ice_geometry
   use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use mpi_distributed_memory, only: gather_to_primary
-  use grid_contour, only: calc_grid_mask_as_polygons, calc_grid_contour_as_line
+  use xy_grid_contour, only: calc_xy_grid_mask_as_polygons, calc_xy_grid_contour_as_line
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary
   use ice_geometry_basics, only: thickness_above_floatation
   use mesh_utilities, only: calc_mesh_mask_as_polygons, calc_mesh_contour_as_line
@@ -179,18 +179,18 @@ contains
       end do
 
       ! Calculate polygons enveloping sheet and shelf
-      call calc_grid_mask_as_polygons( grid, mask_sheet, poly_mult_sheet)
-      call calc_grid_mask_as_polygons( grid, mask_shelf, poly_mult_shelf)
+      call calc_xy_grid_mask_as_polygons( grid, mask_sheet, poly_mult_sheet)
+      call calc_xy_grid_mask_as_polygons( grid, mask_shelf, poly_mult_shelf)
 
       ! Get polygon sizes
       n_poly_mult_sheet = size( poly_mult_sheet,1)
       n_poly_mult_shelf = size( poly_mult_shelf,1)
 
       ! Calculate lines in line segment format
-      call calc_grid_contour_as_line( grid, TAF_grid        , 0.0_dp, p_line_grounding_line, mask_calc_grounding_line)
-      call calc_grid_contour_as_line( grid, Hi_grid         , 0.1_dp, p_line_calving_front , mask_calc_calving_front )
-      call calc_grid_contour_as_line( grid, Hi_grid         , 0.1_dp, p_line_ice_front     , mask_calc_ice_front     )
-      call calc_grid_contour_as_line( grid, Hb_minus_SL_grid, 0.0_dp, p_line_coastline     , mask_calc_coastline     )
+      call calc_xy_grid_contour_as_line( grid, TAF_grid        , 0.0_dp, p_line_grounding_line, mask_calc_grounding_line)
+      call calc_xy_grid_contour_as_line( grid, Hi_grid         , 0.1_dp, p_line_calving_front , mask_calc_calving_front )
+      call calc_xy_grid_contour_as_line( grid, Hi_grid         , 0.1_dp, p_line_ice_front     , mask_calc_ice_front     )
+      call calc_xy_grid_contour_as_line( grid, Hb_minus_SL_grid, 0.0_dp, p_line_coastline     , mask_calc_coastline     )
 
       ! Get line sizes
       n_line_grounding_line = size( p_line_grounding_line,1)

@@ -6,7 +6,7 @@ module netcdf_read_field_from_series_file
   use netcdf_determine_indexing
   use netcdf_basic
   use netcdf_setup_grid_mesh_from_file
-  use grid_lat_basic, only: type_xy_grid_lat, deallocate_lat_grid
+  use lat_grid_basic, only: type_lat_grid, deallocate_lat_grid
   use lonlat_grid_basic, only: type_lonlat_grid, distribute_lonlat_gridded_data_from_primary_dp_3D, &
     deallocate_lonlat_grid
   use flip_mod
@@ -101,7 +101,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_lat_file_1D_monthly'
     integer                                   :: ncid
-    type(type_xy_grid_lat)                       :: vec_loc
+    type(type_lat_grid)                       :: vec_loc
     type(type_lonlat_grid)                    :: grid_loc
     integer                                   :: id_var
     character(len=1024)                       :: var_name, str
