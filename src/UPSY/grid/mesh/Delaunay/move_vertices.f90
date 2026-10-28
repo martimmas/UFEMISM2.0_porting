@@ -4,7 +4,7 @@ module move_vertices
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use flip_triangles, only: initialise_Delaunay_check_stack, &
     add_triangle_pairs_around_vertex_to_Delaunay_check_stack, flip_triangles_until_Delaunay
   use mesh_utilities, only: update_triangle_circumcenter

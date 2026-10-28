@@ -8,7 +8,7 @@ module ISMIP7_forcing_field_types
   use model_configuration, only: C
   use crash_mod, only: crash, warning
   use UPSY_main, only: UPSY
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main, only: read_time_from_file, read_field_from_file_2D, open_existing_netcdf_file_for_reading, &
     setup_xy_grid_from_file, close_netcdf_file, inquire_fill_value, inquire_var, read_var_primary
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary

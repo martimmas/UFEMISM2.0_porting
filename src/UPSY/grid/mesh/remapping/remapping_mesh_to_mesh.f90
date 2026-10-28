@@ -10,7 +10,7 @@ module remapping_mesh_to_mesh
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use remapping_types, only: type_map, type_single_row_mapping_matrices
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use plane_geometry, only: triangle_area

@@ -4,7 +4,7 @@ module mesh_disc_calc_matrix_operators_2D
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_utilities, only: extend_group_single_iteration_a, extend_group_single_iteration_b, &
     extend_group_single_iteration_c
   use shape_functions, only: calc_shape_functions_2D_reg_1st_order, &

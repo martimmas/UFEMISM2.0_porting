@@ -3,7 +3,7 @@ module mesh_creation_refine_in_ROIs
   ! Routines used to create a mesh.
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use model_configuration, only: C
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash

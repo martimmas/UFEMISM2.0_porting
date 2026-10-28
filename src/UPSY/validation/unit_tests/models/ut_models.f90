@@ -3,7 +3,7 @@ module ut_models
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use ut_demo_model, only: test_demo_model
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use parameters, only: pi
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5

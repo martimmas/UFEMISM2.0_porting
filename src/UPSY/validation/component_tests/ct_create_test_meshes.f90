@@ -10,7 +10,7 @@ module ct_create_test_meshes
   use string_module, only: startswith
   use tests_main
   use assertions_basic
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use grid_basic, only: type_grid, setup_square_grid
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5

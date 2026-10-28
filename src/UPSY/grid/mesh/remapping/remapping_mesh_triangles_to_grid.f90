@@ -5,7 +5,7 @@ module remapping_mesh_triangles_to_grid
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use remapping_types, only: type_map
   use remapping_mesh_vertices_to_grid, only: calc_approximate_overlaps, calc_A_matrices, &

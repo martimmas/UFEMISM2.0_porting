@@ -11,7 +11,7 @@ module ut_fields_io
     type_fields_registry
   use ut_basic
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use grid_basic, only: setup_square_grid
   use Arakawa_grid_mod, only: Arakawa_grid
   use mpi_f08, only: MPI_WIN

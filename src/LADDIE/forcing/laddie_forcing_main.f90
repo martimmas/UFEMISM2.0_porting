@@ -12,7 +12,7 @@ module laddie_forcing_main
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine, warning
   use model_configuration, only: C
   use reference_geometry_types, only: type_reference_geometry
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_main, only: type_ice_model
   use ocean_model_types, only: type_ocean_model
   use laddie_forcing_types, only: type_laddie_forcing

@@ -5,7 +5,7 @@ module GIA_main
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration, only: C
   use parameters
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use GIA_model_types, only: type_GIA_model, type_ELRA_model
   use region_types, only: type_model_region

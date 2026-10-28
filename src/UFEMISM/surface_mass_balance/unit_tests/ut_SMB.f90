@@ -7,7 +7,7 @@ module ut_SMB
   use model_configuration, only: C
   use SMB_model, only: atype_SMB_model, create_SMB_model
   use parameters, only: pi, T0, ice_density, freshwater_density
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform

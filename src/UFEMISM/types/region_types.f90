@@ -7,7 +7,7 @@ MODULE region_types
 
   USE precisions                                             , ONLY: dp
   use grid_basic, only: type_grid
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE reference_geometry_types                               , ONLY: type_reference_geometry
   use ice_model_main, only: type_ice_model
   USE climate_model_types                                    , ONLY: type_climate_model

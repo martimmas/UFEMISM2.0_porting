@@ -4,7 +4,7 @@ module mesh_Lloyds_algorithm
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use plane_geometry, only: cross2
   use move_vertices, only: move_vertex
   use mesh_refinement_basic, only: refine_mesh_split_encroaching_triangles_all

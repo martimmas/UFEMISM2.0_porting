@@ -9,7 +9,7 @@ module climate_matrix
   use model_configuration                                    , only: C
   use parameters
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, MPI_INTEGER
-  use mesh_types                                             , only: type_mesh
+  use mesh_basic                                             , only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_model_main, only: type_ice_model

@@ -12,7 +12,7 @@ MODULE thermodynamics_main
   USE model_configuration                                    , ONLY: C
   USE parameters
   USE region_types                                           , ONLY: type_model_region
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data

@@ -6,7 +6,7 @@ module ocean_ISMIP7
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ocean_model_types, only: type_ocean_model, type_ocean_model_ISMIP7, type_ocean_field_ISMIP7
   use netcdf_io_main
   use mpi_f08, only: MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD
@@ -83,7 +83,7 @@ contains
 
     ! Update timeframes to the current model time
     call update_timeframes( mesh, ISMIP7%T, C%start_time_of_run)
-    call update_timeframes( mesh, ISMIP7%S, C%start_time_of_run)     
+    call update_timeframes( mesh, ISMIP7%S, C%start_time_of_run)
 
     select case (C%ocean_ISMIP7_forcing_type)
       case default

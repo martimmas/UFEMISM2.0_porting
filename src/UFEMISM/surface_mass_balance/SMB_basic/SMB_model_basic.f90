@@ -4,7 +4,7 @@ module SMB_model_basic
   use parameters, only: pi, NaN
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
   use SMB_model_data, only: atype_SMB_model_data

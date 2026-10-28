@@ -5,7 +5,7 @@ module mesh_refinement_basic_ROI
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use plane_geometry, only: is_in_polygon, crop_line_to_domain, smallest_triangle_angle, &
     is_in_triangle, segment_intersection, lies_on_line_segment, longest_triangle_leg, &
     circumcenter, poly2line

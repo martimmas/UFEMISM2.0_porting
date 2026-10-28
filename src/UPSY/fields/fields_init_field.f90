@@ -7,7 +7,7 @@ module fields_init_field
     type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: type_Arakawa_grid, Arakawa_grid
   use fields_dimensions, only: type_third_dimension
   use mpi_f08, only: MPI_WIN

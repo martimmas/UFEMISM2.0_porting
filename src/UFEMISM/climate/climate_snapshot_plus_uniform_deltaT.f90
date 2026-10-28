@@ -10,7 +10,7 @@ MODULE climate_snapshot_plus_uniform_deltaT
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, warning
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   USE climate_model_types                                    , ONLY: type_climate_model, type_climate_model_snapshot
   USE global_forcing_types                                   , ONLY: type_global_forcing

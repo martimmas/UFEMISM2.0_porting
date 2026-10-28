@@ -7,7 +7,7 @@ module split_triangles
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use plane_geometry, only: lies_on_line_segment
   use mesh_utilities, only: encroaches_upon_any, find_containing_triangle, encroaches_upon, is_border_edge, &
     update_triangle_circumcenter, add_triangle_to_refinement_stack_last

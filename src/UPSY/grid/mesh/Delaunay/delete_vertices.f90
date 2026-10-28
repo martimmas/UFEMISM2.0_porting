@@ -4,7 +4,7 @@ module delete_vertices
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use assertions_basic, only: assert
   use tests_main
   use switch_array_elements, only: switch_rows

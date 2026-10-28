@@ -5,7 +5,7 @@ module mesh_Voronoi
   use tests_main
   use assertions_basic
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_distributed_shared_memory, only: deallocate_dist_shared, allocate_dist_shared
   use mpi_basic, only: par, sync

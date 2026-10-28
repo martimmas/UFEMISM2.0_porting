@@ -3,7 +3,7 @@ module mesh_dummy_meshes
   ! Routines for setting up some very simple dummy meshes for refinement.
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use mesh_utilities, only: update_triangle_circumcenter
 

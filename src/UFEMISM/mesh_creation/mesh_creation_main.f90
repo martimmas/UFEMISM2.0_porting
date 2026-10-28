@@ -7,7 +7,7 @@ module mesh_creation_main
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use reduce_ice_geometry, only: reduce_gridded_ice_geometry, reduce_meshed_ice_geometry
   use mesh_creation_from_reduced_geometry, only: create_mesh_from_reduced_geometry
 

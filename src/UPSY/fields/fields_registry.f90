@@ -8,7 +8,7 @@ module fields_registry
   use Arakawa_grid_mod, only: type_Arakawa_grid, Arakawa_grid
   use fields_dimensions, only: type_third_dimension
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
   use fields_init_field, only: initialise_field

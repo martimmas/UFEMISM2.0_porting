@@ -3,7 +3,7 @@ module ct_remapping_basic
   ! Test everything related to remapping - some basic utilities
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use grid_basic, only: type_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use mpi_basic, only: par

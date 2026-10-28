@@ -5,7 +5,7 @@ module SMB_reconstructed
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
   use grid_basic, only: type_grid
   use ice_model_data, only: atype_ice_model_data

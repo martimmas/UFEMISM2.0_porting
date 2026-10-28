@@ -3,7 +3,7 @@ module ice_thickness_boundary_conditions
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_basics, only: ice_surface_elevation, Hi_from_Hb_Hs_and_SL
   use mpi_distributed_memory, only: gather_to_all
   use conservation_of_mass_utilities, only: calc_n_interior_neighbours

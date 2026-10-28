@@ -3,7 +3,7 @@ module mesh_translation_tables
   ! Calculate translation tables relating grid points to matrix rows.
 
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use allocate_dist_shared_mod, only: allocate_dist_shared
   use mpi_basic, only: par, sync
 

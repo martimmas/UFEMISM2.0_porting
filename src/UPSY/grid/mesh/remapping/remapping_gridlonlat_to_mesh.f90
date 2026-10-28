@@ -6,7 +6,7 @@ module remapping_gridlonlat_to_mesh
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use grid_lonlat_basic, only: type_grid_lonlat
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use remapping_types, only: type_map
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use petsc_basic, only: mat_CSR2petsc

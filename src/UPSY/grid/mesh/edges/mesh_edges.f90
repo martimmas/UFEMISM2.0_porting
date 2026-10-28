@@ -5,7 +5,7 @@ module mesh_edges
   use precisions, only: dp
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: warning, crash, init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use plane_geometry, only: triangle_area
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
 

@@ -25,7 +25,7 @@ module LADDIE_main_model
     buffer_laddie_scalars
   use laddie_integration, only: integrate_euler, integrate_fbrk3, integrate_lfra, move_laddie_timestep
   use laddie_physics, only: compute_subglacial_discharge, compute_SGD_at_transects
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ocean_main, only: initialise_ocean_model, run_ocean_model
   use netcdf_io_main
   use mesh_creation_main, only: create_mesh_from_gridded_geometry, create_mesh_from_meshed_geometry, write_mesh_success

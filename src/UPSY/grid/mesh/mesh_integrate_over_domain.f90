@@ -3,7 +3,7 @@ module mesh_integrate_over_domain
   ! Integrate a function defined on the mesh vertices/triangles/edges over the domain
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, &
     MPI_MIN, MPI_MAX

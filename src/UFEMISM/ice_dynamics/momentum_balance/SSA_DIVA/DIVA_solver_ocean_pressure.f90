@@ -9,7 +9,7 @@
 !   use parameters, only: grav, ice_density, seawater_density
 !   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
 !   use model_configuration, only: C
-!   use mesh_types, only: type_mesh
+!   use mesh_basic, only: type_mesh
 !   use graph_types, only: type_graph_pair
 !   use graph_pair_creation, only: create_ice_only_graph_pair, deallocate_graph_pair
 !   use ice_model_data, only: atype_ice_model_data, type_ice_velocity_solver_DIVA, &

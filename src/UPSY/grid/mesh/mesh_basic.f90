@@ -1,4 +1,4 @@
-module mesh_types
+module mesh_basic
 
   ! The different data types used in the mesh modules
 
@@ -416,4 +416,4 @@ contains
 
   end subroutine finalise
 
-end module mesh_types
+end module mesh_basic

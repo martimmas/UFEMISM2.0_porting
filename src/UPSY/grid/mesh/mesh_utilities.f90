@@ -13,7 +13,7 @@ MODULE mesh_utilities
   USE mpi_basic                                              , ONLY: par, sync
   USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string
   USE reallocate_mod
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use plane_geometry, only: geometric_center, is_in_triangle, lies_on_line_segment, circumcenter, &
     line_from_points, line_line_intersection, encroaches_upon, crop_line_to_domain, triangle_area, &
     smallest_triangle_angle, equiangular_skewness, interpolate_inside_triangle

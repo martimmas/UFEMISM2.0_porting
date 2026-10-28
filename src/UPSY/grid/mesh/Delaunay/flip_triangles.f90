@@ -5,7 +5,7 @@ module flip_triangles
   use tests_main
   use assertions_basic
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use check_Delaunay_criterion, only: are_Delaunay
   use mesh_utilities, only: write_mesh_to_text_file, update_triangle_circumcenter, &
     add_triangle_to_refinement_stack_first, find_triangle_pair_local_geometry

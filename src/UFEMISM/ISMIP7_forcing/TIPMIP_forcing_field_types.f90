@@ -8,7 +8,7 @@ module TIPMIP_forcing_field_types
   use model_configuration, only: C
   use crash_mod, only: crash, warning
   use UPSY_main, only: UPSY
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use smooth_gridded_data, only: extrapolate_fillvalue_Gaussian_grid

@@ -2,7 +2,7 @@ module mesh_focussing
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use polyline_types, only: type_polyline
   use remapping_types, only: type_single_row_mapping_matrices
   use line_tracing_Voronoi, only: trace_line_Vor

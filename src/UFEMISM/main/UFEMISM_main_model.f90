@@ -15,7 +15,7 @@ MODULE UFEMISM_main_model
   USE region_types                                           , ONLY: type_model_region
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE reference_geometry_types                               , ONLY: type_reference_geometry
   USE global_forcing_types                                   , ONLY: type_global_forcing
   use reference_geometries_main, only: initialise_reference_geometries_raw, initialise_reference_geometries_on_model_mesh

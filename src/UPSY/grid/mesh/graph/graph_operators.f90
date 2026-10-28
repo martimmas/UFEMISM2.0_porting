@@ -6,7 +6,7 @@ module graph_operators
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use shape_functions, only: calc_shape_functions_2D_reg_2nd_order, &
     calc_shape_functions_2D_stag_1st_order, calc_shape_functions_2D_reg_1st_order
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use tests_main
 
   implicit none

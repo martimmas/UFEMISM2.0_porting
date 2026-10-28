@@ -12,7 +12,7 @@ module reference_geometries_main
   use model_configuration, only: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use grid_basic, only: type_grid, setup_square_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use ice_geometry_basics, only: ice_surface_elevation

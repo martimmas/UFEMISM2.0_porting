@@ -2,7 +2,7 @@ module create_graphs_from_masked_mesh
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph
   use graph_memory, only: allocate_graph_primary, crop_graph_primary
   use mpi_distributed_memory, only: gather_to_all

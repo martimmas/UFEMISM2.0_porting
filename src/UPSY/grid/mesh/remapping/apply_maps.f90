@@ -7,7 +7,7 @@ module apply_maps
   use precisions, only: dp
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use grid_basic, only: type_grid
   use grid_lonlat_basic, only: type_grid_lonlat
   use remapping_types, only: type_map

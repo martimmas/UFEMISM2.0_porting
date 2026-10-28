@@ -2,7 +2,7 @@ module remove_unconnected_shelves_mod
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mpi_distributed_memory, only: gather_to_primary
   use mpi_basic, only: par, sync
   use mpi_distributed_memory, only: distribute_from_primary

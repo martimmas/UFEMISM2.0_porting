@@ -4,7 +4,7 @@ module SMB_snapshot_plus_anomalies
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_dimensions, only: third_dimension

@@ -11,7 +11,7 @@ module ut_mesh_remapping
   use parameters, only: pi
   use grid_basic, only: type_grid
   use grid_basic, only: setup_square_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform

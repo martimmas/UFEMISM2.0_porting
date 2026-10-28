@@ -13,7 +13,7 @@ MODULE mesh_parallel_creation
   USE parameters
   USE reallocate_mod                                         , ONLY: reallocate
   use plane_geometry, only: cross2
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE mesh_memory                                            , ONLY: allocate_mesh_primary, extend_mesh_primary, crop_mesh_primary
   USE mesh_utilities                                         , ONLY: list_border_vertices_west, list_border_vertices_east, list_border_vertices_south, &
                                                                      list_border_vertices_north, find_containing_triangle

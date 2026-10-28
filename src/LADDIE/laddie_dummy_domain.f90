@@ -9,7 +9,7 @@ module laddie_dummy_domain
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use model_configuration, only: C
   use parameters, only: pi
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_main, only: type_ice_model
   use ice_model_memory, only: allocate_ice_model
   use ocean_model_types, only: type_ocean_model

@@ -10,7 +10,7 @@ module ut_ocean_extrapolation
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use model_configuration, only: C
   use parameters, only: pi, NaN
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_secondary, only: calc_all_secondary_mesh_data

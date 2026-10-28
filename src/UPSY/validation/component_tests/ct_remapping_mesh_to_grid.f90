@@ -9,7 +9,7 @@ module ct_remapping_mesh_to_grid
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use grid_basic, only: type_grid
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main
   use apply_maps, only: clear_all_maps_involving_this_mesh
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, map_from_mesh_triangles_to_xy_grid_2D

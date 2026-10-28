@@ -10,7 +10,7 @@ module momentum_balance_solver_hybrid_DIVA_BPA
   use model_configuration, only: C
   use parameters
   use petsc_basic, only: solve_matrix_equation_CSR_PETSc
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph_pair
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data

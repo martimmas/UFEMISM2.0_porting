@@ -4,7 +4,7 @@ module ice_velocity_model_basic
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
   use ice_velocity_model_data, only: atype_ice_velocity_model_data
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_dimensions, only: third_dimension
   use model_configuration, only: C

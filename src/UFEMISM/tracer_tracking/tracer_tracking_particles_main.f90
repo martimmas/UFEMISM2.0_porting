@@ -3,7 +3,7 @@ module tracer_tracking_model_particles_main
   use mpi_basic, only: par, sync
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data
   use tracer_tracking_model_types, only: type_tracer_tracking_model_particles

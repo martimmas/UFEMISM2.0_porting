@@ -12,7 +12,7 @@ module ISMIP7_fracture
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
   use models_basic, only: atype_model
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_INTEGER, &
     MPI_MAX, MPI_COMM_WORLD
   use Arakawa_grid_mod, only: Arakawa_grid

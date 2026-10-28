@@ -8,7 +8,7 @@ MODULE mesh_memory
   USE precisions                                             , ONLY: dp
   USE mpi_basic                                              , ONLY: par, sync
   USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE reallocate_mod                                         , ONLY: reallocate
   use mpi_distributed_shared_memory, only: deallocate_dist_shared
 

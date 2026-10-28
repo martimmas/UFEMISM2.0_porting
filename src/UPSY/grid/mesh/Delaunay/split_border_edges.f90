@@ -6,7 +6,7 @@ module split_border_edges
   use assertions_basic
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use plane_geometry, only: lies_on_line_segment
   use mesh_utilities, only: is_border_edge, update_triangle_circumcenter, add_triangle_to_refinement_stack_last
   use flip_triangles, only: initialise_Delaunay_check_stack, &

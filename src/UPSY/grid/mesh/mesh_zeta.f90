@@ -9,7 +9,7 @@ MODULE mesh_zeta
   USE mpi_basic                                              , ONLY: par, sync
   USE call_stack_and_comp_time_tracking                  , ONLY: warning, crash, happy, init_routine, finalise_routine, colour_string
   USE reallocate_mod                                         , ONLY: reallocate
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use shape_functions, only: calc_shape_functions_1D_reg_2nd_order
   use assertions_basic, only: assert
 

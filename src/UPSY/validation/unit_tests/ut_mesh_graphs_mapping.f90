@@ -6,7 +6,7 @@ module ut_mesh_graphs_mapping
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use mpi_basic, only: par
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b
   use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD

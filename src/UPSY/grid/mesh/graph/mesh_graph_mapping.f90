@@ -2,7 +2,7 @@ module mesh_graph_mapping
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph
   use mpi_f08, only: MPI_WIN
   use allocate_dist_shared_mod, only: allocate_dist_shared

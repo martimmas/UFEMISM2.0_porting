@@ -8,7 +8,7 @@ module netcdf_setup_grid_mesh_from_file
   use grid_basic, only: type_grid
   use grid_lat_basic, only: type_grid_lat
   use grid_lonlat_basic, only: type_grid_lonlat
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_parallel_creation, only: broadcast_mesh
   use mesh_secondary, only: calc_all_secondary_mesh_data

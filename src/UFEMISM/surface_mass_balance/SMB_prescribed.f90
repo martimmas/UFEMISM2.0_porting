@@ -5,7 +5,7 @@ module SMB_prescribed
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
   use mpi_basic, only: par
   use netcdf_io_main, only: read_field_from_file_2D

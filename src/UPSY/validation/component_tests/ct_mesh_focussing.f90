@@ -7,7 +7,7 @@ module ct_mesh_focussing
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use assertions_basic, only: assert
   use tests_main, only: test_mesh_is_self_consistent
   use netcdf_io_main

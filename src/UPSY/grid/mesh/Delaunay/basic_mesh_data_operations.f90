@@ -2,7 +2,7 @@ module basic_mesh_data_operations
 
   use precisions, only: dp
   use assertions_basic
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
 
   implicit none
 

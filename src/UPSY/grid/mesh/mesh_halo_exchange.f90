@@ -3,7 +3,7 @@ module mesh_halo_exchange
   ! See mesh_parallelisation for an explanation of the halos.
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use mpi_basic, only: par, sync
   use halo_exchange_mod, only: basic_halo_exchange
