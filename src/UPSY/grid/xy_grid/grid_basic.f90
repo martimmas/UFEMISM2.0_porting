@@ -587,38 +587,6 @@ contains
 
   end subroutine calc_grid_contour_as_line
 
-  subroutine poly2line( poly, line)
-    !< Convert a multi-polygon to UFEMISM line-segment format (i.e. unordered
-    !< individual line segments).
-
-    ! In/output variables
-    real(dp), dimension(:,:  ),              intent(in   ) :: poly
-    real(dp), dimension(:,:  ), allocatable, intent(  out) :: line
-
-    ! Local variables:
-    character(len=*), parameter :: routine_name = 'poly2line'
-    integer                     :: n,i1,i2
-
-    ! Add routine to path
-    call init_routine( routine_name)
-
-    n = size( poly,1)
-
-    ! allocate memory for line segments
-    allocate( line( n,4))
-
-    ! Convert polygon to line-segment format
-    do i1 = 1, n
-      i2 = i1 + 1
-      if (i2 == n+1) i2 = 1
-      line( i1,:) = [poly( i1,1), poly( i1,2), poly( i2,1), poly( i2,2)]
-    end do
-
-    ! Finalise routine path
-    call finalise_routine( routine_name)
-
-  end subroutine poly2line
-
   subroutine calc_grid_mask_as_polygons( grid, mask, poly_mult)
     !< Calculate a set of polygon enveloping all TRUE-valued mask cells
 

@@ -16,7 +16,7 @@ module plane_geometry
     line_from_points, perpendicular_bisector_from_line, line_line_intersection, circumcenter, &
     geometric_center, triangle_area, is_in_triangle, longest_triangle_leg, smallest_triangle_angle, &
     largest_triangle_angle, equiangular_skewness, crop_line_to_domain, encroaches_upon, &
-    interpolate_inside_triangle, projection_of_p_on_qr
+    interpolate_inside_triangle, projection_of_p_on_qr, poly2line
 
   interface interpolate_inside_triangle
     procedure :: interpolate_inside_triangle_dp_2D
@@ -898,5 +898,30 @@ contains
     s = q + qrn * (qp(1)*qrn(1) + qp(2)*qrn(2))
 
   end function projection_of_p_on_qr
+
+  subroutine poly2line( poly, line)
+    !< Convert a polygon to UFEMISM line-segment format (i.e. unordered
+    !< individual line segments).
+
+    ! In/output variables
+    real(dp), dimension(:,:  ),              intent(in   ) :: poly
+    real(dp), dimension(:,:  ), allocatable, intent(  out) :: line
+
+    ! Local variables:
+    integer :: n,i1,i2
+
+    n = size( poly,1)
+
+    ! allocate memory for line segments
+    allocate( line( n,4))
+
+    ! Convert polygon to line-segment format
+    do i1 = 1, n
+      i2 = i1 + 1
+      if (i2 == n+1) i2 = 1
+      line( i1,:) = [poly( i1,1), poly( i1,2), poly( i2,1), poly( i2,2)]
+    end do
+
+  end subroutine poly2line
 
 end module plane_geometry

@@ -5,9 +5,9 @@ module mesh_refinement_basic
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mesh_types, only: type_mesh
-  use grid_basic, only: poly2line
   use plane_geometry, only: crop_line_to_domain, smallest_triangle_angle, longest_triangle_leg, &
-    is_in_triangle, segment_intersection, lies_on_line_segment, circumcenter, is_in_polygon
+    is_in_triangle, segment_intersection, lies_on_line_segment, circumcenter, is_in_polygon, &
+    poly2line
   use mesh_utilities, only: find_containing_triangle, add_triangle_to_refinement_stack_last, &
     remove_triangle_from_refinement_stack
   use mesh_memory, only: extend_mesh_primary, crop_mesh_primary
