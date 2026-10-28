@@ -5,10 +5,10 @@ module netcdf_read_field_from_series_file
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, insert_val_into_string_int
   use netcdf_determine_indexing
   use netcdf_basic
-  use grid_lonlat_basic
   use netcdf_setup_grid_mesh_from_file
-  use grid_types, only: type_grid_lat
-  use grid_lonlat_basic, only: type_grid_lonlat
+  use grid_lat_basic, only: type_grid_lat, deallocate_lat_grid
+  use grid_lonlat_basic, only: type_grid_lonlat, distribute_lonlat_gridded_data_from_primary_dp_3D, &
+    deallocate_lonlat_grid
   use flip_mod
   use netcdf, only: NF90_DOUBLE, NF90_FLOAT, NF90_INT, NF90_INT64, NF90_MAX_VAR_DIMS
 
