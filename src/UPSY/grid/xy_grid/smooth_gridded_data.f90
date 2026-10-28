@@ -36,7 +36,7 @@ subroutine smooth_Gaussian_grid_2D( grid, d_grid_vec_partial, r)
   real(dp),               intent(in   ) :: r                    !< [m] Smoothing radius
 
   ! Local variables:
-  character(len=256), parameter         :: routine_name = 'smooth_Gaussian_grid_2D'
+  character(len=*), parameter           :: routine_name = 'smooth_Gaussian_grid_2D'
   integer                               :: n
   real(dp), dimension(:,:), allocatable :: d_grid_tot
   real(dp), dimension(:,:), allocatable :: d_grid_tot_smoothed
@@ -110,7 +110,7 @@ subroutine smooth_Gaussian_grid_3D( grid, d_grid_vec_partial, r)
   real(dp),                 intent(in   ) :: r                    !< [m] Smoothing radius
 
   ! Local variables:
-  character(len=256), parameter           :: routine_name = 'smooth_Gaussian_grid_3D'
+  character(*), parameter                 :: routine_name = 'smooth_Gaussian_grid_3D'
   integer                                 :: n
   real(dp), dimension(:,:,:), allocatable :: d_grid_tot
   real(dp), dimension(:,:,:), allocatable :: d_grid_tot_smoothed

@@ -32,18 +32,15 @@ contains
     real(dp), optional, intent(in   ) :: lambda_M, phi_M, beta_stereo
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'setup_square_grid'
-    real(dp)                      :: xmid, ymid
-    integer                       :: nx_pos, ny_pos
-    integer                       :: i,j,ii,jj
+    character(len=*), parameter :: routine_name = 'setup_square_grid'
+    real(dp)                    :: xmid, ymid
+    integer                     :: nx_pos, ny_pos
+    integer                     :: i,j,ii,jj
 
     ! Add routine to path
     call init_routine( routine_name)
 
-    ! Name
     grid%name = name
-
-    ! Resolution
     grid%dx = dx
 
     ! Determine how many grid points are needed to fully cover the domain
@@ -91,7 +88,7 @@ contains
     type(type_grid), intent(inout) :: grid
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'deallocate_grid'
+    character(len=*), parameter :: routine_name = 'deallocate_grid'
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -116,37 +113,30 @@ contains
     logical,         intent(  out) :: isso
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'check_if_grids_are_identical'
-    real(dp), parameter           :: rtol = 1E-9_dp
-    integer                       :: i,j
-
-    ! Add routine to path
-    call init_routine( routine_name)
+    real(dp), parameter :: rtol = 1E-9_dp
+    integer             :: i,j
 
     isso = .true.
 
     ! Size
     if (grid1%nx /= grid2%nx .or. grid1%ny /= grid2%ny) then
       isso = .false.
-      goto 888
+      return
     end if
 
     ! Coordinates
     do i = 1, grid1%nx
       if (abs(grid1%x( i) - grid2%x( i)) > abs(rtol * max(grid1%x(i), grid2%x(i)))) then
         isso = .false.
-        goto 888
+        return
       end if
     end do
     do j = 1, grid1%ny
       if (abs(grid1%y( j) - grid2%y( j)) > abs(rtol * max(grid1%y(j), grid2%y(j)))) then
         isso = .false.
-        goto 888
+        return
       end if
     end do
-
-    ! Finalise routine path
-888 call finalise_routine( routine_name)
 
   end subroutine check_if_grids_are_identical
 
@@ -158,9 +148,9 @@ contains
     real(dp), optional, intent(in   ) :: lambda_M, phi_M, beta_stereo
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'calc_secondary_grid_data'
-    integer                       :: i,j
-    real(dp), parameter           :: tol = 1E-9_dp
+    character(len=*), parameter :: routine_name = 'calc_secondary_grid_data'
+    integer                     :: i,j
+    real(dp), parameter         :: tol = 1E-9_dp
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -168,7 +158,6 @@ contains
     ! Resolution
     grid%dx = abs( grid%x( 2) - grid%x( 1))
 
-#if (DO_ASSERTIONS)
     ! Safety
     do i = 1, grid%nx-1
       if (1._dp - abs(grid%x( i+1) - grid%x( i)) / grid%dx > 1E-6_dp) then
@@ -180,7 +169,6 @@ contains
         call crash( trim( grid%name) // '" has an irregular y-dimension!')
       end if
     end do
-#endif
 
     ! Domain size
     grid%xmin = minval( grid%x)
@@ -232,10 +220,10 @@ contains
     type(type_CSR_matrix_dp), intent(  out) :: M_ddx_CSR, M_ddy_CSR
 
     ! Local variables:
-    character(len=256), parameter   :: routine_name = 'calc_matrix_operators_grid'
-    integer                         :: ncols, nrows, ncols_loc, nrows_loc, nnz_per_row_est, nnz_est_proc
-    integer                         :: row, i, j, col
-    real(dp)                        :: valpos, valneg
+    character(len=*), parameter :: routine_name = 'calc_matrix_operators_grid'
+    integer                     :: ncols, nrows, ncols_loc, nrows_loc, nnz_per_row_est, nnz_est_proc
+    integer                     :: row, i, j, col
+    real(dp)                    :: valpos, valneg
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -324,8 +312,8 @@ contains
     type(type_grid), intent(inout) :: grid
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'calc_field_to_vector_form_translation_tables'
-    integer                       :: i,j,n
+    character(len=*), parameter :: routine_name = 'calc_field_to_vector_form_translation_tables'
+    integer                     :: i,j,n
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -360,8 +348,8 @@ contains
     type(type_grid), intent(inout) :: grid
 
     ! Local variables:
-    character(len=1024), parameter :: routine_name = 'setup_grid_parallelisation'
-    integer                        :: ierr
+    character(len=*), parameter :: routine_name = 'setup_grid_parallelisation'
+    integer                     :: ierr
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -414,22 +402,22 @@ contains
     !< individual line segments).
 
     ! In/output variables
-    type(type_grid),                         intent(in   ) :: grid
-    real(dp), dimension(:,:  ),              intent(in   ) :: d
-    real(dp),                                intent(in   ) :: f
-    real(dp), dimension(:,:  ), allocatable, intent(  out) :: line
-    logical,  dimension(:,:  ), optional,    intent(in   ) :: mask
+    type(type_grid),                       intent(in   ) :: grid
+    real(dp), dimension(:,:),              intent(in   ) :: d
+    real(dp),                              intent(in   ) :: f
+    real(dp), dimension(:,:), allocatable, intent(  out) :: line
+    logical,  dimension(:,:), optional,    intent(in   ) :: mask
 
     ! Local variables:
-    character(len=256), parameter           :: routine_name = 'calc_grid_contour_as_line'
-    real(dp), parameter                     :: tol = 1E-5_dp
-    real(dp), dimension(:,:  ), allocatable :: d_scaled
-    integer                                 :: i,j
-    logical,  dimension(:,:  ), allocatable :: mask_loc
-    integer                                 :: n_max, n
-    real(dp)                                :: d_sw, d_nw, d_se, d_ne
-    real(dp)                                :: xw, xe, xs, xn, yw, ye, ys, yn
-    logical                                 :: do_cross_w, do_cross_e, do_cross_s, do_cross_n
+    character(len=*), parameter           :: routine_name = 'calc_grid_contour_as_line'
+    real(dp), parameter                   :: tol = 1E-5_dp
+    real(dp), dimension(:,:), allocatable :: d_scaled
+    integer                               :: i,j
+    logical,  dimension(:,:), allocatable :: mask_loc
+    integer                               :: n_max, n
+    real(dp)                              :: d_sw, d_nw, d_se, d_ne
+    real(dp)                              :: xw, xe, xs, xn, yw, ye, ys, yn
+    logical                               :: do_cross_w, do_cross_e, do_cross_s, do_cross_n
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -608,8 +596,8 @@ contains
     real(dp), dimension(:,:  ), allocatable, intent(  out) :: line
 
     ! Local variables:
-    character(len=256), parameter :: routine_name = 'poly2line'
-    integer                       :: n,i1,i2
+    character(len=*), parameter :: routine_name = 'poly2line'
+    integer                     :: n,i1,i2
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -635,12 +623,12 @@ contains
     !< Calculate a set of polygon enveloping all TRUE-valued mask cells
 
     ! In/output variables
-    type(type_grid),                         intent(in   ) :: grid
-    logical,  dimension(:,:  ),              intent(in   ) :: mask
-    real(dp), dimension(:,:  ), allocatable, intent(  out) :: poly_mult
+    type(type_grid),                       intent(in   ) :: grid
+    logical,  dimension(:,:),              intent(in   ) :: mask
+    real(dp), dimension(:,:), allocatable, intent(  out) :: poly_mult
 
     ! Local variables:
-    character(len=256), parameter         :: routine_name = 'calc_grid_mask_as_polygons'
+    character(len=*), parameter           :: routine_name = 'calc_grid_mask_as_polygons'
     logical,  dimension(:,:), allocatable :: mask_loc
     integer                               :: i,j
     real(dp), dimension(:,:), allocatable :: poly
@@ -714,7 +702,7 @@ contains
     integer,                  intent(  out) :: n_poly
 
     ! Local variables:
-    character(len=256), parameter         :: routine_name = 'calc_grid_mask_as_polygon'
+    character(len=*), parameter           :: routine_name = 'calc_grid_mask_as_polygon'
     logical,  dimension(:,:), allocatable :: mask_ext
     integer,  dimension(:,:), allocatable :: map
     integer,  dimension(:,:), allocatable :: stack
@@ -726,11 +714,9 @@ contains
     ! Add routine to path
     call init_routine( routine_name)
 
-#if (DO_ASSERTIONS)
     ! Safety
     if (size( mask,1) /= grid%nx .or. size( mask,2) /= grid%ny) call crash('incorrect data dimensions!')
     if (.not. mask( i0,j0)) call crash('seed at i0,j0 is not TRUE!')
-#endif
 
     ! Pad a row of FALSEs around the mask so the set of TRUEs around i0,j0 is really an island
     allocate( mask_ext( 0:grid%nx+1, 0:grid%ny+1), source = .false.)
