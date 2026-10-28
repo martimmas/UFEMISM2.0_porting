@@ -3,7 +3,7 @@ module tests_grid_lonlat
   ! Basic tests for simple lon/lat-grids.
 
   use precisions, only: dp
-  use grid_types, only: type_grid_lonlat
+  use grid_lonlat_basic, only: type_grid_lonlat
 
   implicit none
 

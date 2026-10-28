@@ -5,7 +5,8 @@ module netcdf_setup_grid_mesh_from_file
   use precisions, only: dp, int8
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_types, only: type_grid, type_grid_lonlat, type_grid_lat
+  use grid_types, only: type_grid, type_grid_lat
+  use grid_lonlat_basic, only: type_grid_lonlat
   use mesh_types, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_parallel_creation, only: broadcast_mesh
