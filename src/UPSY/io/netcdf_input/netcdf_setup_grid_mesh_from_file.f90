@@ -5,16 +5,16 @@ module netcdf_setup_grid_mesh_from_file
   use precisions, only: dp, int8
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
-  use grid_lat_basic, only: type_grid_lat
-  use grid_lonlat_basic, only: type_grid_lonlat
+  use xy_grid_basic, only: type_xy_grid
+  use grid_lat_basic, only: type_xy_grid_lat
+  use grid_lonlat_basic, only: type_xy_grid_lonlat
   use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_parallel_creation, only: broadcast_mesh
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use mesh_disc_calc_matrix_operators_2D, only: calc_all_matrix_operators_mesh
   use grid_lonlat_basic, only: calc_lonlat_field_to_vector_form_translation_tables
-  use grid_basic, only: calc_secondary_grid_data
+  use xy_grid_basic, only: calc_secondary_xy_grid_data
   use netcdf_basic
   use tests_main
   use netcdf, only: NF90_FLOAT, NF90_DOUBLE, NF90_INT64
@@ -34,7 +34,7 @@ contains
     ! In/output variables:
     character(len=*), intent(in   ) :: filename
     integer,          intent(in   ) :: ncid
-    type(type_grid),  intent(  out) :: grid
+    type(type_xy_grid),  intent(  out) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'setup_xy_grid_from_file'
@@ -94,7 +94,7 @@ contains
     call MPI_BCAST( grid%y(:), grid%ny, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
     ! Calculate secondary grid geometry data
-    call calc_secondary_grid_data( grid)
+    call calc_secondary_xy_grid_data( grid)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -107,7 +107,7 @@ contains
     ! In/output variables:
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
-    type(type_grid_lonlat), intent(  out) :: grid
+    type(type_xy_grid_lonlat), intent(  out) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'setup_lonlat_grid_from_file'
@@ -389,8 +389,8 @@ contains
     ! In/output variables:
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
-    type(type_grid_lonlat), intent(  out) :: grid
-    type(type_grid_lat),    intent(  out) :: vec
+    type(type_xy_grid_lonlat), intent(  out) :: grid
+    type(type_xy_grid_lat),    intent(  out) :: vec
 
     ! Local variables:
     character(len=1024), parameter       :: routine_name = 'setup_lonlat_grid_from_lat_file'

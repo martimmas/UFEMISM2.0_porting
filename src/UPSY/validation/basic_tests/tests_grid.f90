@@ -3,7 +3,7 @@ module tests_grid
   ! Basic tests for simple square x/y-grids.
 
   use precisions, only: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -14,7 +14,7 @@ module tests_grid
 contains
 
   pure function test_tol_grid( grid1, grid2, tol_dist) result( res)
-    type(type_grid),  intent(in) :: grid1, grid2
+    type(type_xy_grid),  intent(in) :: grid1, grid2
     real(dp),         intent(in) :: tol_dist
     logical :: res
 

@@ -7,7 +7,7 @@ module line_tracing_grid
   use precisions, only: dp
   use remapping_types, only: type_single_row_mapping_matrices
   use line_tracing_basic
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use plane_geometry, only: lies_on_line_segment, segment_intersection, crop_line_to_domain
   use line_integrals, only: line_integral_xdy, line_integral_mxydx, line_integral_xydy
@@ -26,7 +26,7 @@ contains
   subroutine trace_line_grid( grid, p, q, single_row, count_coincidences)
 
     ! In/output variables
-    type(type_grid),                        intent(in)    :: grid
+    type(type_xy_grid),                     intent(in)    :: grid
     real(dp), dimension(2),                 intent(in)    :: p,q
     type(type_single_row_mapping_matrices), intent(inout) :: single_row
     logical,                                intent(in)    :: count_coincidences
@@ -103,7 +103,7 @@ contains
   subroutine trace_line_grid_start( grid, p, coinc_ind)
 
     ! In/output variables
-    type(type_grid),           intent(in)  :: grid
+    type(type_xy_grid),        intent(in)  :: grid
     real(dp), dimension(2),    intent(in)  :: p
     type(type_coinc_ind_grid), intent(out) :: coinc_ind
 
@@ -199,7 +199,7 @@ contains
   subroutine trace_line_grid_a( grid, p, q, coinc_ind, p_next, n_left, coincides, finished)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     type(type_coinc_ind_grid), intent(inout) :: coinc_ind
     real(dp), dimension(2),    intent(out)   :: p_next
@@ -265,7 +265,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_in_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: xl, xu, yl, yu
@@ -300,7 +300,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_b)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne
@@ -371,7 +371,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_cx_cy)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne
@@ -462,7 +462,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     type(type_coinc_ind_grid), intent(inout) :: coinc_ind
     real(dp), dimension(2),    intent(out)   :: p_next
@@ -543,7 +543,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_on_cx_cy)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: x, y, xl, xu, yl, yu
@@ -619,7 +619,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_in_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: x, y, xl, xu, yl, yu
@@ -695,7 +695,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_b)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ww, ee, ss, nn
@@ -815,7 +815,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ww, ee, ss, nn
@@ -977,7 +977,7 @@ contains
   subroutine trace_line_grid_cx( grid, p, q, coinc_ind, p_next, n_left, coincides, finished)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     type(type_coinc_ind_grid), intent(inout) :: coinc_ind
     real(dp), dimension(2),    intent(out)   :: p_next
@@ -1052,7 +1052,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_on_cx)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: x, yl, yu
@@ -1099,7 +1099,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_in_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: x, yl, yu
@@ -1149,7 +1149,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_b)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ss, nn
@@ -1249,7 +1249,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ss, nn
@@ -1377,7 +1377,7 @@ contains
   subroutine trace_line_grid_cy( grid, p, q, coinc_ind, p_next, n_left, coincides, finished)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p,q
     type(type_coinc_ind_grid), intent(inout) :: coinc_ind
     real(dp), dimension(2),    intent(out)   :: p_next
@@ -1450,7 +1450,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_on_cy)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: y, xl, xu
@@ -1497,7 +1497,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, q_in_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: q
     integer,                   intent(in)    :: i,j
     real(dp),                  intent(in)    :: y, xl, xu
@@ -1546,7 +1546,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_b)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ww, ee
@@ -1645,7 +1645,7 @@ contains
     coinc_ind, p_next, n_left, coincides, finished, pq_through_a)
 
     ! In/output variables
-    type(type_grid),           intent(in)    :: grid
+    type(type_xy_grid),        intent(in)    :: grid
     real(dp), dimension(2),    intent(in)    :: p, q
     integer,                   intent(in)    :: i,j
     real(dp), dimension(2),    intent(in)    :: sw, nw, se, ne, ww, ee

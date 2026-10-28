@@ -6,7 +6,7 @@ MODULE ocean_model_types
 ! ====================
 
   USE precisions                                             , ONLY: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use reference_geometry_types, only: type_reference_geometry
 
   IMPLICIT NONE
@@ -55,7 +55,7 @@ MODULE ocean_model_types
     type(type_reference_geometry)           :: target_geometry            !< The geometry that the BMB inversion should aim to reproduce
     logical,  dimension(:    ), allocatable :: target_mask_shelf          !< Shelf mask of the target geometry
 
-    type(type_grid)                         :: grid_ref
+    type(type_xy_grid)                      :: grid_ref
     integer                                 :: ndepth_ref
     real(dp), dimension(:    ), allocatable :: depth_ref
     real(dp), dimension(:,:  ), allocatable :: T_ref_grid, S_ref_grid     !< Reference 3-D ocean snapshot on its original grid (in vectorised form)

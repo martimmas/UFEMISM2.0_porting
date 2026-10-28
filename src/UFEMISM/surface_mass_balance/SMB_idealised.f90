@@ -11,7 +11,7 @@ module SMB_idealised
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use climate_model_types, only: type_climate_model
   use reference_geometry_types, only: type_reference_geometry
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -105,7 +105,7 @@ contains
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_climate_model),             intent(inout) :: climate
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'run_SMB_model_idealised'

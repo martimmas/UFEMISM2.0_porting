@@ -1,4 +1,4 @@
-module grid_basic
+module xy_grid_basic
 
   ! Functions for working with simple square x/y-grids
 
@@ -18,11 +18,11 @@ module grid_basic
 
   private
 
-  public :: type_grid, setup_square_grid, deallocate_grid, calc_secondary_grid_data, &
-    calc_matrix_operators_grid
+  public :: type_xy_grid, setup_xy_grid, deallocate_xy_grid, calc_secondary_xy_grid_data, &
+    calc_xy_grid_matrix_operators
 
-  type type_grid
-    ! A square grid
+  type type_xy_grid
+    ! A regular x/y-grid
 
     ! Basic properties
     character(len=256)                      :: name         !           A nice name tag
@@ -51,22 +51,22 @@ module grid_basic
     integer                                 :: n1,n2,n_loc  ! Matrix rows owned by each process
     type(type_par_arr_info)                 :: pai
 
-  end type type_grid
+  end type type_xy_grid
 
 contains
 
-  subroutine setup_square_grid( name, xmin, xmax, ymin, ymax, dx, grid, lambda_M, phi_M, beta_stereo)
+  subroutine setup_xy_grid( name, xmin, xmax, ymin, ymax, dx, grid, lambda_M, phi_M, beta_stereo)
     !< Set up a square grid that covers the specified domain
 
     ! In/output variables:
     character(len=*),   intent(in   ) :: name
     real(dp),           intent(in   ) :: xmin, xmax, ymin, ymax        ! [m] Domain
     real(dp),           intent(in   ) :: dx                            ! [m] Resolution
-    type(type_grid),    intent(  out) :: grid
+    type(type_xy_grid), intent(  out) :: grid
     real(dp), optional, intent(in   ) :: lambda_M, phi_M, beta_stereo
 
     ! Local variables:
-    character(len=*), parameter :: routine_name = 'setup_square_grid'
+    character(len=*), parameter :: routine_name = 'setup_xy_grid'
     real(dp)                    :: xmid, ymid
     integer                     :: nx_pos, ny_pos
     integer                     :: i,j,ii,jj
@@ -108,21 +108,21 @@ contains
     end do
 
     ! Calculate secondary grid geometry data
-    call calc_secondary_grid_data( grid, lambda_M, phi_M, beta_stereo)
+    call calc_secondary_xy_grid_data( grid, lambda_M, phi_M, beta_stereo)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine setup_square_grid
+  end subroutine setup_xy_grid
 
-  subroutine deallocate_grid( grid)
+  subroutine deallocate_xy_grid( grid)
     !< deallocate memory for a grid object
 
     ! In/output variables:
-    type(type_grid), intent(inout) :: grid
+    type(type_xy_grid), intent(inout) :: grid
 
     ! Local variables:
-    character(len=*), parameter :: routine_name = 'deallocate_grid'
+    character(len=*), parameter :: routine_name = 'deallocate_xy_grid'
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -137,13 +137,13 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine deallocate_grid
+  end subroutine deallocate_xy_grid
 
   subroutine check_if_grids_are_identical( grid1, grid2, isso)
     !< Check if two grids are identical
 
     ! In/output variables:
-    type(type_grid), intent(in   ) :: grid1, grid2
+    type(type_xy_grid), intent(in   ) :: grid1, grid2
     logical,         intent(  out) :: isso
 
     ! Local variables:
@@ -174,15 +174,15 @@ contains
 
   end subroutine check_if_grids_are_identical
 
-  subroutine calc_secondary_grid_data( grid, lambda_M, phi_M, beta_stereo)
+  subroutine calc_secondary_xy_grid_data( grid, lambda_M, phi_M, beta_stereo)
     !< Calculate secondary geometry data for a square grid
 
     ! In/output variables:
-    type(type_grid),    intent(inout) :: grid
+    type(type_xy_grid), intent(inout) :: grid
     real(dp), optional, intent(in   ) :: lambda_M, phi_M, beta_stereo
 
     ! Local variables:
-    character(len=*), parameter :: routine_name = 'calc_secondary_grid_data'
+    character(len=*), parameter :: routine_name = 'calc_secondary_xy_grid_data'
     integer                     :: i,j
     real(dp), parameter         :: tol = 1E-9_dp
 
@@ -243,18 +243,18 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_secondary_grid_data
+  end subroutine calc_secondary_xy_grid_data
 
-  subroutine calc_matrix_operators_grid( grid, M_ddx_CSR, M_ddy_CSR)
+  subroutine calc_xy_grid_matrix_operators( grid, M_ddx_CSR, M_ddy_CSR)
     !< Calculate matrix operators for partial derivatives on a regular grid
     !< (needed for conservative remapping)
 
     ! In/output variables:
-    type(type_grid),                 intent(in   ) :: grid
+    type(type_xy_grid),              intent(in   ) :: grid
     type(type_CSR_matrix_dp), intent(  out) :: M_ddx_CSR, M_ddy_CSR
 
     ! Local variables:
-    character(len=*), parameter :: routine_name = 'calc_matrix_operators_grid'
+    character(len=*), parameter :: routine_name = 'calc_xy_grid_matrix_operators'
     integer                     :: ncols, nrows, ncols_loc, nrows_loc, nnz_per_row_est, nnz_est_proc
     integer                     :: row, i, j, col
     real(dp)                    :: valpos, valneg
@@ -337,13 +337,13 @@ contains
     ! Finalise routine path
     call finalise_routine( routine_name)
 
-  end subroutine calc_matrix_operators_grid
+  end subroutine calc_xy_grid_matrix_operators
 
   subroutine calc_field_to_vector_form_translation_tables( grid)
     !< Calculate grid-cell-to-matrix-row translation tables
 
     ! In/output variables
-    type(type_grid), intent(inout) :: grid
+    type(type_xy_grid), intent(inout) :: grid
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'calc_field_to_vector_form_translation_tables'
@@ -379,7 +379,7 @@ contains
   subroutine setup_grid_parallelisation( grid)
 
     ! In/output variables
-    type(type_grid), intent(inout) :: grid
+    type(type_xy_grid), intent(inout) :: grid
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'setup_grid_parallelisation'
@@ -428,4 +428,4 @@ contains
 
   end subroutine setup_grid_parallelisation
 
-end module grid_basic
+end module xy_grid_basic

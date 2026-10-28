@@ -15,7 +15,7 @@ module TIPMIP_forcing_field_types
   use apply_maps, only: apply_map_xy_grid_to_mesh_2D, apply_map_xy_grid_to_mesh_3D
   use remapping_grid_to_mesh_vertices, only: create_map_from_xy_grid_to_mesh_vertices
   use parameters, only: NaN, freshwater_density, sec_per_year, ice_density
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use remapping_types, only: type_map
   use dist_to_hybrid_mod, only: dist_to_hybrid
   use models_basic, only: atype_model
@@ -46,7 +46,7 @@ module TIPMIP_forcing_field_types
       real(dp)                                       :: y0            !           Year before current time
       real(dp)                                       :: y1            !           Year after current time
 
-      type(type_grid)                                :: grid_raw      !           The x/y-grid that the TIPMIP folks provided the data on
+      type(type_xy_grid)                             :: grid_raw      !           The x/y-grid that the TIPMIP folks provided the data on
       type(type_map)                                 :: map           !           Mapping object to remap data from the TIPMIP grid to the UFEMISM mesh
 
     !< Variables and functions that are specific to the TIPMIP forcing field

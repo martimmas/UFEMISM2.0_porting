@@ -16,7 +16,7 @@ module ut_SMB
   use ice_model_main, only: type_ice_model
   use reference_geometry_types, only: type_reference_geometry
   use climate_model_types, only: type_climate_model
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use Halfar_SIA_solution, only: Halfar
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, &
     MPI_WIN, MPI_MIN, MPI_MAX
@@ -93,7 +93,7 @@ contains
     type(type_ice_model) , allocatable    :: ice
     type(type_reference_geometry), target :: refgeo_init, refgeo_PD
     type(type_climate_model)     , target :: climate
-    type(type_grid)              , target :: grid_smooth
+    type(type_xy_grid)           , target :: grid_smooth
     real(dp)                              :: time
     integer                               :: vi
     real(dp)                              :: dH_dt
@@ -163,7 +163,7 @@ contains
     type(type_ice_model), allocatable           :: ice
     type(type_reference_geometry), target       :: refgeo_init, refgeo_PD
     type(type_climate_model)     , target       :: climate
-    type(type_grid)              , target       :: grid_smooth
+    type(type_xy_grid)           , target       :: grid_smooth
     real(dp)                                    :: time
     logical                                     :: test_result
     integer                                     :: ierr
@@ -234,7 +234,7 @@ contains
     type(type_ice_model), allocatable     :: ice
     type(type_reference_geometry), target :: refgeo_init, refgeo_PD
     type(type_climate_model)     , target :: climate
-    type(type_grid)              , target :: grid_smooth
+    type(type_xy_grid)           , target :: grid_smooth
     real(dp)                              :: SMB_min, SMB_max
     integer                               :: ierr
 

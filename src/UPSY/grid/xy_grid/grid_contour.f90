@@ -3,7 +3,7 @@ module grid_contour
   ! Functions for working with simple square x/y-grids
 
   use precisions, only: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use reallocate_mod, only: reallocate
   use interpolation, only: linint_points
@@ -22,7 +22,7 @@ contains
     !< individual line segments).
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     real(dp), dimension(:,:),              intent(in   ) :: d
     real(dp),                              intent(in   ) :: f
     real(dp), dimension(:,:), allocatable, intent(  out) :: line
@@ -211,7 +211,7 @@ contains
     !< Calculate a set of polygon enveloping all TRUE-valued mask cells
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     logical,  dimension(:,:),              intent(in   ) :: mask
     real(dp), dimension(:,:), allocatable, intent(  out) :: poly_mult
 
@@ -283,7 +283,7 @@ contains
     !< and remove that set of grid cells from the mask
 
     ! In/output variables
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     logical,  dimension(:,:), intent(inout) :: mask
     integer,                  intent(in   ) :: i0,j0
     real(dp), dimension(:,:), intent(  out) :: poly

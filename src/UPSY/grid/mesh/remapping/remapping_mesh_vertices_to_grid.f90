@@ -9,7 +9,7 @@ module remapping_mesh_vertices_to_grid
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use remapping_types, only: type_single_row_mapping_matrices, type_map
@@ -38,7 +38,7 @@ contains
 
     ! In/output variables
     type(type_mesh),  intent(in   ) :: mesh
-    type(type_grid),  intent(in   ) :: grid
+    type(type_xy_grid),  intent(in   ) :: grid
     character(len=*), intent(in   ) :: output_dir
     type(type_map),   intent(inout) :: map
 
@@ -93,7 +93,7 @@ contains
 
     ! In/output variables
     type(type_mesh),                      intent(in   ) :: mesh
-    type(type_grid),                      intent(in   ) :: grid
+    type(type_xy_grid),                   intent(in   ) :: grid
     integer, dimension(grid%nx, grid%ny), intent(  out) :: overlaps_with_small_triangle
     integer, dimension(grid%nx, grid%ny), intent(  out) :: containing_triangle
 
@@ -230,7 +230,7 @@ contains
 
     ! In/output variables
     type(type_mesh),                      intent(in   ) :: mesh
-    type(type_grid),                      intent(in   ) :: grid
+    type(type_xy_grid),                   intent(in   ) :: grid
     integer, dimension(grid%nx, grid%ny), intent(in   ) :: overlaps_with_small_triangle
     integer, dimension(grid%nx, grid%ny), intent(in   ) :: containing_triangle
     type(type_CSR_matrix_dp),      intent(  out) :: A_xdy_g_b_CSR, A_mxydx_g_b_CSR, A_xydy_g_b_CSR
@@ -431,7 +431,7 @@ contains
 
     ! In/output variables
     type(type_mesh),                 intent(in   ) :: mesh
-    type(type_grid),                 intent(in   ) :: grid
+    type(type_xy_grid),              intent(in   ) :: grid
     type(type_CSR_matrix_dp), intent(in   ) :: A_xdy_g_b_CSR, A_mxydx_g_b_CSR, A_xydy_g_b_CSR
     type(tMat)                     , intent(  out) :: w0, w1x, w1y
 
@@ -539,7 +539,7 @@ contains
 
     ! In/output variables
     type(type_mesh), intent(in   ) :: mesh
-    type(type_grid), intent(in   ) :: grid
+    type(type_xy_grid), intent(in   ) :: grid
     type(tMat),      intent(in   ) :: M
 
     ! Local variables:
@@ -596,7 +596,7 @@ contains
     !< files will still be there, so that Tijn can use them to figure out the bug.
 
     ! In/output variables
-    type(type_grid),  intent(in   ) :: grid
+    type(type_xy_grid),  intent(in   ) :: grid
     type(type_mesh),  intent(in   ) :: mesh
     character(len=*), intent(in   ) :: output_dir
     character(len=*), intent(  out) :: filename_grid, filename_mesh

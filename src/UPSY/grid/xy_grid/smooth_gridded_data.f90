@@ -3,7 +3,7 @@ module smooth_gridded_data
   ! Functions for smoothing data on a square grid
 
   use precisions, only: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
@@ -31,7 +31,7 @@ subroutine smooth_Gaussian_grid_2D( grid, d_grid_vec_partial, r)
   !< Apply a Gaussian smoothing filter with sigma = r to the 2D data field d
 
   ! In/output variables:
-  type(type_grid),        intent(in   ) :: grid
+  type(type_xy_grid),     intent(in   ) :: grid
   real(dp), dimension(:), intent(inout) :: d_grid_vec_partial
   real(dp),               intent(in   ) :: r                    !< [m] Smoothing radius
 
@@ -105,7 +105,7 @@ subroutine smooth_Gaussian_grid_3D( grid, d_grid_vec_partial, r)
   !< Apply a Gaussian smoothing filter with sigma = r to the 3D data field d
 
   ! In/output variables:
-  type(type_grid),          intent(in   ) :: grid
+  type(type_xy_grid),       intent(in   ) :: grid
   real(dp), dimension(:,:), intent(inout) :: d_grid_vec_partial
   real(dp),                 intent(in   ) :: r                    !< [m] Smoothing radius
 
@@ -179,7 +179,7 @@ subroutine extrapolate_fillvalue_Gaussian_grid_2D( grid, d_grid_vec_partial, sig
   ! Replace fillvalues by Gaussian extrapolation (with radius sigma) of the rest of the data
 
   ! In/output variables:
-  type(type_grid),                      intent(in   ) :: grid
+  type(type_xy_grid),                   intent(in   ) :: grid
   real(dp), dimension(grid%n1:grid%n2), intent(inout) :: d_grid_vec_partial
   real(dp),                             intent(in   ) :: sigma
   real(dp),                             intent(in   ) :: fill_value
@@ -210,7 +210,7 @@ subroutine extrapolate_fillvalue_Gaussian_grid_3D( grid, d_grid_vec_partial, sig
   ! Replace fillvalues by Gaussian extrapolation (with radius sigma) of the rest of the data
 
   ! In/output variables:
-  type(type_grid),          intent(in   ) :: grid
+  type(type_xy_grid),       intent(in   ) :: grid
   real(dp), dimension(:,:), intent(inout) :: d_grid_vec_partial
   real(dp),                 intent(in   ) :: sigma
   real(dp),                 intent(in   ) :: fill_value
@@ -237,7 +237,7 @@ subroutine extrapolate_fillvalue_Gaussian_grid_3D_primary( grid, d, sigma, fill_
   ! Replace fillvalues by Gaussian extrapolation (with radius sigma) of the rest of the data
 
   ! In/output variables:
-  type(type_grid),            intent(in   ) :: grid
+  type(type_xy_grid),         intent(in   ) :: grid
   real(dp), dimension(:,:,:), intent(inout) :: d
   real(dp),                   intent(in   ) :: sigma
   real(dp),                   intent(in   ) :: fill_value

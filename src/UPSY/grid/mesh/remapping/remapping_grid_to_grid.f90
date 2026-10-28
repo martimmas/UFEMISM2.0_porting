@@ -4,7 +4,7 @@ module remapping_grid_to_grid
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary
   use line_integrals, only: line_integral_mxydx, line_integral_xydy
 
@@ -20,8 +20,8 @@ contains
     !< Map data from one x/y-grid to another x/y-grid
 
     ! In/output variables
-    type(type_grid),                                      intent(in   ) :: grid_src
-    type(type_grid),                                      intent(in   ) :: grid_dst
+    type(type_xy_grid),                                   intent(in   ) :: grid_src
+    type(type_xy_grid),                                   intent(in   ) :: grid_dst
     real(dp), dimension(grid_src%pai%i1:grid_src%pai%i2), intent(in   ) :: d_grid_src_vec_partial
     real(dp), dimension(grid_dst%pai%i1:grid_dst%pai%i2), intent(  out) :: d_grid_dst_vec_partial
 

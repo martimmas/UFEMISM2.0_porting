@@ -8,7 +8,7 @@ module remapping_grid_to_mesh_vertices
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use remapping_types, only: type_single_row_mapping_matrices, type_map
@@ -18,7 +18,7 @@ module remapping_grid_to_mesh_vertices
   use line_tracing_grid, only: trace_line_grid
   use line_tracing_triangles, only: trace_line_tri
   use line_tracing_Voronoi, only: trace_line_Vor
-  use grid_basic, only: calc_matrix_operators_grid
+  use xy_grid_basic, only: calc_xy_grid_matrix_operators
   use netcdf_output
 
   implicit none
@@ -42,7 +42,7 @@ contains
     !       seems like a reasonable compromise.
 
     ! In/output variables
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     type(type_mesh),            intent(in   ) :: mesh
     character(len=*),           intent(in   ) :: output_dir
     type(type_map),             intent(inout) :: map
@@ -90,7 +90,7 @@ contains
       lies_outside_grid_domain, is_large_vertex, &
       A_xdy_a_g_CSR, A_mxydx_a_g_CSR, A_xydy_a_g_CSR, w0, w1x, w1y)
 
-    call calc_matrix_operators_grid( grid, grid_M_ddx_CSR, grid_M_ddy_CSR)
+    call calc_xy_grid_matrix_operators( grid, grid_M_ddx_CSR, grid_M_ddy_CSR)
 
     call calc_remapping_matrix( w0, w1x, w1y, grid_M_ddx_CSR, grid_M_ddy_CSR, M_cons_1st_order, M_cons_2nd_order)
 
@@ -121,7 +121,7 @@ contains
     !< (so they can be skipped, as remapping is untrustworthy there)
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(  out) :: lies_outside_grid_domain
 
@@ -155,7 +155,7 @@ contains
     !< over the overlapping grid cells, without needing to calculate all the line integrals
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(  out) :: is_large_vertex
 
@@ -184,7 +184,7 @@ contains
     !< Calculate the A-matrices for the grid-to-mesh remapping operator
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: lies_outside_grid_domain
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: is_large_vertex
@@ -273,7 +273,7 @@ contains
     !< (i.e., calculating the line integrals rather than simply averaging over the grid cells)
 
     ! In/output variables
-    type(type_grid),                        intent(in   ) :: grid
+    type(type_xy_grid),                     intent(in   ) :: grid
     type(type_mesh),                        intent(in   ) :: mesh
     integer,                                intent(in   ) :: row, vi
     type(type_single_row_mapping_matrices), intent(inout) :: single_row_Vor, single_row_grid
@@ -373,7 +373,7 @@ contains
     !< (i.e., simply averaging over the grid cells rather than calculating the line integrals)
 
     ! In/output variables
-    type(type_grid),                        intent(in   ) :: grid
+    type(type_xy_grid),                     intent(in   ) :: grid
     type(type_mesh),                        intent(in   ) :: mesh
     integer,                                intent(in   ) :: row, vi
     type(type_single_row_mapping_matrices), intent(inout) :: single_row_Vor
@@ -444,7 +444,7 @@ contains
     !< Calculate the w-matrices for the grid-to-mesh remapping operator
 
     ! In/output variables
-    type(type_grid),                       intent(in   ) :: grid
+    type(type_xy_grid),                    intent(in   ) :: grid
     type(type_mesh),                       intent(in   ) :: mesh
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: lies_outside_grid_domain
     logical, dimension(mesh%vi1:mesh%vi2), intent(in   ) :: is_large_vertex
@@ -580,7 +580,7 @@ contains
     !< files will still be there, so that Tijn can use them to figure out the bug.
 
     ! In/output variables
-    type(type_grid),  intent(in   ) :: grid
+    type(type_xy_grid),  intent(in   ) :: grid
     type(type_mesh),  intent(in   ) :: mesh
     character(len=*), intent(in   ) :: output_dir
     character(len=*), intent(  out) :: filename_grid, filename_mesh

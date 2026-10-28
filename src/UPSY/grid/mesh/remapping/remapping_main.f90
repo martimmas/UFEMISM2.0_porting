@@ -3,8 +3,8 @@ module remapping_main
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use remapping_types, only: type_map
-  use grid_basic, only: type_grid
-  use grid_lonlat_basic, only: type_grid_lonlat
+  use xy_grid_basic, only: type_xy_grid
+  use grid_lonlat_basic, only: type_xy_grid_lonlat
   use mesh_basic, only: type_mesh
   use interpolation, only: remap_cons_2nd_order_1D
   use mesh_utilities, only: check_if_meshes_are_identical
@@ -41,7 +41,7 @@ contains
     ! Map a 2-D data field from an x/y-grid to a mesh.
 
     ! In/output variables
-    type(type_grid),                     intent(in)    :: grid
+    type(type_xy_grid),                  intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     character(len=*),                    intent(in   ) :: output_dir
     real(dp), dimension(:    ),          intent(in)    :: d_grid_vec_partial
@@ -101,7 +101,7 @@ contains
     ! Map a 3-D data field from an x/y-grid to a mesh.
 
     ! In/output variables
-    type(type_grid),                     intent(in)    :: grid
+    type(type_xy_grid),                  intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     character(len=*),                    intent(in   ) :: output_dir
     real(dp), dimension(:,:  ),          intent(in)    :: d_grid_vec_partial
@@ -158,7 +158,7 @@ contains
     ! Map a 2-D data field from an x/y-grid to a mesh triangles.
 
     ! In/output variables
-    type(type_grid),                     intent(in)    :: grid
+    type(type_xy_grid),                  intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     character(len=*),                    intent(in   ) :: output_dir
     real(dp), dimension(:    ),          intent(in)    :: d_grid_vec_partial
@@ -214,7 +214,7 @@ contains
     ! Map a 3-D data field from an x/y-grid to a mesh triangles.
 
     ! In/output variables
-    type(type_grid),                     intent(in)    :: grid
+    type(type_xy_grid),                  intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     character(len=*),                    intent(in   ) :: output_dir
     real(dp), dimension(:,:  ),          intent(in)    :: d_grid_vec_partial
@@ -271,7 +271,7 @@ contains
     ! Map a 2-D data field from a lon/lat-grid to a mesh.
 
     ! In/output variables
-    type(type_grid_lonlat),              intent(in)    :: grid
+    type(type_xy_grid_lonlat),              intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     real(dp), dimension(:    ),          intent(in)    :: d_grid_vec_partial
     real(dp), dimension(:    ),          intent(out)   :: d_mesh_partial
@@ -326,7 +326,7 @@ contains
     ! Map a 3-D data field from a lon/lat-grid to a mesh.
 
     ! In/output variables
-    type(type_grid_lonlat),              intent(in)    :: grid
+    type(type_xy_grid_lonlat),              intent(in)    :: grid
     type(type_mesh),                     intent(in)    :: mesh
     real(dp), dimension(:,:  ),          intent(in)    :: d_grid_vec_partial
     real(dp), dimension(:,:  ),          intent(out)   :: d_mesh_partial
@@ -384,7 +384,7 @@ contains
 
     ! In/output variables
     type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     character(len=*),           intent(in   ) :: output_dir
     real(dp), dimension(:    ), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:    ), intent(  out) :: d_grid_vec_partial
@@ -442,7 +442,7 @@ contains
 
     ! In/output variables
     type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     character(len=*),           intent(in   ) :: output_dir
     real(dp), dimension(:,:  ), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:,:  ), intent(  out) :: d_grid_vec_partial
@@ -501,7 +501,7 @@ contains
 
     ! In/output variables
     type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     character(len=*),           intent(in   ) :: output_dir
     real(dp), dimension(:    ), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:    ), intent(  out) :: d_grid_vec_partial
@@ -558,7 +558,7 @@ contains
 
     ! In/output variables
     type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     character(len=*),           intent(in   ) :: output_dir
     real(dp), dimension(:    ), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:    ), intent(  out) :: d_grid_vec_partial
@@ -616,7 +616,7 @@ contains
 
     ! In/output variables
     type(type_mesh),            intent(in   ) :: mesh
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     character(len=*),           intent(in   ) :: output_dir
     real(dp), dimension(:,:  ), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:,:  ), intent(  out) :: d_grid_vec_partial

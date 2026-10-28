@@ -11,7 +11,7 @@ module ut_fields_reallocate
     type_fields_registry
   use ut_basic
   use mesh_basic, only: type_mesh
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use Arakawa_grid_mod, only: Arakawa_grid
   use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, &
     MPI_MIN, MPI_MAX, MPI_COMM_WORLD

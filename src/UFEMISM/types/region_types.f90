@@ -6,7 +6,7 @@ MODULE region_types
 ! ====================
 
   USE precisions                                             , ONLY: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic                                             , ONLY: type_mesh
   USE reference_geometry_types                               , ONLY: type_reference_geometry
   use ice_model_main, only: type_ice_model
@@ -43,7 +43,7 @@ MODULE region_types
     LOGICAL                                 :: output_files_match_current_mesh
 
     ! Square grid used for smoothing data
-    TYPE(type_grid)                         :: grid_smooth
+    type(type_xy_grid)                      :: grid_smooth
 
     ! Reference geometries
     TYPE(type_reference_geometry)           :: refgeo_init
@@ -90,7 +90,7 @@ MODULE region_types
     TYPE(type_regional_scalars)             :: scalars                 ! Scalar data (e.g. total area, volume, mass balance)
 
     ! Output
-    TYPE(type_grid)                         :: output_grid                  ! The square grid used for gridded output files
+    type(type_xy_grid)                      :: output_grid                  ! The square grid used for gridded output files
     CHARACTER(LEN=1024)                     :: output_filename_mesh         ! Name of NetCDF output file (mesh version)
     CHARACTER(LEN=1024)                     :: output_filename_grid         ! Name of NetCDF output file (grid version)
     CHARACTER(LEN=1024)                     :: output_filename_scalar       ! Name of NetCDF output file (grid version)
@@ -101,7 +101,7 @@ MODULE region_types
 
     ! Region-of-interest output
     INTEGER                                     :: nROI                              ! Number of regions of interest for this model region
-    TYPE(type_grid),             DIMENSION(100) :: output_grids_ROI                  ! The square grids used for gridded output files for the region of interest
+    type(type_xy_grid),          DIMENSION(100) :: output_grids_ROI                  ! The square grids used for gridded output files for the region of interest
     CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_grid_ROI         ! Name of NetCDF output file for the region of interest (grid version)
     TYPE(type_regional_scalars), DIMENSION(100) :: scalars_ROI                       ! Scalar data (e.g. total area, volume, mass balance) for the region of interest
     CHARACTER(LEN=1024),         DIMENSION(100) :: output_filenames_scalar_ROI       ! Name of NetCDF output file for the region of interest (scalar version)

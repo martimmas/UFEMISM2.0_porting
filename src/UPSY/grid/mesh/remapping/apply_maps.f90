@@ -8,8 +8,8 @@ module apply_maps
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mesh_basic, only: type_mesh
-  use grid_basic, only: type_grid
-  use grid_lonlat_basic, only: type_grid_lonlat
+  use xy_grid_basic, only: type_xy_grid
+  use grid_lonlat_basic, only: type_xy_grid_lonlat
   use remapping_types, only: type_map
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use petsc_basic, only: multiply_PETSc_matrix_with_vector_1D, multiply_PETSc_matrix_with_vector_2D, &
@@ -80,7 +80,7 @@ contains
   subroutine apply_map_xy_grid_to_mesh_2D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     type(type_mesh),        intent(in   ) :: mesh
     type(type_map),         intent(in   ) :: map
     real(dp), dimension(:), intent(in   ) :: d_grid_vec_partial
@@ -114,7 +114,7 @@ contains
   subroutine apply_map_xy_grid_to_mesh_3D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     type(type_mesh),          intent(in   ) :: mesh
     type(type_map),           intent(in   ) :: map
     real(dp), dimension(:,:), intent(in   ) :: d_grid_vec_partial
@@ -151,7 +151,7 @@ contains
   subroutine apply_map_xy_grid_to_mesh_triangles_2D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid),                intent(in)  :: grid
+    type(type_xy_grid),             intent(in)  :: grid
     type(type_mesh),                intent(in)  :: mesh
     type(type_map),                 intent(in)  :: map
     real(dp), dimension(:),         intent(in)  :: d_grid_vec_partial
@@ -185,7 +185,7 @@ contains
   subroutine apply_map_xy_grid_to_mesh_triangles_3D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid),                  intent(in)  :: grid
+    type(type_xy_grid),               intent(in)  :: grid
     type(type_mesh),                  intent(in)  :: mesh
     type(type_map),                   intent(in)  :: map
     real(dp), dimension(:,:),         intent(in)  :: d_grid_vec_partial
@@ -222,7 +222,7 @@ contains
   subroutine apply_map_lonlat_grid_to_mesh_2D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid_lonlat),         intent(in)  :: grid
+    type(type_xy_grid_lonlat),         intent(in)  :: grid
     type(type_mesh),                intent(in)  :: mesh
     type(type_map),                 intent(in)  :: map
     real(dp), dimension(:),         intent(in)  :: d_grid_vec_partial
@@ -256,7 +256,7 @@ contains
   subroutine apply_map_lonlat_grid_to_mesh_3D( grid, mesh, map, d_grid_vec_partial, d_mesh)
 
     ! In/output variables
-    type(type_grid_lonlat),           intent(in)  :: grid
+    type(type_xy_grid_lonlat),           intent(in)  :: grid
     type(type_mesh),                  intent(in)  :: mesh
     type(type_map),                   intent(in)  :: map
     real(dp), dimension(:,:),         intent(in)  :: d_grid_vec_partial
@@ -294,7 +294,7 @@ contains
 
     ! In/output variables
     type(type_mesh),        intent(in   )  :: mesh
-    type(type_grid),        intent(in   )  :: grid
+    type(type_xy_grid),     intent(in   )  :: grid
     type(type_map),         intent(in   )  :: map
     real(dp), dimension(:), intent(in   )  :: d_mesh_partial
     real(dp), dimension(:), intent(  out) :: d_grid_vec_partial
@@ -353,7 +353,7 @@ contains
 
     ! In/output variables
     type(type_mesh),          intent(in   ) :: mesh
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     type(type_map),           intent(in   ) :: map
     real(dp), dimension(:,:), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:,:), intent(  out) :: d_grid_vec_partial
@@ -414,7 +414,7 @@ contains
 
     ! In/output variables
     type(type_mesh),                        intent(in)  :: mesh
-    type(type_grid),                        intent(in)  :: grid
+    type(type_xy_grid),                     intent(in)  :: grid
     type(type_map),                         intent(in)  :: map
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in)  :: d_mesh_partial
     real(dp), dimension(grid%n1 :grid%n2 ), intent(out) :: d_grid_vec_partial
@@ -466,7 +466,7 @@ contains
 
     ! In/output variables
     type(type_mesh),        intent(in   ) :: mesh
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     type(type_map),         intent(in   ) :: map
     real(dp), dimension(:), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:), intent(  out) :: d_grid_vec_partial
@@ -525,7 +525,7 @@ contains
 
     ! In/output variables
     type(type_mesh),          intent(in   ) :: mesh
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     type(type_map),           intent(in   ) :: map
     real(dp), dimension(:,:), intent(in   ) :: d_mesh_partial
     real(dp), dimension(:,:), intent(  out) :: d_grid_vec_partial

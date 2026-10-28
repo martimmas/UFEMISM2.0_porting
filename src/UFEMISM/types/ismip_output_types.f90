@@ -1,7 +1,7 @@
 module ismip_output_types
 
   use precisions, only: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -46,7 +46,7 @@ module ismip_output_types
 
     character(len=3)                  :: IS_name      ! Ice sheet name (AIS or GIS)
     character(len=126)                :: crs          ! Associated crs (EPSG)
-    type(type_grid)                   :: grid         ! Output grid
+    type(type_xy_grid)                :: grid         ! Output grid
     character(len=1024)               :: folder       ! Subfolder exp_RES
 
     real(dp)                          :: t_prev       ! [yr] Time value at previous writing

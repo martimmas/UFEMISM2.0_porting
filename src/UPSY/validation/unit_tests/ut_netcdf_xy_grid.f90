@@ -9,7 +9,7 @@ module ut_netcdf_xy_grid
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use string_module, only: strrep
-  use grid_basic, only: type_grid, setup_square_grid
+  use xy_grid_basic, only: type_xy_grid, setup_xy_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
 
   implicit none
@@ -36,7 +36,7 @@ contains
     real(dp), parameter            :: ymin = 0._dp
     real(dp), parameter            :: ymax = 10._dp
     real(dp), parameter            :: dx   = 1._dp
-    type(type_grid)                :: grid
+    type(type_xy_grid)             :: grid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -45,7 +45,7 @@ contains
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
     ! Set up a simple test grid
-    call setup_square_grid( grid_name, xmin, xmax, ymin, ymax, dx, grid)
+    call setup_xy_grid( grid_name, xmin, xmax, ymin, ymax, dx, grid)
 
     call unit_tests_netcdf_xy_grid_int_2D       ( test_name, grid)
     call unit_tests_netcdf_xy_grid_int_3D       ( test_name, grid)
@@ -64,7 +64,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter       :: routine_name = 'unit_tests_netcdf_xy_grid_int_2D'
@@ -75,7 +75,7 @@ contains
     integer                              :: i,j
     character(len=1024)                  :: filename
     integer                              :: ncid
-    type(type_grid)                      :: grid_from_file
+    type(type_xy_grid)                   :: grid_from_file
     integer, dimension(:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack
@@ -125,7 +125,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'unit_tests_netcdf_xy_grid_int_3D'
@@ -138,7 +138,7 @@ contains
     integer                                 :: i,j,k
     character(len=1024)                     :: filename
     integer                                 :: ncid
-    type(type_grid)                         :: grid_from_file
+    type(type_xy_grid)                      :: grid_from_file
     integer,  dimension(:,:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack
@@ -198,7 +198,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter        :: routine_name = 'unit_tests_netcdf_xy_grid_dp_2D'
@@ -209,7 +209,7 @@ contains
     integer                               :: i,j
     character(len=1024)                   :: filename
     integer                               :: ncid
-    type(type_grid)                       :: grid_from_file
+    type(type_xy_grid)                    :: grid_from_file
     real(dp), dimension(:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack
@@ -259,7 +259,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'unit_tests_netcdf_xy_grid_dp_2D_monthly'
@@ -270,7 +270,7 @@ contains
     integer                                 :: i,j,m
     character(len=1024)                     :: filename
     integer                                 :: ncid
-    type(type_grid)                         :: grid_from_file
+    type(type_xy_grid)                      :: grid_from_file
     real(dp), dimension(:,:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack
@@ -323,7 +323,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'unit_tests_netcdf_xy_grid_dp_3D'
@@ -336,7 +336,7 @@ contains
     integer                                 :: i,j,k
     character(len=1024)                     :: filename
     integer                                 :: ncid
-    type(type_grid)                         :: grid_from_file
+    type(type_xy_grid)                      :: grid_from_file
     real(dp), dimension(:,:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack
@@ -396,7 +396,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'unit_tests_netcdf_xy_grid_dp_3D_ocean'
@@ -409,7 +409,7 @@ contains
     integer                                 :: i,j,k
     character(len=1024)                     :: filename
     integer                                 :: ncid
-    type(type_grid)                         :: grid_from_file
+    type(type_xy_grid)                      :: grid_from_file
     real(dp), dimension(:,:  ), allocatable :: d_grid_vec_partial_from_file
 
     ! Add routine to call stack

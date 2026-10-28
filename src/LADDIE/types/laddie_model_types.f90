@@ -7,7 +7,7 @@ MODULE laddie_model_types
 
   USE precisions                                             , ONLY: dp
   USE CSR_matrix_mod                                 , ONLY: type_CSR_matrix_dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_f08, only: MPI_WIN
 
   IMPLICIT NONE
@@ -192,7 +192,7 @@ MODULE laddie_model_types
     type(type_scalar_output_buffer)         :: buffer
 
     ! Output grid
-    type(type_grid)                         :: output_grid
+    type(type_xy_grid)                      :: output_grid
 
   END TYPE type_laddie_model
 

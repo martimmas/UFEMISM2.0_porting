@@ -8,7 +8,7 @@ module reduce_ice_geometry
   use mpi_basic, only: par, sync
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use mpi_distributed_memory, only: gather_to_primary
   use grid_contour, only: calc_grid_mask_as_polygons, calc_grid_contour_as_line
@@ -36,7 +36,7 @@ contains
     ! NOTE: polygons and lines are returned in full to all processes
 
     ! In/output variables:
-    type(type_grid),                         intent(in   ) :: grid
+    type(type_xy_grid),                      intent(in   ) :: grid
     real(dp), dimension(:    ),              intent(in   ) :: Hi, Hb, Hs, SL
     real(dp), dimension(:,:  ), allocatable, intent(  out) :: poly_mult_sheet
     real(dp), dimension(:,:  ), allocatable, intent(  out) :: poly_mult_shelf

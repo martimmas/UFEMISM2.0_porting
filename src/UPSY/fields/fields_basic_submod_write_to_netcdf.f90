@@ -41,7 +41,7 @@ contains
     select type (g => self%grid())
     class default
       call crash('invalid field%grid type')
-    class is (type_grid)
+    class is (type_xy_grid)
       call write_to_netcdf_grid( self, g, filename, ncid, id_var)
     class is (type_mesh)
       call write_to_netcdf_mesh( self, g, filename, ncid, id_var)
@@ -59,7 +59,7 @@ contains
 
     ! In/output variables:
     class(atype_field), intent(in) :: field
-    type(type_grid),    intent(in) :: grid
+    type(type_xy_grid), intent(in) :: grid
     character(len=*),   intent(in) :: filename
     integer,            intent(in) :: ncid, id_var
 
@@ -95,7 +95,7 @@ contains
 
     ! In/output variables:
     class(type_field_logical_2D), intent(in) :: field
-    type(type_grid),              intent(in) :: grid
+    type(type_xy_grid),           intent(in) :: grid
     character(len=*),             intent(in) :: filename
     integer,                      intent(in) :: ncid, id_var
 
@@ -134,7 +134,7 @@ contains
 
     ! In/output variables:
     class(type_field_int_2D), intent(in) :: field
-    type(type_grid),          intent(in) :: grid
+    type(type_xy_grid),       intent(in) :: grid
     character(len=*),         intent(in) :: filename
     integer,                  intent(in) :: ncid, id_var
 
@@ -166,7 +166,7 @@ contains
 
     ! In/output variables:
     class(type_field_dp_2D), intent(in) :: field
-    type(type_grid),         intent(in) :: grid
+    type(type_xy_grid),      intent(in) :: grid
     character(len=*),        intent(in) :: filename
     integer,                 intent(in) :: ncid, id_var
 
@@ -198,7 +198,7 @@ contains
 
     ! In/output variables:
     class(type_field_logical_3D), intent(in) :: field
-    type(type_grid),              intent(in) :: grid
+    type(type_xy_grid),           intent(in) :: grid
     character(len=*),             intent(in) :: filename
     integer,                      intent(in) :: ncid, id_var
 
@@ -238,7 +238,7 @@ contains
 
     ! In/output variables:
     class(type_field_int_3D), intent(in) :: field
-    type(type_grid),          intent(in) :: grid
+    type(type_xy_grid),       intent(in) :: grid
     character(len=*),         intent(in) :: filename
     integer,                  intent(in) :: ncid, id_var
 
@@ -271,7 +271,7 @@ contains
 
     ! In/output variables:
     class(type_field_dp_3D), intent(in) :: field
-    type(type_grid),         intent(in) :: grid
+    type(type_xy_grid),      intent(in) :: grid
     character(len=*),        intent(in) :: filename
     integer,                 intent(in) :: ncid, id_var
 
@@ -628,7 +628,7 @@ contains
     class default
       call crash('invalid field%grid type')
 
-    class is (type_grid)
+    class is (type_xy_grid)
 
       call inquire_dim_multopt( filename, ncid, field_name_options_x, id_dim_x)
       call inquire_dim_multopt( filename, ncid, field_name_options_y, id_dim_y)

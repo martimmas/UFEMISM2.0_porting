@@ -2,7 +2,7 @@ module netcdf_setup_grid_mesh_in_file
   !< Set up a grid or a mesh in a NetCDF file
 
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use netcdf_basic
@@ -23,7 +23,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in   ) :: filename
-    type(type_grid),  intent(in   ) :: grid
+    type(type_xy_grid),  intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'save_xy_grid_as_netcdf'
@@ -91,7 +91,7 @@ contains
     ! In/output variables:
     character(len=*),  intent(in   ) :: filename
     integer,           intent(in   ) :: ncid
-    type(type_grid),   intent(in   ) :: grid
+    type(type_xy_grid),intent(in   ) :: grid
     logical, optional, intent(in   ) :: do_include_lonlat
 
     ! Local variables:

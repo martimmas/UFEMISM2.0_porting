@@ -10,11 +10,11 @@ module GIA_ELRA
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use GIA_model_types, only: type_GIA_model, type_ELRA_model
   use region_types, only: type_model_region
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use reallocate_mod, only: reallocate_bounds
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary, distribute_gridded_data_from_primary, &
     gather_gridded_data_to_all
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use reference_geometry_types, only: type_reference_geometry
   use ice_geometry_basics, only: is_floating
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, map_from_xy_grid_to_mesh_2D
@@ -66,7 +66,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                      intent(in   ) :: mesh
-    type(type_grid),                      intent(in   ) :: grid
+    type(type_xy_grid),                   intent(in   ) :: grid
     class(atype_ice_model_data),          intent(inout) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_GIA_model),                 intent(inout) :: GIA
@@ -165,7 +165,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),               intent(in   ) :: mesh
-    type(type_grid),               intent(in   ) :: grid
+    type(type_xy_grid),            intent(in   ) :: grid
     type(type_ELRA_model),         intent(inout) :: ELRA
     type(type_reference_geometry), intent(in   ) :: refgeo_GIAeq
 
@@ -227,7 +227,7 @@ contains
   subroutine initialise_ELRA_relaxation_time( grid, ELRA)
 
     ! In/output variables:
-    type(type_grid),       intent(in   ) :: grid
+    type(type_xy_grid),    intent(in   ) :: grid
     type(type_ELRA_model), intent(inout) :: ELRA
 
     ! Local variables:
@@ -253,14 +253,14 @@ contains
   subroutine initialise_ELRA_relaxation_time_from_file( grid, ELRA, filename)
 
     ! In/output variables:
-    type(type_grid),       intent(in   ) :: grid
+    type(type_xy_grid),    intent(in   ) :: grid
     type(type_ELRA_model), intent(inout) :: ELRA
     character(len=*),      intent(in   ) :: filename
 
     ! Local variables:
     character(len=*), parameter         :: routine_name = 'initialise_ELRA_relaxation_time_from_file'
     integer                             :: ncid
-    type(type_grid)                     :: grid_from_file
+    type(type_xy_grid)                  :: grid_from_file
     real(dp), dimension(:), allocatable :: tau_from_file
     real(dp), dimension(:), allocatable :: tau
 
@@ -288,7 +288,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),               intent(in   ) :: mesh
-    type(type_grid),               intent(in   ) :: grid
+    type(type_xy_grid),            intent(in   ) :: grid
     type(type_ELRA_model),         intent(inout) :: ELRA
     type(type_reference_geometry), intent(in   ) :: refgeo_GIAeq
 
@@ -323,7 +323,7 @@ contains
     type(type_mesh),                     intent(in   ) :: mesh_new
     type(type_ELRA_model),               intent(inout) :: ELRA
     type(type_reference_geometry),       intent(in   ) :: refgeo_GIAeq
-    type(type_grid),                     intent(in   ) :: grid
+    type(type_xy_grid),                  intent(in   ) :: grid
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'remap_ELRA_model'

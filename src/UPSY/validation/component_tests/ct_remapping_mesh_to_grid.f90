@@ -8,7 +8,7 @@ module ct_remapping_mesh_to_grid
   use mpi_basic, only: par
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use netcdf_io_main
   use apply_maps, only: clear_all_maps_involving_this_mesh
@@ -71,7 +71,7 @@ contains
     character(len=1024), parameter        :: routine_name = 'run_mesh_to_grid_remapping_tests_on_mesh_grid_combo'
     character(len=1024)                   :: mesh_name, grid_name
     integer                               :: ncid
-    type(type_grid)                       :: grid
+    type(type_xy_grid)                    :: grid
     type(type_mesh)                       :: mesh
     real(dp), dimension(:), allocatable   :: d_grid_ex, d_mesh_ex, d_grid
     character(len=1024)                   :: filename
@@ -139,7 +139,7 @@ contains
     character(len=1024), parameter        :: routine_name = 'run_mesh_triangles_to_grid_remapping_tests_on_mesh_grid_combo'
     character(len=1024)                   :: mesh_name, grid_name
     integer                               :: ncid
-    type(type_grid)                       :: grid
+    type(type_xy_grid)                    :: grid
     type(type_mesh)                       :: mesh
     real(dp), dimension(:), allocatable   :: d_grid_ex, d_mesh_ex, d_grid
     character(len=1024)                   :: filename

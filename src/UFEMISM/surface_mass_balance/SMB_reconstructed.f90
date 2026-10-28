@@ -7,7 +7,7 @@ module SMB_reconstructed
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use mesh_data_smoothing, only: smooth_Gaussian
@@ -104,7 +104,7 @@ contains
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_climate_model),             intent(inout) :: climate
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
 
     ! Local variables:
     character(len=*), parameter            :: routine_name = 'SMB_model_reconstructed_run'

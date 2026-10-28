@@ -23,7 +23,7 @@ module laddie_dummy_domain
   use mesh_dummy_meshes, only: initialise_dummy_mesh_16
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use mesh_disc_calc_matrix_operators_2D, only: calc_all_matrix_operators_mesh
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use mesh_translation_tables, only: calc_field_to_vector_form_translation_tables
 
   implicit none

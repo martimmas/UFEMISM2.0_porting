@@ -8,7 +8,7 @@ module mesh_data_smoothing
   use precisions, only: dp
   use mpi_basic, only: par, sync
   use mesh_basic, only: type_mesh
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, map_from_mesh_vertices_to_xy_grid_3D, &
     map_from_xy_grid_to_mesh_2D, map_from_xy_grid_to_mesh_3D
@@ -31,7 +31,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),        intent(in)    :: mesh
-    type(type_grid),        intent(in)    :: grid
+    type(type_xy_grid),     intent(in)    :: grid
     character(len=*),       intent(in   ) :: output_dir
     real(dp), dimension(:), intent(inout) :: d_mesh_partial
     real(dp),               intent(in)    :: r
@@ -67,7 +67,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),          intent(in)    :: mesh
-    type(type_grid),          intent(in)    :: grid
+    type(type_xy_grid),       intent(in)    :: grid
     character(len=*),         intent(in   ) :: output_dir
     real(dp), dimension(:,:), intent(inout) :: d_mesh_partial
     real(dp),                 intent(in)    :: r

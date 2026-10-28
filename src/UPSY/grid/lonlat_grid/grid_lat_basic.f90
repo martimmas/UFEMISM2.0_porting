@@ -8,9 +8,9 @@ module grid_lat_basic
 
   private
 
-  public :: type_grid_lat, deallocate_lat_grid
+  public :: type_xy_grid_lat, deallocate_lat_grid
 
-  type type_grid_lat
+  type type_xy_grid_lat
     ! A lat-only "grid"
 
     ! Basic properties
@@ -29,7 +29,7 @@ module grid_lat_basic
     ! Parallelisation
     integer                                 :: n1,n2,n_loc  ! Matrix rows owned by each process
 
-  end type type_grid_lat
+  end type type_xy_grid_lat
 
 contains
 
@@ -37,7 +37,7 @@ contains
     ! deallocate memory for a lat-only grid object
 
     ! In/output variables:
-    type(type_grid_lat), intent(inout) :: grd
+    type(type_xy_grid_lat), intent(inout) :: grd
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'deallocate_lat_grid'

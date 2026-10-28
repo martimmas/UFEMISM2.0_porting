@@ -3,7 +3,7 @@ module mpi_distributed_memory_grid
   ! Functions for working with distributed gridded data
 
   use precisions, only: dp
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_distributed_memory, only: distribute_from_primary, gather_to_primary, gather_to_all
@@ -52,7 +52,7 @@ subroutine distribute_gridded_data_from_primary_logical_2D( grid, d_grid_vec_par
   !< Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                   intent(in   ) :: grid
+  type(type_xy_grid),                intent(in   ) :: grid
   logical, dimension(:  ),           intent(  out) :: d_grid_vec_partial
   logical, dimension(:,:), optional, intent(in   ) :: d_grid
 
@@ -100,7 +100,7 @@ subroutine distribute_gridded_data_from_primary_logical_3D( grid, d_grid_vec_par
   !< Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                     intent(in   ) :: grid
+  type(type_xy_grid),                  intent(in   ) :: grid
   logical, dimension(:,:  ),           intent(  out) :: d_grid_vec_partial
   logical, dimension(:,:,:), optional, intent(in   ) :: d_grid
 
@@ -149,7 +149,7 @@ subroutine distribute_gridded_data_from_primary_int_2D( grid, d_grid_vec_partial
   !< Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                   intent(in   ) :: grid
+  type(type_xy_grid),                intent(in   ) :: grid
   integer, dimension(:  ),           intent(  out) :: d_grid_vec_partial
   integer, dimension(:,:), optional, intent(in   ) :: d_grid
 
@@ -197,7 +197,7 @@ subroutine distribute_gridded_data_from_primary_int_3D( grid, d_grid_vec_partial
   !< Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                     intent(in   ) :: grid
+  type(type_xy_grid),                  intent(in   ) :: grid
   integer, dimension(:,:  ),           intent(  out) :: d_grid_vec_partial
   integer, dimension(:,:,:), optional, intent(in   ) :: d_grid
 
@@ -246,7 +246,7 @@ subroutine distribute_gridded_data_from_primary_dp_2D( grid, d_grid_vec_partial,
   !< Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                    intent(in)    :: grid
+  type(type_xy_grid),                 intent(in)    :: grid
   real(dp), dimension(:  ),           intent(out)   :: d_grid_vec_partial
   real(dp), dimension(:,:), optional, intent(in)    :: d_grid
 
@@ -294,7 +294,7 @@ subroutine distribute_gridded_data_from_primary_dp_3D( grid, d_grid_vec_partial,
   ! Output to all: partial data in vector form
 
   ! In/output variables:
-  type(type_grid),                      intent(in   ) :: grid
+  type(type_xy_grid),                   intent(in   ) :: grid
   real(dp), dimension(:,:  ),           intent(  out) :: d_grid_vec_partial
   real(dp), dimension(:,:,:), optional, intent(in   ) :: d_grid
 
@@ -346,7 +346,7 @@ subroutine gather_gridded_data_to_primary_logical_2D( grid, d_grid_vec_partial, 
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                   intent(in   ) :: grid
+  type(type_xy_grid),                intent(in   ) :: grid
   logical, dimension(:  ),           intent(in   ) :: d_grid_vec_partial
   logical, dimension(:,:), optional, intent(  out) :: d_grid
 
@@ -393,7 +393,7 @@ subroutine gather_gridded_data_to_primary_logical_3D( grid, d_grid_vec_partial, 
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),           intent(in   ) :: grid
+  type(type_xy_grid),        intent(in   ) :: grid
   logical, dimension(:,:  ), intent(in   ) :: d_grid_vec_partial
   logical, dimension(:,:,:), intent(  out) :: d_grid
 
@@ -440,7 +440,7 @@ subroutine gather_gridded_data_to_primary_int_2D( grid, d_grid_vec_partial, d_gr
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                   intent(in   ) :: grid
+  type(type_xy_grid),                intent(in   ) :: grid
   integer, dimension(:  ),           intent(in   ) :: d_grid_vec_partial
   integer, dimension(:,:), optional, intent(  out) :: d_grid
 
@@ -487,7 +487,7 @@ subroutine gather_gridded_data_to_primary_int_3D( grid, d_grid_vec_partial, d_gr
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),           intent(in   ) :: grid
+  type(type_xy_grid),        intent(in   ) :: grid
   integer, dimension(:,:  ), intent(in   ) :: d_grid_vec_partial
   integer, dimension(:,:,:), intent(  out) :: d_grid
 
@@ -534,7 +534,7 @@ subroutine gather_gridded_data_to_primary_dp_2D( grid, d_grid_vec_partial, d_gri
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                    intent(in   ) :: grid
+  type(type_xy_grid),                 intent(in   ) :: grid
   real(dp), dimension(:),             intent(in   ) :: d_grid_vec_partial
   real(dp), dimension(:,:), optional, intent(  out) :: d_grid
 
@@ -581,7 +581,7 @@ subroutine gather_gridded_data_to_primary_dp_3D( grid, d_grid_vec_partial, d_gri
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),            intent(in   ) :: grid
+  type(type_xy_grid),         intent(in   ) :: grid
   real(dp), dimension(:,:  ), intent(in   ) :: d_grid_vec_partial
   real(dp), dimension(:,:,:), intent(  out) :: d_grid
 
@@ -633,7 +633,7 @@ subroutine gather_gridded_data_to_all_logical_2D( grid, d_grid_vec_partial, d_gr
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                     intent(in   ) :: grid
+  type(type_xy_grid),                  intent(in   ) :: grid
   logical, dimension(grid%n1:grid%n2), intent(in   ) :: d_grid_vec_partial
   logical, dimension(grid%nx,grid%ny), intent(  out) :: d_grid
 
@@ -666,7 +666,7 @@ subroutine gather_gridded_data_to_all_logical_3D( grid, nz, d_grid_vec_partial, 
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                        intent(in   ) :: grid
+  type(type_xy_grid),                     intent(in   ) :: grid
   integer,                                intent(in   ) :: nz
   logical, dimension(grid%n1:grid%n2,nz), intent(in   ) :: d_grid_vec_partial
   logical, dimension(grid%nx,grid%ny,nz), intent(  out) :: d_grid
@@ -698,7 +698,7 @@ subroutine gather_gridded_data_to_all_int_2D( grid, d_grid_vec_partial, d_grid)
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                     intent(in   ) :: grid
+  type(type_xy_grid),                  intent(in   ) :: grid
   integer, dimension(grid%n1:grid%n2), intent(in   ) :: d_grid_vec_partial
   integer, dimension(grid%nx,grid%ny), intent(  out) :: d_grid
 
@@ -731,7 +731,7 @@ subroutine gather_gridded_data_to_all_int_3D( grid, nz, d_grid_vec_partial, d_gr
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                        intent(in   ) :: grid
+  type(type_xy_grid),                     intent(in   ) :: grid
   integer,                                intent(in   ) :: nz
   integer, dimension(grid%n1:grid%n2,nz), intent(in   ) :: d_grid_vec_partial
   integer, dimension(grid%nx,grid%ny,nz), intent(  out) :: d_grid
@@ -763,7 +763,7 @@ subroutine gather_gridded_data_to_all_dp_2D( grid, d_grid_vec_partial, d_grid)
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                      intent(in   ) :: grid
+  type(type_xy_grid),                   intent(in   ) :: grid
   real(dp), dimension(grid%n1:grid%n2), intent(in   ) :: d_grid_vec_partial
   real(dp), dimension(grid%nx,grid%ny), intent(  out) :: d_grid
 
@@ -796,7 +796,7 @@ subroutine gather_gridded_data_to_all_dp_3D( grid, nz, d_grid_vec_partial, d_gri
   !< Output to primary: total data field in field form
 
   ! In/output variables:
-  type(type_grid),                         intent(in   ) :: grid
+  type(type_xy_grid),                      intent(in   ) :: grid
   integer,                                 intent(in   ) :: nz
   real(dp), dimension(grid%n1:grid%n2,nz), intent(in   ) :: d_grid_vec_partial
   real(dp), dimension(grid%nx,grid%ny,nz), intent(  out) :: d_grid

@@ -7,7 +7,7 @@ module ut_mesh_remapping_trace_line_grid_cy
   use ut_basic
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use line_tracing_basic
   use line_tracing_grid
   use mpi_basic, only: par
@@ -25,7 +25,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_trace_line_grid_cy'
@@ -53,7 +53,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_trace_line_grid_cy_q_on_cy'
@@ -157,7 +157,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_trace_line_grid_cy_q_in_a'
@@ -275,7 +275,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_trace_line_grid_cy_pq_through_b'
@@ -473,7 +473,7 @@ contains
 
     ! In/output variables:
     character(len=*), intent(in) :: test_name_parent
-    type(type_grid),  intent(in) :: grid
+    type(type_xy_grid),  intent(in) :: grid
 
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'test_trace_line_grid_cy_pq_through_a'

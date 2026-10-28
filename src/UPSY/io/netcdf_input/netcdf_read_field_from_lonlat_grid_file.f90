@@ -4,7 +4,7 @@ module netcdf_read_field_from_lonlat_grid_file
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_lonlat_basic, only: type_grid_lonlat
+  use grid_lonlat_basic, only: type_xy_grid_lonlat
   use permute_mod
   use flip_mod
   use grid_lonlat_basic, only: distribute_lonlat_gridded_data_from_primary_dp_2D, &
@@ -37,7 +37,7 @@ contains
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'read_field_from_lonlat_file_2D'
     integer                                 :: ncid
-    type(type_grid_lonlat)                  :: grid_loc
+    type(type_xy_grid_lonlat)                  :: grid_loc
     integer                                 :: id_var
     character(len=1024)                     :: var_name
     character(len=1024)                     :: indexing, londir, latdir
@@ -180,7 +180,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_lonlat_file_2D_monthly'
     integer                                   :: ncid
-    type(type_grid_lonlat)                    :: grid_loc
+    type(type_xy_grid_lonlat)                    :: grid_loc
     integer                                   :: id_var
     character(len=1024)                       :: var_name
     character(len=1024)                       :: indexing, londir, latdir
@@ -324,7 +324,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_lonlat_file_3D'
     integer                                   :: ncid
-    type(type_grid_lonlat)                    :: grid_loc
+    type(type_xy_grid_lonlat)                    :: grid_loc
     integer                                   :: nzeta_loc
     real(dp), dimension(:), allocatable       :: zeta_loc
     integer                                   :: id_var
@@ -470,7 +470,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_lonlat_file_3D_ocean'
     integer                                   :: ncid
-    type(type_grid_lonlat)                    :: grid_loc
+    type(type_xy_grid_lonlat)                    :: grid_loc
     integer                                   :: ndepth_loc
     real(dp), dimension(:), allocatable       :: depth_loc
     integer                                   :: id_var

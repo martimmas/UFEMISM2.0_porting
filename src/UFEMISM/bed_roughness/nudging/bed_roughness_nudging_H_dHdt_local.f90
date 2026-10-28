@@ -5,7 +5,7 @@ module bed_roughness_nudging_H_dHdt_local
   use model_configuration, only: C
   use parameters
   use mesh_basic, only: type_mesh
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use reference_geometry_types, only: type_reference_geometry
@@ -28,7 +28,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                                     intent(in   ) :: mesh
-    type(type_grid),                                     intent(in   ) :: grid_smooth
+    type(type_xy_grid),                                  intent(in   ) :: grid_smooth
     class(atype_ice_model_data),                         intent(in   ) :: ice
     class(atype_ice_geometry_model_data),                intent(in   ) :: geom
     type(type_reference_geometry),                       intent(in   ) :: target_geometry

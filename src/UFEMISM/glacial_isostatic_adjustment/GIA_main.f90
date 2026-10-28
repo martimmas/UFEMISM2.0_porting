@@ -9,7 +9,7 @@ module GIA_main
   use ice_model_data, only: atype_ice_model_data
   use GIA_model_types, only: type_GIA_model, type_ELRA_model
   use region_types, only: type_model_region
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use reallocate_mod, only: reallocate_bounds
   use reference_geometry_types, only: type_reference_geometry
   use GIA_ELRA, only: run_ELRA_model, calculate_ELRA_bedrock_deformation_rate, initialise_ELRA_model, remap_ELRA_model
@@ -124,7 +124,7 @@ contains
 
     ! Create the square grid for the GIA model
     grid_name = 'square_grid_GIA_' // region_name
-    call setup_square_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, &
+    call setup_xy_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, &
        C%dx_GIA, GIA%grid, &
        lambda_M = mesh%lambda_M, phi_M = mesh%phi_M, beta_stereo = mesh%beta_stereo)
 

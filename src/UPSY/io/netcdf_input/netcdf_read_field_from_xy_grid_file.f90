@@ -5,9 +5,9 @@ module netcdf_read_field_from_xy_grid_file
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
-  use grid_basic, only: deallocate_grid
+  use xy_grid_basic, only: deallocate_xy_grid
   use permute_mod
   use flip_mod
   use netcdf_basic
@@ -40,7 +40,7 @@ contains
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'read_field_from_xy_file_int_2D'
     integer                                 :: ncid
-    type(type_grid)                         :: grid_loc
+    type(type_xy_grid)                      :: grid_loc
     integer                                 :: id_var
     character(len=1024)                     :: var_name
     character(len=1024)                     :: indexing, xdir, ydir
@@ -166,7 +166,7 @@ contains
     call distribute_gridded_data_from_primary( grid_loc, d_grid_vec_partial, d_grid)
 
     ! Clean up after yourself
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
     deallocate( d_grid)
 
     ! Finalise routine path
@@ -189,7 +189,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_xy_file_int_3D'
     integer                                   :: ncid
-    type(type_grid)                           :: grid_loc
+    type(type_xy_grid)                        :: grid_loc
     integer                                   :: nzeta_loc
     real(dp), dimension(:    ), allocatable   :: zeta_loc
     integer                                   :: id_var
@@ -313,7 +313,7 @@ contains
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_grid)
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -336,7 +336,7 @@ contains
     ! Local variables:
     character(len=1024), parameter          :: routine_name = 'read_field_from_xy_file_dp_2D'
     integer                                 :: ncid
-    type(type_grid)                         :: grid_loc
+    type(type_xy_grid)                      :: grid_loc
     integer                                 :: id_var
     character(len=1024)                     :: var_name
     character(len=1024)                     :: indexing, xdir, ydir
@@ -478,7 +478,7 @@ contains
     end if
 
     ! Clean up after yourself
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
     deallocate( d_grid)
 
     ! Finalise routine path
@@ -502,7 +502,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_xy_file_dp_2D_monthly'
     integer                                   :: ncid
-    type(type_grid)                           :: grid_loc
+    type(type_xy_grid)                        :: grid_loc
     integer                                   :: id_var
     character(len=1024)                       :: var_name
     character(len=1024)                       :: indexing, xdir, ydir
@@ -641,7 +641,7 @@ contains
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_grid)
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -664,7 +664,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_xy_file_dp_3D'
     integer                                   :: ncid
-    type(type_grid)                           :: grid_loc
+    type(type_xy_grid)                        :: grid_loc
     integer                                   :: nzeta_loc
     real(dp), dimension(:    ), allocatable   :: zeta_loc
     integer                                   :: id_var
@@ -805,7 +805,7 @@ contains
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_grid)
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
 
     ! Finalise routine path
     call finalise_routine( routine_name)
@@ -828,7 +828,7 @@ contains
     ! Local variables:
     character(len=1024), parameter            :: routine_name = 'read_field_from_xy_file_dp_3D_ocean'
     integer                                   :: ncid
-    type(type_grid)                           :: grid_loc
+    type(type_xy_grid)                        :: grid_loc
     integer                                   :: ndepth_loc
     real(dp), dimension(:    ), allocatable   :: depth_loc
     integer                                   :: id_var
@@ -969,7 +969,7 @@ contains
 
     ! Clean up after yourself
     if (par%primary) deallocate( d_grid)
-    call deallocate_grid( grid_loc)
+    call deallocate_xy_grid( grid_loc)
 
     ! Finalise routine path
     call finalise_routine( routine_name)

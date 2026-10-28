@@ -40,7 +40,7 @@ MODULE UFEMISM_main_model
   use bed_roughness_nudging_main, only: initialise_bed_roughness_nudging_model, run_bed_roughness_nudging_model
   use netcdf_io_main
   USE mesh_creation_main                                     , ONLY: create_mesh_from_gridded_geometry, create_mesh_from_meshed_geometry, write_mesh_success
-  USE grid_basic                                             , ONLY: setup_square_grid
+  USE xy_grid_basic                                             , ONLY: setup_xy_grid
   USE mesh_output_files, only: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh
   use grid_output_files, only: create_main_regional_output_file_grid, write_to_main_regional_output_file_grid, &
     create_main_regional_output_file_grid_ROI, write_to_main_regional_output_file_grid_ROI
@@ -521,7 +521,7 @@ CONTAINS
 
     ! Create the square smooth grid
     grid_name = 'square_grid_smooth_' // region%name
-    CALL setup_square_grid( grid_name, region%mesh%xmin, region%mesh%xmax, region%mesh%ymin, region%mesh%ymax, &
+    CALL setup_xy_grid( grid_name, region%mesh%xmin, region%mesh%xmax, region%mesh%ymin, region%mesh%ymax, &
        dx_grid_smooth, region%grid_smooth, &
        lambda_M = region%mesh%lambda_M, phi_M = region%mesh%phi_M, beta_stereo = region%mesh%beta_stereo)
 
@@ -669,7 +669,7 @@ CONTAINS
 
     ! Create the square output grid
     grid_name = 'square_grid_output_' // region%name
-    CALL setup_square_grid( grid_name, region%mesh%xmin, region%mesh%xmax, region%mesh%ymin, region%mesh%ymax, &
+    CALL setup_xy_grid( grid_name, region%mesh%xmin, region%mesh%xmax, region%mesh%ymin, region%mesh%ymax, &
        dx_grid_output, region%output_grid, &
        lambda_M = region%mesh%lambda_M, phi_M = region%mesh%phi_M, beta_stereo = region%mesh%beta_stereo)
 
@@ -1188,7 +1188,7 @@ CONTAINS
 
       ! Set up a square grid for this region of interest
       grid_name = 'square_grid_output_' // region%name // '_ROI_' // TRIM( name_ROI)
-      CALL setup_square_grid( grid_name, xmin, xmax, ymin, ymax, dx_ROI, region%output_grids_ROI( region%nROI), &
+      CALL setup_xy_grid( grid_name, xmin, xmax, ymin, ymax, dx_ROI, region%output_grids_ROI( region%nROI), &
         region%mesh%lambda_M, region%mesh%phi_M, region%mesh%beta_stereo)
 
       ! Create an output file for this region of interest

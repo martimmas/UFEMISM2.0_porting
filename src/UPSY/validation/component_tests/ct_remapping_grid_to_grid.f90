@@ -8,7 +8,7 @@ module ct_remapping_grid_to_grid
   use mpi_basic, only: par
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use ct_remapping_basic, only: calc_test_function_on_grid
   use remapping_grid_to_grid, only: map_from_xy_grid_to_xy_grid_2D
   use netcdf_io_main
@@ -67,7 +67,7 @@ contains
     character(len=1024), parameter        :: routine_name = 'run_grid_to_grid_remapping_tests_on_grid_grid_combo'
     character(len=1024)                   :: grid_name1, grid_name2
     integer                               :: ncid
-    type(type_grid)                       :: grid1, grid2
+    type(type_xy_grid)                    :: grid1, grid2
     real(dp), dimension(:), allocatable   :: d_grid1_ex, d_grid2_ex
     real(dp), dimension(:), allocatable   :: d_grid2_cons
     real(dp), dimension(:), allocatable   :: d_grid1_ex_tot, d_grid2_cons_tot

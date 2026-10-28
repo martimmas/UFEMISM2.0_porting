@@ -9,7 +9,7 @@ module bed_roughness_nudging_H_dHdt_flowline
   use mpi_basic, only: par
   use parameters
   use mesh_basic, only: type_mesh
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data
@@ -36,7 +36,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                      intent(in   ) :: mesh
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     class(atype_ice_velocity_model_data), intent(in   ) :: vel
@@ -188,7 +188,7 @@ contains
     type(type_mesh),                                        intent(in   ) :: mesh
     class(atype_ice_geometry_model_data),                   intent(in   ) :: geom
     class(atype_ice_velocity_model_data),                   intent(in   ) :: vel
-    type(type_grid),                                        intent(in   ) :: grid_smooth
+    type(type_xy_grid),                                     intent(in   ) :: grid_smooth
     type(type_bed_roughness_model),                         intent(in   ) :: bed_roughness
     type(type_bed_roughness_nudging_model_H_dHdt_flowline), intent(inout) :: nudge
 
@@ -280,7 +280,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
-    type(type_grid),                        intent(in   ) :: grid_smooth
+    type(type_xy_grid),                     intent(in   ) :: grid_smooth
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(inout) :: dC_dt
 
     ! Local variables:

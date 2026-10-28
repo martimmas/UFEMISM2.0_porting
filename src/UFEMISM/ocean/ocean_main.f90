@@ -12,7 +12,7 @@ MODULE ocean_main
   USE model_configuration                                    , ONLY: C
   USE parameters
   use mesh_basic                                             , ONLY: type_mesh
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   USE ocean_model_types                                      , ONLY: type_ocean_model
@@ -40,7 +40,7 @@ CONTAINS
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    type(type_grid),                        intent(in   ) :: grid_smooth
+    type(type_xy_grid),                     intent(in   ) :: grid_smooth
     class(atype_ice_model_data),            INTENT(IN)    :: ice
     class(atype_ice_geometry_model_data),   intent(in   ) :: geom
     TYPE(type_ocean_model),                 INTENT(INOUT) :: ocean

@@ -4,7 +4,7 @@ module netcdf_write_field_grid
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary
   use netcdf_basic
 
@@ -31,7 +31,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
     character(len=*),       intent(in   ) :: field_name_options
@@ -84,7 +84,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -139,7 +139,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
     character(len=*),       intent(in   ) :: field_name_options
@@ -192,7 +192,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -245,7 +245,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -300,7 +300,7 @@ contains
     ! Write to the last time frame of the variable
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -355,7 +355,7 @@ contains
     !< Write a 2-D data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
     character(len=*),       intent(in   ) :: field_name_options
@@ -396,7 +396,7 @@ contains
     !< Write a 3-D data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -439,7 +439,7 @@ contains
     !< Write a 2-D data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
     character(len=*),       intent(in   ) :: field_name_options
@@ -480,7 +480,7 @@ contains
     !< Write a 2-D monthly data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -521,7 +521,7 @@ contains
     !< Write a 3-D data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options
@@ -564,7 +564,7 @@ contains
     !< Write a 3-D data field defined on a grid to a NetCDF file variable on the same grid
 
     ! In/output variables:
-    type(type_grid),          intent(in   ) :: grid
+    type(type_xy_grid),       intent(in   ) :: grid
     character(len=*),         intent(in   ) :: filename
     integer,                  intent(in   ) :: ncid
     character(len=*),         intent(in   ) :: field_name_options

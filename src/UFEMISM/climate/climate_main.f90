@@ -17,7 +17,7 @@ MODULE climate_main
   use SMB_model, only: atype_SMB_model
   use SMB_snapshot_plus_anomalies, only: type_SMB_model_snp_p_anml
   use reference_geometry_types, only: type_reference_geometry
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   USE climate_model_types                                    , ONLY: type_climate_model
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE climate_idealised                                      , ONLY: initialise_climate_model_idealised, run_climate_model_idealised
@@ -44,7 +44,7 @@ CONTAINS
 
     ! In/output variables:
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    TYPE(type_grid),             target,    INTENT(IN)    :: grid
+    type(type_xy_grid),          target,    INTENT(IN)    :: grid
     class(atype_ice_model_data), target,    INTENT(IN)    :: ice
     class(atype_ice_geometry_model_data),   intent(in   ) :: geom
     TYPE(type_climate_model),    target,    INTENT(INOUT) :: climate
@@ -150,7 +150,7 @@ CONTAINS
 
     ! In- and output variables
     TYPE(type_mesh),                        INTENT(IN)    :: mesh
-    type(type_grid),                        intent(in)    :: grid
+    type(type_xy_grid),                     intent(in)    :: grid
     class(atype_ice_model_data),            INTENT(IN)    :: ice
     class(atype_ice_geometry_model_data),   intent(in   ) :: geom
     TYPE(type_climate_model),               INTENT(OUT)   :: climate
@@ -478,7 +478,7 @@ CONTAINS
     REAL(dp),                               INTENT(IN)    :: time
     type(type_reference_geometry),          intent(in)    :: refgeo_PD
     type(type_reference_geometry),          intent(in)    :: refgeo_init
-    type(type_grid),                        intent(in)    :: grid
+    type(type_xy_grid),                     intent(in)    :: grid
     class(atype_ice_model_data),            intent(in)    :: ice
     class(atype_ice_geometry_model_data),   intent(in   ) :: geom
     type(type_global_forcing),              intent(in   ) :: forcing

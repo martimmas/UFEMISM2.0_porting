@@ -8,7 +8,7 @@ module laddie_grid_output
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use mesh_basic, only: type_mesh
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use netcdf_io_main
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
@@ -140,7 +140,7 @@ contains
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_3D_ocean
     real(dp), dimension(:),   allocatable :: mask_int
-    type(type_grid)                       :: grid
+    type(type_xy_grid)                    :: grid
 
     ! Add routine to path
     call init_routine( routine_name)
@@ -355,7 +355,7 @@ contains
     ! Local variables:
     character(len=1024), parameter :: routine_name = 'create_laddie_output_file_grid'
     integer                        :: ncid
-    type(type_grid)                       :: grid
+    type(type_xy_grid)                    :: grid
 
     ! Add routine to path
     call init_routine( routine_name)

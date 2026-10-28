@@ -6,7 +6,7 @@ module mesh_creation_main
   use UPSY_main, only: UPSY
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use reduce_ice_geometry, only: reduce_gridded_ice_geometry, reduce_meshed_ice_geometry
   use mesh_creation_from_reduced_geometry, only: create_mesh_from_reduced_geometry
@@ -26,7 +26,7 @@ contains
     ! In/output variables:
     character(len=3),           intent(in   ) :: region_name
     character(len=256),         intent(in   ) :: name
-    type(type_grid),            intent(in   ) :: grid
+    type(type_xy_grid),         intent(in   ) :: grid
     real(dp), dimension(:    ), intent(in   ) :: Hi, Hb, Hs, SL
     real(dp),                   intent(in   ) :: xmin, xmax, ymin, ymax
     real(dp),                   intent(in   ) :: lambda_M, phi_M, beta_stereo

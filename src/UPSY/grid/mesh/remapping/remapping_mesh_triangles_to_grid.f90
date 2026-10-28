@@ -4,7 +4,7 @@ module remapping_mesh_triangles_to_grid
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use mesh_basic, only: type_mesh
   use CSR_matrix_mod, only: type_CSR_matrix_dp
   use remapping_types, only: type_map
@@ -26,7 +26,7 @@ contains
 
     ! In/output variables
     type(type_mesh),  intent(in   ) :: mesh
-    type(type_grid),  intent(in   ) :: grid
+    type(type_xy_grid),  intent(in   ) :: grid
     character(len=*), intent(in   ) :: output_dir
     type(type_map),   intent(inout) :: map
 
