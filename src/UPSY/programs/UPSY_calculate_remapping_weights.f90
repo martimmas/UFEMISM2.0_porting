@@ -25,8 +25,9 @@ program UPSY_calculate_remapping_weights
   use netcdf_io_main, only: inquire_xy_grid, inquire_lonlat_grid, inquire_mesh, &
     open_existing_netcdf_file_for_reading, setup_xy_grid_from_file, setup_lonlat_grid_from_file, &
     setup_mesh_from_file, close_netcdf_file
-  use grid_types, only: type_grid, type_grid_lonlat
-  use mesh_types, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use lonlat_grid_basic, only: type_lonlat_grid
+  use mesh_basic, only: type_mesh
   use remapping_types, only: type_map
 
   implicit none
@@ -38,8 +39,8 @@ program UPSY_calculate_remapping_weights
   logical                             :: file_exists
   logical                             :: has_xy_grid_src, has_lonlat_grid_src, has_mesh_src
   logical                             :: has_xy_grid_dst, has_lonlat_grid_dst, has_mesh_dst
-  type(type_grid),        allocatable :: xy_grid_src, xy_grid_dst
-  type(type_grid_lonlat), allocatable :: lonlat_grid_src, lonlat_grid_dst
+  type(type_xy_grid),     allocatable :: xy_grid_src, xy_grid_dst
+  type(type_lonlat_grid), allocatable :: lonlat_grid_src, lonlat_grid_dst
   type(type_mesh),        allocatable :: mesh_src, mesh_dst
   type(type_map)                      :: map
 
@@ -129,8 +130,8 @@ contains
     logical,                             intent(  out) :: has_xy_grid
     logical,                             intent(  out) :: has_lonlat_grid
     logical,                             intent(  out) :: has_mesh
-    type(type_grid),        allocatable, intent(inout) :: xy_grid
-    type(type_grid_lonlat), allocatable, intent(inout) :: lonlat_grid
+    type(type_xy_grid),     allocatable, intent(inout) :: xy_grid
+    type(type_lonlat_grid), allocatable, intent(inout) :: lonlat_grid
     type(type_mesh),        allocatable, intent(inout) :: mesh
 
     ! Local variables:
@@ -172,14 +173,14 @@ contains
     logical,                             intent(in   ) :: has_xy_grid_src
     logical,                             intent(in   ) :: has_lonlat_grid_src
     logical,                             intent(in   ) :: has_mesh_src
-    type(type_grid),        allocatable, intent(in   ) :: xy_grid_src
-    type(type_grid_lonlat), allocatable, intent(in   ) :: lonlat_grid_src
+    type(type_xy_grid),     allocatable, intent(in   ) :: xy_grid_src
+    type(type_lonlat_grid), allocatable, intent(in   ) :: lonlat_grid_src
     type(type_mesh),        allocatable, intent(in   ) :: mesh_src
     logical,                             intent(in   ) :: has_xy_grid_dst
     logical,                             intent(in   ) :: has_lonlat_grid_dst
     logical,                             intent(in   ) :: has_mesh_dst
-    type(type_grid),        allocatable, intent(in   ) :: xy_grid_dst
-    type(type_grid_lonlat), allocatable, intent(in   ) :: lonlat_grid_dst
+    type(type_xy_grid),     allocatable, intent(in   ) :: xy_grid_dst
+    type(type_lonlat_grid), allocatable, intent(in   ) :: lonlat_grid_dst
     type(type_mesh),        allocatable, intent(in   ) :: mesh_dst
     type(type_map),                      intent(  out) :: map
 
