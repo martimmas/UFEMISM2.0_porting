@@ -2,6 +2,7 @@ module lat_grid_basic
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
+  use basic_grid_mod, only: atype_grid
 
   implicit none
 
@@ -9,11 +10,10 @@ module lat_grid_basic
 
   public :: type_lat_grid, deallocate_lat_grid
 
-  type type_lat_grid
+  type, extends(atype_grid) :: type_lat_grid
     ! A lat-only "grid"
 
     ! Basic properties
-    character(len=:), allocatable           :: name         !                 A nice name tag
     integer                                 :: nlat         !                 Number of grid cells in the latitude direction
     integer                                 :: n            !                 Total number of grid cells (= nx * ny)
     real(dp)                                :: dlat         ! [degrees]       Resolution in the latitude direction

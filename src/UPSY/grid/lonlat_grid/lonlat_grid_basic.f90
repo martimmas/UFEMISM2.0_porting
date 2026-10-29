@@ -26,7 +26,7 @@ module lonlat_grid_basic
     ! A regular lon/lat-grid
 
     ! Basic properties
-    character(len=:), allocatable           :: name         !                 A nice name tag
+    character(len=1024)                     :: name         !           A nice name tag
     integer                                 :: nlon         !                 Number of grid cells in the longitude direction
     integer                                 :: nlat         !                 Number of grid cells in the latitude direction
     integer                                 :: n            !                 Total number of grid cells (= nx * ny)

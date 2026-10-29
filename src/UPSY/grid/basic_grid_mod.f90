@@ -11,7 +11,7 @@ module basic_grid_mod
   type, abstract :: atype_grid
 
     ! Metadata
-    character(len=:), allocatable :: name
+    character(len=1024) :: name
 
   end type atype_grid
 

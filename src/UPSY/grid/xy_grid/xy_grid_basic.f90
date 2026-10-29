@@ -25,7 +25,7 @@ module xy_grid_basic
     ! A regular x/y-grid
 
     ! Basic properties
-    character(len=:), allocatable           :: name         !           A nice name tag
+    character(len=1024)                     :: name         !           A nice name tag
     integer                                 :: nx           !           Number of grid cells in the x-direction
     integer                                 :: ny           !           Number of grid cells in the x-direction
     integer                                 :: n            !           Total number of grid cells (= nx * ny)

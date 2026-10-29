@@ -56,7 +56,7 @@ CONTAINS
 
     CALL MPI_BCAST( nV_mem          , 1                , MPI_INTEGER         , 0, MPI_COMM_WORLD, ierr)
     CALL MPI_BCAST( nTri_mem        , 1                , MPI_INTEGER         , 0, MPI_COMM_WORLD, ierr)
-    CALL MPI_BCAST( mesh%name       , 256              , MPI_CHAR            , 0, MPI_COMM_WORLD, ierr)
+    CALL MPI_BCAST( mesh%name       , len( mesh%name)  , MPI_CHAR            , 0, MPI_COMM_WORLD, ierr)
 
     ! Allocate memory on non-primary processes
     IF (.NOT. par%primary) THEN
