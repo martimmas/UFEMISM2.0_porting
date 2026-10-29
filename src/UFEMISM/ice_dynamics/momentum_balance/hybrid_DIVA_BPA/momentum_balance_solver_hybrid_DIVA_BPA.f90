@@ -24,7 +24,8 @@ module momentum_balance_solver_hybrid_DIVA_BPA
   use mpi_distributed_memory, only: gather_to_all
   use zeta_gradients, only: calc_zeta_gradients
   use CSR_matrix_mod, only: type_CSR_matrix_dp
-  use xy_grid_basic, only: type_xy_grid, calc_xy_grid_mask_as_polygons
+  use xy_grid_basic, only: type_xy_grid
+  use xy_grid_contour, only: calc_xy_grid_mask_as_polygons
   use mpi_distributed_memory_grid, only: gather_gridded_data_to_primary
   use netcdf_io_main
   use bed_roughness_model_types, only: type_bed_roughness_model
