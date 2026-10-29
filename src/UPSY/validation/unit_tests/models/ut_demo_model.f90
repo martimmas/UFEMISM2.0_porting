@@ -3,7 +3,7 @@ module ut_demo_model
   use precisions, only: dp
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use demo_model, only: atype_demo_model, create_demo_model
   use demo_model_a, only: type_demo_model_a
   use demo_model_b, only: type_demo_model_b

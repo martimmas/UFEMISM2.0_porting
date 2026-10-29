@@ -8,8 +8,8 @@ module ismip_output_files
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
-  use grid_types, only: type_grid
-  use mesh_types, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data
@@ -945,7 +945,7 @@ contains
     region%ismip_output%t_curr = C%start_time_of_run
 
     ! Define the name of the subfolder
-    select case (C%ismip_filename_style) 
+    select case (C%ismip_filename_style)
       case default
         call crash ('unknown ismip_filename_style "' // trim(C%ismip_filename_style) // '"')
       case ('ISMIP7')

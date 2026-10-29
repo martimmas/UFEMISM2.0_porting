@@ -11,7 +11,7 @@ MODULE ocean_utilities
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   USE ocean_model_types                                      , ONLY: type_ocean_model
   use checksum_mod, only: checksum

@@ -41,7 +41,7 @@ contains
     select type (g => self%grid())
     class default
       call crash('invalid field%grid type')
-    class is (type_grid)
+    class is (type_xy_grid)
       call read_from_netcdf_grid( self, g, filename, ncid)
     class is (type_mesh)
       call read_from_netcdf_mesh( self, filename, ncid)
@@ -59,7 +59,7 @@ contains
 
     ! In/output variables:
     class(atype_field), intent(inout) :: field
-    type(type_grid),    intent(in   ) :: grid
+    type(type_xy_grid), intent(in   ) :: grid
     character(len=*),   intent(in   ) :: filename
     integer,            intent(in   ) :: ncid
 
@@ -95,7 +95,7 @@ contains
 
     ! In/output variables:
     type(type_field_logical_2D), intent(inout) :: field
-    type(type_grid),             intent(in   ) :: grid
+    type(type_xy_grid),          intent(in   ) :: grid
     character(len=*),            intent(in   ) :: filename
     integer,                     intent(in   ) :: ncid
 
@@ -132,7 +132,7 @@ contains
 
     ! In/output variables:
     type(type_field_logical_3D), intent(inout) :: field
-    type(type_grid),             intent(in   ) :: grid
+    type(type_xy_grid),          intent(in   ) :: grid
     character(len=*),            intent(in   ) :: filename
     integer,                     intent(in   ) :: ncid
 
@@ -171,7 +171,7 @@ contains
 
     ! In/output variables:
     type(type_field_int_2D), intent(inout) :: field
-    type(type_grid),         intent(in   ) :: grid
+    type(type_xy_grid),      intent(in   ) :: grid
     character(len=*),        intent(in   ) :: filename
     integer,                 intent(in   ) :: ncid
 
@@ -208,7 +208,7 @@ contains
 
     ! In/output variables:
     type(type_field_int_3D), intent(inout) :: field
-    type(type_grid),         intent(in   ) :: grid
+    type(type_xy_grid),      intent(in   ) :: grid
     character(len=*),        intent(in   ) :: filename
     integer,                 intent(in   ) :: ncid
 
@@ -247,7 +247,7 @@ contains
 
     ! In/output variables:
     type(type_field_dp_2D), intent(inout) :: field
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
 
@@ -284,7 +284,7 @@ contains
 
     ! In/output variables:
     type(type_field_dp_3D), intent(inout) :: field
-    type(type_grid),        intent(in   ) :: grid
+    type(type_xy_grid),     intent(in   ) :: grid
     character(len=*),       intent(in   ) :: filename
     integer,                intent(in   ) :: ncid
 

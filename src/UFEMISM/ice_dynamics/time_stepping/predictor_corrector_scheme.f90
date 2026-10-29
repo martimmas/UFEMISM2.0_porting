@@ -8,7 +8,7 @@ module predictor_corrector_scheme
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data, type_ice_pc
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data

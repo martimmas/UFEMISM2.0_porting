@@ -5,7 +5,7 @@ module masks_mod
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use model_configuration, only: C
   use mpi_distributed_memory, only: gather_to_all
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use projections, only: oblique_sg_projection
   use plane_geometry, only: is_in_polygon
   use mesh_ROI_polygons

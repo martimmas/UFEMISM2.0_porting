@@ -9,11 +9,12 @@ module read_and_remap_field_from_file
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, insert_val_into_string_int, warning
-  use mesh_types, only: type_mesh
-  use grid_types, only: type_grid, type_grid_lonlat, type_grid_lat
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use lat_grid_basic, only: type_lat_grid, deallocate_lat_grid
+  use lonlat_grid_basic, only: type_lonlat_grid, deallocate_lonlat_grid
   use remapping_main
-  use grid_basic, only: deallocate_grid
-  use grid_lonlat_basic, only: deallocate_lonlat_grid, deallocate_lat_grid
+  use xy_grid_basic, only: deallocate_xy_grid
   use netcdf_basic
   use netcdf_setup_grid_mesh_from_file
   use netcdf_read_field_from_mesh_file
@@ -262,8 +263,8 @@ contains
     logical                             :: file_exists
     logical                             :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                             :: ncid
-    type(type_grid)                     :: grid_from_file
-    type(type_grid_lonlat)              :: grid_lonlat_from_file
+    type(type_xy_grid)                  :: grid_from_file
+    type(type_lonlat_grid)              :: grid_lonlat_from_file
     type(type_mesh)                     :: mesh_from_file
     real(dp), dimension(:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -309,7 +310,7 @@ contains
       call map_from_xy_grid_to_mesh_2D( grid_from_file, mesh, output_dir, d_grid_vec_partial_from_file, d_partial)
 
       ! Clean up after yourself
-      call deallocate_grid( grid_from_file)
+      call deallocate_xy_grid( grid_from_file)
       deallocate( d_grid_vec_partial_from_file)
 
     elseif (has_lonlat_grid) then
@@ -382,7 +383,7 @@ contains
     logical                             :: file_exists
     logical                             :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                             :: ncid
-    type(type_grid)                     :: grid_from_file
+    type(type_xy_grid)                  :: grid_from_file
     type(type_mesh)                     :: mesh_from_file
     real(dp), dimension(:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:), allocatable :: d_mesh_partial_from_file
@@ -427,7 +428,7 @@ contains
       call map_from_xy_grid_to_mesh_triangles_2D( grid_from_file, mesh, output_dir, d_grid_vec_partial_from_file, d_partial)
 
       ! Clean up after yourself
-      call deallocate_grid( grid_from_file)
+      call deallocate_xy_grid( grid_from_file)
       deallocate( d_grid_vec_partial_from_file)
 
     elseif (has_lonlat_grid) then
@@ -484,9 +485,9 @@ contains
     logical                               :: file_exists
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh, has_lat_grid
     integer                               :: ncid
-    type(type_grid)                       :: grid_from_file
-    type(type_grid_lonlat)                :: grid_lonlat_from_file
-    type(type_grid_lat)                   :: grid_lat_from_file
+    type(type_xy_grid)                    :: grid_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
+    type(type_lat_grid)                   :: grid_lat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -533,7 +534,7 @@ contains
       call map_from_xy_grid_to_mesh_3D( grid_from_file, mesh, output_dir, d_grid_vec_partial_from_file, d_partial)
 
       ! Clean up after yourself
-      call deallocate_grid( grid_from_file)
+      call deallocate_xy_grid( grid_from_file)
       deallocate( d_grid_vec_partial_from_file)
 
     elseif (has_lonlat_grid) then
@@ -632,8 +633,8 @@ contains
     logical                               :: file_exists
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                               :: ncid
-    type(type_grid)                       :: grid_from_file
-    type(type_grid_lonlat)                :: grid_lonlat_from_file
+    type(type_xy_grid)                    :: grid_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -682,7 +683,7 @@ contains
       call map_from_xy_grid_to_mesh_3D( grid_from_file, mesh, output_dir, d_grid_vec_partial_from_file, d_partial)
 
       ! Clean up after yourself
-      call deallocate_grid( grid_from_file)
+      call deallocate_xy_grid( grid_from_file)
       deallocate( d_grid_vec_partial_from_file)
 
     elseif (has_lonlat_grid) then
@@ -770,8 +771,8 @@ contains
     logical                               :: file_exists
     logical                               :: has_xy_grid, has_lonlat_grid, has_mesh
     integer                               :: ncid
-    type(type_grid)                       :: grid_from_file
-    type(type_grid_lonlat)                :: grid_lonlat_from_file
+    type(type_xy_grid)                    :: grid_from_file
+    type(type_lonlat_grid)                :: grid_lonlat_from_file
     type(type_mesh)                       :: mesh_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_vec_partial_from_file
     real(dp), dimension(:,:), allocatable :: d_grid_lonlat_vec_partial_from_file
@@ -827,7 +828,7 @@ contains
       call map_from_vertical_to_vertical_2D_ocean( mesh, depth_loc, z_ocean, d_partial_raw_layers, d_partial)
 
       ! Clean up after yourself
-      call deallocate_grid( grid_from_file)
+      call deallocate_xy_grid( grid_from_file)
       deallocate( d_grid_vec_partial_from_file)
       deallocate( d_partial_raw_layers)
 

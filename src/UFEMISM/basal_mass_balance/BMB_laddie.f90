@@ -13,7 +13,7 @@ MODULE BMB_laddie
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE ice_model_data                                        , ONLY: atype_ice_model_data
   USE BMB_model_types                                        , ONLY: type_BMB_model
   use netcdf_io_main

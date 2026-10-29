@@ -11,7 +11,7 @@ module ut_halo_exchange_mesh
   use mpi_f08, only: MPI_WIN, MPI_ALLREDUCE, MPI_IN_PLACE, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD
   use mpi_distributed_shared_memory, only: allocate_dist_shared, deallocate_dist_shared
   use mesh_halo_exchange, only: exchange_halos
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use parameters, only: pi
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5

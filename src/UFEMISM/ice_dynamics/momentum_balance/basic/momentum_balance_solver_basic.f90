@@ -5,7 +5,7 @@ module momentum_balance_solver_basic
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use momentum_balance_solver_data, only: atype_momentum_balance_solver_data
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use parameters, only: NaN
   use reallocate_mod, only: reallocate_bounds
   use Arakawa_grid_mod, only: Arakawa_grid

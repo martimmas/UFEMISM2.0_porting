@@ -3,7 +3,7 @@ module map_velocities_to_c_grid
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mpi_distributed_shared_memory, only: gather_dist_shared_to_all
 
   implicit none

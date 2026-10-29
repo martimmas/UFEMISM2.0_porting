@@ -6,8 +6,8 @@ module fields_init_field
     atype_field, atype_field_2D, atype_field_3D, &
     type_field_logical_2D, type_field_int_2D, type_field_dp_2D, &
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D
-  use grid_types, only: type_grid
-  use mesh_types, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: type_Arakawa_grid, Arakawa_grid
   use fields_dimensions, only: type_third_dimension
   use mpi_f08, only: MPI_WIN
@@ -322,7 +322,7 @@ contains
     class default
       call crash('invalid grid type')
 
-    class is (type_grid)
+    class is (type_xy_grid)
 
       if (field_Arakawa_grid == Arakawa_grid%a()) then
         call field%set_pai( g%pai)

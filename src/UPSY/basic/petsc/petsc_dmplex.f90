@@ -29,7 +29,7 @@ module petsc_dmplex
   use crash_mod, only: crash
   use mpi_f08, only: MPI_ALLGATHER, MPI_INTEGER, MPI_COMM_WORLD
   use string_module, only: colour_string
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
 
   implicit none
 

@@ -3,7 +3,7 @@ module calving_threshold_thickness_iterative
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_model_basic, only: type_ice_geometry_model
   use mpi_basic, only: par
   use mpi_distributed_memory, only: gather_to_primary, distribute_from_primary

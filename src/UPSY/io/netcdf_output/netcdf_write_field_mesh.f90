@@ -4,7 +4,7 @@ module netcdf_write_field_mesh
   use mpi_basic, only: par
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mpi_distributed_memory, only: gather_to_primary
   use netcdf_basic
   use mpi_f08, only: MPI_WIN

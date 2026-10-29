@@ -3,14 +3,14 @@ module tracer_tracking_model_particles_main
   use mpi_basic, only: par, sync
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ice_velocity_model_data, only: atype_ice_velocity_model_data
   use tracer_tracking_model_types, only: type_tracer_tracking_model_particles
   use model_configuration, only: C
   use tracer_tracking_model_particles_basic, only: update_particle_velocity, create_particle_at_ice_surface
   use SMB_model, only: atype_SMB_model
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D
   use mpi_distributed_memory, only: gather_to_all
   use mpi_distributed_shared_memory, only: gather_dist_shared_to_all
@@ -76,7 +76,7 @@ contains
     ! Grid for creating new particles
     particles%t_add_new_particles = C%start_time_of_run
     grid_name = 'particle_creation_grid'
-    call setup_square_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, &
+    call setup_xy_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, &
       C%tractrackpart_dx_new_particles, particles%grid_new_particles, &
       mesh%lambda_M, mesh%phi_M, mesh%beta_stereo)
 

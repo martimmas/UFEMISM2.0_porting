@@ -10,9 +10,9 @@ module ut_fields_io
     type_field_logical_3D, type_field_int_3D, type_field_dp_3D, &
     type_fields_registry
   use ut_basic
-  use grid_types, only: type_grid
-  use mesh_types, only: type_mesh
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: type_xy_grid
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: setup_xy_grid
   use Arakawa_grid_mod, only: Arakawa_grid
   use mpi_f08, only: MPI_WIN
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
@@ -38,7 +38,7 @@ contains
     character(len=1024), parameter :: routine_name = 'test_io'
     character(len=1024), parameter :: test_name_local = 'io'
     character(len=1024)            :: test_name
-    type(type_grid)                :: grid
+    type(type_xy_grid)             :: grid
     real(dp)                       :: alpha_min, res_max
     real(dp), parameter            :: xmin = -1._dp
     real(dp), parameter            :: xmax =  1._dp
@@ -52,7 +52,7 @@ contains
     ! Add test name to list
     test_name = trim( test_name_parent) // '/' // trim( test_name_local)
 
-    call setup_square_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
+    call setup_xy_grid( 'dummy_grid', 0._dp, 1._dp, 0._dp, 1._dp, 0.1_dp, grid)
 
     call allocate_mesh_primary( mesh, 'dummy_mesh', 100, 200)
     call initialise_dummy_mesh_5( mesh, xmin, xmax, ymin, ymax)
@@ -142,7 +142,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_2D'
@@ -207,7 +207,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_zeta'
@@ -273,7 +273,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_month'
@@ -338,7 +338,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_logical_3D_ocean'
@@ -404,7 +404,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_2D'
@@ -469,7 +469,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_zeta'
@@ -535,7 +535,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_month'
@@ -600,7 +600,7 @@ contains
 
     ! In/output variables:
     character(len=*),           intent(in   ) :: test_name_parent
-    type(type_grid), target,    intent(in   ) :: grid
+    type(type_xy_grid), target,    intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter               :: routine_name = 'test_io_grid_int_3D_ocean'
@@ -666,7 +666,7 @@ contains
 
     ! In/output variables:
     character(len=*),        intent(in   ) :: test_name_parent
-    type(type_grid), target, intent(in   ) :: grid
+    type(type_xy_grid), target, intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_2D'
@@ -731,7 +731,7 @@ contains
 
     ! In/output variables:
     character(len=*),        intent(in   ) :: test_name_parent
-    type(type_grid), target, intent(in   ) :: grid
+    type(type_xy_grid), target, intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_zeta'
@@ -797,7 +797,7 @@ contains
 
     ! In/output variables:
     character(len=*),        intent(in   ) :: test_name_parent
-    type(type_grid), target, intent(in   ) :: grid
+    type(type_xy_grid), target, intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_month'
@@ -862,7 +862,7 @@ contains
 
     ! In/output variables:
     character(len=*),        intent(in   ) :: test_name_parent
-    type(type_grid), target, intent(in   ) :: grid
+    type(type_xy_grid), target, intent(in   ) :: grid
 
     ! Local variables:
     character(len=1024), parameter                :: routine_name = 'test_io_grid_dp_3D_ocean'

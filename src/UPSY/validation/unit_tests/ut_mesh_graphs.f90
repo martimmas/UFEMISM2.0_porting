@@ -6,7 +6,7 @@ module ut_mesh_graphs
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use mpi_basic, only: par
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph
   use parameters, only: pi
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary

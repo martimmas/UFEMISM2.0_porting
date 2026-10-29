@@ -10,7 +10,7 @@ module laddie_integration
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration                                    , only: C
   use parameters
-  use mesh_types                                             , only: type_mesh
+  use mesh_basic                                             , only: type_mesh
   use laddie_model_types                                     , only: type_laddie_model, type_laddie_timestep
   use laddie_forcing_types, only: type_laddie_forcing
   use reallocate_mod                                         , only: reallocate_bounds

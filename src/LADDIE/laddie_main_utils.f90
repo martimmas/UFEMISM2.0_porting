@@ -10,7 +10,7 @@ MODULE laddie_main_utils
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, warning
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE laddie_model_types                                     , ONLY: type_laddie_model, type_laddie_timestep
   USE reallocate_mod                                         , ONLY: reallocate_bounds
   USE remapping_main                                         , ONLY: map_from_mesh_to_mesh_with_reallocation_2D, &

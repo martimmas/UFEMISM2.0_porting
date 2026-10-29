@@ -3,14 +3,13 @@ module ocean_model_basic
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
   use ocean_model_data, only: atype_ocean_model_data
   use mpi_f08, only: MPI_WIN
   use ice_model_data, only: atype_ice_model_data
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
 
   implicit none
 

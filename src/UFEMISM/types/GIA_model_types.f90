@@ -1,7 +1,7 @@
 module GIA_model_types
 
   use precisions, only: dp
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -13,7 +13,7 @@ module GIA_model_types
     ! The GIA model data structure.
 
     ! The GIA model grid
-    type(type_grid)                     :: grid
+    type(type_xy_grid)                  :: grid
 
     ! Main data fields
     real(dp), dimension(:), allocatable :: relative_surface_load_mesh  ! [Pa] Surface load relative to the GIA-equilibrium reference geometry, on the UFEMISM mesh

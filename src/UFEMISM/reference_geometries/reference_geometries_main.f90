@@ -12,8 +12,8 @@ module reference_geometries_main
   use model_configuration, only: C
   use parameters
   use reference_geometry_types, only: type_reference_geometry
-  use mesh_types, only: type_mesh
-  use grid_basic, only: type_grid, setup_square_grid
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid, setup_xy_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use ice_geometry_basics, only: ice_surface_elevation
   use netcdf_io_main
@@ -458,7 +458,7 @@ contains
 
     ! Set up a square grid to generate the idealised geometry on
     name = 'temp_grid_for_idealised_geometry_lines'
-    call setup_square_grid( name, xmin, xmax, ymin, ymax, dx_refgeo_idealised, refgeo%grid_raw)
+    call setup_xy_grid( name, xmin, xmax, ymin, ymax, dx_refgeo_idealised, refgeo%grid_raw)
 
     ! allocate memory for partial grid data
     allocate( refgeo%Hi_grid_raw( refgeo%grid_raw%n1: refgeo%grid_raw%n2), source = 0._dp)

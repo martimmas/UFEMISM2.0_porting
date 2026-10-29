@@ -282,7 +282,7 @@ contains
     class default
       call crash('invalid field_grid type')
 
-    class is (type_grid)
+    class is (type_xy_grid)
 
       if (field_Arakawa_grid == Arakawa_grid%a()) then
         lb = g%pai%i1_nih

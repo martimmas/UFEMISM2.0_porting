@@ -10,7 +10,7 @@ MODULE geothermal_heat_flux
   USE mpi_basic                                              , ONLY: par, sync
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, warning, happy, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE ice_model_data                                        , ONLY: atype_ice_model_data
   use netcdf_io_main
   USE parameters                                             , ONLY: sec_per_year

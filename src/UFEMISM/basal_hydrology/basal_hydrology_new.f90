@@ -10,7 +10,7 @@ MODULE basal_hydrology_new
   USE call_stack_and_comp_time_tracking                      , ONLY: init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE ice_model_data                                         , ONLY: atype_ice_model_data
   USE ice_geometry_model_data                                , ONLY: atype_ice_geometry_model_data
   USE ice_velocity_model_data                                , ONLY: atype_ice_velocity_model_data

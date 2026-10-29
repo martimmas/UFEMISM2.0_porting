@@ -11,7 +11,7 @@ MODULE global_forcings_main
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine, warning
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   USE global_forcing_types                                   , ONLY: type_global_forcing
   USE netcdf_io_main
   USE netcdf_basic

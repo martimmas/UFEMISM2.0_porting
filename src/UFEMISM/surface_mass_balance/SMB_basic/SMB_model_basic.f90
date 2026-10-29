@@ -4,7 +4,7 @@ module SMB_model_basic
   use parameters, only: pi, NaN
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_main, only: third_dimension
   use SMB_model_data, only: atype_SMB_model_data
@@ -12,7 +12,7 @@ module SMB_model_basic
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use reference_geometry_types, only: type_reference_geometry
 
   implicit none
@@ -74,13 +74,13 @@ module SMB_model_basic
     end subroutine SMB_model_initialise_ifc
 
     subroutine SMB_model_run_ifc( self, time, ice, geom, climate, grid_smooth)
-      import atype_SMB_model, dp, atype_ice_model_data, atype_ice_geometry_model_data, type_climate_model, type_grid
+      import atype_SMB_model, dp, atype_ice_model_data, atype_ice_geometry_model_data, type_climate_model, type_xy_grid
       class(atype_SMB_model),               intent(inout) :: self
       real(dp),                             intent(in   ) :: time
       class(atype_ice_model_data),          intent(in   ) :: ice
       class(atype_ice_geometry_model_data), intent(in   ) :: geom
       type(type_climate_model),             intent(inout) :: climate
-      type(type_grid),                      intent(in   ) :: grid_smooth
+      type(type_xy_grid),                   intent(in   ) :: grid_smooth
     end subroutine SMB_model_run_ifc
 
     subroutine SMB_model_remap_ifc( self, mesh_new, time, refgeo_init, refgeo_PD, geom)
@@ -200,7 +200,7 @@ contains
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_climate_model),             intent(inout) :: climate
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'SMB_model_run'
