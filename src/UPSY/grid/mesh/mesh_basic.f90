@@ -26,7 +26,7 @@ module mesh_basic
   ! Basic meta properties
   ! =====================
 
-    character(len=256)                      :: name                          !           A nice name tag, e.g. mesh_ANT_00001
+    character(len=:), allocatable           :: name                          !           A nice name tag
     real(dp)                                :: lambda_M                      ! [degrees] Oblique stereographic projection parameters
     real(dp)                                :: phi_M                         ! [degrees]
     real(dp)                                :: beta_stereo                   ! [degrees]

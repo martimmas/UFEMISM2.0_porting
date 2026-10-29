@@ -13,10 +13,10 @@ module lat_grid_basic
     ! A lat-only "grid"
 
     ! Basic properties
-    character(len=256)                      :: name         !           A nice name tag
-    integer                                 :: nlat         !           Number of grid cells in the latitude direction
-    integer                                 :: n            !           Total number of grid cells (= nx * ny)
-    real(dp)                                :: dlat         ! [degrees] Resolution in the latitude direction
+    character(len=:), allocatable           :: name         !                 A nice name tag
+    integer                                 :: nlat         !                 Number of grid cells in the latitude direction
+    integer                                 :: n            !                 Total number of grid cells (= nx * ny)
+    real(dp)                                :: dlat         ! [degrees]       Resolution in the latitude direction
     real(dp), dimension(:    ), allocatable :: lat          ! [degrees north] Latitude  of each grid point
     real(dp)                                :: latmin       ! [degrees north]
     real(dp)                                :: latmax       ! [degrees north]

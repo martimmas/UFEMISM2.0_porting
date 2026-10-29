@@ -3,7 +3,8 @@ module lonlat_grid_basic
   ! Functions for working with simple lon/lat-grids
   use precisions, only: dp
   use mpi_basic, only: par, sync
-  use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine, colour_string
+  use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
+  use crash_mod, only: crash
   use parameters
   use reallocate_mod, only: reallocate
   use interpolation, only: linint_points
@@ -21,16 +22,16 @@ module lonlat_grid_basic
     gather_lonlat_gridded_data_to_primary_dp_2D, &
     gather_lonlat_gridded_data_to_primary_dp_3D
 
-  type type_lonlat_grid
+  type :: type_lonlat_grid
     ! A regular lon/lat-grid
 
     ! Basic properties
-    character(len=256)                      :: name         !           A nice name tag
-    integer                                 :: nlon         !           Number of grid cells in the longitude direction
-    integer                                 :: nlat         !           Number of grid cells in the latitude direction
-    integer                                 :: n            !           Total number of grid cells (= nx * ny)
-    real(dp)                                :: dlon         ! [degrees] Resolution in the longitude direction
-    real(dp)                                :: dlat         ! [degrees] Resolution in the latitude direction
+    character(len=:), allocatable           :: name         !                 A nice name tag
+    integer                                 :: nlon         !                 Number of grid cells in the longitude direction
+    integer                                 :: nlat         !                 Number of grid cells in the latitude direction
+    integer                                 :: n            !                 Total number of grid cells (= nx * ny)
+    real(dp)                                :: dlon         ! [degrees]       Resolution in the longitude direction
+    real(dp)                                :: dlat         ! [degrees]       Resolution in the latitude direction
     real(dp), dimension(:    ), allocatable :: lon          ! [degrees east ] Longitude of each grid point
     real(dp), dimension(:    ), allocatable :: lat          ! [degrees north] Latitude  of each grid point
     real(dp)                                :: lonmin       ! [degrees east ] Lon/lat range covered by the grid
