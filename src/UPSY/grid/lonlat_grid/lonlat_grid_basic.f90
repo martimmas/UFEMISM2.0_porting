@@ -5,6 +5,7 @@ module lonlat_grid_basic
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
+  use basic_grid_mod, only: atype_grid
   use parameters
   use reallocate_mod, only: reallocate
   use interpolation, only: linint_points
@@ -22,11 +23,10 @@ module lonlat_grid_basic
     gather_lonlat_gridded_data_to_primary_dp_2D, &
     gather_lonlat_gridded_data_to_primary_dp_3D
 
-  type :: type_lonlat_grid
+  type, extends(atype_grid) :: type_lonlat_grid
     ! A regular lon/lat-grid
 
     ! Basic properties
-    character(len=1024)                     :: name         !           A nice name tag
     integer                                 :: nlon         !                 Number of grid cells in the longitude direction
     integer                                 :: nlat         !                 Number of grid cells in the latitude direction
     integer                                 :: n            !                 Total number of grid cells (= nx * ny)

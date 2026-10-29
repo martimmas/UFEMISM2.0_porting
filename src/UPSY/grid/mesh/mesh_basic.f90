@@ -7,6 +7,7 @@ module mesh_basic
   use parallel_array_info_type, only: type_par_arr_info
   use mpi_f08, only: MPI_WIN
   use deallocate_dist_shared_mod, only: deallocate_dist_shared
+  use basic_grid_mod, only: atype_grid
 
   implicit none
 
@@ -14,7 +15,7 @@ module mesh_basic
 
   public :: type_mesh
 
-  type type_mesh
+  type, extends(atype_grid) :: type_mesh
     ! The unstructured triangular mesh.
 
   ! Mesh creation config parameters
@@ -26,7 +27,6 @@ module mesh_basic
   ! Basic meta properties
   ! =====================
 
-    character(len=1024)                     :: name                          !           A nice name tag
     real(dp)                                :: lambda_M                      ! [degrees] Oblique stereographic projection parameters
     real(dp)                                :: phi_M                         ! [degrees]
     real(dp)                                :: beta_stereo                   ! [degrees]

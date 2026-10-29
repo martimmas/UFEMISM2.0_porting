@@ -5,6 +5,7 @@ module xy_grid_basic
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
+  use basic_grid_mod, only: atype_grid
   use parameters
   use reallocate_mod, only: reallocate
   use interpolation, only: linint_points
@@ -21,11 +22,10 @@ module xy_grid_basic
   public :: type_xy_grid, setup_xy_grid, deallocate_xy_grid, calc_secondary_xy_grid_data, &
     calc_xy_grid_matrix_operators
 
-  type type_xy_grid
+  type, extends(atype_grid) :: type_xy_grid
     ! A regular x/y-grid
 
     ! Basic properties
-    character(len=1024)                     :: name         !           A nice name tag
     integer                                 :: nx           !           Number of grid cells in the x-direction
     integer                                 :: ny           !           Number of grid cells in the x-direction
     integer                                 :: n            !           Total number of grid cells (= nx * ny)
