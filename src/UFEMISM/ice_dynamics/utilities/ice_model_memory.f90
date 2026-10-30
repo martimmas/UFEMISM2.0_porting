@@ -4,7 +4,7 @@ module ice_model_memory
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_main, only: type_ice_model
   use momentum_balance_solver_main, only: create_momentum_balance_solver
 

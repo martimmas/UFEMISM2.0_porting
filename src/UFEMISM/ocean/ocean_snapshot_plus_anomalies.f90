@@ -6,7 +6,7 @@ module ocean_snapshot_plus_anomalies
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ocean_model_types, only: type_ocean_model, type_ocean_model_snapshot_plus_anomalies
   use netcdf_io_main
   use mpi_f08, only: MPI_BCAST, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD

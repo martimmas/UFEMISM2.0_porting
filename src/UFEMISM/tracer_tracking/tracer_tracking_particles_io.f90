@@ -5,7 +5,7 @@ module tracer_tracking_model_particles_io
   use precisions, only: dp
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use tracer_tracking_model_types, only: type_tracer_tracking_model_particles
   use model_configuration, only: C

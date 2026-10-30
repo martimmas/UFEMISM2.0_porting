@@ -10,9 +10,8 @@ module ct_create_test_meshes
   use string_module, only: startswith
   use tests_main
   use assertions_basic
-  use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
-  use grid_basic, only: setup_square_grid
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid, setup_xy_grid
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform, refine_mesh_polygon
@@ -138,7 +137,7 @@ contains
     real(dp)                          :: resolution
     character(len=1024)               :: resolution_str
     character(len=1024)               :: grid_name
-    type(type_grid)                   :: grid
+    type(type_xy_grid)                :: grid
     character(len=1024)               :: filename
     integer                           :: ncid
 
@@ -152,7 +151,7 @@ contains
       write( resolution_str,'(es14.4)') resolution
 
       grid_name = 'grid_'//trim(domain_name)//'_'//trim(adjustl(resolution_str))//'_m'
-      call setup_square_grid( grid_name, xmin, xmax, ymin, ymax, resolution, &
+      call setup_xy_grid( grid_name, xmin, xmax, ymin, ymax, resolution, &
         grid, lambda_M = lambda_M, phi_M = phi_M, beta_stereo = beta_stereo)
 
       ! Write to NetCDF file

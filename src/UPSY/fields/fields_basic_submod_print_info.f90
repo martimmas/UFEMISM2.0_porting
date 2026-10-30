@@ -34,7 +34,7 @@ contains
     select type (grid => field_grid)
     class default
       call crash('invalid field%grid class')
-    class is (type_grid)
+    class is (type_xy_grid)
       field_grid_type = 'x/y-grid'
       field_grid_name = grid%name
     class is (type_mesh)

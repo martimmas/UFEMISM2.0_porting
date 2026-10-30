@@ -9,9 +9,8 @@ module ut_netcdf_read_and_remap
   use parameters, only: pi
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use string_module, only: strrep
-  use grid_types, only: type_grid
-  use grid_basic, only: setup_square_grid
-  use mesh_types, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid, setup_xy_grid
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform
@@ -156,7 +155,7 @@ contains
     character(len=1024), parameter      :: routine_name = 'create_dummy_input_file_xy_grid'
     character(len=1024)                 :: name
     real(dp)                            :: xmin, xmax, ymin, ymax, dx, x, y
-    type(type_grid)                     :: grid
+    type(type_xy_grid)                  :: grid
     real(dp), dimension(:), allocatable :: d
     integer                             :: i,j,n
     character(len=1024)                 :: filename
@@ -172,7 +171,7 @@ contains
     ymin = mesh_mod%ymin
     ymax = mesh_mod%ymax
     dx = (xmax - xmin) / 50._dp
-    call setup_square_grid( name, xmin, xmax, ymin, ymax, dx, grid)
+    call setup_xy_grid( name, xmin, xmax, ymin, ymax, dx, grid)
 
     ! Create test data
     allocate( d( grid%n1: grid%n2))

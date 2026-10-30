@@ -5,7 +5,7 @@ module SMB_IMAU_ITM
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_dimensions, only: third_dimension
@@ -18,7 +18,7 @@ module SMB_IMAU_ITM
   use climate_model_utilities, only: get_insolation_at_time
   use climate_realistic, only: initialise_insolation_forcing
   use reference_geometry_types, only: type_reference_geometry
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -369,7 +369,7 @@ contains
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_climate_model),             intent(inout) :: climate
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
 
     ! Local variables:
     character(len=*), parameter       :: routine_name = 'SMB_model_IMAU_ITM_run'

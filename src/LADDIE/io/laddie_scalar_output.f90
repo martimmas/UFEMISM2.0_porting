@@ -7,7 +7,7 @@ module laddie_scalar_output
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
   use model_configuration, only: C
   use laddie_model_types, only: type_laddie_model
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main
   use reallocate_mod
   use mpi_f08, only: MPI_ALLREDUCE, MPI_IN_PLACE, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_MIN, MPI_SUM, MPI_COMM_WORLD

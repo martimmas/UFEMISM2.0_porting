@@ -8,7 +8,7 @@ module ct_remapping_mesh_to_mesh
   use mpi_basic, only: par
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ct_remapping_basic, only: calc_test_function_on_mesh, calc_test_function_on_mesh_triangles
   use remapping_main, only: map_from_mesh_to_mesh_2D, map_from_mesh_tri_to_mesh_tri_2D
   use apply_maps, only: clear_all_maps_involving_this_mesh

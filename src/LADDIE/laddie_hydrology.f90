@@ -5,7 +5,7 @@ MODULE laddie_hydrology
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use model_configuration, only: C
   use parameters
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_utilities, only: find_containing_vertex
   use laddie_forcing_types, only: type_laddie_forcing, type_transect_SGD
   use transects_main

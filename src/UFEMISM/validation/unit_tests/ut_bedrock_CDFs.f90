@@ -10,12 +10,12 @@ module ut_bedrock_CDFs
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use model_configuration, only: C
   use parameters, only: pi
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_secondary, only: calc_all_secondary_mesh_data
   use reference_geometry_types, only: type_reference_geometry
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use ice_model_main, only: type_ice_model
   use mesh_translation_tables, only: calc_field_to_vector_form_translation_tables
 
@@ -72,7 +72,7 @@ subroutine unit_tests_bedrock_CDFs_main( test_name_parent)
   ! Define reference geometry
   name = 'test_grid'
   dx   = 5e3_dp
-  call setup_square_grid( name, xmin, xmax, ymin, ymax, dx, refgeo%grid_raw)
+  call setup_xy_grid( name, xmin, xmax, ymin, ymax, dx, refgeo%grid_raw)
 
   allocate( refgeo%Hb_grid_raw( refgeo%grid_raw%n1:refgeo%grid_raw%n2))
   do n = refgeo%grid_raw%n1, refgeo%grid_raw%n2

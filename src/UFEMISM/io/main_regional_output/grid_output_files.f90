@@ -7,7 +7,7 @@ module grid_output_files
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
   use region_types, only: type_model_region
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use netcdf_io_main
   use remapping_main, only: map_from_mesh_vertices_to_xy_grid_2D, &
     map_from_mesh_vertices_to_xy_grid_3D, map_from_mesh_vertices_to_xy_grid_2D_minval, &
@@ -128,7 +128,7 @@ contains
 
     ! In/output variables:
     type(type_model_region), intent(in   ) :: region
-    type(type_grid),         intent(in   ) :: grid
+    type(type_xy_grid),      intent(in   ) :: grid
     character(len=*),        intent(in   ) :: filename
 
     ! Local variables:
@@ -228,7 +228,7 @@ contains
 
     ! In/output variables:
     type(type_model_region), intent(in   ) :: region
-    type(type_grid),         intent(in   ) :: grid
+    type(type_xy_grid),      intent(in   ) :: grid
     character(len=*),        intent(in   ) :: filename
     integer,                 intent(in   ) :: ncid
     character(len=*),        intent(in   ) :: choice_output_field
@@ -1313,7 +1313,7 @@ contains
 
     ! In/output variables:
     type(type_model_region), intent(in   ) :: region
-    type(type_grid),         intent(in   ) :: grid
+    type(type_xy_grid),      intent(in   ) :: grid
     character(len=*),        intent(in   ) :: filename
 
     ! Local variables:

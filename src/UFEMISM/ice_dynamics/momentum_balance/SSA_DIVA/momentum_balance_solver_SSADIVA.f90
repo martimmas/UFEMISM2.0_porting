@@ -7,7 +7,7 @@ module momentum_balance_solver_SSADIVA
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: crash
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use momentum_balance_solver_basic, only: atype_momentum_balance_solver
   use mesh_disc_apply_operators, only: map_a_b_2D, map_b_a_2D, ddx_a_b_2D, ddy_a_b_2D, ddx_b_a_2D, ddy_b_a_2D
   use remapping_main, only: map_from_mesh_to_mesh_with_reallocation_2D

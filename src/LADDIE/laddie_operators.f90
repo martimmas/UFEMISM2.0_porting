@@ -9,7 +9,7 @@ module laddie_operators
   use mpi_basic                                              , only: par, sync
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use parameters
-  use mesh_types                                             , only: type_mesh
+  use mesh_basic                                             , only: type_mesh
   use laddie_model_types                                     , only: type_laddie_model, type_laddie_timestep
   use mpi_distributed_memory                                 , only: gather_to_all
   use mesh_halo_exchange, only: exchange_halos

@@ -5,7 +5,7 @@ module BMB_inverted
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_basic, only: par
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use BMB_model_types, only: type_BMB_model_inverted
   use reference_geometry_types, only: type_reference_geometry
