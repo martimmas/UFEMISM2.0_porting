@@ -6,7 +6,7 @@ module ut_mesh_delete_vertices
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use mpi_basic, only: par
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform

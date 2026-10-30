@@ -5,7 +5,7 @@ module netcdf_read_field_from_mesh_file
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use mpi_distributed_memory, only: distribute_from_primary
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_basic
   use netcdf_setup_grid_mesh_from_file
 

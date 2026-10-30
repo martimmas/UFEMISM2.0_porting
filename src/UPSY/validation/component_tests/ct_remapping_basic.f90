@@ -3,8 +3,8 @@ module ct_remapping_basic
   ! Test everything related to remapping - some basic utilities
 
   use precisions, only: dp
-  use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
   use mpi_basic, only: par
   use Halfar_SIA_solution, only: Halfar
@@ -56,7 +56,7 @@ contains
   subroutine calc_test_function_on_grid( grid, d_grid_ex_vec_partial)
 
     ! In/output variables:
-    type(type_grid),                     intent(in)  :: grid
+    type(type_xy_grid),                  intent(in)  :: grid
     real(dp), dimension(:), allocatable, intent(out) :: d_grid_ex_vec_partial
 
     ! Local variables:

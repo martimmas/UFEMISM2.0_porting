@@ -11,7 +11,7 @@ MODULE LMB_main
   USE call_stack_and_comp_time_tracking                  , ONLY: crash, init_routine, finalise_routine
   USE model_configuration                                    , ONLY: C
   USE parameters
-  USE mesh_types                                             , ONLY: type_mesh
+  use mesh_basic                                             , ONLY: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   USE LMB_model_types                                        , ONLY: type_LMB_model
   USE reallocate_mod                                         , ONLY: reallocate_bounds

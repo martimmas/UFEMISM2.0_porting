@@ -5,7 +5,7 @@ module SMB_prescribed
   use precisions, only: dp
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use SMB_model_basic, only: atype_SMB_model
   use mpi_basic, only: par
   use netcdf_io_main, only: read_field_from_file_2D
@@ -13,7 +13,7 @@ module SMB_prescribed
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use reference_geometry_types, only: type_reference_geometry
   use climate_model_types, only: type_climate_model
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
 
   implicit none
 
@@ -186,7 +186,7 @@ contains
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_climate_model),             intent(inout) :: climate
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
 
     ! Local variables:
     character(len=*), parameter :: routine_name = 'SMB_model_prescribed_run'

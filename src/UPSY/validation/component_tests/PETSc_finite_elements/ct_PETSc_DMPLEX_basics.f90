@@ -5,7 +5,7 @@ module ct_PETSc_DMPLEX_basics
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine
   use crash_mod, only: warning
   use mpi_basic, only: par
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main, only: open_existing_netcdf_file_for_reading, setup_mesh_from_file, &
     close_netcdf_file
   use petsc, only: PetscErrorF, tDM, tVec, tPetscViewer, tPetscSection, DMPlexCreate, DMSetDimension, &

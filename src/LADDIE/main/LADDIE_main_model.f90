@@ -25,11 +25,11 @@ module LADDIE_main_model
     buffer_laddie_scalars
   use laddie_integration, only: integrate_euler, integrate_fbrk3, integrate_lfra, move_laddie_timestep
   use laddie_physics, only: compute_subglacial_discharge, compute_SGD_at_transects
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ocean_main, only: initialise_ocean_model, run_ocean_model
   use netcdf_io_main
   use mesh_creation_main, only: create_mesh_from_gridded_geometry, create_mesh_from_meshed_geometry, write_mesh_success
-  use grid_basic, only: setup_square_grid
+  use xy_grid_basic, only: setup_xy_grid
   use mesh_output_files, only: create_main_regional_output_file_mesh, write_to_main_regional_output_file_mesh
   use grid_output_files, only: create_main_regional_output_file_grid, write_to_main_regional_output_file_grid, &
     create_main_regional_output_file_grid_ROI, write_to_main_regional_output_file_grid_ROI
@@ -355,7 +355,7 @@ contains
       ! Always include mesh output
       call create_laddie_mesh_output_file( mesh, laddie, is_standalone)
       ! Always include grid output
-      call setup_square_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, C%dx_output_grid_ANT, laddie%output_grid, &
+      call setup_xy_grid( grid_name, mesh%xmin, mesh%xmax, mesh%ymin, mesh%ymax, C%dx_output_grid_ANT, laddie%output_grid, &
         lambda_M = mesh%lambda_M, phi_M = mesh%phi_M, beta_stereo = mesh%beta_stereo)
       call create_laddie_output_file_grid( mesh, laddie, forcing)
     else

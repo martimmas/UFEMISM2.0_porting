@@ -6,8 +6,8 @@ MODULE reference_geometry_types
 ! ====================
 
   USE precisions                                             , ONLY: dp
-  USE grid_types                                             , ONLY: type_grid
-  USE mesh_types                                             , ONLY: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use mesh_basic                                             , ONLY: type_mesh
 
   IMPLICIT NONE
 
@@ -18,7 +18,7 @@ MODULE reference_geometry_types
   TYPE type_reference_geometry
 
     ! Data on the raw grid/mesh
-    TYPE(type_grid)                         :: grid_raw
+    type(type_xy_grid)                      :: grid_raw
     REAL(dp), DIMENSION(:    ), ALLOCATABLE :: Hi_grid_raw
     REAL(dp), DIMENSION(:    ), ALLOCATABLE :: Hb_grid_raw
     REAL(dp), DIMENSION(:    ), ALLOCATABLE :: Hs_grid_raw

@@ -20,7 +20,7 @@ module ct_PETSc_SNES_Poisson
   use crash_mod, only: crash, warning
   use mpi_f08, only: MPI_ALLTOALL, MPI_ALLTOALLV, MPI_COMM_WORLD, MPI_DOUBLE_PRECISION, MPI_INTEGER
   use mpi_basic, only: par
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main, only: open_existing_netcdf_file_for_reading, setup_mesh_from_file, &
     close_netcdf_file, save_variable_as_netcdf_dp_1D
   use petsc, only: PetscErrorF, PETSC_COMM_SELF, PETSC_COMM_WORLD, PETSC_TRUE, PETSC_FALSE, &

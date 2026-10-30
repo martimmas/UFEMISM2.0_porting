@@ -36,7 +36,7 @@ program LADDIE_program
   use basic_model_utilities, only: print_model_start, print_model_end
   use model_configuration, only: C, initialise_model_configuration, initialise_model_configuration_unit_tests
   use netcdf_io_main
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use reference_geometry_types, only: type_reference_geometry

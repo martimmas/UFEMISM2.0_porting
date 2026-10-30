@@ -2,7 +2,7 @@ module graph_pair_creation
 
   use precisions, only: dp
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph_pair
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, &

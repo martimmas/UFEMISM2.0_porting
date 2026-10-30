@@ -6,7 +6,7 @@ module ice_dynamics_main
   use model_configuration, only: C
   use parameters, only: grav, ice_density, seawater_density
   use region_types, only: type_model_region
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use reference_geometry_types, only: type_reference_geometry
   use GIA_model_types, only: type_GIA_model

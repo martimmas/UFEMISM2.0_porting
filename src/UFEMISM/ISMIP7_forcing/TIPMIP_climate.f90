@@ -32,7 +32,7 @@ module TIPMIP_climate
   use mpi_f08, only: MPI_WIN
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_dimensions, only: third_dimension
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use reference_geometry_types, only: type_reference_geometry
   use netcdf_io_main
@@ -275,7 +275,7 @@ contains
     self%Precip_baseline( self%mesh%vi1:self%mesh%vi2, :) = &
       self%Precip_baseline( self%mesh%vi1:self%mesh%vi2, :) / Precip_offset( self%mesh%vi1:self%mesh%vi2, :)
 
-    ! Apply geometry downscaling 
+    ! Apply geometry downscaling
     do vi = self%mesh%vi1, self%mesh%vi2
 
       if (geom%mask_icefree_ocean( vi)) then
@@ -325,7 +325,7 @@ contains
     call self%tas_anomaly%update_and_interpolate( self%mesh, time)
     call self%pr_ratio%update_and_interpolate( self%mesh, time)
 
-    ! Apply anomaly and ratio, and 
+    ! Apply anomaly and ratio, and
     do vi = self%mesh%vi1, self%mesh%vi2
 
       if (geom%mask_icefree_ocean( vi)) then

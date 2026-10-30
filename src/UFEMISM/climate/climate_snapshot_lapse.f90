@@ -23,7 +23,7 @@ module climate_snapshot_lapse
   use mpi_f08, only: MPI_WIN
   use Arakawa_grid_mod, only: Arakawa_grid
   use fields_dimensions, only: third_dimension
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use reference_geometry_types, only: type_reference_geometry
   use netcdf_basic
@@ -310,7 +310,7 @@ contains
       ! TODO to be implemented
     case default
       call crash('unknown choice insolation forcing "' // trim(C%choice_insolation_forcing) // '"')
-    end select 
+    end select
 
     ! Remove routine from call stack
     call finalise_routine( routine_name)

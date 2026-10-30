@@ -9,9 +9,9 @@ module ut_mesh_remapping
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine
   use parameters, only: pi
-  use grid_types, only: type_grid
-  use grid_basic, only: setup_square_grid
-  use mesh_types, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
+  use xy_grid_basic, only: setup_xy_grid
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform
@@ -81,7 +81,7 @@ contains
     character(len=1024)            :: test_name
     real(dp)                       :: xmin, xmax, ymin, ymax, dx
     character(len=1024)            :: name
-    type(type_grid)                :: grid
+    type(type_xy_grid)             :: grid
 
     ! Add routine to call stack
     call init_routine( routine_name)
@@ -96,7 +96,7 @@ contains
     ymin = 0._dp
     ymax = 10._dp * pi
     dx   = pi
-    call setup_square_grid( name, xmin, xmax, ymin, ymax, dx, grid)
+    call setup_xy_grid( name, xmin, xmax, ymin, ymax, dx, grid)
 
     call test_trace_line_grid_start( test_name, grid)
     call test_trace_line_grid_a    ( test_name, grid)

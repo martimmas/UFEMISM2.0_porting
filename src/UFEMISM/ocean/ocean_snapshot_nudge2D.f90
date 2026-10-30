@@ -6,8 +6,8 @@ module ocean_snapshot_nudge2D
   use mpi_basic, only: par
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
-  use grid_types, only: type_grid
+  use mesh_basic, only: type_mesh
+  use xy_grid_basic, only: type_xy_grid
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use ocean_model_types, only: type_ocean_model, type_ocean_model_snapshot_nudge2D
@@ -33,7 +33,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                      intent(in   ) :: mesh
-    type(type_grid),                      intent(in   ) :: grid_smooth
+    type(type_xy_grid),                   intent(in   ) :: grid_smooth
     class(atype_ice_model_data),          intent(in   ) :: ice
     class(atype_ice_geometry_model_data), intent(in   ) :: geom
     type(type_ocean_model),               intent(inout) :: ocean
@@ -65,7 +65,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                         intent(in   ) :: mesh
-    type(type_grid),                         intent(in   ) :: grid_smooth
+    type(type_xy_grid),                      intent(in   ) :: grid_smooth
     class(atype_ice_model_data),             intent(in   ) :: ice
     class(atype_ice_geometry_model_data),    intent(in   ) :: geom
     type(type_ocean_model_snapshot_nudge2D), intent(inout) :: snapshot_nudge2D
@@ -153,7 +153,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
-    type(type_grid),                        intent(in   ) :: grid_smooth
+    type(type_xy_grid),                     intent(in   ) :: grid_smooth
     class(atype_ice_model_data),            intent(in   ) :: ice
     class(atype_ice_geometry_model_data),   intent(in   ) :: geom
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(in   ) :: Hi_target_corr
@@ -204,7 +204,7 @@ contains
 
     ! In/output variables:
     type(type_mesh),                        intent(in   ) :: mesh
-    type(type_grid),                        intent(in   ) :: grid_smooth
+    type(type_xy_grid),                     intent(in   ) :: grid_smooth
     real(dp), dimension(mesh%vi1:mesh%vi2), intent(inout) :: dTdt
 
     ! Local variables:

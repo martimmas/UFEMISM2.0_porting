@@ -5,9 +5,9 @@ module mesh_output_files
   use mpi_basic, only: par, sync
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash, warning
   use model_configuration, only: C
-  use grid_basic, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use region_types, only: type_model_region
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data
   use netcdf_io_main

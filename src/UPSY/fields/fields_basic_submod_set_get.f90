@@ -97,7 +97,7 @@ contains
     select type (p => grid)
     class default
       call crash('invalid grid class')
-    class is (type_grid)
+    class is (type_xy_grid)
       self%grid_val => grid
     class is (type_mesh)
       self%grid_val => grid
@@ -141,7 +141,7 @@ contains
     select type (p => self%grid_val)
     class default
       call crash('invalid grid class')
-    class is (type_grid)
+    class is (type_xy_grid)
       grid => self%grid_val
     class is (type_mesh)
       grid => self%grid_val
@@ -187,7 +187,7 @@ contains
     select type (p => self%grid_val)
     class default
       call crash('invalid field%grid class')
-    class is (type_grid)
+    class is (type_xy_grid)
       name1 = p%name
     class is (type_mesh)
       name1 = p%name
@@ -196,7 +196,7 @@ contains
     select type (p => grid)
     class default
       call crash('invalid grid class')
-    class is (type_grid)
+    class is (type_xy_grid)
       name2 = p%name
     class is (type_mesh)
       name2 = p%name

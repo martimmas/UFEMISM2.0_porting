@@ -8,7 +8,7 @@ module ISMIP7_forcing_field_types
   use model_configuration, only: C
   use crash_mod, only: crash, warning
   use UPSY_main, only: UPSY
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use netcdf_io_main, only: read_time_from_file, read_field_from_file_2D, open_existing_netcdf_file_for_reading, &
     setup_xy_grid_from_file, close_netcdf_file, inquire_fill_value, inquire_var, read_var_primary
   use mpi_distributed_memory_grid, only: distribute_gridded_data_from_primary
@@ -16,7 +16,7 @@ module ISMIP7_forcing_field_types
   use apply_maps, only: apply_map_xy_grid_to_mesh_2D, apply_map_xy_grid_to_mesh_3D
   use remapping_grid_to_mesh_vertices, only: create_map_from_xy_grid_to_mesh_vertices
   use parameters, only: NaN, freshwater_density, sec_per_year, ice_density
-  use grid_types, only: type_grid
+  use xy_grid_basic, only: type_xy_grid
   use remapping_types, only: type_map
   use dist_to_hybrid_mod, only: dist_to_hybrid
   use models_basic, only: atype_model
@@ -44,7 +44,7 @@ module ISMIP7_forcing_field_types
       integer                                        :: ti0 = -1      !           Index of timeframe before current time
       integer                                        :: ti1 = -1      !           Index of timeframe after current time
 
-      type(type_grid)                                :: grid_raw      !           The x/y-grid that the ISMIP7 folks provided the data on
+      type(type_xy_grid)                             :: grid_raw      !           The x/y-grid that the ISMIP7 folks provided the data on
       type(type_map)                                 :: map           !           Mapping object to remap data from the ISMIP7 grid to the UFEMISM mesh
 
     contains

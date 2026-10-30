@@ -10,7 +10,7 @@ module ut_mesh_remapping_mesh_to_mesh
   use mpi_basic, only: par
   use parameters, only: pi
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use remapping_types, only: type_map
   use mesh_memory, only: allocate_mesh_primary, crop_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5, initialise_dummy_mesh_9, &

@@ -9,7 +9,7 @@ module ct_discretisation_mapping_derivatives_graph
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, crash
   use string_module, only: strrep
   use mpi_basic, only: par, sync
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use graph_types, only: type_graph
   use create_graphs_from_masked_mesh, only: create_graph_from_masked_mesh_a, create_graph_from_masked_mesh_b
   use netcdf_io_main

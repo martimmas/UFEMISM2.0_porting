@@ -7,7 +7,7 @@ module ice_mass_and_fluxes
   use model_configuration, only: C
   use call_stack_and_comp_time_tracking, only: crash, init_routine, finalise_routine
   use parameters, only: ice_density, seawater_density, ocean_area, sec_per_year
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use scalar_types, only: type_regional_scalars
   use ice_model_data, only: atype_ice_model_data
   use ice_geometry_model_data, only: atype_ice_geometry_model_data

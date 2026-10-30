@@ -6,7 +6,7 @@ module laddie_mesh_output
   use parameters
   use call_stack_and_comp_time_tracking, only: init_routine, finalise_routine, warning, crash
   use model_configuration, only: C
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use laddie_model_types, only: type_laddie_model
   use laddie_forcing_types, only: type_laddie_forcing
   use netcdf_io_main

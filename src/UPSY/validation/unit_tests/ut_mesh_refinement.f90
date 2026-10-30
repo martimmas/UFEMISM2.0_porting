@@ -8,7 +8,7 @@ module ut_mesh_refinement
   use precisions, only: dp
   use parameters
   use call_stack_and_comp_time_tracking, only: warning, crash, happy, init_routine, finalise_routine
-  use mesh_types, only: type_mesh
+  use mesh_basic, only: type_mesh
   use mesh_memory, only: allocate_mesh_primary
   use mesh_dummy_meshes, only: initialise_dummy_mesh_5
   use mesh_refinement_basic, only: refine_mesh_uniform, refine_mesh_point, refine_mesh_line, refine_mesh_polygon
